@@ -1,0 +1,170 @@
+
+import { Button } from "@/components/ui/button";
+import { Player } from "@/types/player";
+
+interface PlayerProfilePreviewProps {
+  player: Player;
+  onCreateReport: (player: Player) => void;
+  onClose: () => void;
+}
+
+const PlayerProfilePreview = ({ player, onCreateReport, onClose }: PlayerProfilePreviewProps) => {
+  const getPositionColor = (position: string) => {
+    const colors: Record<string, string> = {
+      'GK': 'bg-yellow-500',
+      'CB': 'bg-blue-500',
+      'LB': 'bg-blue-300',
+      'RB': 'bg-blue-300',
+      'LWB': 'bg-teal-400',
+      'RWB': 'bg-teal-400',
+      'CDM': 'bg-green-600',
+      'CM': 'bg-green-500',
+      'CAM': 'bg-green-400',
+      'LM': 'bg-teal-300',
+      'RM': 'bg-teal-300',
+      'LW': 'bg-red-300',
+      'RW': 'bg-red-300',
+      'ST': 'bg-red-600',
+      'CF': 'bg-red-500',
+    };
+    
+    return colors[position] || 'bg-gray-400';
+  };
+  
+  const getFormRatingColor = (rating: number) => {
+    if (rating >= 8) return 'text-green-500';
+    if (rating >= 7) return 'text-blue-500';
+    if (rating >= 6) return 'text-yellow-500';
+    return 'text-red-500';
+  };
+
+  const calculateAge = (dateOfBirth: string) => {
+    const birthDate = new Date(dateOfBirth);
+    const today = new Date();
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDifference = today.getMonth() - birthDate.getMonth();
+    
+    if (monthDifference < 0 || (monthDifference === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    
+    return age;
+  };
+  
+  return (
+    <div className="flex flex-col h-full">
+      <div className="flex items-start justify-between p-4 border-b">
+        <div className="flex items-center space-x-4">
+          {player.image ? (
+            <div className="w-16 h-16 rounded-full overflow-hidden">
+              <img src={player.image} alt={player.name} className="w-full h-full object-cover" />
+            </div>
+          ) : (
+            <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center">
+              <span className="text-2xl font-bold text-muted-foreground">
+                {player.name.charAt(0)}
+              </span>
+            </div>
+          )}
+          
+          <div>
+            <h2 className="text-xl font-bold">{player.name}</h2>
+            <p className="text-muted-foreground">{player.club}</p>
+          </div>
+        </div>
+        
+        <button
+          onClick={onClose}
+          className="rounded-full h-8 w-8 inline-flex items-center justify-center text-muted-foreground hover:bg-muted"
+        >
+          ✕
+        </button>
+      </div>
+      
+      <div className="p-4 space-y-4 flex-1 overflow-y-auto">
+        <div className="grid grid-cols-2 gap-3">
+          <div className="space-y-1">
+            <p className="text-sm text-muted-foreground">Age</p>
+            <p className="font-medium">{player.age} ({calculateAge(player.dateOfBirth)} yrs)</p>
+          </div>
+          
+          <div className="space-y-1">
+            <p className="text-sm text-muted-foreground">Nationality</p>
+            <p className="font-medium">{player.nationality}</p>
+          </div>
+          
+          <div className="space-y-1">
+            <p className="text-sm text-muted-foreground">Dominant Foot</p>
+            <p className="font-medium">{player.dominantFoot}</p>
+          </div>
+          
+          <div className="space-y-1">
+            <p className="text-sm text-muted-foreground">Contract</p>
+            <p className="font-medium">
+              {player.contractStatus}
+              {player.contractExpiry && (
+                <span className="text-sm text-muted-foreground ml-1">
+                  (until {new Date(player.contractExpiry).toLocaleDateString()})
+                </span>
+              )}
+            </p>
+          </div>
+        </div>
+        
+        <div>
+          <p className="text-sm text-muted-foreground mb-2">Positions</p>
+          <div className="flex flex-wrap gap-2">
+            {player.positions.map((position) => (
+              <span
+                key={position}
+                className={`inline-flex items-center justify-center text-xs font-bold rounded-md px-2 py-1 text-white ${getPositionColor(position)}`}
+              >
+                {position}
+              </span>
+            ))}
+          </div>
+        </div>
+        
+        {player.recentForm && (
+          <div className="rounded-md border p-3">
+            <h3 className="text-sm font-medium mb-2">Recent Form</h3>
+            <div className="grid grid-cols-4 gap-2">
+              <div className="text-center p-2 bg-muted rounded-md">
+                <p className="text-xs text-muted-foreground">Matches</p>
+                <p className="font-bold">{player.recentForm.matches}</p>
+              </div>
+              
+              <div className="text-center p-2 bg-muted rounded-md">
+                <p className="text-xs text-muted-foreground">Goals</p>
+                <p className="font-bold">{player.recentForm.goals}</p>
+              </div>
+              
+              <div className="text-center p-2 bg-muted rounded-md">
+                <p className="text-xs text-muted-foreground">Assists</p>
+                <p className="font-bold">{player.recentForm.assists}</p>
+              </div>
+              
+              <div className="text-center p-2 bg-muted rounded-md">
+                <p className="text-xs text-muted-foreground">Rating</p>
+                <p className={`font-bold ${getFormRatingColor(player.recentForm.rating)}`}>
+                  {player.recentForm.rating}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+      
+      <div className="p-4 border-t">
+        <Button 
+          className="w-full" 
+          onClick={() => onCreateReport(player)}
+        >
+          Create Report
+        </Button>
+      </div>
+    </div>
+  );
+};
+
+export default PlayerProfilePreview;
