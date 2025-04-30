@@ -6,7 +6,7 @@ import { Player } from "@/types/player";
 import { ReportTemplate, Report, ReportSectionData } from "@/types/report";
 import ReportSection from "@/components/ReportSection";
 import { toast } from "@/hooks/use-toast";
-import { ArrowLeft, Save, Send } from "lucide-react";
+import { ArrowLeft, Save, Send, Settings } from "lucide-react";
 
 interface LocationState {
   player: Player;
@@ -147,6 +147,14 @@ const ReportBuilder = () => {
         </Button>
         
         <div className="space-x-2">
+          <Button 
+            variant="outline" 
+            onClick={() => navigate("/admin/templates")}
+            className="gap-2"
+          >
+            <Settings size={16} />
+            Manage Templates
+          </Button>
           <Button 
             variant="outline" 
             onClick={() => saveReport("draft")} 

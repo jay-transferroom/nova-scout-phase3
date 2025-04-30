@@ -67,3 +67,54 @@ export interface ReportSectionData {
     notes?: string;
   }[];
 }
+
+// New interfaces for template editing
+export interface RatingOption {
+  value: string | number;
+  label?: string;
+  color?: string;
+  description?: string;
+}
+
+export const DEFAULT_RATING_SYSTEMS: Record<RatingSystemType, RatingSystem> = {
+  'numeric-1-5': {
+    type: 'numeric-1-5',
+    values: Array.from({ length: 5 }, (_, i) => ({
+      value: i + 1,
+      label: `${i + 1}`,
+      description: i < 2 ? "Below average" : i < 3 ? "Average" : i < 4 ? "Good" : "Excellent"
+    }))
+  },
+  'numeric-1-10': {
+    type: 'numeric-1-10',
+    values: Array.from({ length: 10 }, (_, i) => ({
+      value: i + 1,
+      label: `${i + 1}`,
+      description: i < 3 ? "Below standard" : i < 6 ? "Average" : i < 8 ? "Good" : "Excellent"
+    }))
+  },
+  'letter': {
+    type: 'letter',
+    values: [
+      { value: "A", label: "Elite", color: "#22C55E" },
+      { value: "B", label: "Very Good", color: "#84CC16" },
+      { value: "C", label: "Average", color: "#EAB308" },
+      { value: "D", label: "Below Average", color: "#F97316" },
+      { value: "E", label: "Poor", color: "#EF4444" },
+    ]
+  },
+  'custom-tags': {
+    type: 'custom-tags',
+    values: [
+      { value: "Elite", color: "#22C55E" },
+      { value: "Good", color: "#84CC16" },
+      { value: "Average", color: "#EAB308" },
+      { value: "Raw", color: "#F97316" },
+      { value: "Poor", color: "#EF4444" },
+    ]
+  },
+  'percentage': {
+    type: 'percentage',
+    values: []
+  }
+};

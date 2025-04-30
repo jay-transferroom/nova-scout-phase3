@@ -81,6 +81,7 @@ const RatingInput = ({ id, ratingSystem, value, onChange }: RatingInputProps) =>
                 : "bg-background hover:bg-muted/50 border"
             )}
             title={option.description}
+            style={value === option.value && option.color ? { backgroundColor: option.color } : undefined}
           >
             <span>{option.value}</span>
             {option.label && <span className="ml-2 text-xs">{option.label}</span>}
@@ -109,6 +110,7 @@ const RatingInput = ({ id, ratingSystem, value, onChange }: RatingInputProps) =>
                 : "bg-background hover:bg-muted/50 border"
             )}
             title={option.description}
+            style={value === option.value && option.color ? { backgroundColor: option.color } : undefined}
           >
             {option.label || option.value}
           </button>
