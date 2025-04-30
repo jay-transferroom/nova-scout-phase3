@@ -134,6 +134,10 @@ const ReportBuilder = () => {
     );
   }
 
+  // Separate overall section from other sections
+  const overallSection = template.sections.find(section => section.id === "overall");
+  const otherSections = template.sections.filter(section => section.id !== "overall");
+
   return (
     <div className="container mx-auto py-8 max-w-5xl">
       <div className="flex justify-between items-center mb-6">
@@ -196,7 +200,19 @@ const ReportBuilder = () => {
       </div>
 
       <div className="space-y-6">
-        {template.sections.map((section) => (
+        {/* Render overall section first if it exists */}
+        {overallSection && (
+          <ReportSection
+            key={overallSection.id}
+            section={overallSection}
+            sectionData={report.sections.find(s => s.sectionId === overallSection.id)!}
+            onChange={handleFieldChange}
+            isOverallSection={true}
+          />
+        )}
+
+        {/* Render all other sections */}
+        {otherSections.map((section) => (
           <ReportSection
             key={section.id}
             section={section}

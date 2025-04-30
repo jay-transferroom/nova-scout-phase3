@@ -3,15 +3,16 @@ import { useState } from "react";
 import { ReportSection as ReportSectionType, ReportSectionData } from "@/types/report";
 import ReportField from "@/components/ReportField";
 import { Button } from "@/components/ui/button";
-import { ChevronDown, ChevronUp } from "lucide-react";
+import { ChevronDown, ChevronUp, Award } from "lucide-react";
 
 interface ReportSectionProps {
   section: ReportSectionType;
   sectionData: ReportSectionData;
   onChange: (sectionId: string, fieldId: string, value: any, notes?: string) => void;
+  isOverallSection?: boolean;
 }
 
-const ReportSection = ({ section, sectionData, onChange }: ReportSectionProps) => {
+const ReportSection = ({ section, sectionData, onChange, isOverallSection = false }: ReportSectionProps) => {
   const [isExpanded, setIsExpanded] = useState(true);
 
   const toggleExpand = () => {
@@ -19,12 +20,15 @@ const ReportSection = ({ section, sectionData, onChange }: ReportSectionProps) =
   };
 
   return (
-    <div className="border rounded-lg bg-card">
+    <div className={`border rounded-lg bg-card ${isOverallSection ? 'border-primary/30 bg-primary/5' : ''}`}>
       <div 
         className="p-4 cursor-pointer flex justify-between items-center" 
         onClick={toggleExpand}
       >
-        <h3 className="text-lg font-medium">{section.title}</h3>
+        <div className="flex items-center gap-2">
+          {isOverallSection && <Award className="text-primary" size={20} />}
+          <h3 className={`text-lg font-medium ${isOverallSection ? 'text-primary' : ''}`}>{section.title}</h3>
+        </div>
         <Button variant="ghost" size="sm" onClick={(e) => { 
           e.stopPropagation();
           toggleExpand();

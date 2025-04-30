@@ -1,4 +1,3 @@
-
 import { ReportTemplate } from "@/types/report";
 
 export const mockTemplates: ReportTemplate[] = [
@@ -8,6 +7,34 @@ export const mockTemplates: ReportTemplate[] = [
     description: "Complete assessment for professional players",
     defaultTemplate: true,
     sections: [
+      {
+        id: "overall",
+        title: "Overall Rating",
+        fields: [
+          {
+            id: "overallRating",
+            label: "Overall Player Rating",
+            type: "rating",
+            required: true,
+            description: "Comprehensive evaluation of the player's abilities",
+            ratingSystem: {
+              type: "numeric-1-10",
+              values: Array.from({ length: 10 }, (_, i) => ({
+                value: i + 1,
+                label: `${i + 1}`,
+                description: i < 3 ? "Below standard" : i < 6 ? "Average" : i < 8 ? "Good" : "Excellent"
+              })),
+            },
+          },
+          {
+            id: "overallAssessment",
+            label: "Overall Assessment",
+            type: "text",
+            required: true,
+            description: "Summary of the player's strengths, weaknesses and potential",
+          },
+        ],
+      },
       {
         id: "technical",
         title: "Technical Attributes",
@@ -201,6 +228,36 @@ export const mockTemplates: ReportTemplate[] = [
     name: "Youth Prospect Report",
     description: "Focused assessment for youth players (U21)",
     sections: [
+      {
+        id: "overall",
+        title: "Overall Rating",
+        fields: [
+          {
+            id: "overallRating",
+            label: "Overall Potential Rating",
+            type: "rating",
+            required: true,
+            description: "Assessment of long-term potential",
+            ratingSystem: {
+              type: "letter",
+              values: [
+                { value: "A", label: "Elite", color: "#22C55E" },
+                { value: "B", label: "Very Good", color: "#84CC16" },
+                { value: "C", label: "Average", color: "#EAB308" },
+                { value: "D", label: "Below Average", color: "#F97316" },
+                { value: "E", label: "Poor", color: "#EF4444" },
+              ],
+            },
+          },
+          {
+            id: "overallAssessment",
+            label: "Development Assessment",
+            type: "text",
+            required: true,
+            description: "Overall development trajectory and potential",
+          },
+        ],
+      },
       {
         id: "potential",
         title: "Development Potential",
