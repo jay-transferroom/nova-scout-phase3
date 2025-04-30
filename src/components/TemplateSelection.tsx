@@ -1,5 +1,5 @@
-
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { ReportTemplate } from "@/types/report";
 import { Player } from "@/types/player";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -14,6 +14,7 @@ interface TemplateSelectionProps {
 }
 
 const TemplateSelection = ({ player, isOpen, onClose, onSelectTemplate }: TemplateSelectionProps) => {
+  const navigate = useNavigate();
   const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(
     mockTemplates.find(t => t.defaultTemplate)?.id || null
   );
@@ -22,6 +23,14 @@ const TemplateSelection = ({ player, isOpen, onClose, onSelectTemplate }: Templa
     const template = mockTemplates.find(t => t.id === selectedTemplateId);
     if (template) {
       onSelectTemplate(player, template);
+      
+      // Navigate to the report builder page with player and template data
+      navigate("/reports/new", {
+        state: {
+          player,
+          template
+        }
+      });
     }
   };
 
