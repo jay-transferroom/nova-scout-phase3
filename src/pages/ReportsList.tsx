@@ -5,13 +5,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { File, FileText, BookmarkCheck, Bookmark } from "lucide-react";
-import { Report } from "@/types/report";
+import { File, FileText, BookmarkCheck, Award, Star } from "lucide-react";
+import { Report, ReportWithPlayer } from "@/types/report";
 import { Player } from "@/types/player";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
+import { Badge } from "@/components/ui/badge";
 
 // Mock data for demonstration
-const mockReports: Array<Report & { player: Player }> = [
+const mockReports: Array<ReportWithPlayer> = [
   {
     id: "report-1",
     playerId: "player-1",
@@ -20,7 +21,23 @@ const mockReports: Array<Report & { player: Player }> = [
     createdAt: new Date("2025-04-15"),
     updatedAt: new Date("2025-04-15"),
     status: "submitted",
-    sections: [],
+    sections: [
+      {
+        sectionId: "overall",
+        fields: [
+          {
+            fieldId: "overallRating",
+            value: 8,
+            notes: "Excellent prospect with strong technical ability."
+          },
+          {
+            fieldId: "recommendation",
+            value: "Sign",
+            notes: "Recommended for immediate acquisition."
+          }
+        ]
+      }
+    ],
     player: {
       id: "player-1",
       name: "Marcus Johnson",
@@ -42,7 +59,23 @@ const mockReports: Array<Report & { player: Player }> = [
     createdAt: new Date("2025-04-10"),
     updatedAt: new Date("2025-04-10"),
     status: "submitted",
-    sections: [],
+    sections: [
+      {
+        sectionId: "overall",
+        fields: [
+          {
+            fieldId: "overallRating",
+            value: 9,
+            notes: "Exceptional talent with high ceiling."
+          },
+          {
+            fieldId: "recommendation",
+            value: "Priority Sign",
+            notes: "Should be a top priority target."
+          }
+        ]
+      }
+    ],
     player: {
       id: "player-2",
       name: "Carlos Sanchez",
@@ -64,7 +97,23 @@ const mockReports: Array<Report & { player: Player }> = [
     createdAt: new Date("2025-04-05"),
     updatedAt: new Date("2025-04-05"),
     status: "submitted",
-    sections: [],
+    sections: [
+      {
+        sectionId: "overall",
+        fields: [
+          {
+            fieldId: "overallRating",
+            value: 7,
+            notes: "Good prospect with potential to develop."
+          },
+          {
+            fieldId: "recommendation",
+            value: "Consider",
+            notes: "Worth monitoring for development."
+          }
+        ]
+      }
+    ],
     player: {
       id: "player-3",
       name: "Takashi Yamamoto",
@@ -86,7 +135,23 @@ const mockReports: Array<Report & { player: Player }> = [
     createdAt: new Date("2025-04-08"),
     updatedAt: new Date("2025-04-08"),
     status: "draft",
-    sections: [],
+    sections: [
+      {
+        sectionId: "overall",
+        fields: [
+          {
+            fieldId: "overallRating",
+            value: 6,
+            notes: "Average prospect, limited ceiling."
+          },
+          {
+            fieldId: "recommendation",
+            value: "Pass",
+            notes: "Not recommended for acquisition."
+          }
+        ]
+      }
+    ],
     player: {
       id: "player-4",
       name: "Lucas Silva",
@@ -101,6 +166,23 @@ const mockReports: Array<Report & { player: Player }> = [
     }
   }
 ];
+
+// Helper function to get rating color based on value
+const getRatingColor = (value: any): string => {
+  if (typeof value === "number") {
+    if (value >= 8) return "text-green-600";
+    if (value >= 6) return "text-amber-600";
+    return "text-red-600";
+  }
+  
+  if (typeof value === "string") {
+    if (["A", "A+", "Priority Sign", "Sign"].includes(value)) return "text-green-600";
+    if (["B", "B+", "Consider"].includes(value)) return "text-amber-600";
+    return "text-red-600";
+  }
+  
+  return "";
+};
 
 const ReportsList = () => {
   const navigate = useNavigate();
@@ -126,9 +208,25 @@ const ReportsList = () => {
   };
 
   const handleViewReport = (reportId: string) => {
-    // In a real app, this would navigate to a report view page
-    console.log("View report:", reportId);
-    // navigate(`/reports/${reportId}`);
+    navigate(`/reports/${reportId}`);
+  };
+
+  // Get overall rating from a report
+  const getOverallRating = (report: ReportWithPlayer) => {
+    const overallSection = report.sections.find(section => section.sectionId === "overall");
+    if (!overallSection) return null;
+    
+    const ratingField = overallSection.fields.find(field => field.fieldId === "overallRating");
+    return ratingField?.value;
+  };
+
+  // Get recommendation from a report
+  const getRecommendation = (report: ReportWithPlayer) => {
+    const overallSection = report.sections.find(section => section.sectionId === "overall");
+    if (!overallSection) return null;
+    
+    const recommendationField = overallSection.fields.find(field => field.fieldId === "recommendation");
+    return recommendationField?.value;
   };
 
   return (
@@ -172,46 +270,72 @@ const ReportsList = () => {
                 <TableHead>Positions</TableHead>
                 <TableHead>Date</TableHead>
                 <TableHead className="w-[100px]">Status</TableHead>
+                <TableHead>
+                  <div className="flex items-center gap-1">
+                    <Award size={14} />
+                    <span>Rating</span>
+                  </div>
+                </TableHead>
+                <TableHead>Recommendation</TableHead>
                 <TableHead>Scout</TableHead>
                 <TableHead className="w-[100px] text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filteredReports.length > 0 ? (
-                filteredReports.map((report) => (
-                  <TableRow key={report.id}>
-                    <TableCell className="font-medium">{report.player.name}</TableCell>
-                    <TableCell>{report.player.club}</TableCell>
-                    <TableCell>{report.player.positions.join(", ")}</TableCell>
-                    <TableCell>{formatDate(report.createdAt)}</TableCell>
-                    <TableCell>
-                      {report.status === "draft" ? (
-                        <span className="inline-flex items-center rounded-full bg-yellow-100 px-2.5 py-0.5 text-xs font-medium text-yellow-800">
-                          Draft
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">
-                          Submitted
-                        </span>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      {report.scoutId === "scout-1" ? "You" : "Other Scout"}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        onClick={() => handleViewReport(report.id)}
-                      >
-                        View
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))
+                filteredReports.map((report) => {
+                  const overallRating = getOverallRating(report);
+                  const recommendation = getRecommendation(report);
+                  
+                  return (
+                    <TableRow key={report.id}>
+                      <TableCell className="font-medium">{report.player.name}</TableCell>
+                      <TableCell>{report.player.club}</TableCell>
+                      <TableCell>{report.player.positions.join(", ")}</TableCell>
+                      <TableCell>{formatDate(report.createdAt)}</TableCell>
+                      <TableCell>
+                        {report.status === "draft" ? (
+                          <span className="inline-flex items-center rounded-full bg-yellow-100 px-2.5 py-0.5 text-xs font-medium text-yellow-800">
+                            Draft
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">
+                            Submitted
+                          </span>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {overallRating !== null && (
+                          <span className={`font-semibold text-base ${getRatingColor(overallRating)}`}>
+                            {overallRating}
+                          </span>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {recommendation && (
+                          <span className={getRatingColor(recommendation)}>
+                            {recommendation}
+                          </span>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {report.scoutId === "scout-1" ? "You" : "Other Scout"}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={() => handleViewReport(report.id)}
+                        >
+                          View
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })
               ) : (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-6 text-muted-foreground">
+                  <TableCell colSpan={9} className="text-center py-6 text-muted-foreground">
                     No reports found.
                   </TableCell>
                 </TableRow>

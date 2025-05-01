@@ -59,6 +59,7 @@ export interface Report {
   };
   tags?: string[];
   flaggedForReview?: boolean;
+  requirementProfile?: RequirementProfile;
 }
 
 export interface ReportWithPlayer extends Report {
@@ -80,6 +81,24 @@ export interface RatingOption {
   label?: string;
   color?: string;
   description?: string;
+}
+
+// New interface for player requirements
+export interface RequirementProfile {
+  id: string;
+  name: string;
+  description?: string;
+  requiredPositions: string[];
+  ageRange?: {
+    min?: number;
+    max?: number;
+  };
+  preferredRegions?: string[];
+  requiredAttributes?: {
+    attributeName: string;
+    minRating: number | string;
+  }[];
+  notes?: string;
 }
 
 export const DEFAULT_RATING_SYSTEMS: Record<RatingSystemType, RatingSystem> = {
