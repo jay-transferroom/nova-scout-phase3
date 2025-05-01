@@ -6,6 +6,8 @@ import TemplateSelection from "@/components/TemplateSelection";
 import { Player } from "@/types/player";
 import { ReportTemplate } from "@/types/report";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
+import { Button } from "@/components/ui/button";
+import { BookmarkCheck, File } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 
@@ -41,9 +43,29 @@ const ScoutingDashboard = () => {
 
   return (
     <div className="container mx-auto pt-8 pb-16 max-w-7xl">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">Football Scouting System</h1>
-        <p className="text-muted-foreground">Search for players and create scouting reports</p>
+      <div className="mb-8 flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold mb-2">Football Scouting System</h1>
+          <p className="text-muted-foreground">Search for players and create scouting reports</p>
+        </div>
+        <div className="space-x-3">
+          <Button 
+            variant="outline" 
+            onClick={() => navigate("/reports")}
+            className="gap-2"
+          >
+            <BookmarkCheck className="h-4 w-4" />
+            View Reports
+          </Button>
+          <Button 
+            variant="outline" 
+            onClick={() => navigate("/admin/templates")}
+            className="gap-2"
+          >
+            <File className="h-4 w-4" />
+            Manage Templates
+          </Button>
+        </div>
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">

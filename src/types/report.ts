@@ -1,4 +1,6 @@
 
+import { Player } from "./player";
+
 export interface ReportTemplate {
   id: string;
   name: string;
@@ -57,6 +59,10 @@ export interface Report {
   };
   tags?: string[];
   flaggedForReview?: boolean;
+}
+
+export interface ReportWithPlayer extends Report {
+  player: Player;
 }
 
 export interface ReportSectionData {
