@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -325,7 +324,7 @@ const ReportView = () => {
                     </div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Status</span>
-                      <Badge variant={report.status === "submitted" ? "success" : "secondary"}>
+                      <Badge variant={report.status === "submitted" ? "secondary" : "outline"}>
                         {report.status.charAt(0).toUpperCase() + report.status.slice(1)}
                       </Badge>
                     </div>
@@ -398,94 +397,93 @@ const ReportView = () => {
           {/* Tabs for different sections of the report */}
           <Card>
             <CardHeader className="pb-0">
-              <Tabs defaultValue="summary" onValueChange={setActiveTab}>
+              <Tabs value={activeTab} onValueChange={setActiveTab}>
                 <TabsList className="grid grid-cols-3">
                   <TabsTrigger value="summary">Summary</TabsTrigger>
                   <TabsTrigger value="technical">Technical</TabsTrigger>
                   <TabsTrigger value="physical">Physical</TabsTrigger>
                 </TabsList>
+              
+                <TabsContent value="summary" className="space-y-4 pt-6">
+                  {report.sections
+                    .filter(section => section.sectionId !== "overall" && 
+                      (section.sectionId === "summary" || !["technical", "physical"].includes(section.sectionId)))
+                    .map(section => (
+                      <div key={section.sectionId} className="space-y-4">
+                        {section.fields.map(field => (
+                          <div key={field.fieldId} className="border-b pb-4 last:border-0">
+                            <div className="flex items-center justify-between">
+                              <h3 className="font-medium">{field.fieldId}</h3>
+                              {typeof field.value === "number" || 
+                              (typeof field.value === "string" && field.value.length < 10) ? (
+                                <span className={`font-semibold ${getRatingColor(field.value)}`}>
+                                  {field.value}
+                                </span>
+                              ) : null}
+                            </div>
+                            {typeof field.value === "string" && field.value.length > 10 ? (
+                              <p className="mt-1">{field.value}</p>
+                            ) : null}
+                            {field.notes && <p className="text-sm text-muted-foreground mt-1">{field.notes}</p>}
+                          </div>
+                        ))}
+                      </div>
+                    ))}
+                </TabsContent>
+                
+                <TabsContent value="technical" className="space-y-4 pt-6">
+                  {report.sections
+                    .filter(section => section.sectionId === "technical")
+                    .map(section => (
+                      <div key={section.sectionId} className="space-y-4">
+                        {section.fields.map(field => (
+                          <div key={field.fieldId} className="border-b pb-4 last:border-0">
+                            <div className="flex items-center justify-between">
+                              <h3 className="font-medium">{field.fieldId}</h3>
+                              {typeof field.value === "number" || 
+                              (typeof field.value === "string" && field.value.length < 10) ? (
+                                <span className={`font-semibold ${getRatingColor(field.value)}`}>
+                                  {field.value}
+                                </span>
+                              ) : null}
+                            </div>
+                            {typeof field.value === "string" && field.value.length > 10 ? (
+                              <p className="mt-1">{field.value}</p>
+                            ) : null}
+                            {field.notes && <p className="text-sm text-muted-foreground mt-1">{field.notes}</p>}
+                          </div>
+                        ))}
+                      </div>
+                    ))}
+                </TabsContent>
+                
+                <TabsContent value="physical" className="space-y-4 pt-6">
+                  {report.sections
+                    .filter(section => section.sectionId === "physical")
+                    .map(section => (
+                      <div key={section.sectionId} className="space-y-4">
+                        {section.fields.map(field => (
+                          <div key={field.fieldId} className="border-b pb-4 last:border-0">
+                            <div className="flex items-center justify-between">
+                              <h3 className="font-medium">{field.fieldId}</h3>
+                              {typeof field.value === "number" || 
+                              (typeof field.value === "string" && field.value.length < 10) ? (
+                                <span className={`font-semibold ${getRatingColor(field.value)}`}>
+                                  {field.value}
+                                </span>
+                              ) : null}
+                            </div>
+                            {typeof field.value === "string" && field.value.length > 10 ? (
+                              <p className="mt-1">{field.value}</p>
+                            ) : null}
+                            {field.notes && <p className="text-sm text-muted-foreground mt-1">{field.notes}</p>}
+                          </div>
+                        ))}
+                      </div>
+                    ))}
+                </TabsContent>
               </Tabs>
             </CardHeader>
-            <CardContent className="pt-6">
-              <TabsContent value="summary" className="space-y-4">
-                {report.sections
-                  .filter(section => section.sectionId !== "overall" && 
-                    (section.sectionId === "summary" || !["technical", "physical"].includes(section.sectionId)))
-                  .map(section => (
-                    <div key={section.sectionId} className="space-y-4">
-                      {section.fields.map(field => (
-                        <div key={field.fieldId} className="border-b pb-4 last:border-0">
-                          <div className="flex items-center justify-between">
-                            <h3 className="font-medium">{field.fieldId}</h3>
-                            {typeof field.value === "number" || 
-                             (typeof field.value === "string" && field.value.length < 10) ? (
-                              <span className={`font-semibold ${getRatingColor(field.value)}`}>
-                                {field.value}
-                              </span>
-                            ) : null}
-                          </div>
-                          {typeof field.value === "string" && field.value.length > 10 ? (
-                            <p className="mt-1">{field.value}</p>
-                          ) : null}
-                          {field.notes && <p className="text-sm text-muted-foreground mt-1">{field.notes}</p>}
-                        </div>
-                      ))}
-                    </div>
-                  ))}
-              </TabsContent>
-              
-              <TabsContent value="technical" className="space-y-4">
-                {report.sections
-                  .filter(section => section.sectionId === "technical")
-                  .map(section => (
-                    <div key={section.sectionId} className="space-y-4">
-                      {section.fields.map(field => (
-                        <div key={field.fieldId} className="border-b pb-4 last:border-0">
-                          <div className="flex items-center justify-between">
-                            <h3 className="font-medium">{field.fieldId}</h3>
-                            {typeof field.value === "number" || 
-                             (typeof field.value === "string" && field.value.length < 10) ? (
-                              <span className={`font-semibold ${getRatingColor(field.value)}`}>
-                                {field.value}
-                              </span>
-                            ) : null}
-                          </div>
-                          {typeof field.value === "string" && field.value.length > 10 ? (
-                            <p className="mt-1">{field.value}</p>
-                          ) : null}
-                          {field.notes && <p className="text-sm text-muted-foreground mt-1">{field.notes}</p>}
-                        </div>
-                      ))}
-                    </div>
-                  ))}
-              </TabsContent>
-              
-              <TabsContent value="physical" className="space-y-4">
-                {report.sections
-                  .filter(section => section.sectionId === "physical")
-                  .map(section => (
-                    <div key={section.sectionId} className="space-y-4">
-                      {section.fields.map(field => (
-                        <div key={field.fieldId} className="border-b pb-4 last:border-0">
-                          <div className="flex items-center justify-between">
-                            <h3 className="font-medium">{field.fieldId}</h3>
-                            {typeof field.value === "number" || 
-                             (typeof field.value === "string" && field.value.length < 10) ? (
-                              <span className={`font-semibold ${getRatingColor(field.value)}`}>
-                                {field.value}
-                              </span>
-                            ) : null}
-                          </div>
-                          {typeof field.value === "string" && field.value.length > 10 ? (
-                            <p className="mt-1">{field.value}</p>
-                          ) : null}
-                          {field.notes && <p className="text-sm text-muted-foreground mt-1">{field.notes}</p>}
-                        </div>
-                      ))}
-                    </div>
-                  ))}
-              </TabsContent>
-            </CardContent>
           </Card>
         </div>
       </div>
