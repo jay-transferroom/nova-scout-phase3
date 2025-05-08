@@ -8,7 +8,6 @@ import { Checkbox } from "@/components/ui/checkbox";
 interface FieldEditorProps {
   field: ReportField;
   onUpdate: (field: ReportField) => void;
-  defaultRatingSystem?: RatingSystem;
 }
 
 const FieldEditor = ({ field, onUpdate }: FieldEditorProps) => {
