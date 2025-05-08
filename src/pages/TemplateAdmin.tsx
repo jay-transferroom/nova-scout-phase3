@@ -22,7 +22,7 @@ import {
 import { toast } from "@/hooks/use-toast";
 import { Plus, Save, ArrowLeft, Copy, Trash2 } from "lucide-react";
 import { mockTemplates } from "@/data/mockTemplates";
-import { ReportTemplate, DEFAULT_RATING_SYSTEMS, RatingSystem, RatingSystemType } from "@/types/report";
+import { ReportTemplate, DEFAULT_RATING_SYSTEMS, RatingSystem, RatingSystemType, ReportSection, ReportField } from "@/types/report";
 import TemplateSectionEditor from "@/components/TemplateSectionEditor";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
@@ -129,6 +129,34 @@ const TemplateAdmin = () => {
     handleUpdateTemplate({
       ...currentTemplate,
       defaultRatingSystem: ratingSystem
+    });
+  };
+  
+  const applyDefaultRatingSystemToAllFields = () => {
+    if (!currentTemplate || !currentTemplate.defaultRatingSystem) return;
+    
+    // Deep clone the sections to avoid mutating state directly
+    const updatedSections = currentTemplate.sections.map(section => ({
+      ...section,
+      fields: section.fields.map(field => {
+        if (field.type === 'rating') {
+          return {
+            ...field,
+            ratingSystem: { ...currentTemplate.defaultRatingSystem! }
+          };
+        }
+        return field;
+      })
+    }));
+    
+    handleUpdateTemplate({
+      ...currentTemplate,
+      sections: updatedSections
+    });
+    
+    toast({
+      title: "Rating System Applied",
+      description: "Default rating system applied to all existing rating fields.",
     });
   };
 
@@ -317,15 +345,10 @@ const TemplateAdmin = () => {
                           </div>
                         )}
 
-                        <div className="mt-2">
+                        <div className="mt-4">
                           <Button 
-                            variant="outline" 
-                            onClick={() => {
-                              toast({
-                                title: "Rating System Applied",
-                                description: "The default rating system will be used for all new rating fields.",
-                              });
-                            }}
+                            variant="outline"
+                            onClick={applyDefaultRatingSystemToAllFields}
                           >
                             Apply to All Existing Rating Fields
                           </Button>

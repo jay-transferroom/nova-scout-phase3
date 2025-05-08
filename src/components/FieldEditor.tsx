@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { ReportField, ReportFieldType, DEFAULT_RATING_SYSTEMS, RatingSystemType, RatingSystem } from "@/types/report";
 import { Button } from "@/components/ui/button";
@@ -83,15 +84,6 @@ const FieldEditor = ({ field, onUpdate, defaultRatingSystem }: FieldEditorProps)
     });
   };
   
-  const useDefaultRatingSystem = () => {
-    if (!defaultRatingSystem) return;
-    
-    onUpdate({
-      ...field,
-      ratingSystem: { ...defaultRatingSystem }
-    });
-  };
-  
   const handleAddOption = () => {
     if (!newOption.trim()) return;
     
@@ -171,17 +163,6 @@ const FieldEditor = ({ field, onUpdate, defaultRatingSystem }: FieldEditorProps)
       
       {field.type === "rating" && (
         <div className="space-y-4 border p-3 rounded-md">
-          {defaultRatingSystem && (
-            <Button 
-              variant="outline" 
-              size="sm"
-              className="mb-2"
-              onClick={useDefaultRatingSystem}
-            >
-              Use Template's Default Rating System
-            </Button>
-          )}
-          
           <div className="space-y-2">
             <Label htmlFor="rating-system">Rating System</Label>
             <Select 
