@@ -22,8 +22,11 @@ import {
 import { toast } from "@/hooks/use-toast";
 import { Plus, Save, ArrowLeft, Copy, Trash2 } from "lucide-react";
 import { mockTemplates } from "@/data/mockTemplates";
-import { ReportTemplate } from "@/types/report";
+import { ReportTemplate, DEFAULT_RATING_SYSTEMS, RatingSystem, RatingSystemType } from "@/types/report";
 import TemplateSectionEditor from "@/components/TemplateSectionEditor";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
+import RatingOptionsEditor from "@/components/RatingOptionsEditor";
 
 const TemplateAdmin = () => {
   const navigate = useNavigate();
@@ -111,6 +114,22 @@ const TemplateAdmin = () => {
   const handleUpdateSections = (sections: any) => {
     if (!currentTemplate) return;
     handleUpdateTemplate({...currentTemplate, sections});
+  };
+
+  const handleDefaultRatingSystemTypeChange = (ratingType: RatingSystemType) => {
+    if (!currentTemplate) return;
+    handleUpdateTemplate({
+      ...currentTemplate,
+      defaultRatingSystem: DEFAULT_RATING_SYSTEMS[ratingType]
+    });
+  };
+  
+  const handleDefaultRatingSystemUpdate = (ratingSystem: RatingSystem) => {
+    if (!currentTemplate) return;
+    handleUpdateTemplate({
+      ...currentTemplate,
+      defaultRatingSystem: ratingSystem
+    });
   };
 
   return (
@@ -220,6 +239,7 @@ const TemplateAdmin = () => {
                     <TemplateSectionEditor
                       sections={currentTemplate.sections}
                       onUpdate={handleUpdateSections}
+                      defaultRatingSystem={currentTemplate.defaultRatingSystem}
                     />
                   </TabsContent>
                   <TabsContent value="settings" className="space-y-4 pt-4">
@@ -259,6 +279,57 @@ const TemplateAdmin = () => {
                           }}
                         />
                         <label htmlFor="defaultTemplate">Set as default template</label>
+                      </div>
+
+                      <Separator className="my-4" />
+                      
+                      <div className="space-y-4">
+                        <h3 className="text-lg font-medium">Default Rating System</h3>
+                        <p className="text-sm text-muted-foreground">
+                          Set a default rating system for all rating fields in this template
+                        </p>
+                        
+                        <div className="space-y-2">
+                          <Label htmlFor="rating-system">Rating System Type</Label>
+                          <Select 
+                            value={currentTemplate.defaultRatingSystem?.type || "numeric-1-10"} 
+                            onValueChange={(value) => handleDefaultRatingSystemTypeChange(value as RatingSystemType)}
+                          >
+                            <SelectTrigger id="default-rating-system">
+                              <SelectValue placeholder="Select rating system" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="numeric-1-5">Numeric (1-5)</SelectItem>
+                              <SelectItem value="numeric-1-10">Numeric (1-10)</SelectItem>
+                              <SelectItem value="letter">Letter Grades</SelectItem>
+                              <SelectItem value="custom-tags">Custom Tags</SelectItem>
+                              <SelectItem value="percentage">Percentage</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        
+                        {currentTemplate.defaultRatingSystem && currentTemplate.defaultRatingSystem.type !== "percentage" && (
+                          <div className="border p-4 rounded-md">
+                            <RatingOptionsEditor 
+                              ratingSystem={currentTemplate.defaultRatingSystem}
+                              onUpdate={handleDefaultRatingSystemUpdate}
+                            />
+                          </div>
+                        )}
+
+                        <div className="mt-2">
+                          <Button 
+                            variant="outline" 
+                            onClick={() => {
+                              toast({
+                                title: "Rating System Applied",
+                                description: "The default rating system will be used for all new rating fields.",
+                              });
+                            }}
+                          >
+                            Apply to All Existing Rating Fields
+                          </Button>
+                        </div>
                       </div>
                     </div>
                   </TabsContent>

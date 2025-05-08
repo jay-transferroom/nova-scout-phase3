@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { ReportSection, ReportField, ReportFieldType } from "@/types/report";
+import { ReportSection, ReportField, ReportFieldType, RatingSystem } from "@/types/report";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { 
@@ -24,6 +24,7 @@ import { cn } from "@/lib/utils";
 interface TemplateSectionEditorProps {
   sections: ReportSection[];
   onUpdate: (sections: ReportSection[]) => void;
+  defaultRatingSystem?: RatingSystem;
 }
 
 const createNewSection = (): ReportSection => ({
@@ -33,14 +34,23 @@ const createNewSection = (): ReportSection => ({
   optional: false
 });
 
-const createNewField = (sectionId: string): ReportField => ({
-  id: `field-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
-  label: "New Field",
-  type: "text",
-  required: false
-});
+const createNewField = (sectionId: string, defaultRatingSystem?: RatingSystem): ReportField => {
+  const newField: ReportField = {
+    id: `field-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+    label: "New Field",
+    type: "text",
+    required: false
+  };
+  
+  // If the field is a rating and there's a default rating system, use it
+  if (newField.type === "rating" && defaultRatingSystem) {
+    newField.ratingSystem = { ...defaultRatingSystem };
+  }
+  
+  return newField;
+};
 
-const TemplateSectionEditor = ({ sections, onUpdate }: TemplateSectionEditorProps) => {
+const TemplateSectionEditor = ({ sections, onUpdate, defaultRatingSystem }: TemplateSectionEditorProps) => {
   const [expandedSectionId, setExpandedSectionId] = useState<string | null>(
     sections.length ? sections[0].id : null
   );
@@ -72,7 +82,7 @@ const TemplateSectionEditor = ({ sections, onUpdate }: TemplateSectionEditorProp
   };
 
   const handleAddField = (sectionId: string) => {
-    const newField = createNewField(sectionId);
+    const newField = createNewField(sectionId, defaultRatingSystem);
     
     const updatedSections = sections.map(section => {
       if (section.id === sectionId) {
@@ -361,6 +371,7 @@ const TemplateSectionEditor = ({ sections, onUpdate }: TemplateSectionEditorProp
                               onUpdate={(updatedField) => {
                                 handleUpdateField(section.id, updatedField);
                               }}
+                              defaultRatingSystem={defaultRatingSystem}
                             />
                           </div>
                         )}

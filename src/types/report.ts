@@ -1,4 +1,3 @@
-
 import { Player } from "./player";
 
 export interface ReportTemplate {
@@ -7,6 +6,7 @@ export interface ReportTemplate {
   description: string;
   sections: ReportSection[];
   defaultTemplate?: boolean;
+  defaultRatingSystem?: RatingSystem; // Added default rating system
 }
 
 export interface ReportSection {

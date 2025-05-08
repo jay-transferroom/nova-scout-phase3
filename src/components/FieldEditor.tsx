@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { ReportField, ReportFieldType, DEFAULT_RATING_SYSTEMS, RatingSystemType, RatingSystem } from "@/types/report";
 import { Button } from "@/components/ui/button";
@@ -18,6 +17,7 @@ import RatingOptionsEditor from "@/components/RatingOptionsEditor";
 interface FieldEditorProps {
   field: ReportField;
   onUpdate: (field: ReportField) => void;
+  defaultRatingSystem?: RatingSystem;
 }
 
 const FIELD_TYPES: { label: string; value: ReportFieldType }[] = [
@@ -36,7 +36,7 @@ const RATING_SYSTEM_TYPES: { label: string; value: RatingSystemType }[] = [
   { label: "Percentage", value: "percentage" }
 ];
 
-const FieldEditor = ({ field, onUpdate }: FieldEditorProps) => {
+const FieldEditor = ({ field, onUpdate, defaultRatingSystem }: FieldEditorProps) => {
   const [options, setOptions] = useState<string[]>(
     field.options?.map(o => o.toString()) || []
   );
@@ -46,11 +46,19 @@ const FieldEditor = ({ field, onUpdate }: FieldEditorProps) => {
     let updatedField = { ...field, type };
     
     // Set up default options based on field type
-    if (type === "rating" && !field.ratingSystem) {
-      updatedField = {
-        ...updatedField,
-        ratingSystem: DEFAULT_RATING_SYSTEMS["numeric-1-10"]
-      };
+    if (type === "rating") {
+      // Use the default rating system if available, otherwise use the default numeric-1-10
+      if (defaultRatingSystem) {
+        updatedField = {
+          ...updatedField,
+          ratingSystem: { ...defaultRatingSystem }
+        };
+      } else if (!field.ratingSystem) {
+        updatedField = {
+          ...updatedField,
+          ratingSystem: DEFAULT_RATING_SYSTEMS["numeric-1-10"]
+        };
+      }
     } else if (type === "dropdown" && (!field.options || field.options.length === 0)) {
       updatedField = {
         ...updatedField,
@@ -72,6 +80,15 @@ const FieldEditor = ({ field, onUpdate }: FieldEditorProps) => {
     onUpdate({
       ...field,
       ratingSystem
+    });
+  };
+  
+  const useDefaultRatingSystem = () => {
+    if (!defaultRatingSystem) return;
+    
+    onUpdate({
+      ...field,
+      ratingSystem: { ...defaultRatingSystem }
     });
   };
   
@@ -154,6 +171,17 @@ const FieldEditor = ({ field, onUpdate }: FieldEditorProps) => {
       
       {field.type === "rating" && (
         <div className="space-y-4 border p-3 rounded-md">
+          {defaultRatingSystem && (
+            <Button 
+              variant="outline" 
+              size="sm"
+              className="mb-2"
+              onClick={useDefaultRatingSystem}
+            >
+              Use Template's Default Rating System
+            </Button>
+          )}
+          
           <div className="space-y-2">
             <Label htmlFor="rating-system">Rating System</Label>
             <Select 

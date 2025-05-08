@@ -6,6 +6,14 @@ export const mockTemplates: ReportTemplate[] = [
     name: "Standard Scouting Report",
     description: "Complete assessment for professional players",
     defaultTemplate: true,
+    defaultRatingSystem: {
+      type: "numeric-1-10",
+      values: Array.from({ length: 10 }, (_, i) => ({
+        value: i + 1,
+        label: `${i + 1}`,
+        description: i < 3 ? "Below standard" : i < 6 ? "Average" : i < 8 ? "Good" : "Excellent"
+      })),
+    },
     sections: [
       {
         id: "overall",
@@ -227,6 +235,16 @@ export const mockTemplates: ReportTemplate[] = [
     id: "t2",
     name: "Youth Prospect Report",
     description: "Focused assessment for youth players (U21)",
+    defaultRatingSystem: {
+      type: "letter",
+      values: [
+        { value: "A", label: "Elite", color: "#22C55E" },
+        { value: "B", label: "Very Good", color: "#84CC16" },
+        { value: "C", label: "Average", color: "#EAB308" },
+        { value: "D", label: "Below Average", color: "#F97316" },
+        { value: "E", label: "Poor", color: "#EF4444" },
+      ],
+    },
     sections: [
       {
         id: "overall",
