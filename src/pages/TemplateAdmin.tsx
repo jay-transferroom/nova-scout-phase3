@@ -22,7 +22,7 @@ import {
 import { toast } from "@/hooks/use-toast";
 import { Plus, Save, ArrowLeft, Copy, Trash2 } from "lucide-react";
 import { mockTemplates } from "@/data/mockTemplates";
-import { ReportTemplate, DEFAULT_RATING_SYSTEMS, RatingSystem, RatingSystemType, ReportSection, ReportField } from "@/types/report";
+import { ReportTemplate, DEFAULT_RATING_SYSTEMS, RatingSystem, RatingSystemType } from "@/types/report";
 import TemplateSectionEditor from "@/components/TemplateSectionEditor";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
@@ -43,7 +43,8 @@ const TemplateAdmin = () => {
       id: `template-${Date.now()}`,
       name: "New Template",
       description: "Description of the new template",
-      sections: []
+      sections: [],
+      defaultRatingSystem: DEFAULT_RATING_SYSTEMS["numeric-1-10"]
     };
     
     setTemplates([...templates, newTemplate]);
@@ -118,45 +119,69 @@ const TemplateAdmin = () => {
 
   const handleDefaultRatingSystemTypeChange = (ratingType: RatingSystemType) => {
     if (!currentTemplate) return;
-    handleUpdateTemplate({
+    
+    const newRatingSystem = DEFAULT_RATING_SYSTEMS[ratingType];
+    
+    // Update the template's default rating system
+    const updatedTemplate = {
       ...currentTemplate,
-      defaultRatingSystem: DEFAULT_RATING_SYSTEMS[ratingType]
+      defaultRatingSystem: newRatingSystem
+    };
+    
+    // Also update all existing rating fields to use this rating system
+    if (updatedTemplate.sections.length > 0) {
+      updatedTemplate.sections = updatedTemplate.sections.map(section => ({
+        ...section,
+        fields: section.fields.map(field => {
+          if (field.type === 'rating') {
+            return {
+              ...field,
+              ratingSystem: { ...newRatingSystem }
+            };
+          }
+          return field;
+        })
+      }));
+    }
+    
+    handleUpdateTemplate(updatedTemplate);
+    
+    toast({
+      title: "Rating System Updated",
+      description: "Rating system updated and applied to all rating fields.",
     });
   };
   
   const handleDefaultRatingSystemUpdate = (ratingSystem: RatingSystem) => {
     if (!currentTemplate) return;
-    handleUpdateTemplate({
+    
+    // Update the template's default rating system
+    const updatedTemplate = {
       ...currentTemplate,
       defaultRatingSystem: ratingSystem
-    });
-  };
-  
-  const applyDefaultRatingSystemToAllFields = () => {
-    if (!currentTemplate || !currentTemplate.defaultRatingSystem) return;
+    };
     
-    // Deep clone the sections to avoid mutating state directly
-    const updatedSections = currentTemplate.sections.map(section => ({
-      ...section,
-      fields: section.fields.map(field => {
-        if (field.type === 'rating') {
-          return {
-            ...field,
-            ratingSystem: { ...currentTemplate.defaultRatingSystem! }
-          };
-        }
-        return field;
-      })
-    }));
+    // Also update all existing rating fields to use this rating system
+    if (updatedTemplate.sections.length > 0) {
+      updatedTemplate.sections = updatedTemplate.sections.map(section => ({
+        ...section,
+        fields: section.fields.map(field => {
+          if (field.type === 'rating') {
+            return {
+              ...field,
+              ratingSystem: { ...ratingSystem }
+            };
+          }
+          return field;
+        })
+      }));
+    }
     
-    handleUpdateTemplate({
-      ...currentTemplate,
-      sections: updatedSections
-    });
+    handleUpdateTemplate(updatedTemplate);
     
     toast({
-      title: "Rating System Applied",
-      description: "Default rating system applied to all existing rating fields.",
+      title: "Rating System Updated",
+      description: "Rating system updated and applied to all rating fields.",
     });
   };
 
@@ -261,7 +286,7 @@ const TemplateAdmin = () => {
                 <Tabs defaultValue="sections" className="w-full">
                   <TabsList>
                     <TabsTrigger value="sections">Sections</TabsTrigger>
-                    <TabsTrigger value="settings">Settings</TabsTrigger>
+                    <TabsTrigger value="settings">Rating System</TabsTrigger>
                   </TabsList>
                   <TabsContent value="sections" className="space-y-4 pt-4">
                     <TemplateSectionEditor
@@ -312,9 +337,9 @@ const TemplateAdmin = () => {
                       <Separator className="my-4" />
                       
                       <div className="space-y-4">
-                        <h3 className="text-lg font-medium">Default Rating System</h3>
+                        <h3 className="text-lg font-medium">Template Rating System</h3>
                         <p className="text-sm text-muted-foreground">
-                          Set a default rating system for all rating fields in this template
+                          Set the rating system used for all ratings in this template
                         </p>
                         
                         <div className="space-y-2">
@@ -344,15 +369,6 @@ const TemplateAdmin = () => {
                             />
                           </div>
                         )}
-
-                        <div className="mt-4">
-                          <Button 
-                            variant="outline"
-                            onClick={applyDefaultRatingSystemToAllFields}
-                          >
-                            Apply to All Existing Rating Fields
-                          </Button>
-                        </div>
                       </div>
                     </div>
                   </TabsContent>
