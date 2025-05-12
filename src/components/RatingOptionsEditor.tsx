@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Trash2, Plus } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 interface RatingOptionsEditorProps {
   ratingSystem: RatingSystem;
@@ -49,18 +50,21 @@ const RatingOptionsEditor = ({ ratingSystem, onUpdate }: RatingOptionsEditorProp
       newValue = {
         value: highest + 1,
         label: `${highest + 1}`,
-        description: ""
+        description: "",
+        color: "#8B5CF6" // Default color
       };
     } else if (isLetter) {
       newValue = {
         value: "X",
         label: "New Grade",
-        description: ""
+        description: "",
+        color: "#8B5CF6" // Default color
       };
     } else {
       newValue = {
         value: "New Tag",
-        description: ""
+        description: "",
+        color: "#8B5CF6" // Default color
       };
     }
     
@@ -79,21 +83,13 @@ const RatingOptionsEditor = ({ ratingSystem, onUpdate }: RatingOptionsEditorProp
           <div key={index} className="grid grid-cols-12 gap-2 items-center">
             {/* Display or edit the value */}
             <div className="col-span-2">
-              {isNumeric ? (
-                <Input
-                  type="number"
-                  value={option.value.toString()}
-                  onChange={(e) => handleUpdateOption(index, "value", e.target.value)}
-                  disabled={isNumeric} // Lock numeric values
-                  className="w-full"
-                />
-              ) : (
-                <Input
-                  value={option.value.toString()}
-                  onChange={(e) => handleUpdateOption(index, "value", e.target.value)}
-                  className="w-full"
-                />
-              )}
+              <Input
+                type={isNumeric ? "number" : "text"}
+                value={option.value.toString()}
+                onChange={(e) => handleUpdateOption(index, "value", e.target.value)}
+                disabled={isNumeric} // Lock numeric values
+                className="w-full"
+              />
             </div>
             
             {/* Display or edit the label */}
@@ -107,7 +103,7 @@ const RatingOptionsEditor = ({ ratingSystem, onUpdate }: RatingOptionsEditorProp
             </div>
             
             {/* Display or edit the description */}
-            <div className="col-span-5">
+            <div className="col-span-4">
               <Input
                 value={option.description || ""}
                 onChange={(e) => handleUpdateOption(index, "description", e.target.value)}
@@ -117,16 +113,21 @@ const RatingOptionsEditor = ({ ratingSystem, onUpdate }: RatingOptionsEditorProp
             </div>
             
             {/* Color picker */}
-            {(isLetter || isCustomTag) && (
-              <div className="col-span-1">
+            <div className="col-span-2">
+              <div className="flex items-center gap-2">
+                <div 
+                  className="w-6 h-6 rounded border border-gray-300" 
+                  style={{ backgroundColor: option.color || "#000000" }}
+                ></div>
                 <Input
                   type="color"
                   value={option.color || "#000000"}
                   onChange={(e) => handleUpdateOption(index, "color", e.target.value)}
-                  className="w-full h-8 p-1"
+                  className="w-full h-8 p-1 cursor-pointer"
+                  title="Choose color for this rating"
                 />
               </div>
-            )}
+            </div>
             
             {/* Delete button */}
             <div className="col-span-1">

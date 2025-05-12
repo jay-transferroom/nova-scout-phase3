@@ -107,7 +107,8 @@ export const DEFAULT_RATING_SYSTEMS: Record<RatingSystemType, RatingSystem> = {
     values: Array.from({ length: 5 }, (_, i) => ({
       value: i + 1,
       label: `${i + 1}`,
-      description: i < 2 ? "Below average" : i < 3 ? "Average" : i < 4 ? "Good" : "Excellent"
+      description: i < 2 ? "Below average" : i < 3 ? "Average" : i < 4 ? "Good" : "Excellent",
+      color: i < 2 ? "#EF4444" : i < 3 ? "#EAB308" : i < 4 ? "#84CC16" : "#22C55E"
     }))
   },
   'numeric-1-10': {
@@ -115,7 +116,8 @@ export const DEFAULT_RATING_SYSTEMS: Record<RatingSystemType, RatingSystem> = {
     values: Array.from({ length: 10 }, (_, i) => ({
       value: i + 1,
       label: `${i + 1}`,
-      description: i < 3 ? "Below standard" : i < 6 ? "Average" : i < 8 ? "Good" : "Excellent"
+      description: i < 3 ? "Below standard" : i < 6 ? "Average" : i < 8 ? "Good" : "Excellent",
+      color: i < 3 ? "#EF4444" : i < 6 ? "#EAB308" : i < 8 ? "#84CC16" : "#22C55E" 
     }))
   },
   'letter': {
