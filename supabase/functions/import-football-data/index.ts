@@ -38,8 +38,8 @@ serve(async (req) => {
       
       const response = await fetch(apiUrl, {
         headers: {
-          'X-RapidAPI-Key': rapidApiKey,
-          'X-RapidAPI-Host': 'free-api-live-football-data.p.rapidapi.com'
+          'x-rapidapi-key': rapidApiKey,
+          'x-rapidapi-host': 'free-api-live-football-data.p.rapidapi.com'
         }
       })
 
