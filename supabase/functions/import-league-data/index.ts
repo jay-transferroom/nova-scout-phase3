@@ -1,4 +1,3 @@
-
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
@@ -18,7 +17,6 @@ serve(async (req) => {
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
-    const rapidApiKey = Deno.env.get('RAPIDAPI_KEY')!
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
@@ -55,7 +53,7 @@ serve(async (req) => {
       const { error: deletePlayersError } = await supabase
         .from('players')
         .delete()
-        .ilike('club', `%${leagueName}%`)
+        .in('club', getSampleTeamsForLeague(leagueName).map(team => team.name))
       
       if (deletePlayersError) {
         console.error('Error deleting existing players:', deletePlayersError)
@@ -130,14 +128,14 @@ serve(async (req) => {
       }
     }
 
-    // Step 2: Import players for each team with fallback data
+    // Step 2: Import players for each team - only try API, don't fall back to sample data
     console.log(`Step 2: Importing players for all ${leagueName} teams`)
     
     for (const team of sampleTeams) {
       try {
         console.log(`Importing players for ${team.name}...`)
         
-        // First try the API import
+        // Only try the API import - don't fall back to sample data
         const { data: playerImportResult, error: playerImportError } = await supabase.functions.invoke('import-player-data', {
           body: { 
             team_id: team.external_api_id || team.id, 
@@ -148,44 +146,8 @@ serve(async (req) => {
         })
 
         if (playerImportError || !playerImportResult || playerImportResult.error) {
-          console.log(`API import failed for ${team.name}, using fallback sample players`)
-          
-          // Use fallback sample players
-          const samplePlayers = getSamplePlayersForTeam(team.name, leagueName)
-          let teamPlayersImported = 0
-          
-          for (const player of samplePlayers) {
-            // Check if player already exists
-            const { data: existingPlayer } = await supabase
-              .from('players')
-              .select('id')
-              .eq('name', player.name)
-              .eq('club', team.name)
-              .single()
-
-            if (!existingPlayer || force_reimport) {
-              if (existingPlayer && force_reimport) {
-                // Update existing player
-                const { error } = await supabase
-                  .from('players')
-                  .update(player)
-                  .eq('name', player.name)
-                  .eq('club', team.name)
-
-                if (!error) teamPlayersImported++
-              } else {
-                // Insert new player
-                const { error } = await supabase
-                  .from('players')
-                  .insert(player)
-
-                if (!error) teamPlayersImported++
-              }
-            }
-          }
-          
-          console.log(`Imported ${teamPlayersImported} sample players for ${team.name}`)
-          totalPlayersImported += teamPlayersImported
+          console.log(`API import failed for ${team.name}, skipping fallback to preserve existing data`)
+          // Don't create sample players - just skip this team
         } else {
           console.log(`Successfully imported players for ${team.name}:`, playerImportResult)
           totalPlayersImported += playerImportResult.playersInserted || 0
@@ -196,16 +158,7 @@ serve(async (req) => {
         
       } catch (error) {
         console.error(`Error processing team ${team.name}:`, error)
-        
-        // Fallback to sample players on any error
-        const samplePlayers = getSamplePlayersForTeam(team.name, leagueName)
-        for (const player of samplePlayers) {
-          const { error } = await supabase
-            .from('players')
-            .insert(player)
-          
-          if (!error) totalPlayersImported++
-        }
+        // Don't create fallback sample players - just log the error and continue
       }
     }
 
@@ -277,38 +230,4 @@ function getSampleTeamsForLeague(leagueName: string) {
              leagueName === 'Ligue 1' ? 'France' : 'Unknown',
     logo_url: null
   }))
-}
-
-function getSamplePlayersForTeam(teamName: string, league: string) {
-  // Sample players based on team name
-  const playerTemplates = [
-    { name: 'Player A', positions: ['Forward'], age: 25, nationality: 'England' },
-    { name: 'Player B', positions: ['Midfielder'], age: 27, nationality: 'Spain' },
-    { name: 'Player C', positions: ['Defender'], age: 29, nationality: 'France' },
-    { name: 'Player D', positions: ['Goalkeeper'], age: 31, nationality: 'Germany' },
-    { name: 'Player E', positions: ['Forward'], age: 23, nationality: 'Brazil' },
-  ]
-
-  return playerTemplates.map((template, index) => ({
-    name: `${teamName} ${template.name}`,
-    club: teamName,
-    age: template.age,
-    date_of_birth: new Date(1999 - template.age, 0, 1).toISOString().split('T')[0],
-    positions: template.positions,
-    dominant_foot: 'Right',
-    nationality: template.nationality,
-    contract_status: 'Under Contract',
-    contract_expiry: null,
-    region: getRegion(template.nationality),
-    image_url: null
-  }))
-}
-
-function getRegion(nationality: string): string {
-  const europeanCountries = ['England', 'Spain', 'France', 'Germany', 'Italy', 'Portugal', 'Netherlands']
-  const southAmericanCountries = ['Brazil', 'Argentina', 'Uruguay', 'Colombia']
-  
-  if (europeanCountries.includes(nationality)) return 'Europe'
-  if (southAmericanCountries.includes(nationality)) return 'South America'
-  return 'Other'
 }
