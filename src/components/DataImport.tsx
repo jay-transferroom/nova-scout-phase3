@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, Download, Users, Calendar, RefreshCw, Shield, Target } from "lucide-react";
+import { Loader2, Download, Users, Calendar, RefreshCw, Shield, Target, Database } from "lucide-react";
 import TeamsDisplay from "./TeamsDisplay";
 
 const DataImport = () => {
@@ -13,6 +13,7 @@ const DataImport = () => {
   const [isImportingPlayers, setIsImportingPlayers] = useState(false);
   const [isImportingTeams, setIsImportingTeams] = useState(false);
   const [isImportingTeamById, setIsImportingTeamById] = useState(false);
+  const [isUpdatingPlayerTeams, setIsUpdatingPlayerTeams] = useState(false);
   const [teamId, setTeamId] = useState("33"); // Default to Manchester United
   const [season, setSeason] = useState("2024");
   const [singleTeamId, setSingleTeamId] = useState("33"); // For single team import
@@ -135,6 +136,34 @@ const DataImport = () => {
       });
     } finally {
       setIsImportingTeamById(false);
+    }
+  };
+
+  const updatePlayerTeams = async () => {
+    setIsUpdatingPlayerTeams(true);
+    try {
+      console.log('Starting player team update...');
+      const { data, error } = await supabase.functions.invoke('update-player-teams');
+      
+      if (error) {
+        console.error('Player team update error:', error);
+        throw error;
+      }
+      
+      console.log('Player team update response:', data);
+      toast({
+        title: "Success",
+        description: `${data.message}`,
+      });
+    } catch (error) {
+      console.error('Error updating player teams:', error);
+      toast({
+        title: "Error",
+        description: `Failed to update player teams: ${error.message || 'Unknown error'}`,
+        variant: "destructive",
+      });
+    } finally {
+      setIsUpdatingPlayerTeams(false);
     }
   };
 
@@ -288,6 +317,38 @@ const DataImport = () => {
               <>
                 <Download className="mr-2 h-4 w-4" />
                 Import Players for Team {teamId}
+              </>
+            )}
+          </Button>
+        </CardContent>
+      </Card>
+
+      {/* Data Fix Section */}
+      <Card className="border-orange-200 bg-orange-50/50">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-orange-700">
+            <Database className="h-5 w-5" />
+            Fix Existing Data
+          </CardTitle>
+          <CardDescription>
+            Update existing player records to use team names instead of team IDs.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Button 
+            onClick={updatePlayerTeams} 
+            disabled={isUpdatingPlayerTeams}
+            className="w-full bg-orange-600 hover:bg-orange-700"
+          >
+            {isUpdatingPlayerTeams ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Updating Player Teams...
+              </>
+            ) : (
+              <>
+                <Database className="mr-2 h-4 w-4" />
+                Update Player Team Names
               </>
             )}
           </Button>
