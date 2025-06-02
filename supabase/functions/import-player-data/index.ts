@@ -1,3 +1,4 @@
+
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
@@ -18,11 +19,12 @@ serve(async (req) => {
     const rapidApiKey = Deno.env.get('RAPIDAPI_KEY')!
     const supabase = createClient(supabaseUrl, supabaseKey)
 
-    // Get query parameters for team filtering
-    const url = new URL(req.url)
-    const teamId = url.searchParams.get('team_id') || '8650' // Default to the working team ID
+    // Get team ID and season from request body
+    const { team_id, season } = await req.json()
+    const teamId = team_id || '33' // Default to Manchester United
+    const requestedSeason = season || '2024'
 
-    console.log(`Starting player data import for team ${teamId}...`)
+    console.log(`Starting player data import for team ${teamId}, season ${requestedSeason}...`)
 
     // Use the correct API endpoint format
     const apiUrl = `https://free-api-live-football-data.p.rapidapi.com/football-get-list-player?teamid=${teamId}`
