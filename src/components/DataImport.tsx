@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -6,14 +5,16 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, Download, Users, Calendar, RefreshCw, Shield } from "lucide-react";
+import { Loader2, Download, Users, Calendar, RefreshCw, Shield, Target } from "lucide-react";
 
 const DataImport = () => {
   const [isImportingFixtures, setIsImportingFixtures] = useState(false);
   const [isImportingPlayers, setIsImportingPlayers] = useState(false);
   const [isImportingTeams, setIsImportingTeams] = useState(false);
+  const [isImportingTeamById, setIsImportingTeamById] = useState(false);
   const [teamId, setTeamId] = useState("33"); // Default to Manchester United
   const [season, setSeason] = useState("2024");
+  const [singleTeamId, setSingleTeamId] = useState("33"); // For single team import
   const { toast } = useToast();
 
   const importFixtures = async () => {
@@ -99,6 +100,36 @@ const DataImport = () => {
       });
     } finally {
       setIsImportingTeams(false);
+    }
+  };
+
+  const importTeamById = async () => {
+    setIsImportingTeamById(true);
+    try {
+      console.log(`Starting team import for team ${singleTeamId}...`);
+      const { data, error } = await supabase.functions.invoke('import-teams-by-id', {
+        body: { team_id: singleTeamId }
+      });
+      
+      if (error) {
+        console.error('Team import error:', error);
+        throw error;
+      }
+      
+      console.log('Team import response:', data);
+      toast({
+        title: "Success",
+        description: `Team imported successfully for team ${singleTeamId}!`,
+      });
+    } catch (error) {
+      console.error('Error importing team:', error);
+      toast({
+        title: "Error",
+        description: `Failed to import team: ${error.message || 'API call failed - check your API key and rate limits'}`,
+        variant: "destructive",
+      });
+    } finally {
+      setIsImportingTeamById(false);
     }
   };
 
@@ -259,7 +290,7 @@ const DataImport = () => {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Shield className="h-5 w-5" />
-              Import Teams
+              Import All Teams
             </CardTitle>
             <CardDescription>
               Import all teams data from the RapidAPI football data service.
@@ -280,7 +311,47 @@ const DataImport = () => {
               ) : (
                 <>
                   <Download className="mr-2 h-4 w-4" />
-                  Import Teams
+                  Import All Teams
+                </>
+              )}
+            </Button>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Target className="h-5 w-5" />
+              Import Team by ID
+            </CardTitle>
+            <CardDescription>
+              Import a specific team by its ID. This allows you to fetch detailed information for a single team.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="singleTeamId">Team ID</Label>
+              <Input
+                id="singleTeamId"
+                value={singleTeamId}
+                onChange={(e) => setSingleTeamId(e.target.value)}
+                placeholder="33"
+              />
+            </div>
+            <Button 
+              onClick={importTeamById} 
+              disabled={isImportingTeamById}
+              className="w-full"
+            >
+              {isImportingTeamById ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Importing...
+                </>
+              ) : (
+                <>
+                  <Download className="mr-2 h-4 w-4" />
+                  Import Team
                 </>
               )}
             </Button>
