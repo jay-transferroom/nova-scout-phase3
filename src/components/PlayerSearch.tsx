@@ -11,15 +11,16 @@ import {
   DropdownMenuSeparator, 
   DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu";
-import { Filter, Search } from "lucide-react";
+import { Filter, Search, Loader2 } from "lucide-react";
 import { Player } from "@/types/player";
-import { mockPlayers, recentlyViewedPlayers } from "@/data/mockPlayers";
+import { usePlayersData } from "@/hooks/usePlayersData";
 
 interface PlayerSearchProps {
   onSelectPlayer: (player: Player) => void;
 }
 
 const PlayerSearch = ({ onSelectPlayer }: PlayerSearchProps) => {
+  const { data: players = [], isLoading, error } = usePlayersData();
   const [searchQuery, setSearchQuery] = useState("");
   const [filteredPlayers, setFilteredPlayers] = useState<Player[]>([]);
   const [recentPlayers, setRecentPlayers] = useState<Player[]>([]);
@@ -27,23 +28,23 @@ const PlayerSearch = ({ onSelectPlayer }: PlayerSearchProps) => {
   const [contractFilter, setContractFilter] = useState<string>("all");
   const [regionFilter, setRegionFilter] = useState<string>("all");
 
-  // Initialize recent players
+  // Initialize recent players from localStorage
   useEffect(() => {
-    const recent = recentlyViewedPlayers
-      .sort((a, b) => b.viewedAt.getTime() - a.viewedAt.getTime())
-      .slice(0, 3)
-      .map(recent => {
-        const player = mockPlayers.find(p => p.id === recent.playerId);
-        return player;
-      })
-      .filter((player): player is Player => player !== undefined);
-    
-    setRecentPlayers(recent);
-  }, []);
+    const recentPlayerIds = JSON.parse(localStorage.getItem('recentPlayers') || '[]');
+    if (players.length > 0) {
+      const recent = recentPlayerIds
+        .map((id: string) => players.find(p => p.id === id))
+        .filter((player: Player | undefined): player is Player => player !== undefined)
+        .slice(0, 3);
+      setRecentPlayers(recent);
+    }
+  }, [players]);
 
   // Filter players based on search query and filters
   useEffect(() => {
-    let results = [...mockPlayers];
+    if (!players.length) return;
+    
+    let results = [...players];
     
     if (searchQuery) {
       const lowercaseQuery = searchQuery.toLowerCase();
@@ -74,18 +75,40 @@ const PlayerSearch = ({ onSelectPlayer }: PlayerSearchProps) => {
     }
     
     setFilteredPlayers(results);
-  }, [searchQuery, ageFilter, contractFilter, regionFilter]);
+  }, [searchQuery, ageFilter, contractFilter, regionFilter, players]);
 
   // Handle player selection
   const handleSelectPlayer = (player: Player) => {
     onSelectPlayer(player);
     
-    // Add to recent players (in a real app, this would persist to storage)
+    // Update recent players in localStorage
+    const recentPlayerIds = JSON.parse(localStorage.getItem('recentPlayers') || '[]');
+    const updatedRecent = [player.id, ...recentPlayerIds.filter((id: string) => id !== player.id)].slice(0, 3);
+    localStorage.setItem('recentPlayers', JSON.stringify(updatedRecent));
+    
+    // Update local state
     const isAlreadyRecent = recentPlayers.some(p => p.id === player.id);
     if (!isAlreadyRecent) {
       setRecentPlayers(prev => [player, ...prev.slice(0, 2)]);
     }
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center p-8">
+        <Loader2 className="h-6 w-6 animate-spin" />
+        <span className="ml-2">Loading players...</span>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="text-center p-8 text-red-500">
+        Error loading players. Please try again later.
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">
