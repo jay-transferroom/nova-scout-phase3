@@ -1,4 +1,3 @@
-
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
@@ -22,9 +21,17 @@ serve(async (req) => {
 
     console.log('Starting football data import from RapidAPI...')
 
-    const apiUrl = 'https://free-api-live-football-data.p.rapidapi.com/football-get-todays-matches'
+    // Format today's date as YYYYMMDD
+    const today = new Date()
+    const dateString = today.getFullYear().toString() + 
+                      (today.getMonth() + 1).toString().padStart(2, '0') + 
+                      today.getDate().toString().padStart(2, '0')
+    
+    // Use the correct API endpoint format
+    const apiUrl = `https://free-api-live-football-data.p.rapidapi.com/football-get-matches-by-date-and-league?date=${dateString}`
     
     try {
+      console.log(`Fetching fixtures from: ${apiUrl}`)
       const response = await fetch(apiUrl, {
         headers: {
           'X-RapidAPI-Key': rapidApiKey,
@@ -33,30 +40,30 @@ serve(async (req) => {
       })
 
       if (!response.ok) {
-        console.log('API response not OK, using sample data instead')
+        console.log(`API response not OK (${response.status}), using sample data instead`)
         await createSampleFixtures(supabase)
         return new Response(
-          JSON.stringify({ message: 'Sample fixtures created successfully' }),
+          JSON.stringify({ message: 'Sample fixtures created successfully due to API failure' }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         )
       }
 
       const data = await response.json()
-      console.log('Fetched data from RapidAPI:', data)
+      console.log('Fetched data from RapidAPI:', JSON.stringify(data, null, 2))
 
       // Process and insert fixtures based on the API response structure
-      if (data && data.response) {
-        for (const match of data.response.slice(0, 20)) { // Limit to 20 matches
+      if (data && Array.isArray(data) && data.length > 0) {
+        for (const match of data.slice(0, 20)) { // Limit to 20 matches
           const fixture = {
-            home_team: match.teams?.home?.name || 'Unknown Home Team',
-            away_team: match.teams?.away?.name || 'Unknown Away Team',
-            competition: match.league?.name || 'Unknown Competition',
-            fixture_date: new Date(match.fixture?.date || Date.now()).toISOString(),
-            venue: match.fixture?.venue?.name || null,
-            status: mapApiStatus(match.fixture?.status?.short || 'NS'),
-            home_score: match.goals?.home || null,
-            away_score: match.goals?.away || null,
-            external_api_id: match.fixture?.id?.toString() || null
+            home_team: match.home_team || 'Unknown Home Team',
+            away_team: match.away_team || 'Unknown Away Team',
+            competition: match.league || match.competition || 'Unknown Competition',
+            fixture_date: match.date ? new Date(match.date).toISOString() : new Date().toISOString(),
+            venue: match.venue || null,
+            status: mapApiStatus(match.status || 'scheduled'),
+            home_score: match.home_score || null,
+            away_score: match.away_score || null,
+            external_api_id: match.id?.toString() || `api_${Date.now()}_${Math.random()}`
           }
 
           const { error } = await supabase
@@ -72,6 +79,18 @@ serve(async (req) => {
             console.log('Inserted fixture:', fixture.home_team, 'vs', fixture.away_team)
           }
         }
+        
+        return new Response(
+          JSON.stringify({ message: `Successfully imported ${data.length} fixtures from API` }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      } else {
+        console.log('No fixtures data in API response, creating sample data')
+        await createSampleFixtures(supabase)
+        return new Response(
+          JSON.stringify({ message: 'No API data available, sample fixtures created instead' }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
       }
 
     } catch (apiError) {
