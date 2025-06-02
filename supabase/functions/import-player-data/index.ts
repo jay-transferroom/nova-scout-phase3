@@ -35,6 +35,8 @@ serve(async (req) => {
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     const rapidApiKey = Deno.env.get('RAPIDAPI_KEY')!
 
+    console.log(`Environment check - Supabase URL: ${supabaseUrl ? 'SET' : 'MISSING'}, Service Key: ${supabaseServiceKey ? 'SET' : 'MISSING'}, RapidAPI Key: ${rapidApiKey ? 'SET' : 'MISSING'}`)
+
     const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
     // Get team name from database if not provided
@@ -64,6 +66,34 @@ serve(async (req) => {
 
     console.log(`Found team: ${finalTeamName}`)
 
+    // Check if we already have players for this team
+    const { data: existingPlayers, error: checkError } = await supabase
+      .from('players')
+      .select('id, name')
+      .eq('club', finalTeamName)
+
+    if (checkError) {
+      console.error('Error checking existing players:', checkError)
+    } else {
+      console.log(`Existing players for ${finalTeamName}: ${existingPlayers?.length || 0}`)
+      if (existingPlayers && existingPlayers.length > 0 && !force_reimport) {
+        console.log(`Players already exist for ${finalTeamName}, skipping import. Use force_reimport=true to overwrite.`)
+        return new Response(
+          JSON.stringify({ 
+            message: `Players already exist for ${finalTeamName}. Use force_reimport=true to overwrite.`,
+            totalPlayersFound: existingPlayers.length,
+            playersInserted: 0,
+            teamId,
+            teamName: finalTeamName,
+            skipped: true
+          }),
+          { 
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+          }
+        )
+      }
+    }
+
     // If force_reimport, delete existing players for this team
     if (force_reimport) {
       console.log(`Force reimport - deleting existing players for ${finalTeamName}`)
@@ -74,48 +104,99 @@ serve(async (req) => {
       
       if (deleteError) {
         console.error('Error deleting existing players:', deleteError)
+      } else {
+        console.log(`Successfully deleted existing players for ${finalTeamName}`)
       }
     }
 
-    const apiUrl = `https://free-api-live-football-data.p.rapidapi.com/football-get-list-player?teamid=${teamId}`
-    console.log(`Fetching players from: ${apiUrl}`)
+    // Retry mechanism for API calls
+    const maxRetries = 3
+    const retryDelay = 2000 // 2 seconds
 
-    const response = await fetch(apiUrl, {
-      method: 'GET',
-      headers: {
-        'X-RapidAPI-Key': rapidApiKey,
-        'X-RapidAPI-Host': 'free-api-live-football-data.p.rapidapi.com'
+    const makeApiCall = async (attempt: number): Promise<any> => {
+      const apiUrl = `https://free-api-live-football-data.p.rapidapi.com/football-get-list-player?teamid=${teamId}`
+      console.log(`API call attempt ${attempt}/${maxRetries} for team ${teamId}: ${apiUrl}`)
+
+      try {
+        const response = await fetch(apiUrl, {
+          method: 'GET',
+          headers: {
+            'X-RapidAPI-Key': rapidApiKey,
+            'X-RapidAPI-Host': 'free-api-live-football-data.p.rapidapi.com'
+          }
+        })
+
+        console.log(`API response status (attempt ${attempt}): ${response.status}`)
+
+        if (!response.ok) {
+          throw new Error(`API request failed with status: ${response.status}`)
+        }
+
+        const data = await response.json()
+        console.log(`API response data structure (attempt ${attempt}):`, {
+          status: data.status,
+          hasResponse: !!data.response,
+          hasSquad: !!(data.response?.list?.squad),
+          squadLength: data.response?.list?.squad?.length || 0,
+          message: data.message
+        })
+
+        if (data.status !== 'success' || !data.response?.list?.squad) {
+          throw new Error(`Invalid API response: ${data.message || 'Unknown error'}`)
+        }
+
+        return data
+      } catch (error) {
+        console.error(`API call attempt ${attempt} failed:`, error.message)
+        
+        if (attempt < maxRetries) {
+          console.log(`Waiting ${retryDelay}ms before retry...`)
+          await new Promise(resolve => setTimeout(resolve, retryDelay))
+          return makeApiCall(attempt + 1)
+        } else {
+          throw error
+        }
       }
-    })
-
-    console.log(`API response status: ${response.status}`)
-
-    if (!response.ok) {
-      throw new Error(`API request failed: ${response.status}`)
     }
 
-    const data = await response.json()
-    console.log('API response data:', JSON.stringify(data, null, 2))
-
-    if (data.status !== 'success' || !data.response?.list?.squad) {
-      console.log('API response indicates failure or invalid structure')
-      throw new Error('Invalid API response structure')
+    let data
+    try {
+      data = await makeApiCall(1)
+    } catch (error) {
+      console.error(`All API attempts failed for team ${teamId}:`, error.message)
+      return new Response(
+        JSON.stringify({ 
+          error: `Failed to fetch player data after ${maxRetries} attempts: ${error.message}`,
+          teamId,
+          teamName: finalTeamName
+        }),
+        { 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 500
+        }
+      )
     }
 
     const squad = data.response.list.squad
     let totalPlayersFound = 0
     let playersInserted = 0
 
+    console.log(`Processing ${squad.length} squad categories for ${finalTeamName}`)
+
     // Process all squad categories
-    for (const category of squad) {
+    for (const [categoryIndex, category] of squad.entries()) {
+      console.log(`Processing category ${categoryIndex + 1}/${squad.length}: ${category.name || 'Unnamed'} with ${category.members?.length || 0} members`)
+      
       if (category.members) {
-        for (const player of category.members) {
+        for (const [playerIndex, player] of category.members.entries()) {
           // Skip coaches and other non-player roles
           if (player.role?.key === 'coach' || player.excludeFromRanking === true) {
+            console.log(`Skipping non-player: ${player.name} (role: ${player.role?.key})`)
             continue
           }
 
           totalPlayersFound++
+          console.log(`Processing player ${playerIndex + 1}/${category.members.length}: ${player.name}`)
 
           const positions = player.positionIdsDesc ? player.positionIdsDesc.split(',').map((p: string) => p.trim()) : ['Unknown']
           
@@ -158,7 +239,6 @@ serve(async (req) => {
           }
 
           const playerImage = player.image || player.img || player.photo || null
-          console.log(`Player ${player.name} image URL: ${playerImage}`)
 
           const playerData = {
             name: player.name,
@@ -174,62 +254,37 @@ serve(async (req) => {
             image_url: playerImage
           }
 
-          // Check if player already exists (unless force reimport)
-          const { data: existingPlayer } = await supabase
+          console.log(`Inserting player data:`, {
+            name: playerData.name,
+            club: playerData.club,
+            age: playerData.age,
+            nationality: playerData.nationality,
+            positions: playerData.positions,
+            hasImage: !!playerData.image_url
+          })
+
+          // Insert new player
+          const { error: insertError } = await supabase
             .from('players')
-            .select('id')
-            .eq('name', player.name)
-            .eq('club', finalTeamName)
-            .single()
+            .insert(playerData)
 
-          if (!existingPlayer || force_reimport) {
-            if (existingPlayer && force_reimport) {
-              // Update existing player
-              const { error: updateError } = await supabase
-                .from('players')
-                .update(playerData)
-                .eq('name', player.name)
-                .eq('club', finalTeamName)
+          if (insertError) {
+            console.error(`Error inserting player ${player.name}:`, insertError)
+          } else {
+            console.log(`Successfully inserted player: ${player.name} from ${finalTeamName}`)
+            playersInserted++
 
-              if (updateError) {
-                console.error(`Error updating player ${player.name}:`, updateError)
-              } else {
-                console.log(`Updated player: ${player.name} from ${finalTeamName} with image: ${playerImage}`)
-                playersInserted++
-              }
-            } else {
-              // Insert new player
-              const { error: insertError } = await supabase
-                .from('players')
-                .insert(playerData)
-
-              if (insertError) {
-                console.error(`Error inserting player ${player.name}:`, insertError)
-              } else {
-                console.log(`Inserted player: ${player.name} from ${finalTeamName} with image: ${playerImage}`)
-                playersInserted++
-              }
-            }
-
-            // Insert recent form data if available and player was inserted/updated successfully
-            if ((player.rating && player.goals !== undefined && player.assists !== undefined) && (!existingPlayer || force_reimport)) {
-              const { data: insertedPlayer } = await supabase
+            // Insert recent form data if available
+            if (player.rating && player.goals !== undefined && player.assists !== undefined) {
+              const { data: insertedPlayer, error: playerFetchError } = await supabase
                 .from('players')
                 .select('id')
                 .eq('name', player.name)
                 .eq('club', finalTeamName)
                 .single()
 
-              if (insertedPlayer) {
-                // Delete existing form data if force reimport
-                if (force_reimport) {
-                  await supabase
-                    .from('player_recent_form')
-                    .delete()
-                    .eq('player_id', insertedPlayer.id)
-                }
-
-                await supabase
+              if (insertedPlayer && !playerFetchError) {
+                const { error: formError } = await supabase
                   .from('player_recent_form')
                   .insert({
                     player_id: insertedPlayer.id,
@@ -238,16 +293,20 @@ serve(async (req) => {
                     assists: player.assists || 0,
                     rating: parseFloat(player.rating) || 0.0
                   })
+
+                if (formError) {
+                  console.error(`Error inserting form data for ${player.name}:`, formError)
+                } else {
+                  console.log(`Inserted form data for ${player.name}`)
+                }
               }
             }
-          } else {
-            console.log(`Player already exists: ${player.name}`)
           }
         }
       }
     }
 
-    console.log(`Found ${totalPlayersFound} players in squad, inserted/updated ${playersInserted}`)
+    console.log(`Import completed for ${finalTeamName}: found ${totalPlayersFound} players, successfully inserted ${playersInserted}`)
 
     return new Response(
       JSON.stringify({ 

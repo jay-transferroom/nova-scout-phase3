@@ -18,6 +18,8 @@ serve(async (req) => {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
 
+    console.log(`Environment check - Supabase URL: ${supabaseUrl ? 'SET' : 'MISSING'}, Service Key: ${supabaseServiceKey ? 'SET' : 'MISSING'}`)
+
     const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
     // Define league mappings for better API calls
@@ -45,18 +47,35 @@ serve(async (req) => {
     let totalTeamsImported = 0
     let totalPlayersImported = 0
 
+    // Check existing data
+    const { data: existingTeams, error: checkError } = await supabase
+      .from('teams')
+      .select('id, name, external_api_id')
+      .eq('league', leagueName)
+
+    if (checkError) {
+      console.error('Error checking existing teams:', checkError)
+    } else {
+      console.log(`Existing teams for ${leagueName}: ${existingTeams?.length || 0}`)
+    }
+
     // If force_reimport is true, delete existing league data first
     if (force_reimport) {
       console.log(`Force reimport requested - deleting existing ${leagueName} data`)
+      
+      // Get team names for player deletion
+      const teamNames = getSampleTeamsForLeague(leagueName).map(team => team.name)
       
       // Delete players from teams in this league
       const { error: deletePlayersError } = await supabase
         .from('players')
         .delete()
-        .in('club', getSampleTeamsForLeague(leagueName).map(team => team.name))
+        .in('club', teamNames)
       
       if (deletePlayersError) {
         console.error('Error deleting existing players:', deletePlayersError)
+      } else {
+        console.log(`Successfully deleted players for ${leagueName} teams`)
       }
       
       // Delete teams from this league
@@ -67,6 +86,8 @@ serve(async (req) => {
       
       if (deleteTeamsError) {
         console.error('Error deleting existing teams:', deleteTeamsError)
+      } else {
+        console.log(`Successfully deleted teams for ${leagueName}`)
       }
       
       console.log(`Cleared existing ${leagueName} data`)
@@ -77,8 +98,11 @@ serve(async (req) => {
     
     // Use sample teams (API teams endpoint seems unreliable)
     const sampleTeams = getSampleTeamsForLeague(leagueName)
+    console.log(`Processing ${sampleTeams.length} teams for ${leagueName}`)
     
-    for (const team of sampleTeams) {
+    for (const [teamIndex, team] of sampleTeams.entries()) {
+      console.log(`Processing team ${teamIndex + 1}/${sampleTeams.length}: ${team.name}`)
+      
       // Check if team already exists (unless force reimport)
       const { data: existingTeam } = await supabase
         .from('teams')
@@ -96,6 +120,12 @@ serve(async (req) => {
           external_api_id: team.external_api_id || team.id,
           logo_url: team.logo || team.image || team.badge || null
         }
+
+        console.log(`Inserting/updating team data:`, {
+          name: teamData.name,
+          external_api_id: teamData.external_api_id,
+          venue: teamData.venue
+        })
 
         if (existingTeam && force_reimport) {
           // Update existing team
@@ -128,14 +158,19 @@ serve(async (req) => {
       }
     }
 
-    // Step 2: Import players for each team - only try API, don't fall back to sample data
+    // Step 2: Import players for each team with enhanced error handling
     console.log(`Step 2: Importing players for all ${leagueName} teams`)
     
-    for (const team of sampleTeams) {
+    for (const [teamIndex, team] of sampleTeams.entries()) {
       try {
-        console.log(`Importing players for ${team.name}...`)
+        console.log(`\n=== Starting player import for team ${teamIndex + 1}/${sampleTeams.length}: ${team.name} ===`)
         
-        // Only try the API import - don't fall back to sample data
+        // Add longer delay between teams to avoid rate limiting
+        if (teamIndex > 0) {
+          console.log('Waiting 3 seconds between teams to avoid rate limiting...')
+          await new Promise(resolve => setTimeout(resolve, 3000))
+        }
+        
         const { data: playerImportResult, error: playerImportError } = await supabase.functions.invoke('import-player-data', {
           body: { 
             team_id: team.external_api_id || team.id, 
@@ -145,26 +180,31 @@ serve(async (req) => {
           }
         })
 
-        if (playerImportError || !playerImportResult || playerImportResult.error) {
-          console.log(`API import failed for ${team.name}, skipping fallback to preserve existing data`)
-          // Don't create sample players - just skip this team
+        if (playerImportError) {
+          console.error(`Player import function error for ${team.name}:`, playerImportError)
+        } else if (playerImportResult?.error) {
+          console.error(`Player import failed for ${team.name}:`, playerImportResult.error)
         } else {
-          console.log(`Successfully imported players for ${team.name}:`, playerImportResult)
-          totalPlayersImported += playerImportResult.playersInserted || 0
+          console.log(`Successfully imported players for ${team.name}:`, {
+            totalFound: playerImportResult?.totalPlayersFound || 0,
+            inserted: playerImportResult?.playersInserted || 0,
+            skipped: playerImportResult?.skipped || false
+          })
+          totalPlayersImported += playerImportResult?.playersInserted || 0
         }
-
-        // Add a small delay to avoid rate limiting
-        await new Promise(resolve => setTimeout(resolve, 1000))
         
       } catch (error) {
         console.error(`Error processing team ${team.name}:`, error)
-        // Don't create fallback sample players - just log the error and continue
       }
     }
 
+    const finalMessage = `Successfully processed ${leagueName} data: ${totalTeamsImported} teams, ${totalPlayersImported} players`
+    console.log(`\n=== IMPORT COMPLETE ===`)
+    console.log(finalMessage)
+
     return new Response(
       JSON.stringify({ 
-        message: `Successfully imported ${leagueName} data`,
+        message: finalMessage,
         league: leagueName,
         teamsImported: totalTeamsImported,
         playersImported: totalPlayersImported,
