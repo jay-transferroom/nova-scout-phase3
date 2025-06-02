@@ -5,12 +5,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, Download, Globe, Database, Users } from "lucide-react";
+import { Loader2, Download, Globe, Database, Users, RefreshCw } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 import TeamsDisplay from "./TeamsDisplay";
 
 const DataImport = () => {
   const [isImportingLeague, setIsImportingLeague] = useState(false);
   const [selectedLeague, setSelectedLeague] = useState("");
+  const [forceReimport, setForceReimport] = useState(false);
   const { toast } = useToast();
 
   const availableLeagues = [
@@ -33,9 +35,12 @@ const DataImport = () => {
 
     setIsImportingLeague(true);
     try {
-      console.log(`Starting import for ${selectedLeague}...`);
+      console.log(`Starting import for ${selectedLeague}, force reimport: ${forceReimport}...`);
       const { data, error } = await supabase.functions.invoke('import-league-data', {
-        body: { league_name: selectedLeague }
+        body: { 
+          league_name: selectedLeague,
+          force_reimport: forceReimport
+        }
       });
       
       if (error) {
@@ -44,9 +49,15 @@ const DataImport = () => {
       }
       
       console.log('League import response:', data);
+      
+      const actionType = forceReimport ? 'reimported' : 'imported';
+      const message = data.forceReimport 
+        ? `Successfully reimported ${selectedLeague} with ${data.teamsImported} teams and ${data.playersImported} players!`
+        : `Successfully imported ${selectedLeague} with ${data.teamsImported} teams and ${data.playersImported} players!`;
+      
       toast({
         title: "Success",
-        description: `Successfully imported ${selectedLeague} with ${data.teamsImported} teams and ${data.playersImported} players!`,
+        description: message,
       });
     } catch (error) {
       console.error('Error importing league data:', error);
@@ -135,6 +146,20 @@ const DataImport = () => {
               </SelectContent>
             </Select>
           </div>
+
+          <div className="flex items-center space-x-2">
+            <Checkbox 
+              id="force-reimport" 
+              checked={forceReimport}
+              onCheckedChange={(checked) => setForceReimport(checked as boolean)}
+            />
+            <label 
+              htmlFor="force-reimport" 
+              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+            >
+              Force reimport (overwrites existing data)
+            </label>
+          </div>
           
           <Button 
             onClick={importLeagueData} 
@@ -145,19 +170,24 @@ const DataImport = () => {
             {isImportingLeague ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Importing {selectedLeague}...
+                {forceReimport ? 'Reimporting' : 'Importing'} {selectedLeague}...
               </>
             ) : (
               <>
-                <Download className="mr-2 h-4 w-4" />
-                Import {selectedLeague || 'League'} Data
+                {forceReimport ? <RefreshCw className="mr-2 h-4 w-4" /> : <Download className="mr-2 h-4 w-4" />}
+                {forceReimport ? 'Reimport' : 'Import'} {selectedLeague || 'League'} Data
               </>
             )}
           </Button>
           
           {selectedLeague && (
             <p className="text-sm text-muted-foreground">
-              This will import all teams and players from {selectedLeague}, making them searchable in your database.
+              This will {forceReimport ? 'reimport and overwrite existing' : 'import'} all teams and players from {selectedLeague}, making them searchable in your database.
+              {forceReimport && (
+                <span className="text-amber-600 font-medium block mt-1">
+                  ⚠️ Warning: This will delete and replace existing {selectedLeague} data.
+                </span>
+              )}
             </p>
           )}
         </CardContent>

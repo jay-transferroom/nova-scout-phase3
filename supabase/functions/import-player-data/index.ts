@@ -14,9 +14,9 @@ serve(async (req) => {
 
   try {
     const body = await req.json()
-    const { team_id: teamId, season = 2024 } = body
+    const { team_id: teamId, season = 2024, team_name: teamName, force_reimport = false } = body
     
-    console.log(`Starting player data import for team ${teamId}, season ${season}...`)
+    console.log(`Starting player data import for team ${teamId} (${teamName}), season ${season}, force_reimport: ${force_reimport}`)
 
     if (!teamId) {
       return new Response(
@@ -37,29 +37,45 @@ serve(async (req) => {
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
-    // First, get the team name from our teams table
-    const { data: teamData, error: teamError } = await supabase
-      .from('teams')
-      .select('name')
-      .eq('external_api_id', teamId)
-      .single()
+    // Get team name from database if not provided
+    let finalTeamName = teamName
+    if (!finalTeamName) {
+      const { data: teamData, error: teamError } = await supabase
+        .from('teams')
+        .select('name')
+        .eq('external_api_id', teamId)
+        .single()
 
-    if (teamError || !teamData) {
-      console.error('Team not found in database:', teamError)
-      return new Response(
-        JSON.stringify({ 
-          message: `Team with ID ${teamId} not found in database. Please import teams first.`,
-          error: teamError 
-        }),
-        { 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          status: 400
-        }
-      )
+      if (teamError || !teamData) {
+        console.error('Team not found in database:', teamError)
+        return new Response(
+          JSON.stringify({ 
+            message: `Team with ID ${teamId} not found in database. Please import teams first.`,
+            error: teamError 
+          }),
+          { 
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            status: 400
+          }
+        )
+      }
+      finalTeamName = teamData.name
     }
 
-    const teamName = teamData.name
-    console.log(`Found team: ${teamName}`)
+    console.log(`Found team: ${finalTeamName}`)
+
+    // If force_reimport, delete existing players for this team
+    if (force_reimport) {
+      console.log(`Force reimport - deleting existing players for ${finalTeamName}`)
+      const { error: deleteError } = await supabase
+        .from('players')
+        .delete()
+        .eq('club', finalTeamName)
+      
+      if (deleteError) {
+        console.error('Error deleting existing players:', deleteError)
+      }
+    }
 
     const apiUrl = `https://free-api-live-football-data.p.rapidapi.com/football-get-list-player?teamid=${teamId}`
     console.log(`Fetching players from: ${apiUrl}`)
@@ -82,6 +98,7 @@ serve(async (req) => {
     console.log('API response data:', JSON.stringify(data, null, 2))
 
     if (data.status !== 'success' || !data.response?.list?.squad) {
+      console.log('API response indicates failure or invalid structure')
       throw new Error('Invalid API response structure')
     }
 
@@ -123,7 +140,6 @@ serve(async (req) => {
 
           const nationality = nationalityMap[player.ccode] || player.cname || 'Unknown'
           
-          // Determine region based on nationality
           const getRegion = (nationality: string): string => {
             const europeanCountries = ['England', 'Spain', 'France', 'Germany', 'Italy', 'Portugal', 'Netherlands', 'Belgium', 'Croatia', 'Poland', 'Czechia', 'Wales', 'Scotland', 'Ireland', 'Norway', 'Sweden', 'Denmark', 'Austria', 'Switzerland', 'Serbia', 'Turkey', 'Ukraine', 'Russia']
             const southAmericanCountries = ['Brazil', 'Argentina', 'Uruguay', 'Colombia']
@@ -141,69 +157,106 @@ serve(async (req) => {
             return 'Unknown'
           }
 
-          // Extract player image from API data
           const playerImage = player.image || player.img || player.photo || null
           console.log(`Player ${player.name} image URL: ${playerImage}`)
 
           const playerData = {
             name: player.name,
-            club: teamName,
+            club: finalTeamName,
             age: player.age || 0,
             date_of_birth: player.dateOfBirth || '1990-01-01',
             positions: positions,
-            dominant_foot: 'Right', // Default as API doesn't provide this
+            dominant_foot: 'Right',
             nationality: nationality,
-            contract_status: 'Under Contract', // Default assumption
+            contract_status: 'Under Contract',
             contract_expiry: null,
             region: getRegion(nationality),
-            image_url: playerImage // Use actual image from API
+            image_url: playerImage
           }
 
-          const { error: insertError } = await supabase
+          // Check if player already exists (unless force reimport)
+          const { data: existingPlayer } = await supabase
             .from('players')
-            .insert(playerData)
+            .select('id')
+            .eq('name', player.name)
+            .eq('club', finalTeamName)
+            .single()
 
-          if (insertError) {
-            console.error(`Error inserting player ${player.name}:`, insertError)
-          } else {
-            console.log(`Inserted player: ${player.name} from ${teamName} with image: ${playerImage}`)
-            playersInserted++
+          if (!existingPlayer || force_reimport) {
+            if (existingPlayer && force_reimport) {
+              // Update existing player
+              const { error: updateError } = await supabase
+                .from('players')
+                .update(playerData)
+                .eq('name', player.name)
+                .eq('club', finalTeamName)
 
-            // Insert recent form data if available
-            if (player.rating && player.goals !== undefined && player.assists !== undefined) {
+              if (updateError) {
+                console.error(`Error updating player ${player.name}:`, updateError)
+              } else {
+                console.log(`Updated player: ${player.name} from ${finalTeamName} with image: ${playerImage}`)
+                playersInserted++
+              }
+            } else {
+              // Insert new player
+              const { error: insertError } = await supabase
+                .from('players')
+                .insert(playerData)
+
+              if (insertError) {
+                console.error(`Error inserting player ${player.name}:`, insertError)
+              } else {
+                console.log(`Inserted player: ${player.name} from ${finalTeamName} with image: ${playerImage}`)
+                playersInserted++
+              }
+            }
+
+            // Insert recent form data if available and player was inserted/updated successfully
+            if ((player.rating && player.goals !== undefined && player.assists !== undefined) && (!existingPlayer || force_reimport)) {
               const { data: insertedPlayer } = await supabase
                 .from('players')
                 .select('id')
                 .eq('name', player.name)
-                .eq('club', teamName)
+                .eq('club', finalTeamName)
                 .single()
 
               if (insertedPlayer) {
+                // Delete existing form data if force reimport
+                if (force_reimport) {
+                  await supabase
+                    .from('player_recent_form')
+                    .delete()
+                    .eq('player_id', insertedPlayer.id)
+                }
+
                 await supabase
                   .from('player_recent_form')
                   .insert({
                     player_id: insertedPlayer.id,
-                    matches: 10, // Default assumption
+                    matches: 10,
                     goals: player.goals || 0,
                     assists: player.assists || 0,
                     rating: parseFloat(player.rating) || 0.0
                   })
               }
             }
+          } else {
+            console.log(`Player already exists: ${player.name}`)
           }
         }
       }
     }
 
-    console.log(`Found ${totalPlayersFound} players in squad`)
+    console.log(`Found ${totalPlayersFound} players in squad, inserted/updated ${playersInserted}`)
 
     return new Response(
       JSON.stringify({ 
-        message: `Successfully imported ${playersInserted} players for ${teamName}`,
+        message: `Successfully imported ${playersInserted} players for ${finalTeamName}`,
         totalPlayersFound,
         playersInserted,
         teamId,
-        teamName
+        teamName: finalTeamName,
+        forceReimport: force_reimport
       }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
