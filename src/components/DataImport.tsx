@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2, Download, Users, Calendar, RefreshCw, Shield, Target } from "lucide-react";
+import TeamsDisplay from "./TeamsDisplay";
 
 const DataImport = () => {
   const [isImportingFixtures, setIsImportingFixtures] = useState(false);
@@ -78,7 +79,7 @@ const DataImport = () => {
   const importTeams = async () => {
     setIsImportingTeams(true);
     try {
-      console.log('Starting teams import...');
+      console.log('Starting Premier League teams import...');
       const { data, error } = await supabase.functions.invoke('import-teams');
       
       if (error) {
@@ -89,7 +90,7 @@ const DataImport = () => {
       console.log('Teams import response:', data);
       toast({
         title: "Success",
-        description: "Teams imported successfully!",
+        description: "Premier League teams imported successfully!",
       });
     } catch (error) {
       console.error('Error importing teams:', error);
@@ -203,10 +204,98 @@ const DataImport = () => {
     <div className="space-y-6">
       <div>
         <h2 className="text-2xl font-bold mb-2">Data Import</h2>
-        <p className="text-muted-foreground">Import real football data from RapidAPI</p>
+        <p className="text-muted-foreground">Import Premier League data from RapidAPI</p>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+      {/* Step 1: Import Premier League Teams */}
+      <Card className="border-blue-200 bg-blue-50/50">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-blue-700">
+            <Shield className="h-5 w-5" />
+            Step 1: Import Premier League Teams
+          </CardTitle>
+          <CardDescription>
+            Start here! Import Premier League teams to get their IDs for player imports.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Button 
+            onClick={importTeams} 
+            disabled={isImportingTeams}
+            className="w-full bg-blue-600 hover:bg-blue-700"
+          >
+            {isImportingTeams ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Importing Premier League Teams...
+              </>
+            ) : (
+              <>
+                <Download className="mr-2 h-4 w-4" />
+                Import Premier League Teams
+              </>
+            )}
+          </Button>
+        </CardContent>
+      </Card>
+
+      {/* Teams Display */}
+      <TeamsDisplay />
+
+      {/* Step 2: Import Players */}
+      <Card className="border-green-200 bg-green-50/50">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-green-700">
+            <Users className="h-5 w-5" />
+            Step 2: Import Players by Team
+          </CardTitle>
+          <CardDescription>
+            Use a team ID from above to import that team's squad. Copy the ID by clicking on it.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="teamId">Team ID</Label>
+              <Input
+                id="teamId"
+                value={teamId}
+                onChange={(e) => setTeamId(e.target.value)}
+                placeholder="Paste team ID here"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="season">Season</Label>
+              <Input
+                id="season"
+                value={season}
+                onChange={(e) => setSeason(e.target.value)}
+                placeholder="2024"
+              />
+            </div>
+          </div>
+          <Button 
+            onClick={importPlayers} 
+            disabled={isImportingPlayers}
+            className="w-full bg-green-600 hover:bg-green-700"
+          >
+            {isImportingPlayers ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Importing Players...
+              </>
+            ) : (
+              <>
+                <Download className="mr-2 h-4 w-4" />
+                Import Players for Team {teamId}
+              </>
+            )}
+          </Button>
+        </CardContent>
+      </Card>
+
+      {/* Additional Options */}
+      <div className="grid gap-6 md:grid-cols-2">
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -242,94 +331,11 @@ const DataImport = () => {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Users className="h-5 w-5" />
-              Import Players
-            </CardTitle>
-            <CardDescription>
-              Import player squad data for a specific team. Note: This requires a valid RapidAPI key with sufficient quota.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="teamId">Team ID</Label>
-                <Input
-                  id="teamId"
-                  value={teamId}
-                  onChange={(e) => setTeamId(e.target.value)}
-                  placeholder="33"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="season">Season</Label>
-                <Input
-                  id="season"
-                  value={season}
-                  onChange={(e) => setSeason(e.target.value)}
-                  placeholder="2024"
-                />
-              </div>
-            </div>
-            <Button 
-              onClick={importPlayers} 
-              disabled={isImportingPlayers}
-              className="w-full"
-            >
-              {isImportingPlayers ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Importing...
-                </>
-              ) : (
-                <>
-                  <Download className="mr-2 h-4 w-4" />
-                  Import Players
-                </>
-              )}
-            </Button>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Shield className="h-5 w-5" />
-              Import All Teams
-            </CardTitle>
-            <CardDescription>
-              Import all teams data from the RapidAPI football data service.
-              This will fetch team information including names, leagues, and venues.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button 
-              onClick={importTeams} 
-              disabled={isImportingTeams}
-              className="w-full"
-            >
-              {isImportingTeams ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Importing...
-                </>
-              ) : (
-                <>
-                  <Download className="mr-2 h-4 w-4" />
-                  Import All Teams
-                </>
-              )}
-            </Button>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
               <Target className="h-5 w-5" />
-              Import Team by ID
+              Import Single Team by ID
             </CardTitle>
             <CardDescription>
-              Import a specific team by its ID. This allows you to fetch detailed information for a single team.
+              Import a specific team by its ID if it's not in the Premier League list.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">

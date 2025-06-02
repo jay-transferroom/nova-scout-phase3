@@ -19,7 +19,7 @@ serve(async (req) => {
     const rapidApiKey = Deno.env.get('RAPIDAPI_KEY')!
     const supabase = createClient(supabaseUrl, supabaseKey)
 
-    console.log('Starting teams data import...')
+    console.log('Starting Premier League teams data import...')
 
     // Use the team list API endpoint
     const apiUrl = `https://free-api-live-football-data.p.rapidapi.com/football-get-list-all-team`
@@ -40,12 +40,12 @@ serve(async (req) => {
       const errorText = await response.text()
       console.error(`API error (${response.status}): ${errorText}`)
       
-      // Create sample data as fallback
-      await createSampleTeams(supabase)
+      // Create Premier League sample data as fallback
+      await createPremierLeagueSampleTeams(supabase)
       
       return new Response(
         JSON.stringify({ 
-          message: `API returned ${response.status} error - created sample data instead`,
+          message: `API returned ${response.status} error - created Premier League sample data instead`,
           error: errorText
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -63,28 +63,37 @@ serve(async (req) => {
       teams = data
     }
 
-    console.log(`Found ${teams.length} teams`)
+    // Filter for Premier League teams
+    const premierLeagueTeams = teams.filter(team => 
+      team.league && (
+        team.league.toLowerCase().includes('premier league') ||
+        team.league.toLowerCase().includes('england') ||
+        team.competition && team.competition.toLowerCase().includes('premier league')
+      )
+    )
 
-    if (teams.length === 0) {
-      console.log('No teams found in API response, creating sample data')
-      await createSampleTeams(supabase)
+    console.log(`Found ${teams.length} total teams, ${premierLeagueTeams.length} Premier League teams`)
+
+    if (premierLeagueTeams.length === 0) {
+      console.log('No Premier League teams found in API response, creating sample data')
+      await createPremierLeagueSampleTeams(supabase)
       
       return new Response(
         JSON.stringify({ 
-          message: 'No teams found in API response - created sample data instead',
+          message: 'No Premier League teams found in API response - created sample data instead',
           apiResponse: data
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
 
-    // Process and insert the team data
-    const insertedCount = await insertTeamData(supabase, teams)
+    // Process and insert the Premier League team data
+    const insertedCount = await insertTeamData(supabase, premierLeagueTeams)
     
     return new Response(
       JSON.stringify({ 
-        message: `Successfully imported ${insertedCount} teams`,
-        totalTeamsFound: teams.length
+        message: `Successfully imported ${insertedCount} Premier League teams`,
+        totalTeamsFound: premierLeagueTeams.length
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
@@ -104,12 +113,12 @@ serve(async (req) => {
 async function insertTeamData(supabase: any, teams: any[]) {
   let insertedCount = 0
   
-  for (const team of teams.slice(0, 50)) { // Limit to 50 teams
+  for (const team of teams.slice(0, 20)) { // Limit to 20 teams
     try {
       const teamData = {
         name: team.name || team.team_name || `Team ${Math.random().toString(36).substr(2, 9)}`,
-        league: team.league || team.competition || 'Unknown League',
-        country: team.country || team.nation || 'Unknown',
+        league: team.league || team.competition || 'Premier League',
+        country: team.country || team.nation || 'England',
         founded: team.founded || null,
         venue: team.venue || team.stadium || null,
         external_api_id: team.id?.toString() || `team_${Date.now()}_${Math.random()}`,
@@ -131,7 +140,7 @@ async function insertTeamData(supabase: any, teams: any[]) {
         if (error) {
           console.error('Error inserting team:', error)
         } else {
-          console.log('Inserted team:', teamData.name)
+          console.log('Inserted Premier League team:', teamData.name, 'ID:', teamData.external_api_id)
           insertedCount++
         }
       } else {
@@ -145,15 +154,15 @@ async function insertTeamData(supabase: any, teams: any[]) {
   return insertedCount
 }
 
-async function createSampleTeams(supabase: any) {
-  const sampleTeams = [
+async function createPremierLeagueSampleTeams(supabase: any) {
+  const premierLeagueTeams = [
     {
       name: 'Manchester United',
       league: 'Premier League',
       country: 'England',
       founded: 1878,
       venue: 'Old Trafford',
-      external_api_id: 'sample_team_1',
+      external_api_id: '33',
       logo_url: 'https://picsum.photos/id/200/100/100'
     },
     {
@@ -162,21 +171,48 @@ async function createSampleTeams(supabase: any) {
       country: 'England',
       founded: 1892,
       venue: 'Anfield',
-      external_api_id: 'sample_team_2',
+      external_api_id: '8650',
       logo_url: 'https://picsum.photos/id/201/100/100'
     },
     {
-      name: 'Real Madrid',
-      league: 'La Liga',
-      country: 'Spain',
-      founded: 1902,
-      venue: 'Santiago Bernabéu',
-      external_api_id: 'sample_team_3',
+      name: 'Arsenal',
+      league: 'Premier League',
+      country: 'England',
+      founded: 1886,
+      venue: 'Emirates Stadium',
+      external_api_id: '8455',
       logo_url: 'https://picsum.photos/id/202/100/100'
+    },
+    {
+      name: 'Chelsea',
+      league: 'Premier League',
+      country: 'England',
+      founded: 1905,
+      venue: 'Stamford Bridge',
+      external_api_id: '8456',
+      logo_url: 'https://picsum.photos/id/203/100/100'
+    },
+    {
+      name: 'Manchester City',
+      league: 'Premier League',
+      country: 'England',
+      founded: 1880,
+      venue: 'Etihad Stadium',
+      external_api_id: '8557',
+      logo_url: 'https://picsum.photos/id/204/100/100'
+    },
+    {
+      name: 'Tottenham Hotspur',
+      league: 'Premier League',
+      country: 'England',
+      founded: 1882,
+      venue: 'Tottenham Hotspur Stadium',
+      external_api_id: '8586',
+      logo_url: 'https://picsum.photos/id/205/100/100'
     }
   ]
 
-  for (const team of sampleTeams) {
+  for (const team of premierLeagueTeams) {
     const { data: existingTeam } = await supabase
       .from('teams')
       .select('id')
@@ -191,7 +227,7 @@ async function createSampleTeams(supabase: any) {
       if (error) {
         console.error('Error inserting sample team:', error)
       } else {
-        console.log('Inserted sample team:', team.name)
+        console.log('Inserted sample Premier League team:', team.name, 'ID:', team.external_api_id)
       }
     } else {
       console.log('Sample team already exists:', team.name)
