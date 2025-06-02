@@ -29,7 +29,11 @@ export const useFixturesData = () => {
         throw error;
       }
 
-      return data;
+      // Transform the data to ensure proper typing
+      return data.map(fixture => ({
+        ...fixture,
+        status: fixture.status as 'scheduled' | 'live' | 'completed' | 'postponed' | 'cancelled'
+      }));
     },
   });
 };
