@@ -11,9 +11,11 @@ import {
   DropdownMenuSeparator, 
   DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Filter, Search, Loader2 } from "lucide-react";
 import { Player } from "@/types/player";
 import { usePlayersData } from "@/hooks/usePlayersData";
+import { useTeamsData } from "@/hooks/useTeamsData";
 
 interface PlayerSearchProps {
   onSelectPlayer: (player: Player) => void;
@@ -21,12 +23,25 @@ interface PlayerSearchProps {
 
 const PlayerSearch = ({ onSelectPlayer }: PlayerSearchProps) => {
   const { data: players = [], isLoading, error } = usePlayersData();
+  const { data: teams = [] } = useTeamsData();
   const [searchQuery, setSearchQuery] = useState("");
   const [filteredPlayers, setFilteredPlayers] = useState<Player[]>([]);
   const [recentPlayers, setRecentPlayers] = useState<Player[]>([]);
   const [ageFilter, setAgeFilter] = useState<string>("all");
   const [contractFilter, setContractFilter] = useState<string>("all");
   const [regionFilter, setRegionFilter] = useState<string>("all");
+
+  // Create a map of team names to team data for quick lookup
+  const teamMap = teams.reduce((acc, team) => {
+    acc[team.name] = team;
+    return acc;
+  }, {} as Record<string, any>);
+
+  // Get team logo for a given club name
+  const getTeamLogo = (clubName: string) => {
+    const team = teamMap[clubName];
+    return team?.logo_url;
+  };
 
   // Initialize recent players from localStorage
   useEffect(() => {
@@ -91,6 +106,41 @@ const PlayerSearch = ({ onSelectPlayer }: PlayerSearchProps) => {
     if (!isAlreadyRecent) {
       setRecentPlayers(prev => [player, ...prev.slice(0, 2)]);
     }
+  };
+
+  const PlayerItem = ({ player }: { player: Player }) => {
+    const teamLogo = getTeamLogo(player.club);
+    
+    return (
+      <li 
+        className="px-4 py-3 hover:bg-accent cursor-pointer flex items-center gap-3"
+        onClick={() => handleSelectPlayer(player)}
+      >
+        <Avatar className="h-12 w-12">
+          <AvatarImage src={player.image} alt={player.name} />
+          <AvatarFallback>{player.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+        </Avatar>
+        
+        <div className="flex-1">
+          <p className="font-medium">{player.name}</p>
+          <p className="text-sm text-muted-foreground">{player.club} • {player.positions.join(", ")}</p>
+        </div>
+        
+        <div className="flex items-center gap-3">
+          <div className="text-sm text-right">
+            <p>{player.age} yrs</p>
+            <p className="text-muted-foreground">{player.nationality}</p>
+          </div>
+          
+          {teamLogo && (
+            <Avatar className="h-8 w-8">
+              <AvatarImage src={teamLogo} alt={`${player.club} logo`} />
+              <AvatarFallback>{player.club.substring(0, 2)}</AvatarFallback>
+            </Avatar>
+          )}
+        </div>
+      </li>
+    );
   };
 
   if (isLoading) {
@@ -206,20 +256,7 @@ const PlayerSearch = ({ onSelectPlayer }: PlayerSearchProps) => {
           {filteredPlayers.length > 0 ? (
             <ul className="divide-y">
               {filteredPlayers.map((player) => (
-                <li 
-                  key={player.id} 
-                  className="px-4 py-2 hover:bg-accent cursor-pointer flex items-center"
-                  onClick={() => handleSelectPlayer(player)}
-                >
-                  <div className="flex-1">
-                    <p className="font-medium">{player.name}</p>
-                    <p className="text-sm text-muted-foreground">{player.club} • {player.positions.join(", ")}</p>
-                  </div>
-                  <div className="text-sm text-right">
-                    <p>{player.age} yrs</p>
-                    <p className="text-muted-foreground">{player.nationality}</p>
-                  </div>
-                </li>
+                <PlayerItem key={player.id} player={player} />
               ))}
             </ul>
           ) : (
@@ -233,20 +270,7 @@ const PlayerSearch = ({ onSelectPlayer }: PlayerSearchProps) => {
           <h3 className="px-4 py-2 text-sm font-medium border-b">Recently Viewed</h3>
           <ul className="divide-y">
             {recentPlayers.map((player) => (
-              <li 
-                key={player.id} 
-                className="px-4 py-2 hover:bg-accent cursor-pointer flex items-center"
-                onClick={() => handleSelectPlayer(player)}
-              >
-                <div className="flex-1">
-                  <p className="font-medium">{player.name}</p>
-                  <p className="text-sm text-muted-foreground">{player.club} • {player.positions.join(", ")}</p>
-                </div>
-                <div className="text-sm text-right">
-                  <p>{player.age} yrs</p>
-                  <p className="text-muted-foreground">{player.nationality}</p>
-                </div>
-              </li>
+              <PlayerItem key={player.id} player={player} />
             ))}
           </ul>
         </div>
