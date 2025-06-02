@@ -25,181 +25,129 @@ serve(async (req) => {
 
     console.log(`Starting player data import for team ${teamId}, season ${season}...`)
 
-    // First, let's try to get available leagues and teams to understand the API structure
-    const explorationEndpoints = [
-      'https://free-api-live-football-data.p.rapidapi.com/football-get-leagues',
-      'https://free-api-live-football-data.p.rapidapi.com/football-get-teams',
-      `https://free-api-live-football-data.p.rapidapi.com/football-get-teams-by-league?league_id=1`,
-      `https://free-api-live-football-data.p.rapidapi.com/football-get-teams-by-league?league_id=39`
-    ]
-
-    console.log('Exploring API structure...')
-    for (const endpoint of explorationEndpoints) {
-      try {
-        console.log(`Testing endpoint: ${endpoint}`)
-        const response = await fetch(endpoint, {
-          headers: {
-            'x-rapidapi-key': rapidApiKey,
-            'x-rapidapi-host': 'free-api-live-football-data.p.rapidapi.com'
-          }
-        })
-        console.log(`Endpoint ${endpoint} status: ${response.status}`)
-        if (response.ok) {
-          const data = await response.json()
-          console.log(`Endpoint ${endpoint} response preview:`, JSON.stringify(data).substring(0, 200))
-        }
-      } catch (e) {
-        console.log(`Endpoint ${endpoint} failed:`, e.message)
-      }
-    }
-
-    // Try different player API endpoints with various parameters
-    const playerEndpoints = [
-      // Original endpoints
-      `https://free-api-live-football-data.p.rapidapi.com/football-get-team-squad?team_id=${teamId}`,
-      `https://free-api-live-football-data.p.rapidapi.com/football-get-players-by-team?team_id=${teamId}`,
-      `https://free-api-live-football-data.p.rapidapi.com/football-teams-players?team_id=${teamId}`,
-      
-      // Alternative parameter formats
-      `https://free-api-live-football-data.p.rapidapi.com/football-get-team-squad?id=${teamId}`,
-      `https://free-api-live-football-data.p.rapidapi.com/football-get-players?team=${teamId}`,
-      `https://free-api-live-football-data.p.rapidapi.com/football-players?team_id=${teamId}`,
-      
-      // With season parameter
-      `https://free-api-live-football-data.p.rapidapi.com/football-get-team-squad?team_id=${teamId}&season=${season}`,
-      `https://free-api-live-football-data.p.rapidapi.com/football-get-players-by-team?team_id=${teamId}&season=${season}`,
-      
-      // Different team ID formats (some APIs use different IDs)
-      `https://free-api-live-football-data.p.rapidapi.com/football-get-team-squad?team_id=11`,
-      `https://free-api-live-football-data.p.rapidapi.com/football-get-players-by-team?team_id=11`,
-      
-      // Try with league-based queries
-      `https://free-api-live-football-data.p.rapidapi.com/football-get-players-by-league?league_id=39&season=${season}`,
-      `https://free-api-live-football-data.p.rapidapi.com/football-get-players-by-league?league_id=1&season=${season}`
-    ]
+    // Try to discover what endpoints are actually available
+    const baseApiUrl = 'https://free-api-live-football-data.p.rapidapi.com'
     
-    let data = null
-    let successfulEndpoint = null
+    // Common football API endpoint patterns to try
+    const potentialEndpoints = [
+      '/api/fixtures/today',
+      '/api/fixtures',
+      '/fixtures',
+      '/matches',
+      '/teams',
+      '/players',
+      '/leagues',
+      '/competitions',
+      '/api/teams',
+      '/api/players',
+      '/api/leagues',
+      '/football/fixtures',
+      '/football/teams',
+      '/football/players',
+      '/football/leagues',
+      '/v1/fixtures',
+      '/v1/teams',
+      '/v1/players',
+      '/v2/fixtures',
+      '/v2/teams',
+      '/v2/players',
+      '/'
+    ]
 
-    for (const apiUrl of playerEndpoints) {
+    console.log('Attempting to discover available API endpoints...')
+    
+    const workingEndpoints = []
+    
+    for (const endpoint of potentialEndpoints) {
       try {
-        console.log(`Trying API endpoint: ${apiUrl}`)
-        const response = await fetch(apiUrl, {
+        console.log(`Testing endpoint: ${baseApiUrl}${endpoint}`)
+        const response = await fetch(`${baseApiUrl}${endpoint}`, {
           headers: {
             'x-rapidapi-key': rapidApiKey,
             'x-rapidapi-host': 'free-api-live-football-data.p.rapidapi.com'
           }
         })
-
-        console.log(`API Response Status: ${response.status}`)
-        console.log(`API Response Headers:`, Object.fromEntries(response.headers.entries()))
-
-        if (response.ok) {
-          data = await response.json()
-          successfulEndpoint = apiUrl
-          console.log('Successfully fetched data from:', apiUrl)
-          console.log('Response structure:', Object.keys(data))
-          console.log('Response preview:', JSON.stringify(data).substring(0, 500))
-          break
-        } else {
+        
+        console.log(`Endpoint ${endpoint} returned status: ${response.status}`)
+        
+        if (response.status === 200) {
+          const data = await response.json()
+          workingEndpoints.push({
+            endpoint,
+            status: response.status,
+            dataKeys: Object.keys(data || {}),
+            sampleData: JSON.stringify(data).substring(0, 200)
+          })
+          console.log(`✅ Working endpoint found: ${endpoint}`)
+          console.log(`Data structure: ${Object.keys(data || {})}`)
+        } else if (response.status !== 404) {
+          // Non-404 errors might give us clues
           const errorText = await response.text()
-          console.log(`Endpoint ${apiUrl} failed with status: ${response.status}, error: ${errorText}`)
+          console.log(`Endpoint ${endpoint} error (${response.status}): ${errorText}`)
         }
-      } catch (endpointError) {
-        console.log(`Endpoint ${apiUrl} failed with error:`, endpointError.message)
-        continue
+      } catch (error) {
+        console.log(`Endpoint ${endpoint} failed with error: ${error.message}`)
       }
     }
 
-    if (!data || !successfulEndpoint) {
-      console.log('All API endpoints failed, creating sample data instead')
-      await createSamplePlayers(supabase, teamId)
-      return new Response(
-        JSON.stringify({ 
-          message: 'Sample player data created successfully due to API failure',
-          error: 'All API endpoints returned errors or 404',
-          testedEndpoints: playerEndpoints,
-          suggestion: 'The API structure may have changed. Consider checking the RapidAPI documentation for the correct endpoints.'
-        }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
-    }
-
-    console.log('Processing data from successful endpoint:', successfulEndpoint)
-
-    // Process the data - try different response structures
-    let players = []
-    if (Array.isArray(data)) {
-      players = data
-    } else if (data.response && Array.isArray(data.response)) {
-      players = data.response
-    } else if (data.players && Array.isArray(data.players)) {
-      players = data.players
-    } else if (data.data && Array.isArray(data.data)) {
-      players = data.data
-    } else if (data.results && Array.isArray(data.results)) {
-      players = data.results
-    }
-
-    console.log(`Found ${players.length} players to process`)
-
-    if (players.length > 0) {
-      let insertedCount = 0
-      for (const player of players.slice(0, 30)) { // Limit to 30 players
-        const playerData = {
-          name: player.name || player.player_name || player.full_name || 'Unknown Player',
-          club: player.team || player.club || player.team_name || player.statistics?.[0]?.team?.name || 'Unknown Club',
-          age: player.age || calculateAgeFromBirth(player.birth?.date || player.date_of_birth || player.birthdate) || 25,
-          date_of_birth: player.birth?.date || player.date_of_birth || player.birthdate || '1999-01-01',
-          positions: [player.position || player.primary_position || player.pos || 'Unknown'],
-          dominant_foot: player.foot || player.preferred_foot || 'Right',
-          nationality: player.nationality || player.country || player.nation || 'Unknown',
-          contract_status: 'Under Contract' as const,
-          contract_expiry: null,
-          region: getRegionFromNationality(player.nationality || player.country || player.nation || 'Unknown'),
-          image_url: player.photo || player.image || player.picture || `https://picsum.photos/id/${Math.floor(Math.random() * 1000)}/300/300`
-        }
-
-        // Check if player already exists
-        const { data: existingPlayer } = await supabase
-          .from('players')
-          .select('id')
-          .eq('name', playerData.name)
-          .eq('club', playerData.club)
-          .single()
-
-        if (!existingPlayer) {
-          const { error } = await supabase
-            .from('players')
-            .insert(playerData)
-
-          if (error) {
-            console.error('Error inserting player:', error)
-          } else {
-            console.log('Inserted player:', playerData.name, 'from', playerData.club)
-            insertedCount++
+    if (workingEndpoints.length > 0) {
+      console.log(`Found ${workingEndpoints.length} working endpoints:`, workingEndpoints)
+      
+      // Try to find player data from working endpoints
+      for (const workingEndpoint of workingEndpoints) {
+        try {
+          const response = await fetch(`${baseApiUrl}${workingEndpoint.endpoint}`, {
+            headers: {
+              'x-rapidapi-key': rapidApiKey,
+              'x-rapidapi-host': 'free-api-live-football-data.p.rapidapi.com'
+            }
+          })
+          
+          if (response.ok) {
+            const data = await response.json()
+            console.log(`Detailed data from ${workingEndpoint.endpoint}:`, JSON.stringify(data, null, 2))
+            
+            // Try to extract any player-like data
+            if (data && typeof data === 'object') {
+              const possiblePlayerData = extractPlayerData(data)
+              if (possiblePlayerData.length > 0) {
+                console.log(`Found potential player data in ${workingEndpoint.endpoint}`)
+                // Process the player data
+                await insertPlayerData(supabase, possiblePlayerData)
+                return new Response(
+                  JSON.stringify({ 
+                    message: `Successfully imported ${possiblePlayerData.length} players from ${workingEndpoint.endpoint}`,
+                    workingEndpoints
+                  }),
+                  { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+                )
+              }
+            }
           }
-        } else {
-          console.log('Player already exists:', playerData.name, 'from', playerData.club)
+        } catch (error) {
+          console.log(`Error processing ${workingEndpoint.endpoint}:`, error.message)
         }
       }
-
+      
       return new Response(
         JSON.stringify({ 
-          message: `Successfully imported ${insertedCount} players from API`,
-          endpoint: successfulEndpoint,
-          totalFound: players.length
+          message: 'No player data found in working endpoints, but discovered API structure',
+          workingEndpoints,
+          suggestion: 'Check the working endpoints above to understand the API structure and modify the function accordingly'
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     } else {
-      console.log('No players found in API response, creating sample data')
+      console.log('No working endpoints found - API may not be available or may require different authentication')
+      
+      // Create sample data as fallback
       await createSamplePlayers(supabase, teamId)
+      
       return new Response(
         JSON.stringify({ 
-          message: 'No player data found in API response, sample data created instead',
-          endpoint: successfulEndpoint,
-          rawResponse: data
+          message: 'No working API endpoints found - created sample data instead',
+          testedEndpoints: potentialEndpoints,
+          suggestion: 'The API may not be available, may require different authentication, or may use a completely different base URL. Consider checking the RapidAPI documentation for this service.'
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
@@ -216,6 +164,100 @@ serve(async (req) => {
     )
   }
 })
+
+function extractPlayerData(data: any): any[] {
+  const players = []
+  
+  // Try to find player data in various possible structures
+  if (Array.isArray(data)) {
+    for (const item of data) {
+      if (isPlayerLike(item)) {
+        players.push(item)
+      }
+    }
+  } else if (data && typeof data === 'object') {
+    // Check common property names that might contain player arrays
+    const possiblePlayerArrays = [
+      'players', 'squad', 'team', 'roster', 'data', 'results', 
+      'response', 'items', 'content', 'payload'
+    ]
+    
+    for (const prop of possiblePlayerArrays) {
+      if (data[prop] && Array.isArray(data[prop])) {
+        for (const item of data[prop]) {
+          if (isPlayerLike(item)) {
+            players.push(item)
+          }
+        }
+      }
+    }
+  }
+  
+  return players
+}
+
+function isPlayerLike(item: any): boolean {
+  if (!item || typeof item !== 'object') return false
+  
+  // Check if the object has player-like properties
+  const playerIndicators = [
+    'name', 'player_name', 'full_name', 'firstName', 'lastName',
+    'position', 'pos', 'primary_position',
+    'age', 'birth', 'date_of_birth', 'birthdate',
+    'nationality', 'country', 'nation'
+  ]
+  
+  return playerIndicators.some(indicator => 
+    Object.keys(item).some(key => 
+      key.toLowerCase().includes(indicator.toLowerCase())
+    )
+  )
+}
+
+async function insertPlayerData(supabase: any, players: any[]) {
+  let insertedCount = 0
+  
+  for (const player of players.slice(0, 20)) { // Limit to 20 players
+    const playerData = {
+      name: player.name || player.player_name || player.full_name || `Player ${Math.random().toString(36).substr(2, 9)}`,
+      club: player.team || player.club || player.team_name || 'Unknown Club',
+      age: player.age || calculateAgeFromBirth(player.birth?.date || player.date_of_birth || player.birthdate) || 25,
+      date_of_birth: player.birth?.date || player.date_of_birth || player.birthdate || '1999-01-01',
+      positions: [player.position || player.primary_position || player.pos || 'Unknown'],
+      dominant_foot: player.foot || player.preferred_foot || 'Right',
+      nationality: player.nationality || player.country || player.nation || 'Unknown',
+      contract_status: 'Under Contract' as const,
+      contract_expiry: null,
+      region: getRegionFromNationality(player.nationality || player.country || player.nation || 'Unknown'),
+      image_url: player.photo || player.image || player.picture || `https://picsum.photos/id/${Math.floor(Math.random() * 1000)}/300/300`
+    }
+
+    // Check if player already exists
+    const { data: existingPlayer } = await supabase
+      .from('players')
+      .select('id')
+      .eq('name', playerData.name)
+      .eq('club', playerData.club)
+      .single()
+
+    if (!existingPlayer) {
+      const { error } = await supabase
+        .from('players')
+        .insert(playerData)
+
+      if (error) {
+        console.error('Error inserting player:', error)
+      } else {
+        console.log('Inserted player:', playerData.name, 'from', playerData.club)
+        insertedCount++
+      }
+    } else {
+      console.log('Player already exists:', playerData.name, 'from', playerData.club)
+    }
+  }
+  
+  return insertedCount
+}
 
 function calculateAgeFromBirth(birthDate: string): number | null {
   if (!birthDate) return null
