@@ -25,82 +25,132 @@ serve(async (req) => {
 
     console.log(`Starting player data import for team ${teamId}, season ${season}...`)
 
-    const apiUrl = `https://free-api-live-football-data.p.rapidapi.com/football-get-team-squad?team_id=${teamId}`
+    // Try different API endpoints for team squad data
+    const apiEndpoints = [
+      `https://free-api-live-football-data.p.rapidapi.com/football-get-team-squad?team_id=${teamId}`,
+      `https://free-api-live-football-data.p.rapidapi.com/football-get-players-by-team?team_id=${teamId}`,
+      `https://free-api-live-football-data.p.rapidapi.com/football-teams-players?team_id=${teamId}`
+    ]
     
-    try {
-      const response = await fetch(apiUrl, {
-        headers: {
-          'x-rapidapi-key': rapidApiKey,
-          'x-rapidapi-host': 'free-api-live-football-data.p.rapidapi.com'
-        }
-      })
+    let data = null
+    let successfulEndpoint = null
 
-      if (!response.ok) {
-        console.log(`API responded with status: ${response.status}, creating sample data instead`)
-        await createSamplePlayers(supabase, teamId)
-        return new Response(
-          JSON.stringify({ message: 'Sample player data created successfully due to API failure' }),
-          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        )
-      }
-
-      const data = await response.json()
-      console.log('Fetched player data from RapidAPI:', data)
-
-      if (data && data.response) {
-        for (const player of data.response.slice(0, 30)) { // Limit to 30 players
-          const playerData = {
-            name: player.name || 'Unknown Player',
-            club: player.statistics?.[0]?.team?.name || 'Unknown Club',
-            age: player.age || 25,
-            date_of_birth: player.birth?.date || '1999-01-01',
-            positions: [player.position || 'Unknown'],
-            dominant_foot: 'Right', // Default as API might not provide this
-            nationality: player.nationality || 'Unknown',
-            contract_status: 'Under Contract' as const,
-            contract_expiry: null,
-            region: getRegionFromNationality(player.nationality || 'Unknown'),
-            image_url: player.photo || `https://picsum.photos/id/${Math.floor(Math.random() * 1000)}/300/300`
+    for (const apiUrl of apiEndpoints) {
+      try {
+        console.log(`Trying API endpoint: ${apiUrl}`)
+        const response = await fetch(apiUrl, {
+          headers: {
+            'x-rapidapi-key': rapidApiKey,
+            'x-rapidapi-host': 'free-api-live-football-data.p.rapidapi.com'
           }
+        })
 
-          // Check if player already exists
-          const { data: existingPlayer } = await supabase
-            .from('players')
-            .select('id')
-            .eq('name', playerData.name)
-            .eq('club', playerData.club)
-            .single()
+        console.log(`API Response Status: ${response.status}`)
 
-          if (!existingPlayer) {
-            const { error } = await supabase
-              .from('players')
-              .insert(playerData)
-
-            if (error) {
-              console.error('Error inserting player:', error)
-            } else {
-              console.log('Inserted player:', playerData.name, 'from', playerData.club)
-            }
-          } else {
-            console.log('Player already exists:', playerData.name, 'from', playerData.club)
-          }
+        if (response.ok) {
+          data = await response.json()
+          successfulEndpoint = apiUrl
+          console.log('Successfully fetched data from:', apiUrl)
+          break
+        } else {
+          console.log(`Endpoint ${apiUrl} failed with status: ${response.status}`)
         }
+      } catch (endpointError) {
+        console.log(`Endpoint ${apiUrl} failed with error:`, endpointError)
+        continue
       }
+    }
 
-    } catch (apiError) {
-      console.error('RapidAPI call failed:', apiError)
-      console.log('Creating sample data instead...')
+    if (!data || !successfulEndpoint) {
+      console.log('All API endpoints failed, creating sample data instead')
       await createSamplePlayers(supabase, teamId)
       return new Response(
-        JSON.stringify({ message: 'Sample player data created successfully due to API failure' }),
+        JSON.stringify({ 
+          message: 'Sample player data created successfully due to API failure',
+          error: 'All API endpoints returned errors or 404',
+          testedEndpoints: apiEndpoints
+        }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
 
-    return new Response(
-      JSON.stringify({ message: 'Player data import completed successfully' }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    )
+    console.log('Fetched player data from RapidAPI:', data)
+
+    // Process the data - try different response structures
+    let players = []
+    if (Array.isArray(data)) {
+      players = data
+    } else if (data.response && Array.isArray(data.response)) {
+      players = data.response
+    } else if (data.players && Array.isArray(data.players)) {
+      players = data.players
+    } else if (data.data && Array.isArray(data.data)) {
+      players = data.data
+    }
+
+    console.log(`Found ${players.length} players to process`)
+
+    if (players.length > 0) {
+      let insertedCount = 0
+      for (const player of players.slice(0, 30)) { // Limit to 30 players
+        const playerData = {
+          name: player.name || player.player_name || 'Unknown Player',
+          club: player.team || player.club || player.statistics?.[0]?.team?.name || 'Unknown Club',
+          age: player.age || calculateAgeFromBirth(player.birth?.date || player.date_of_birth) || 25,
+          date_of_birth: player.birth?.date || player.date_of_birth || '1999-01-01',
+          positions: [player.position || player.primary_position || 'Unknown'],
+          dominant_foot: player.foot || 'Right', // Default as API might not provide this
+          nationality: player.nationality || player.country || 'Unknown',
+          contract_status: 'Under Contract' as const,
+          contract_expiry: null,
+          region: getRegionFromNationality(player.nationality || player.country || 'Unknown'),
+          image_url: player.photo || player.image || `https://picsum.photos/id/${Math.floor(Math.random() * 1000)}/300/300`
+        }
+
+        // Check if player already exists
+        const { data: existingPlayer } = await supabase
+          .from('players')
+          .select('id')
+          .eq('name', playerData.name)
+          .eq('club', playerData.club)
+          .single()
+
+        if (!existingPlayer) {
+          const { error } = await supabase
+            .from('players')
+            .insert(playerData)
+
+          if (error) {
+            console.error('Error inserting player:', error)
+          } else {
+            console.log('Inserted player:', playerData.name, 'from', playerData.club)
+            insertedCount++
+          }
+        } else {
+          console.log('Player already exists:', playerData.name, 'from', playerData.club)
+        }
+      }
+
+      return new Response(
+        JSON.stringify({ 
+          message: `Successfully imported ${insertedCount} players from API`,
+          endpoint: successfulEndpoint,
+          totalFound: players.length
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    } else {
+      console.log('No players found in API response, creating sample data')
+      await createSamplePlayers(supabase, teamId)
+      return new Response(
+        JSON.stringify({ 
+          message: 'No player data found in API response, sample data created instead',
+          endpoint: successfulEndpoint,
+          rawResponse: data
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
 
   } catch (error) {
     console.error('Error in player import function:', error)
@@ -113,6 +163,18 @@ serve(async (req) => {
     )
   }
 })
+
+function calculateAgeFromBirth(birthDate: string): number | null {
+  if (!birthDate) return null
+  const birth = new Date(birthDate)
+  const today = new Date()
+  let age = today.getFullYear() - birth.getFullYear()
+  const monthDiff = today.getMonth() - birth.getMonth()
+  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+    age--
+  }
+  return age
+}
 
 async function createSamplePlayers(supabase: any, teamId: string) {
   const samplePlayers = [
