@@ -45,13 +45,14 @@ serve(async (req) => {
       console.error(`API error (${response.status}): ${errorText}`)
       
       // Create sample data as fallback
-      await createSampleTeam(supabase, teamId)
+      const sampleTeamName = await createSampleTeam(supabase, teamId)
       
       return new Response(
         JSON.stringify({ 
           message: `API returned ${response.status} error - created sample data instead`,
           error: errorText,
-          teamId: teamId
+          teamId: teamId,
+          teamName: sampleTeamName
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
@@ -70,26 +71,28 @@ serve(async (req) => {
 
     if (!team) {
       console.log('No team found in API response, creating sample data')
-      await createSampleTeam(supabase, teamId)
+      const sampleTeamName = await createSampleTeam(supabase, teamId)
       
       return new Response(
         JSON.stringify({ 
           message: 'No team found in API response - created sample data instead',
           apiResponse: data,
-          teamId: teamId
+          teamId: teamId,
+          teamName: sampleTeamName
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
 
     // Process and insert the team data
-    const inserted = await insertTeamData(supabase, team, teamId)
+    const result = await insertTeamData(supabase, team, teamId)
     
     return new Response(
       JSON.stringify({ 
         message: `Successfully imported team ${teamId}`,
-        inserted: inserted,
-        teamId: teamId
+        inserted: result.inserted,
+        teamId: teamId,
+        teamName: result.teamName
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
@@ -132,18 +135,18 @@ async function insertTeamData(supabase: any, team: any, teamId: string) {
 
       if (error) {
         console.error('Error inserting team:', error)
-        return false
+        return { inserted: false, teamName: teamData.name }
       } else {
         console.log('Inserted team:', teamData.name)
-        return true
+        return { inserted: true, teamName: teamData.name }
       }
     } else {
       console.log('Team already exists:', teamData.name)
-      return false
+      return { inserted: false, teamName: teamData.name }
     }
   } catch (teamError) {
     console.error('Error processing team:', teamError, team)
-    return false
+    return { inserted: false, teamName: `Team ${teamId}` }
   }
 }
 
@@ -177,4 +180,6 @@ async function createSampleTeam(supabase: any, teamId: string) {
   } else {
     console.log('Sample team already exists:', sampleTeam.name)
   }
+
+  return sampleTeam.name
 }

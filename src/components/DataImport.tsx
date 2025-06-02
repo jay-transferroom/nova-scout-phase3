@@ -117,9 +117,13 @@ const DataImport = () => {
       }
       
       console.log('Team import response:', data);
+      
+      // Use the team name from the response if available
+      const teamName = data?.teamName || `team ${singleTeamId}`;
+      
       toast({
         title: "Success",
-        description: `Team imported successfully for team ${singleTeamId}!`,
+        description: `Successfully imported ${teamName}!`,
       });
     } catch (error) {
       console.error('Error importing team:', error);
