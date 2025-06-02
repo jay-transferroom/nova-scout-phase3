@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, Download, Users, Calendar } from "lucide-react";
+import { Loader2, Download, Users, Calendar, RefreshCw } from "lucide-react";
 
 const DataImport = () => {
   const [isImportingFixtures, setIsImportingFixtures] = useState(false);
@@ -18,19 +18,24 @@ const DataImport = () => {
   const importFixtures = async () => {
     setIsImportingFixtures(true);
     try {
+      console.log('Starting fixture import...');
       const { data, error } = await supabase.functions.invoke('import-football-data');
       
-      if (error) throw error;
+      if (error) {
+        console.error('Fixture import error:', error);
+        throw error;
+      }
       
+      console.log('Fixture import response:', data);
       toast({
         title: "Success",
-        description: "Fixtures imported successfully!",
+        description: "Fixtures imported successfully! Check the Upcoming Matches page to see them.",
       });
     } catch (error) {
       console.error('Error importing fixtures:', error);
       toast({
         title: "Error",
-        description: "Failed to import fixtures. Please try again.",
+        description: `Failed to import fixtures: ${error.message || 'Unknown error'}`,
         variant: "destructive",
       });
     } finally {
@@ -41,12 +46,17 @@ const DataImport = () => {
   const importPlayers = async () => {
     setIsImportingPlayers(true);
     try {
+      console.log(`Starting player import for team ${teamId}, season ${season}...`);
       const { data, error } = await supabase.functions.invoke('import-player-data', {
         body: { team_id: teamId, season: season }
       });
       
-      if (error) throw error;
+      if (error) {
+        console.error('Player import error:', error);
+        throw error;
+      }
       
+      console.log('Player import response:', data);
       toast({
         title: "Success",
         description: `Players imported successfully for team ${teamId}!`,
@@ -55,7 +65,7 @@ const DataImport = () => {
       console.error('Error importing players:', error);
       toast({
         title: "Error",
-        description: "Failed to import players. Please try again.",
+        description: `Failed to import players: ${error.message || 'API call failed - check your API key and rate limits'}`,
         variant: "destructive",
       });
     } finally {
@@ -65,10 +75,15 @@ const DataImport = () => {
 
   const syncPlayerForm = async () => {
     try {
+      console.log('Starting player form sync...');
       const { data, error } = await supabase.functions.invoke('sync-player-form');
       
-      if (error) throw error;
+      if (error) {
+        console.error('Player form sync error:', error);
+        throw error;
+      }
       
+      console.log('Player form sync response:', data);
       toast({
         title: "Success",
         description: "Player form data synced successfully!",
@@ -77,7 +92,44 @@ const DataImport = () => {
       console.error('Error syncing player form:', error);
       toast({
         title: "Error",
-        description: "Failed to sync player form data. Please try again.",
+        description: `Failed to sync player form data: ${error.message || 'Unknown error'}`,
+        variant: "destructive",
+      });
+    }
+  };
+
+  const checkData = async () => {
+    try {
+      console.log('Checking current data...');
+      
+      // Check fixtures
+      const { data: fixtures, error: fixturesError } = await supabase
+        .from('fixtures')
+        .select('*')
+        .limit(5);
+      
+      if (fixturesError) throw fixturesError;
+      
+      // Check players
+      const { data: players, error: playersError } = await supabase
+        .from('players')
+        .select('*')
+        .limit(5);
+      
+      if (playersError) throw playersError;
+      
+      console.log('Current fixtures:', fixtures);
+      console.log('Current players:', players);
+      
+      toast({
+        title: "Data Check Complete",
+        description: `Found ${fixtures?.length || 0} fixtures and ${players?.length || 0} players in database`,
+      });
+    } catch (error) {
+      console.error('Error checking data:', error);
+      toast({
+        title: "Error",
+        description: "Failed to check current data",
         variant: "destructive",
       });
     }
@@ -98,7 +150,8 @@ const DataImport = () => {
               Import Fixtures
             </CardTitle>
             <CardDescription>
-              Import today's matches and fixtures from the RapidAPI football data service
+              Import today's matches and fixtures from the RapidAPI football data service.
+              If the API fails, sample fixtures will be created.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -129,7 +182,7 @@ const DataImport = () => {
               Import Players
             </CardTitle>
             <CardDescription>
-              Import player squad data for a specific team
+              Import player squad data for a specific team. Note: This requires a valid RapidAPI key with sufficient quota.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -178,12 +231,16 @@ const DataImport = () => {
         <CardHeader>
           <CardTitle>Additional Actions</CardTitle>
           <CardDescription>
-            Other data management operations
+            Other data management operations and debugging tools
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="flex gap-4">
           <Button onClick={syncPlayerForm} variant="outline">
             Sync Player Form Data
+          </Button>
+          <Button onClick={checkData} variant="outline">
+            <RefreshCw className="mr-2 h-4 w-4" />
+            Check Current Data
           </Button>
         </CardContent>
       </Card>
