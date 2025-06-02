@@ -11,9 +11,10 @@ interface Team {
   name: string;
   league: string;
   country: string;
-  venue: string;
+  venue: string | null;
   external_api_id: string;
-  logo_url: string;
+  logo_url: string | null;
+  founded: number | null;
 }
 
 const TeamsDisplay = () => {
@@ -89,7 +90,7 @@ const TeamsDisplay = () => {
               >
                 <div className="flex items-center gap-3 mb-2">
                   <img
-                    src={team.logo_url}
+                    src={team.logo_url || `https://picsum.photos/id/${Math.floor(Math.random() * 1000)}/100/100`}
                     alt={`${team.name} logo`}
                     className="w-8 h-8 rounded object-cover"
                     onError={(e) => {
@@ -98,7 +99,7 @@ const TeamsDisplay = () => {
                   />
                   <div className="flex-1 min-w-0">
                     <h3 className="font-medium truncate">{team.name}</h3>
-                    <p className="text-sm text-muted-foreground truncate">{team.venue}</p>
+                    <p className="text-sm text-muted-foreground truncate">{team.venue || 'No venue info'}</p>
                   </div>
                 </div>
                 <Button

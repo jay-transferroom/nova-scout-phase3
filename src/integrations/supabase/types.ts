@@ -200,6 +200,45 @@ export type Database = {
         }
         Relationships: []
       }
+      teams: {
+        Row: {
+          country: string
+          created_at: string
+          external_api_id: string
+          founded: number | null
+          id: string
+          league: string
+          logo_url: string | null
+          name: string
+          updated_at: string
+          venue: string | null
+        }
+        Insert: {
+          country: string
+          created_at?: string
+          external_api_id: string
+          founded?: number | null
+          id?: string
+          league: string
+          logo_url?: string | null
+          name: string
+          updated_at?: string
+          venue?: string | null
+        }
+        Update: {
+          country?: string
+          created_at?: string
+          external_api_id?: string
+          founded?: number | null
+          id?: string
+          league?: string
+          logo_url?: string | null
+          name?: string
+          updated_at?: string
+          venue?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
