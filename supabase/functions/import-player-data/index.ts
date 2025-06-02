@@ -13,8 +13,23 @@ serve(async (req) => {
   }
 
   try {
-    const { teamId, season = 2024 } = await req.json()
+    const body = await req.json()
+    const { team_id: teamId, season = 2024 } = body
+    
     console.log(`Starting player data import for team ${teamId}, season ${season}...`)
+
+    if (!teamId) {
+      return new Response(
+        JSON.stringify({ 
+          message: 'Team ID is required',
+          error: 'Missing team_id parameter' 
+        }),
+        { 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 400
+        }
+      )
+    }
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
