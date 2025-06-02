@@ -1,4 +1,3 @@
-
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
@@ -64,17 +63,26 @@ serve(async (req) => {
             image_url: player.photo || `https://picsum.photos/id/${Math.floor(Math.random() * 1000)}/300/300`
           }
 
-          const { error } = await supabase
+          // Check if player already exists
+          const { data: existingPlayer } = await supabase
             .from('players')
-            .upsert(playerData, { 
-              onConflict: 'name,club',
-              ignoreDuplicates: false 
-            })
+            .select('id')
+            .eq('name', playerData.name)
+            .eq('club', playerData.club)
+            .single()
 
-          if (error) {
-            console.error('Error inserting player:', error)
+          if (!existingPlayer) {
+            const { error } = await supabase
+              .from('players')
+              .insert(playerData)
+
+            if (error) {
+              console.error('Error inserting player:', error)
+            } else {
+              console.log('Inserted player:', playerData.name, 'from', playerData.club)
+            }
           } else {
-            console.log('Inserted player:', playerData.name, 'from', playerData.club)
+            console.log('Player already exists:', playerData.name, 'from', playerData.club)
           }
         }
       }
@@ -150,17 +158,26 @@ async function createSamplePlayers(supabase: any, teamId: string) {
   ]
 
   for (const player of samplePlayers) {
-    const { error } = await supabase
+    // Check if player already exists
+    const { data: existingPlayer } = await supabase
       .from('players')
-      .upsert(player, { 
-        onConflict: 'name,club',
-        ignoreDuplicates: true 
-      })
+      .select('id')
+      .eq('name', player.name)
+      .eq('club', player.club)
+      .single()
 
-    if (error) {
-      console.error('Error inserting sample player:', error)
+    if (!existingPlayer) {
+      const { error } = await supabase
+        .from('players')
+        .insert(player)
+
+      if (error) {
+        console.error('Error inserting sample player:', error)
+      } else {
+        console.log('Inserted sample player:', player.name)
+      }
     } else {
-      console.log('Inserted sample player:', player.name)
+      console.log('Sample player already exists:', player.name)
     }
   }
 }
