@@ -1,3 +1,4 @@
+
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
@@ -20,6 +21,7 @@ serve(async (req) => {
     const supabase = createClient(supabaseUrl, supabaseKey)
 
     console.log('Starting football data import from RapidAPI...')
+    console.log('RapidAPI Key available:', !!rapidApiKey)
 
     // Format today's date as YYYYMMDD
     const today = new Date()
@@ -32,6 +34,8 @@ serve(async (req) => {
     
     try {
       console.log(`Fetching fixtures from: ${apiUrl}`)
+      console.log(`Using date: ${dateString}`)
+      
       const response = await fetch(apiUrl, {
         headers: {
           'X-RapidAPI-Key': rapidApiKey,
@@ -39,11 +43,24 @@ serve(async (req) => {
         }
       })
 
+      console.log(`API Response Status: ${response.status}`)
+      console.log(`API Response Headers:`, Object.fromEntries(response.headers.entries()))
+
       if (!response.ok) {
+        const errorText = await response.text()
+        console.log(`API Error Response: ${errorText}`)
         console.log(`API response not OK (${response.status}), using sample data instead`)
         await createSampleFixtures(supabase)
         return new Response(
-          JSON.stringify({ message: 'Sample fixtures created successfully due to API failure' }),
+          JSON.stringify({ 
+            message: 'Sample fixtures created successfully due to API failure',
+            error: `API returned ${response.status}: ${errorText}`,
+            debug: {
+              url: apiUrl,
+              hasApiKey: !!rapidApiKey,
+              date: dateString
+            }
+          }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         )
       }
@@ -51,19 +68,35 @@ serve(async (req) => {
       const data = await response.json()
       console.log('Fetched data from RapidAPI:', JSON.stringify(data, null, 2))
 
-      // Process and insert fixtures based on the API response structure
-      if (data && Array.isArray(data) && data.length > 0) {
-        for (const match of data.slice(0, 20)) { // Limit to 20 matches
+      // Check if we have fixture data in various possible formats
+      let fixtures = []
+      if (Array.isArray(data)) {
+        fixtures = data
+      } else if (data.response && Array.isArray(data.response)) {
+        fixtures = data.response
+      } else if (data.fixtures && Array.isArray(data.fixtures)) {
+        fixtures = data.fixtures
+      } else if (data.matches && Array.isArray(data.matches)) {
+        fixtures = data.matches
+      }
+
+      console.log(`Found ${fixtures.length} fixtures to process`)
+
+      if (fixtures.length > 0) {
+        let insertedCount = 0
+        for (const match of fixtures.slice(0, 20)) { // Limit to 20 matches
           const fixture = {
-            home_team: match.home_team || 'Unknown Home Team',
-            away_team: match.away_team || 'Unknown Away Team',
-            competition: match.league || match.competition || 'Unknown Competition',
-            fixture_date: match.date ? new Date(match.date).toISOString() : new Date().toISOString(),
-            venue: match.venue || null,
-            status: mapApiStatus(match.status || 'scheduled'),
-            home_score: match.home_score || null,
-            away_score: match.away_score || null,
-            external_api_id: match.id?.toString() || `api_${Date.now()}_${Math.random()}`
+            home_team: match.home_team || match.teams?.home?.name || match.homeTeam || 'Unknown Home Team',
+            away_team: match.away_team || match.teams?.away?.name || match.awayTeam || 'Unknown Away Team',
+            competition: match.league || match.competition || match.league?.name || 'Unknown Competition',
+            fixture_date: match.date ? new Date(match.date).toISOString() : 
+                         match.fixture?.date ? new Date(match.fixture.date).toISOString() : 
+                         new Date().toISOString(),
+            venue: match.venue || match.fixture?.venue?.name || null,
+            status: mapApiStatus(match.status || match.fixture?.status?.short || 'scheduled'),
+            home_score: match.home_score || match.goals?.home || null,
+            away_score: match.away_score || match.goals?.away || null,
+            external_api_id: match.id?.toString() || match.fixture?.id?.toString() || `api_${Date.now()}_${Math.random()}`
           }
 
           const { error } = await supabase
@@ -77,18 +110,35 @@ serve(async (req) => {
             console.error('Error inserting fixture:', error)
           } else {
             console.log('Inserted fixture:', fixture.home_team, 'vs', fixture.away_team)
+            insertedCount++
           }
         }
         
         return new Response(
-          JSON.stringify({ message: `Successfully imported ${data.length} fixtures from API` }),
+          JSON.stringify({ 
+            message: `Successfully imported ${insertedCount} fixtures from API`,
+            totalFound: fixtures.length,
+            debug: {
+              url: apiUrl,
+              date: dateString,
+              apiResponseStructure: Object.keys(data)
+            }
+          }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         )
       } else {
-        console.log('No fixtures data in API response, creating sample data')
+        console.log('No fixtures data found in API response, creating sample data')
         await createSampleFixtures(supabase)
         return new Response(
-          JSON.stringify({ message: 'No API data available, sample fixtures created instead' }),
+          JSON.stringify({ 
+            message: 'No API data available, sample fixtures created instead',
+            debug: {
+              url: apiUrl,
+              date: dateString,
+              apiResponseStructure: Object.keys(data),
+              rawResponse: data
+            }
+          }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         )
       }
