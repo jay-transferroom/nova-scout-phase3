@@ -6,11 +6,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, Download, Users, Calendar, RefreshCw } from "lucide-react";
+import { Loader2, Download, Users, Calendar, RefreshCw, Shield } from "lucide-react";
 
 const DataImport = () => {
   const [isImportingFixtures, setIsImportingFixtures] = useState(false);
   const [isImportingPlayers, setIsImportingPlayers] = useState(false);
+  const [isImportingTeams, setIsImportingTeams] = useState(false);
   const [teamId, setTeamId] = useState("33"); // Default to Manchester United
   const [season, setSeason] = useState("2024");
   const { toast } = useToast();
@@ -70,6 +71,34 @@ const DataImport = () => {
       });
     } finally {
       setIsImportingPlayers(false);
+    }
+  };
+
+  const importTeams = async () => {
+    setIsImportingTeams(true);
+    try {
+      console.log('Starting teams import...');
+      const { data, error } = await supabase.functions.invoke('import-teams');
+      
+      if (error) {
+        console.error('Teams import error:', error);
+        throw error;
+      }
+      
+      console.log('Teams import response:', data);
+      toast({
+        title: "Success",
+        description: "Teams imported successfully!",
+      });
+    } catch (error) {
+      console.error('Error importing teams:', error);
+      toast({
+        title: "Error",
+        description: `Failed to import teams: ${error.message || 'API call failed - check your API key and rate limits'}`,
+        variant: "destructive",
+      });
+    } finally {
+      setIsImportingTeams(false);
     }
   };
 
@@ -142,7 +171,7 @@ const DataImport = () => {
         <p className="text-muted-foreground">Import real football data from RapidAPI</p>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -220,6 +249,38 @@ const DataImport = () => {
                 <>
                   <Download className="mr-2 h-4 w-4" />
                   Import Players
+                </>
+              )}
+            </Button>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Shield className="h-5 w-5" />
+              Import Teams
+            </CardTitle>
+            <CardDescription>
+              Import all teams data from the RapidAPI football data service.
+              This will fetch team information including names, leagues, and venues.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button 
+              onClick={importTeams} 
+              disabled={isImportingTeams}
+              className="w-full"
+            >
+              {isImportingTeams ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Importing...
+                </>
+              ) : (
+                <>
+                  <Download className="mr-2 h-4 w-4" />
+                  Import Teams
                 </>
               )}
             </Button>
