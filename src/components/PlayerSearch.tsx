@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -117,8 +116,17 @@ const PlayerSearch = ({ onSelectPlayer }: PlayerSearchProps) => {
         onClick={() => handleSelectPlayer(player)}
       >
         <Avatar className="h-12 w-12">
-          <AvatarImage src={player.image} alt={player.name} />
-          <AvatarFallback>{player.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+          <AvatarImage 
+            src={player.image} 
+            alt={player.name}
+            onError={(e) => {
+              // If the image fails to load, don't set a fallback image
+              (e.target as HTMLImageElement).style.display = 'none';
+            }}
+          />
+          <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white font-semibold">
+            {player.name.split(' ').map(n => n[0]).join('').toUpperCase()}
+          </AvatarFallback>
         </Avatar>
         
         <div className="flex-1">
@@ -134,8 +142,17 @@ const PlayerSearch = ({ onSelectPlayer }: PlayerSearchProps) => {
           
           {teamLogo && (
             <Avatar className="h-8 w-8">
-              <AvatarImage src={teamLogo} alt={`${player.club} logo`} />
-              <AvatarFallback>{player.club.substring(0, 2)}</AvatarFallback>
+              <AvatarImage 
+                src={teamLogo} 
+                alt={`${player.club} logo`}
+                onError={(e) => {
+                  // If the team logo fails to load, hide it
+                  (e.target as HTMLImageElement).style.display = 'none';
+                }}
+              />
+              <AvatarFallback className="bg-gradient-to-br from-green-500 to-blue-600 text-white text-xs font-semibold">
+                {player.club.substring(0, 2).toUpperCase()}
+              </AvatarFallback>
             </Avatar>
           )}
         </div>

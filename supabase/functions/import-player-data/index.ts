@@ -141,9 +141,13 @@ serve(async (req) => {
             return 'Unknown'
           }
 
+          // Extract player image from API data
+          const playerImage = player.image || player.img || player.photo || null
+          console.log(`Player ${player.name} image URL: ${playerImage}`)
+
           const playerData = {
             name: player.name,
-            club: teamName, // Use the resolved team name instead of team ID
+            club: teamName,
             age: player.age || 0,
             date_of_birth: player.dateOfBirth || '1990-01-01',
             positions: positions,
@@ -152,7 +156,7 @@ serve(async (req) => {
             contract_status: 'Under Contract', // Default assumption
             contract_expiry: null,
             region: getRegion(nationality),
-            image_url: null // API doesn't provide player images
+            image_url: playerImage // Use actual image from API
           }
 
           const { error: insertError } = await supabase
@@ -162,7 +166,7 @@ serve(async (req) => {
           if (insertError) {
             console.error(`Error inserting player ${player.name}:`, insertError)
           } else {
-            console.log(`Inserted player: ${player.name} from ${teamName}`)
+            console.log(`Inserted player: ${player.name} from ${teamName} with image: ${playerImage}`)
             playersInserted++
 
             // Insert recent form data if available

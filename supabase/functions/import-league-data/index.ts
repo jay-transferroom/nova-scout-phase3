@@ -47,29 +47,66 @@ serve(async (req) => {
     let totalTeamsImported = 0
     let totalPlayersImported = 0
 
-    // Step 1: Import teams for the league
+    // Step 1: Import teams for the league with real logos from API
     console.log(`Step 1: Importing teams for ${leagueName}`)
     
-    // Create sample teams for the league (since API might not have league-specific endpoints)
-    const sampleTeams = getSampleTeamsForLeague(leagueName)
+    // Try to fetch teams from API first
+    let teamsFromApi = []
+    try {
+      const teamsApiUrl = `https://free-api-live-football-data.p.rapidapi.com/football-get-list-team`
+      const teamsResponse = await fetch(teamsApiUrl, {
+        method: 'GET',
+        headers: {
+          'X-RapidAPI-Key': rapidApiKey,
+          'X-RapidAPI-Host': 'free-api-live-football-data.p.rapidapi.com'
+        }
+      })
+      
+      if (teamsResponse.ok) {
+        const teamsData = await teamsResponse.json()
+        console.log('Teams API response:', JSON.stringify(teamsData, null, 2))
+        
+        if (teamsData.status === 'success' && teamsData.response?.list) {
+          teamsFromApi = teamsData.response.list.filter((team: any) => {
+            // Filter teams based on league - you might need to adjust this logic
+            return team.league?.includes(leagueName) || team.country === league.country
+          })
+        }
+      }
+    } catch (error) {
+      console.log('Could not fetch teams from API, using fallback data')
+    }
+
+    // Fallback to sample teams if API doesn't provide them
+    const sampleTeams = teamsFromApi.length > 0 ? teamsFromApi : getSampleTeamsForLeague(leagueName)
     
     for (const team of sampleTeams) {
       // Check if team already exists
       const { data: existingTeam } = await supabase
         .from('teams')
         .select('id')
-        .eq('external_api_id', team.external_api_id)
+        .eq('external_api_id', team.external_api_id || team.id)
         .single()
 
       if (!existingTeam) {
+        const teamData = {
+          name: team.name,
+          league: leagueName,
+          country: league.country,
+          founded: team.founded || null,
+          venue: team.venue || team.stadium || null,
+          external_api_id: team.external_api_id || team.id,
+          logo_url: team.logo || team.image || team.badge || null // Use real logo from API
+        }
+
         const { error } = await supabase
           .from('teams')
-          .insert(team)
+          .insert(teamData)
 
         if (error) {
           console.error('Error inserting team:', error)
         } else {
-          console.log('Imported team:', team.name)
+          console.log('Imported team:', team.name, 'with logo:', teamData.logo_url)
           totalTeamsImported++
         }
       } else {
@@ -86,7 +123,7 @@ serve(async (req) => {
         
         // Call the player import function for each team
         const { data: playerImportResult, error: playerImportError } = await supabase.functions.invoke('import-player-data', {
-          body: { team_id: team.external_api_id, season: league.season }
+          body: { team_id: team.external_api_id || team.id, season: league.season }
         })
 
         if (playerImportError) {
@@ -169,6 +206,6 @@ function getSampleTeamsForLeague(leagueName: string) {
              leagueName === 'Serie A' ? 'Italy' :
              leagueName === 'Bundesliga' ? 'Germany' :
              leagueName === 'Ligue 1' ? 'France' : 'Unknown',
-    logo_url: `https://picsum.photos/id/${Math.floor(Math.random() * 1000)}/100/100`
+    logo_url: null // Will be populated from API if available
   }))
 }
