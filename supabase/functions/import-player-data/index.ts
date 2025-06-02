@@ -25,17 +25,63 @@ serve(async (req) => {
 
     console.log(`Starting player data import for team ${teamId}, season ${season}...`)
 
-    // Try different API endpoints for team squad data
-    const apiEndpoints = [
+    // First, let's try to get available leagues and teams to understand the API structure
+    const explorationEndpoints = [
+      'https://free-api-live-football-data.p.rapidapi.com/football-get-leagues',
+      'https://free-api-live-football-data.p.rapidapi.com/football-get-teams',
+      `https://free-api-live-football-data.p.rapidapi.com/football-get-teams-by-league?league_id=1`,
+      `https://free-api-live-football-data.p.rapidapi.com/football-get-teams-by-league?league_id=39`
+    ]
+
+    console.log('Exploring API structure...')
+    for (const endpoint of explorationEndpoints) {
+      try {
+        console.log(`Testing endpoint: ${endpoint}`)
+        const response = await fetch(endpoint, {
+          headers: {
+            'x-rapidapi-key': rapidApiKey,
+            'x-rapidapi-host': 'free-api-live-football-data.p.rapidapi.com'
+          }
+        })
+        console.log(`Endpoint ${endpoint} status: ${response.status}`)
+        if (response.ok) {
+          const data = await response.json()
+          console.log(`Endpoint ${endpoint} response preview:`, JSON.stringify(data).substring(0, 200))
+        }
+      } catch (e) {
+        console.log(`Endpoint ${endpoint} failed:`, e.message)
+      }
+    }
+
+    // Try different player API endpoints with various parameters
+    const playerEndpoints = [
+      // Original endpoints
       `https://free-api-live-football-data.p.rapidapi.com/football-get-team-squad?team_id=${teamId}`,
       `https://free-api-live-football-data.p.rapidapi.com/football-get-players-by-team?team_id=${teamId}`,
-      `https://free-api-live-football-data.p.rapidapi.com/football-teams-players?team_id=${teamId}`
+      `https://free-api-live-football-data.p.rapidapi.com/football-teams-players?team_id=${teamId}`,
+      
+      // Alternative parameter formats
+      `https://free-api-live-football-data.p.rapidapi.com/football-get-team-squad?id=${teamId}`,
+      `https://free-api-live-football-data.p.rapidapi.com/football-get-players?team=${teamId}`,
+      `https://free-api-live-football-data.p.rapidapi.com/football-players?team_id=${teamId}`,
+      
+      // With season parameter
+      `https://free-api-live-football-data.p.rapidapi.com/football-get-team-squad?team_id=${teamId}&season=${season}`,
+      `https://free-api-live-football-data.p.rapidapi.com/football-get-players-by-team?team_id=${teamId}&season=${season}`,
+      
+      // Different team ID formats (some APIs use different IDs)
+      `https://free-api-live-football-data.p.rapidapi.com/football-get-team-squad?team_id=11`,
+      `https://free-api-live-football-data.p.rapidapi.com/football-get-players-by-team?team_id=11`,
+      
+      // Try with league-based queries
+      `https://free-api-live-football-data.p.rapidapi.com/football-get-players-by-league?league_id=39&season=${season}`,
+      `https://free-api-live-football-data.p.rapidapi.com/football-get-players-by-league?league_id=1&season=${season}`
     ]
     
     let data = null
     let successfulEndpoint = null
 
-    for (const apiUrl of apiEndpoints) {
+    for (const apiUrl of playerEndpoints) {
       try {
         console.log(`Trying API endpoint: ${apiUrl}`)
         const response = await fetch(apiUrl, {
@@ -46,17 +92,21 @@ serve(async (req) => {
         })
 
         console.log(`API Response Status: ${response.status}`)
+        console.log(`API Response Headers:`, Object.fromEntries(response.headers.entries()))
 
         if (response.ok) {
           data = await response.json()
           successfulEndpoint = apiUrl
           console.log('Successfully fetched data from:', apiUrl)
+          console.log('Response structure:', Object.keys(data))
+          console.log('Response preview:', JSON.stringify(data).substring(0, 500))
           break
         } else {
-          console.log(`Endpoint ${apiUrl} failed with status: ${response.status}`)
+          const errorText = await response.text()
+          console.log(`Endpoint ${apiUrl} failed with status: ${response.status}, error: ${errorText}`)
         }
       } catch (endpointError) {
-        console.log(`Endpoint ${apiUrl} failed with error:`, endpointError)
+        console.log(`Endpoint ${apiUrl} failed with error:`, endpointError.message)
         continue
       }
     }
@@ -68,13 +118,14 @@ serve(async (req) => {
         JSON.stringify({ 
           message: 'Sample player data created successfully due to API failure',
           error: 'All API endpoints returned errors or 404',
-          testedEndpoints: apiEndpoints
+          testedEndpoints: playerEndpoints,
+          suggestion: 'The API structure may have changed. Consider checking the RapidAPI documentation for the correct endpoints.'
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
 
-    console.log('Fetched player data from RapidAPI:', data)
+    console.log('Processing data from successful endpoint:', successfulEndpoint)
 
     // Process the data - try different response structures
     let players = []
@@ -86,6 +137,8 @@ serve(async (req) => {
       players = data.players
     } else if (data.data && Array.isArray(data.data)) {
       players = data.data
+    } else if (data.results && Array.isArray(data.results)) {
+      players = data.results
     }
 
     console.log(`Found ${players.length} players to process`)
@@ -94,17 +147,17 @@ serve(async (req) => {
       let insertedCount = 0
       for (const player of players.slice(0, 30)) { // Limit to 30 players
         const playerData = {
-          name: player.name || player.player_name || 'Unknown Player',
-          club: player.team || player.club || player.statistics?.[0]?.team?.name || 'Unknown Club',
-          age: player.age || calculateAgeFromBirth(player.birth?.date || player.date_of_birth) || 25,
-          date_of_birth: player.birth?.date || player.date_of_birth || '1999-01-01',
-          positions: [player.position || player.primary_position || 'Unknown'],
-          dominant_foot: player.foot || 'Right', // Default as API might not provide this
-          nationality: player.nationality || player.country || 'Unknown',
+          name: player.name || player.player_name || player.full_name || 'Unknown Player',
+          club: player.team || player.club || player.team_name || player.statistics?.[0]?.team?.name || 'Unknown Club',
+          age: player.age || calculateAgeFromBirth(player.birth?.date || player.date_of_birth || player.birthdate) || 25,
+          date_of_birth: player.birth?.date || player.date_of_birth || player.birthdate || '1999-01-01',
+          positions: [player.position || player.primary_position || player.pos || 'Unknown'],
+          dominant_foot: player.foot || player.preferred_foot || 'Right',
+          nationality: player.nationality || player.country || player.nation || 'Unknown',
           contract_status: 'Under Contract' as const,
           contract_expiry: null,
-          region: getRegionFromNationality(player.nationality || player.country || 'Unknown'),
-          image_url: player.photo || player.image || `https://picsum.photos/id/${Math.floor(Math.random() * 1000)}/300/300`
+          region: getRegionFromNationality(player.nationality || player.country || player.nation || 'Unknown'),
+          image_url: player.photo || player.image || player.picture || `https://picsum.photos/id/${Math.floor(Math.random() * 1000)}/300/300`
         }
 
         // Check if player already exists
