@@ -17,24 +17,23 @@ serve(async (req) => {
     // Initialize Supabase client
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+    const rapidApiKey = Deno.env.get('RAPIDAPI_KEY')!
     const supabase = createClient(supabaseUrl, supabaseKey)
 
-    console.log('Starting football data import...')
+    console.log('Starting football data import from RapidAPI...')
 
-    // Example: Fetch data from a free football API (using football-data.org's free tier)
-    // You can replace this with any other free football API
-    const apiUrl = 'https://api.football-data.org/v4/competitions/PL/matches'
+    const apiUrl = 'https://free-api-live-football-data.p.rapidapi.com/football-get-todays-matches'
     
     try {
       const response = await fetch(apiUrl, {
         headers: {
-          'X-Auth-Token': 'YOUR_API_KEY_HERE' // Replace with actual API key if available
+          'X-RapidAPI-Key': rapidApiKey,
+          'X-RapidAPI-Host': 'free-api-live-football-data.p.rapidapi.com'
         }
       })
 
       if (!response.ok) {
         console.log('API response not OK, using sample data instead')
-        // If API fails, we'll create some sample fixtures
         await createSampleFixtures(supabase)
         return new Response(
           JSON.stringify({ message: 'Sample fixtures created successfully' }),
@@ -43,21 +42,21 @@ serve(async (req) => {
       }
 
       const data = await response.json()
-      console.log('Fetched data from API:', data.matches?.length || 0, 'matches')
+      console.log('Fetched data from RapidAPI:', data)
 
-      // Process and insert fixtures
-      if (data.matches) {
-        for (const match of data.matches.slice(0, 10)) { // Limit to 10 matches
+      // Process and insert fixtures based on the API response structure
+      if (data && data.response) {
+        for (const match of data.response.slice(0, 20)) { // Limit to 20 matches
           const fixture = {
-            home_team: match.homeTeam.name,
-            away_team: match.awayTeam.name,
-            competition: match.competition.name,
-            fixture_date: match.utcDate,
-            venue: match.venue || null,
-            status: mapApiStatus(match.status),
-            home_score: match.score?.fullTime?.home || null,
-            away_score: match.score?.fullTime?.away || null,
-            external_api_id: match.id.toString()
+            home_team: match.teams?.home?.name || 'Unknown Home Team',
+            away_team: match.teams?.away?.name || 'Unknown Away Team',
+            competition: match.league?.name || 'Unknown Competition',
+            fixture_date: new Date(match.fixture?.date || Date.now()).toISOString(),
+            venue: match.fixture?.venue?.name || null,
+            status: mapApiStatus(match.fixture?.status?.short || 'NS'),
+            home_score: match.goals?.home || null,
+            away_score: match.goals?.away || null,
+            external_api_id: match.fixture?.id?.toString() || null
           }
 
           const { error } = await supabase
@@ -69,12 +68,14 @@ serve(async (req) => {
 
           if (error) {
             console.error('Error inserting fixture:', error)
+          } else {
+            console.log('Inserted fixture:', fixture.home_team, 'vs', fixture.away_team)
           }
         }
       }
 
     } catch (apiError) {
-      console.log('API call failed, creating sample data instead:', apiError)
+      console.log('RapidAPI call failed, creating sample data instead:', apiError)
       await createSampleFixtures(supabase)
     }
 
@@ -101,7 +102,7 @@ async function createSampleFixtures(supabase: any) {
       home_team: 'Liverpool',
       away_team: 'Manchester United',
       competition: 'Premier League',
-      fixture_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 1 week from now
+      fixture_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
       venue: 'Anfield',
       status: 'scheduled',
       home_score: null,
@@ -112,7 +113,7 @@ async function createSampleFixtures(supabase: any) {
       home_team: 'Chelsea',
       away_team: 'Arsenal',
       competition: 'Premier League',
-      fixture_date: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000).toISOString(), // 10 days from now
+      fixture_date: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000).toISOString(),
       venue: 'Stamford Bridge',
       status: 'scheduled',
       home_score: null,
@@ -123,7 +124,7 @@ async function createSampleFixtures(supabase: any) {
       home_team: 'Real Madrid',
       away_team: 'Barcelona',
       competition: 'La Liga',
-      fixture_date: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(), // 2 weeks from now
+      fixture_date: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),
       venue: 'Santiago Bernabéu',
       status: 'scheduled',
       home_score: null,
@@ -150,17 +151,23 @@ async function createSampleFixtures(supabase: any) {
 
 function mapApiStatus(apiStatus: string): string {
   switch (apiStatus) {
-    case 'SCHEDULED':
-    case 'TIMED':
+    case 'NS': // Not Started
+    case 'TBD': // To Be Determined
       return 'scheduled'
-    case 'IN_PLAY':
-    case 'PAUSED':
+    case '1H': // First Half
+    case '2H': // Second Half
+    case 'HT': // Half Time
+    case 'ET': // Extra Time
+    case 'P': // Penalty
       return 'live'
-    case 'FINISHED':
+    case 'FT': // Full Time
+    case 'AET': // After Extra Time
+    case 'PEN': // Penalties
       return 'completed'
-    case 'POSTPONED':
+    case 'SUSP': // Suspended
+    case 'PST': // Postponed
       return 'postponed'
-    case 'CANCELLED':
+    case 'CANC': // Cancelled
       return 'cancelled'
     default:
       return 'scheduled'

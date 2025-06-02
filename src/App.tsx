@@ -16,6 +16,7 @@ import RequirementsList from "./pages/transfers/RequirementsList";
 import PlayerPitches from "./pages/transfers/PlayerPitches";
 import ScoutingTasks from "./pages/transfers/ScoutingTasks";
 import UpcomingMatches from "./pages/transfers/UpcomingMatches";
+import DataImportPage from "./pages/transfers/DataImport";
 
 const queryClient = new QueryClient();
 
@@ -40,6 +41,7 @@ const App = () => (
               <Route path="pitches" element={<PlayerPitches />} />
               <Route path="scouting-tasks" element={<ScoutingTasks />} />
               <Route path="upcoming-matches" element={<UpcomingMatches />} />
+              <Route path="data-import" element={<DataImportPage />} />
               <Route index element={<RequirementsList />} />
             </Route>
             
