@@ -8,286 +8,199 @@ const corsHeaders = {
 }
 
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+    return new Response('ok', { headers: corsHeaders })
   }
 
   try {
+    const { teamId, season = 2024 } = await req.json()
+    console.log(`Starting player data import for team ${teamId}, season ${season}...`)
+
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     const rapidApiKey = Deno.env.get('RAPIDAPI_KEY')!
-    const supabase = createClient(supabaseUrl, supabaseKey)
 
-    // Get team ID and season from request body
-    const { team_id, season } = await req.json()
-    const teamId = team_id || '33' // Default to Manchester United
-    const requestedSeason = season || '2024'
+    const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
-    console.log(`Starting player data import for team ${teamId}, season ${requestedSeason}...`)
+    // First, get the team name from our teams table
+    const { data: teamData, error: teamError } = await supabase
+      .from('teams')
+      .select('name')
+      .eq('external_api_id', teamId)
+      .single()
 
-    // Use the correct API endpoint format
+    if (teamError || !teamData) {
+      console.error('Team not found in database:', teamError)
+      return new Response(
+        JSON.stringify({ 
+          message: `Team with ID ${teamId} not found in database. Please import teams first.`,
+          error: teamError 
+        }),
+        { 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 400
+        }
+      )
+    }
+
+    const teamName = teamData.name
+    console.log(`Found team: ${teamName}`)
+
     const apiUrl = `https://free-api-live-football-data.p.rapidapi.com/football-get-list-player?teamid=${teamId}`
-    
     console.log(`Fetching players from: ${apiUrl}`)
-    
+
     const response = await fetch(apiUrl, {
       method: 'GET',
       headers: {
-        'x-rapidapi-key': rapidApiKey,
-        'x-rapidapi-host': 'free-api-live-football-data.p.rapidapi.com'
+        'X-RapidAPI-Key': rapidApiKey,
+        'X-RapidAPI-Host': 'free-api-live-football-data.p.rapidapi.com'
       }
     })
 
     console.log(`API response status: ${response.status}`)
 
     if (!response.ok) {
-      const errorText = await response.text()
-      console.error(`API error (${response.status}): ${errorText}`)
-      
-      // Create sample data as fallback
-      await createSamplePlayers(supabase, teamId)
-      
-      return new Response(
-        JSON.stringify({ 
-          message: `API returned ${response.status} error - created sample data instead`,
-          error: errorText,
-          teamId: teamId
-        }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
+      throw new Error(`API request failed: ${response.status}`)
     }
 
     const data = await response.json()
     console.log('API response data:', JSON.stringify(data, null, 2))
 
-    // Extract players from the API response structure we saw in the logs
-    let players = []
-    if (data && data.response && data.response.list && data.response.list.squad) {
-      const squad = data.response.list.squad
-      
-      // Flatten all squad members from all groups (keepers, defenders, midfielders, forwards)
-      for (const group of squad) {
-        if (group.members && Array.isArray(group.members)) {
-          // Filter out coaches and other non-player roles
-          const groupPlayers = group.members.filter(member => 
-            member.role && 
-            member.role.key !== 'coach' && 
-            member.name
-          )
-          players.push(...groupPlayers)
+    if (data.status !== 'success' || !data.response?.list?.squad) {
+      throw new Error('Invalid API response structure')
+    }
+
+    const squad = data.response.list.squad
+    let totalPlayersFound = 0
+    let playersInserted = 0
+
+    // Process all squad categories
+    for (const category of squad) {
+      if (category.members) {
+        for (const player of category.members) {
+          // Skip coaches and other non-player roles
+          if (player.role?.key === 'coach' || player.excludeFromRanking === true) {
+            continue
+          }
+
+          totalPlayersFound++
+
+          const positions = player.positionIdsDesc ? player.positionIdsDesc.split(',').map((p: string) => p.trim()) : ['Unknown']
+          
+          // Map nationality codes to full country names
+          const nationalityMap: Record<string, string> = {
+            'ENG': 'England', 'ESP': 'Spain', 'FRA': 'France', 'GER': 'Germany',
+            'ITA': 'Italy', 'BRA': 'Brazil', 'ARG': 'Argentina', 'POR': 'Portugal',
+            'NED': 'Netherlands', 'BEL': 'Belgium', 'CRO': 'Croatia', 'POL': 'Poland',
+            'URU': 'Uruguay', 'COL': 'Colombia', 'CZE': 'Czechia', 'WAL': 'Wales',
+            'SCO': 'Scotland', 'IRE': 'Ireland', 'NOR': 'Norway', 'SWE': 'Sweden',
+            'DEN': 'Denmark', 'AUT': 'Austria', 'SUI': 'Switzerland', 'SER': 'Serbia',
+            'TUR': 'Turkey', 'UKR': 'Ukraine', 'RUS': 'Russia', 'MEX': 'Mexico',
+            'USA': 'United States', 'CAN': 'Canada', 'JPN': 'Japan', 'KOR': 'South Korea',
+            'AUS': 'Australia', 'NZL': 'New Zealand', 'RSA': 'South Africa',
+            'NGA': 'Nigeria', 'GHA': 'Ghana', 'CMR': 'Cameroon', 'SEN': 'Senegal',
+            'MAR': 'Morocco', 'EGY': 'Egypt', 'ALG': 'Algeria', 'TUN': 'Tunisia',
+            'CIV': 'Ivory Coast', 'MLI': 'Mali', 'BFA': 'Burkina Faso', 'GUI': 'Guinea',
+            'LIB': 'Liberia', 'SLE': 'Sierra Leone', 'TOG': 'Togo', 'BEN': 'Benin',
+            'GAB': 'Gabon', 'CGO': 'Congo', 'ANG': 'Angola', 'ZAM': 'Zambia',
+            'ZIM': 'Zimbabwe', 'BOT': 'Botswana', 'NAM': 'Namibia', 'SWZ': 'Eswatini'
+          }
+
+          const nationality = nationalityMap[player.ccode] || player.cname || 'Unknown'
+          
+          // Determine region based on nationality
+          const getRegion = (nationality: string): string => {
+            const europeanCountries = ['England', 'Spain', 'France', 'Germany', 'Italy', 'Portugal', 'Netherlands', 'Belgium', 'Croatia', 'Poland', 'Czechia', 'Wales', 'Scotland', 'Ireland', 'Norway', 'Sweden', 'Denmark', 'Austria', 'Switzerland', 'Serbia', 'Turkey', 'Ukraine', 'Russia']
+            const southAmericanCountries = ['Brazil', 'Argentina', 'Uruguay', 'Colombia']
+            const northAmericanCountries = ['United States', 'Canada', 'Mexico']
+            const africanCountries = ['Nigeria', 'Ghana', 'Cameroon', 'Senegal', 'Morocco', 'Egypt', 'Algeria', 'Tunisia', 'Ivory Coast', 'Mali', 'Burkina Faso', 'Guinea', 'Liberia', 'Sierra Leone', 'Togo', 'Benin', 'Gabon', 'Congo', 'Angola', 'Zambia', 'Zimbabwe', 'Botswana', 'Namibia', 'Eswatini', 'South Africa']
+            const asianCountries = ['Japan', 'South Korea']
+            const oceaniaCountries = ['Australia', 'New Zealand']
+
+            if (europeanCountries.includes(nationality)) return 'Europe'
+            if (southAmericanCountries.includes(nationality)) return 'South America'
+            if (northAmericanCountries.includes(nationality)) return 'North America'
+            if (africanCountries.includes(nationality)) return 'Africa'
+            if (asianCountries.includes(nationality)) return 'Asia'
+            if (oceaniaCountries.includes(nationality)) return 'Oceania'
+            return 'Unknown'
+          }
+
+          const playerData = {
+            name: player.name,
+            club: teamName, // Use the resolved team name instead of team ID
+            age: player.age || 0,
+            date_of_birth: player.dateOfBirth || '1990-01-01',
+            positions: positions,
+            dominant_foot: 'Right', // Default as API doesn't provide this
+            nationality: nationality,
+            contract_status: 'Under Contract', // Default assumption
+            contract_expiry: null,
+            region: getRegion(nationality),
+            image_url: null // API doesn't provide player images
+          }
+
+          const { error: insertError } = await supabase
+            .from('players')
+            .insert(playerData)
+
+          if (insertError) {
+            console.error(`Error inserting player ${player.name}:`, insertError)
+          } else {
+            console.log(`Inserted player: ${player.name} from ${teamName}`)
+            playersInserted++
+
+            // Insert recent form data if available
+            if (player.rating && player.goals !== undefined && player.assists !== undefined) {
+              const { data: insertedPlayer } = await supabase
+                .from('players')
+                .select('id')
+                .eq('name', player.name)
+                .eq('club', teamName)
+                .single()
+
+              if (insertedPlayer) {
+                await supabase
+                  .from('player_recent_form')
+                  .insert({
+                    player_id: insertedPlayer.id,
+                    matches: 10, // Default assumption
+                    goals: player.goals || 0,
+                    assists: player.assists || 0,
+                    rating: parseFloat(player.rating) || 0.0
+                  })
+              }
+            }
+          }
         }
       }
     }
 
-    console.log(`Found ${players.length} players in squad`)
+    console.log(`Found ${totalPlayersFound} players in squad`)
 
-    if (players.length === 0) {
-      console.log('No players found in API response, creating sample data')
-      await createSamplePlayers(supabase, teamId)
-      
-      return new Response(
-        JSON.stringify({ 
-          message: 'No players found in API response - created sample data instead',
-          apiResponse: data,
-          teamId: teamId
-        }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
-    }
-
-    // Process and insert the player data
-    const insertedCount = await insertPlayerData(supabase, players, teamId)
-    
     return new Response(
       JSON.stringify({ 
-        message: `Successfully imported ${insertedCount} players for team ${teamId}`,
-        totalPlayersFound: players.length,
-        teamId: teamId
+        message: `Successfully imported ${playersInserted} players for ${teamName}`,
+        totalPlayersFound,
+        playersInserted,
+        teamId,
+        teamName
       }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+      }
     )
 
   } catch (error) {
-    console.error('Error in player import function:', error)
+    console.error('Error importing player data:', error)
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ 
+        error: error.message 
+      }),
       { 
-        status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 500
       }
     )
   }
 })
-
-async function insertPlayerData(supabase: any, players: any[], teamId: string) {
-  let insertedCount = 0
-  
-  // Get team name for the given team ID
-  const teamName = getTeamName(teamId)
-  
-  for (const player of players.slice(0, 20)) { // Limit to 20 players
-    try {
-      const playerData = {
-        name: player.name || `Player ${Math.random().toString(36).substr(2, 9)}`,
-        club: teamName,
-        age: player.age || calculateAgeFromBirth(player.dateOfBirth) || Math.floor(Math.random() * 15) + 18,
-        date_of_birth: player.dateOfBirth || generateRandomBirthDate(),
-        positions: player.positionIdsDesc ? [player.positionIdsDesc] : ['Unknown'],
-        dominant_foot: Math.random() > 0.5 ? 'Right' : 'Left',
-        nationality: player.cname || 'Unknown',
-        contract_status: 'Under Contract' as const,
-        contract_expiry: null,
-        region: getRegionFromNationality(player.cname || 'Unknown'),
-        image_url: `https://picsum.photos/id/${Math.floor(Math.random() * 1000)}/300/300`
-      }
-
-      // Check if player already exists
-      const { data: existingPlayer } = await supabase
-        .from('players')
-        .select('id')
-        .eq('name', playerData.name)
-        .eq('club', playerData.club)
-        .single()
-
-      if (!existingPlayer) {
-        const { error } = await supabase
-          .from('players')
-          .insert(playerData)
-
-        if (error) {
-          console.error('Error inserting player:', error)
-        } else {
-          console.log('Inserted player:', playerData.name, 'from', playerData.club)
-          insertedCount++
-        }
-      } else {
-        console.log('Player already exists:', playerData.name, 'from', playerData.club)
-      }
-    } catch (playerError) {
-      console.error('Error processing player:', playerError, player)
-    }
-  }
-  
-  return insertedCount
-}
-
-function getTeamName(teamId: string): string {
-  // Basic team ID to name mapping - you can expand this
-  const teamMap: Record<string, string> = {
-    '8650': 'Liverpool',
-    '33': 'Manchester United',
-    '8456': 'Chelsea',
-    '8455': 'Arsenal',
-    '8463': 'Liverpool',
-    '8557': 'Manchester City'
-  }
-  
-  return teamMap[teamId] || `Team ${teamId}`
-}
-
-function calculateAgeFromBirth(birthDate: string): number | null {
-  if (!birthDate) return null
-  const birth = new Date(birthDate)
-  const today = new Date()
-  let age = today.getFullYear() - birth.getFullYear()
-  const monthDiff = today.getMonth() - birth.getMonth()
-  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
-    age--
-  }
-  return age
-}
-
-function generateRandomBirthDate(): string {
-  const currentYear = new Date().getFullYear()
-  const randomAge = Math.floor(Math.random() * 15) + 18 // Age between 18-32
-  const birthYear = currentYear - randomAge
-  const month = Math.floor(Math.random() * 12) + 1
-  const day = Math.floor(Math.random() * 28) + 1
-  return `${birthYear}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`
-}
-
-async function createSamplePlayers(supabase: any, teamId: string) {
-  const teamName = getTeamName(teamId)
-  const samplePlayers = [
-    {
-      name: 'Marcus Johnson',
-      club: teamName,
-      age: 24,
-      date_of_birth: '2000-03-15',
-      positions: ['Forward'],
-      dominant_foot: 'Right',
-      nationality: 'England',
-      contract_status: 'Under Contract',
-      contract_expiry: null,
-      region: 'Europe',
-      image_url: 'https://picsum.photos/id/100/300/300'
-    },
-    {
-      name: 'Diego Rodriguez',
-      club: teamName,
-      age: 26,
-      date_of_birth: '1998-07-22',
-      positions: ['Midfielder'],
-      dominant_foot: 'Left',
-      nationality: 'Spain',
-      contract_status: 'Under Contract',
-      contract_expiry: null,
-      region: 'Europe',
-      image_url: 'https://picsum.photos/id/101/300/300'
-    },
-    {
-      name: 'James Wilson',
-      club: teamName,
-      age: 23,
-      date_of_birth: '2001-01-10',
-      positions: ['Defender'],
-      dominant_foot: 'Right',
-      nationality: 'England',
-      contract_status: 'Under Contract',
-      contract_expiry: null,
-      region: 'Europe',
-      image_url: 'https://picsum.photos/id/102/300/300'
-    }
-  ]
-
-  for (const player of samplePlayers) {
-    // Check if player already exists
-    const { data: existingPlayer } = await supabase
-      .from('players')
-      .select('id')
-      .eq('name', player.name)
-      .eq('club', player.club)
-      .single()
-
-    if (!existingPlayer) {
-      const { error } = await supabase
-        .from('players')
-        .insert(player)
-
-      if (error) {
-        console.error('Error inserting sample player:', error)
-      } else {
-        console.log('Inserted sample player:', player.name)
-      }
-    } else {
-      console.log('Sample player already exists:', player.name)
-    }
-  }
-}
-
-function getRegionFromNationality(nationality: string): string {
-  const europeanCountries = ['England', 'France', 'Spain', 'Germany', 'Italy', 'Portugal', 'Netherlands', 'Belgium', 'Poland', 'Ukraine', 'Norway', 'Sweden', 'Denmark', 'Switzerland', 'Austria', 'Czech Republic', 'Croatia', 'Serbia', 'Hungary', 'Romania', 'Bulgaria', 'Greece', 'Turkey', 'Russia', 'Finland', 'Ireland', 'Scotland', 'Wales']
-  const southAmericanCountries = ['Brazil', 'Argentina', 'Uruguay', 'Colombia', 'Chile', 'Peru', 'Ecuador', 'Paraguay', 'Bolivia', 'Venezuela', 'Guyana', 'Suriname']
-  const northAmericanCountries = ['United States', 'Mexico', 'Canada', 'Costa Rica', 'Panama', 'Guatemala', 'Honduras', 'El Salvador', 'Nicaragua', 'Jamaica', 'Trinidad and Tobago']
-  const africanCountries = ['Nigeria', 'Ghana', 'Senegal', 'Morocco', 'Egypt', 'Algeria', 'Tunisia', 'Cameroon', 'Ivory Coast', 'Mali', 'Burkina Faso', 'South Africa', 'Kenya', 'Ethiopia']
-  const asianCountries = ['Japan', 'South Korea', 'China', 'Australia', 'Iran', 'Saudi Arabia', 'UAE', 'Qatar', 'Iraq', 'Jordan', 'Lebanon', 'Syria', 'India', 'Thailand', 'Vietnam', 'Indonesia', 'Malaysia', 'Singapore', 'Philippines']
-
-  if (europeanCountries.includes(nationality)) return 'Europe'
-  if (southAmericanCountries.includes(nationality)) return 'South America'
-  if (northAmericanCountries.includes(nationality)) return 'North America'
-  if (africanCountries.includes(nationality)) return 'Africa'
-  if (asianCountries.includes(nationality)) return 'Asia'
-  
-  return 'Europe' // Default fallback
-}
