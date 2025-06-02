@@ -1,4 +1,3 @@
-
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
@@ -60,28 +59,26 @@ serve(async (req) => {
     const data = await response.json()
     console.log('API response data:', JSON.stringify(data, null, 2))
 
-    // Extract players from the API response
+    // Extract players from the API response structure we saw in the logs
     let players = []
-    if (Array.isArray(data)) {
-      players = data
-    } else if (data && data.players && Array.isArray(data.players)) {
-      players = data.players
-    } else if (data && data.data && Array.isArray(data.data)) {
-      players = data.data
-    } else if (data && data.response && Array.isArray(data.response)) {
-      players = data.response
-    } else if (data && typeof data === 'object') {
-      // Try to find any array property that might contain player data
-      for (const [key, value] of Object.entries(data)) {
-        if (Array.isArray(value) && value.length > 0) {
-          console.log(`Found potential player array in property: ${key}`)
-          players = value
-          break
+    if (data && data.response && data.response.list && data.response.list.squad) {
+      const squad = data.response.list.squad
+      
+      // Flatten all squad members from all groups (keepers, defenders, midfielders, forwards)
+      for (const group of squad) {
+        if (group.members && Array.isArray(group.members)) {
+          // Filter out coaches and other non-player roles
+          const groupPlayers = group.members.filter(member => 
+            member.role && 
+            member.role.key !== 'coach' && 
+            member.name
+          )
+          players.push(...groupPlayers)
         }
       }
     }
 
-    console.log(`Found ${players.length} potential players`)
+    console.log(`Found ${players.length} players in squad`)
 
     if (players.length === 0) {
       console.log('No players found in API response, creating sample data')
@@ -124,23 +121,23 @@ serve(async (req) => {
 async function insertPlayerData(supabase: any, players: any[], teamId: string) {
   let insertedCount = 0
   
-  // Get team name for the given team ID (you might want to maintain a mapping)
+  // Get team name for the given team ID
   const teamName = getTeamName(teamId)
   
   for (const player of players.slice(0, 20)) { // Limit to 20 players
     try {
       const playerData = {
-        name: player.name || player.player_name || player.full_name || player.displayName || `Player ${Math.random().toString(36).substr(2, 9)}`,
+        name: player.name || `Player ${Math.random().toString(36).substr(2, 9)}`,
         club: teamName,
-        age: player.age || calculateAgeFromBirth(player.birth?.date || player.date_of_birth || player.birthdate) || Math.floor(Math.random() * 15) + 18,
-        date_of_birth: player.birth?.date || player.date_of_birth || player.birthdate || generateRandomBirthDate(),
-        positions: player.position ? [player.position] : (player.positions || ['Unknown']),
-        dominant_foot: player.foot || player.preferred_foot || (Math.random() > 0.5 ? 'Right' : 'Left'),
-        nationality: player.nationality || player.country || player.nation || 'Unknown',
+        age: player.age || calculateAgeFromBirth(player.dateOfBirth) || Math.floor(Math.random() * 15) + 18,
+        date_of_birth: player.dateOfBirth || generateRandomBirthDate(),
+        positions: player.positionIdsDesc ? [player.positionIdsDesc] : ['Unknown'],
+        dominant_foot: Math.random() > 0.5 ? 'Right' : 'Left',
+        nationality: player.cname || 'Unknown',
         contract_status: 'Under Contract' as const,
         contract_expiry: null,
-        region: getRegionFromNationality(player.nationality || player.country || player.nation || 'Unknown'),
-        image_url: player.photo || player.image || player.picture || `https://picsum.photos/id/${Math.floor(Math.random() * 1000)}/300/300`
+        region: getRegionFromNationality(player.cname || 'Unknown'),
+        image_url: `https://picsum.photos/id/${Math.floor(Math.random() * 1000)}/300/300`
       }
 
       // Check if player already exists
@@ -176,7 +173,7 @@ async function insertPlayerData(supabase: any, players: any[], teamId: string) {
 function getTeamName(teamId: string): string {
   // Basic team ID to name mapping - you can expand this
   const teamMap: Record<string, string> = {
-    '8650': 'Manchester United',
+    '8650': 'Liverpool',
     '33': 'Manchester United',
     '8456': 'Chelsea',
     '8455': 'Arsenal',
