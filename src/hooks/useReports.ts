@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { ReportWithPlayer, Report } from '@/types/report';
@@ -20,7 +19,7 @@ export const useReports = () => {
         .select(`
           *,
           player:players(*),
-          scout:profiles(*)
+          scout_profile:profiles(*)
         `)
         .order('created_at', { ascending: false });
 
@@ -47,7 +46,7 @@ export const useReports = () => {
         tags: report.tags || [],
         flaggedForReview: report.flagged_for_review || false,
         player: report.player,
-        scout: report.scout,
+        scoutProfile: report.scout_profile,
       }));
 
       setReports(transformedReports);

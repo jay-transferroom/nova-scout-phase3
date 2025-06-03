@@ -64,6 +64,13 @@ export interface Report {
 
 export interface ReportWithPlayer extends Report {
   player: Player;
+  scoutProfile?: {
+    id: string;
+    first_name?: string;
+    last_name?: string;
+    email: string;
+    role: 'scout' | 'recruitment';
+  };
 }
 
 export interface ReportSectionData {
