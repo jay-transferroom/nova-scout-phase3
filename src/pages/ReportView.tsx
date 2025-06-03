@@ -1,10 +1,9 @@
-
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, FileText, Calendar, User, Award } from "lucide-react";
+import { ArrowLeft, FileText, Calendar, User, Award, Edit } from "lucide-react";
 import { ReportWithPlayer } from "@/types/report";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
@@ -119,6 +118,8 @@ const ReportView = () => {
     fetchReport();
   }, [id, user]);
   
+  const canEdit = report && user && report.scoutId === user.id;
+
   if (loading) {
     return (
       <div className="container mx-auto py-8 flex items-center justify-center">
@@ -173,6 +174,12 @@ const ReportView = () => {
           <ArrowLeft size={16} />
           Back to Reports
         </Button>
+        {canEdit && (
+          <Button onClick={() => navigate(`/reports/${id}/edit`)} className="gap-2">
+            <Edit size={16} />
+            Edit Report
+          </Button>
+        )}
       </div>
       
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

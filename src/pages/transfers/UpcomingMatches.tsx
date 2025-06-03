@@ -1,4 +1,3 @@
-
 import { useFixturesData } from "@/hooks/useFixturesData";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -43,7 +42,7 @@ const UpcomingMatches = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="container mx-auto py-8">
       <div>
         <h2 className="text-2xl font-bold mb-2">Upcoming Matches</h2>
         <p className="text-muted-foreground">Track upcoming fixtures and matches for scouting opportunities</p>
