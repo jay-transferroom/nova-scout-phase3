@@ -13,6 +13,7 @@ import ScoutingDashboard from "@/pages/ScoutingDashboard";
 import SquadView from "@/pages/SquadView";
 import ReportsList from "@/pages/ReportsList";
 import ReportView from "@/pages/ReportView";
+import ReportBuilder from "@/pages/ReportBuilder";
 import PlayerProfile from "@/pages/PlayerProfile";
 import RequirementsList from "@/pages/transfers/RequirementsList";
 import RequirementDetails from "@/pages/transfers/RequirementDetails";
@@ -43,13 +44,14 @@ function App() {
                       <SidebarProvider>
                         <div className="flex flex-col w-full min-h-screen">
                           <Header />
-                          <div className="flex flex-1">
+                          <div className="flex flex-1 relative">
                             <MainNavigation />
                             <main className="flex-1 overflow-hidden">
                               <Routes>
                                 <Route path="/dashboard" element={<ScoutingDashboard />} />
                                 <Route path="/squad" element={<SquadView />} />
                                 <Route path="/reports" element={<ReportsList />} />
+                                <Route path="/reports/new" element={<ReportBuilder />} />
                                 <Route path="/reports/:id" element={<ReportView />} />
                                 <Route path="/players/:id" element={<PlayerProfile />} />
                                 <Route path="/transfers/requirements" element={<RequirementsList />} />
