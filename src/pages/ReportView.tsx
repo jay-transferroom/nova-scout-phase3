@@ -1,157 +1,15 @@
+
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ArrowLeft, FileText, Calendar, User, Award } from "lucide-react";
-import { Report, ReportWithPlayer, ReportFieldType, ReportField } from "@/types/report";
-import { Player } from "@/types/player";
+import { ReportWithPlayer } from "@/types/report";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
-
-// Mock data for demonstration
-const mockReports: Array<ReportWithPlayer> = [
-  {
-    id: "report-1",
-    playerId: "player-1",
-    templateId: "template-1",
-    scoutId: "scout-1",
-    createdAt: new Date("2025-04-15"),
-    updatedAt: new Date("2025-04-15"),
-    status: "submitted",
-    sections: [
-      {
-        sectionId: "overall",
-        fields: [
-          {
-            fieldId: "overallRating",
-            value: 8,
-            notes: "Excellent prospect with strong technical ability and good physical attributes."
-          },
-          {
-            fieldId: "recommendation",
-            value: "Sign",
-            notes: "Recommended for immediate acquisition."
-          }
-        ]
-      },
-      {
-        sectionId: "technical",
-        fields: [
-          {
-            fieldId: "passing",
-            value: 7,
-            notes: "Good range of passing, comfortable on the ball."
-          },
-          {
-            fieldId: "shooting",
-            value: 8,
-            notes: "Excellent shot technique and power."
-          }
-        ]
-      },
-      {
-        sectionId: "physical",
-        fields: [
-          {
-            fieldId: "speed",
-            value: 9,
-            notes: "Explosive speed, very quick over short distances."
-          },
-          {
-            fieldId: "strength",
-            value: 6,
-            notes: "Good upper body strength, can improve lower body."
-          }
-        ]
-      }
-    ],
-    matchContext: {
-      date: "2025-04-15",
-      opposition: "Arsenal",
-      competition: "Premier League",
-      minutesPlayed: 90,
-      conditions: "Dry, Good pitch",
-      roleContext: "Started as CM in a 4-3-3"
-    },
-    tags: ["Technical", "Creative", "High Potential"],
-    player: {
-      id: "player-1",
-      name: "Marcus Johnson",
-      club: "Manchester United",
-      age: 22,
-      dateOfBirth: "2002-06-12",
-      positions: ["CM", "CAM"],
-      dominantFoot: "Right",
-      nationality: "England",
-      contractStatus: "Under Contract",
-      region: "Europe"
-    }
-  },
-  {
-    id: "report-2",
-    playerId: "player-2",
-    templateId: "template-2",
-    scoutId: "scout-1",
-    createdAt: new Date("2025-04-10"),
-    updatedAt: new Date("2025-04-10"),
-    status: "submitted",
-    sections: [
-      {
-        sectionId: "overall",
-        fields: [
-          {
-            fieldId: "overallRating",
-            value: 9,
-            notes: "Exceptional talent with high ceiling."
-          },
-          {
-            fieldId: "recommendation",
-            value: "Priority Sign",
-            notes: "Should be a top priority target."
-          }
-        ]
-      },
-      {
-        sectionId: "technical",
-        fields: [
-          {
-            fieldId: "dribbling",
-            value: "A",
-            notes: "Elite dribbler, excellent close control."
-          },
-          {
-            fieldId: "vision",
-            value: "B+",
-            notes: "Very good vision and decision making."
-          }
-        ]
-      }
-    ],
-    matchContext: {
-      date: "2025-04-10",
-      opposition: "Barcelona",
-      competition: "Champions League",
-      minutesPlayed: 75,
-      conditions: "Rainy",
-      roleContext: "Left Wing in a 4-3-3"
-    },
-    tags: ["Elite", "Technical", "Creative"],
-    player: {
-      id: "player-2",
-      name: "Carlos Sanchez",
-      club: "Real Madrid",
-      age: 24,
-      dateOfBirth: "2000-03-22",
-      positions: ["LW", "ST"],
-      dominantFoot: "Left",
-      nationality: "Spain",
-      contractStatus: "Under Contract",
-      region: "Europe"
-    }
-  },
-  // Reports for other players...
-];
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 
 // Helper function to get rating color based on value
 const getRatingColor = (value: any): string => {
@@ -173,23 +31,105 @@ const getRatingColor = (value: any): string => {
 const ReportView = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [report, setReport] = useState<ReportWithPlayer | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState("summary");
   
   useEffect(() => {
-    if (!id) return;
+    if (!id || !user) return;
     
-    // In a real app, this would fetch from an API
-    const foundReport = mockReports.find(r => r.id === id);
-    if (foundReport) {
-      setReport(foundReport);
-    }
-  }, [id]);
+    const fetchReport = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        
+        console.log('Fetching report with ID:', id);
+        
+        const { data, error: fetchError } = await supabase
+          .from('reports')
+          .select(`
+            *,
+            player:players(*),
+            scout_profile:profiles(*)
+          `)
+          .eq('id', id)
+          .single();
+
+        if (fetchError) {
+          console.error('Error fetching report:', fetchError);
+          setError('Failed to load report');
+          return;
+        }
+
+        if (!data) {
+          setError('Report not found');
+          return;
+        }
+
+        console.log('Report data received:', data);
+
+        // Transform the data to match our ReportWithPlayer interface
+        const transformedReport: ReportWithPlayer = {
+          id: data.id,
+          playerId: data.player_id,
+          templateId: data.template_id,
+          scoutId: data.scout_id,
+          createdAt: new Date(data.created_at),
+          updatedAt: new Date(data.updated_at),
+          status: data.status as 'draft' | 'submitted' | 'reviewed',
+          sections: typeof data.sections === 'string' ? JSON.parse(data.sections) : data.sections || [],
+          matchContext: typeof data.match_context === 'string' ? JSON.parse(data.match_context) : data.match_context,
+          tags: data.tags || [],
+          flaggedForReview: data.flagged_for_review || false,
+          player: data.player,
+          scoutProfile: data.scout_profile,
+        };
+
+        console.log('Transformed report:', transformedReport);
+        setReport(transformedReport);
+      } catch (err) {
+        console.error('Error in fetchReport:', err);
+        setError('An error occurred while loading the report');
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchReport();
+  }, [id, user]);
+  
+  if (loading) {
+    return (
+      <div className="container mx-auto py-8 flex items-center justify-center">
+        <p>Loading report...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="container mx-auto py-8 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-red-600 mb-4">{error}</p>
+          <Button onClick={() => navigate("/reports")} variant="outline">
+            Back to Reports
+          </Button>
+        </div>
+      </div>
+    );
+  }
   
   if (!report) {
     return (
       <div className="container mx-auto py-8 flex items-center justify-center">
-        <p>Loading report...</p>
+        <div className="text-center">
+          <p className="mb-4">Report not found</p>
+          <Button onClick={() => navigate("/reports")} variant="outline">
+            Back to Reports
+          </Button>
+        </div>
       </div>
     );
   }
@@ -226,9 +166,9 @@ const ReportView = () => {
             <CardContent>
               <div className="space-y-4">
                 <div className="flex flex-col items-center mb-4">
-                  {report.player.image ? (
+                  {report.player.image_url ? (
                     <img 
-                      src={report.player.image} 
+                      src={report.player.image_url} 
                       alt={report.player.name} 
                       className="w-24 h-24 rounded-full object-cover mb-2" 
                     />
@@ -262,11 +202,11 @@ const ReportView = () => {
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Foot</span>
-                    <span className="font-medium">{report.player.dominantFoot}</span>
+                    <span className="font-medium">{report.player.dominant_foot}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Contract</span>
-                    <span className="font-medium">{report.player.contractStatus}</span>
+                    <span className="font-medium">{report.player.contract_status}</span>
                   </div>
                 </div>
                 
@@ -320,7 +260,13 @@ const ReportView = () => {
                     </div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Scout</span>
-                      <span>{report.scoutId === "scout-1" ? "You" : "Other Scout"}</span>
+                      <span>
+                        {report.scoutProfile ? 
+                          `${report.scoutProfile.first_name || ''} ${report.scoutProfile.last_name || ''}`.trim() || 
+                          report.scoutProfile.email :
+                          'Unknown Scout'
+                        }
+                      </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Status</span>
