@@ -10,73 +10,9 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { MapPin, Calendar, FileText, ArrowRight } from "lucide-react";
+import { MapPin, Calendar, FileText, ArrowRight, Loader2 } from "lucide-react";
 import { Link } from "react-router-dom";
-
-// Mock data for scouting tasks
-interface ScoutingTask {
-  id: string;
-  playerName: string;
-  club: string;
-  position: string;
-  location: string;
-  priority: "High" | "Medium" | "Low";
-  upcomingMatch: {
-    date: string;
-    opposition: string;
-    competition: string;
-    venue: string;
-  } | null;
-  requirementId: string;
-}
-
-const mockScoutingTasks: ScoutingTask[] = [
-  {
-    id: "st-1",
-    playerName: "Lucas Silva",
-    club: "FC Porto",
-    position: "CB",
-    location: "Portugal",
-    priority: "High",
-    upcomingMatch: {
-      date: "2025-05-10",
-      opposition: "Benfica",
-      competition: "Liga Portugal",
-      venue: "Estádio do Dragão",
-    },
-    requirementId: "req-1"
-  },
-  {
-    id: "st-2",
-    playerName: "Kevin Rodriguez",
-    club: "Ajax",
-    position: "CAM",
-    location: "Netherlands",
-    priority: "Medium",
-    upcomingMatch: {
-      date: "2025-05-07",
-      opposition: "PSV",
-      competition: "Eredivisie",
-      venue: "Johan Cruijff ArenA",
-    },
-    requirementId: "req-2"
-  },
-  {
-    id: "st-3",
-    playerName: "Thomas Schmidt",
-    club: "RB Leipzig",
-    position: "GK",
-    location: "Germany",
-    priority: "Low",
-    upcomingMatch: {
-      date: "2025-05-18",
-      opposition: "Bayern Munich",
-      competition: "Bundesliga",
-      venue: "Red Bull Arena",
-    },
-    requirementId: "req-3"
-  },
-];
+import { useScoutingTasks } from "@/hooks/useScoutingTasks";
 
 const getPriorityBadgeVariant = (priority: string) => {
   switch (priority) {
@@ -90,12 +26,33 @@ const getPriorityBadgeVariant = (priority: string) => {
 };
 
 const ScoutingTasks = () => {
-  const [tasks] = useState<ScoutingTask[]>(mockScoutingTasks);
+  const { data: tasks = [], isLoading, error } = useScoutingTasks();
   const [filter, setFilter] = useState<string>("all");
   
   const filteredTasks = filter === "all" 
     ? tasks 
     : tasks.filter(task => task.priority.toLowerCase() === filter.toLowerCase());
+
+  if (isLoading) {
+    return (
+      <div className="container mx-auto py-8">
+        <div className="flex items-center justify-center py-12">
+          <Loader2 className="h-8 w-8 animate-spin" />
+          <span className="ml-2">Loading scouting tasks...</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="container mx-auto py-8">
+        <div className="text-center py-12 text-red-500">
+          Error loading scouting tasks. Please try again later.
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto py-8">
@@ -112,25 +69,25 @@ const ScoutingTasks = () => {
             variant={filter === "all" ? "default" : "outline"}
             onClick={() => setFilter("all")}
           >
-            All Tasks
+            All Tasks ({tasks.length})
           </Button>
           <Button 
             variant={filter === "high" ? "default" : "outline"}
             onClick={() => setFilter("high")}
           >
-            High Priority
+            High Priority ({tasks.filter(t => t.priority === "High").length})
           </Button>
           <Button 
             variant={filter === "medium" ? "default" : "outline"}
             onClick={() => setFilter("medium")}
           >
-            Medium Priority
+            Medium Priority ({tasks.filter(t => t.priority === "Medium").length})
           </Button>
           <Button 
             variant={filter === "low" ? "default" : "outline"}
             onClick={() => setFilter("low")}
           >
-            Low Priority
+            Low Priority ({tasks.filter(t => t.priority === "Low").length})
           </Button>
         </div>
       </div>
@@ -179,7 +136,7 @@ const ScoutingTasks = () => {
                           <span>{new Date(task.upcomingMatch.date).toLocaleDateString()}</span>
                         </div>
                         <div className="text-muted-foreground mt-1">
-                          vs {task.upcomingMatch.opposition} ({task.upcomingMatch.competition})
+                          {task.upcomingMatch.opposition} ({task.upcomingMatch.competition})
                         </div>
                         <div className="text-muted-foreground text-xs">
                           {task.upcomingMatch.venue}
@@ -191,7 +148,7 @@ const ScoutingTasks = () => {
                   </TableCell>
                   <TableCell>
                     <div className="flex gap-2">
-                      <Link to={`/reports/new?playerId=${task.id}&requirementId=${task.requirementId}`}>
+                      <Link to={`/reports/new?playerId=${task.playerId}&requirementId=${task.requirementId}`}>
                         <Button variant="outline" size="sm" className="flex items-center gap-1">
                           <FileText className="h-3 w-3" />
                           <span>Scout</span>
