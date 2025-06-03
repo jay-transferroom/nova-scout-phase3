@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { ReportWithPlayer, Report } from '@/types/report';
@@ -59,8 +60,11 @@ export const useReports = () => {
 
   const saveReport = async (reportData: Partial<Report>) => {
     if (!user) throw new Error('User not authenticated');
+    if (!reportData.playerId) throw new Error('Player ID is required');
 
     try {
+      console.log('Saving report with data:', reportData);
+      
       // Transform camelCase to snake_case for database
       const dbData = {
         id: reportData.id,
@@ -74,6 +78,8 @@ export const useReports = () => {
         flagged_for_review: reportData.flaggedForReview,
         updated_at: new Date().toISOString(),
       };
+
+      console.log('Database data being sent:', dbData);
 
       const { data, error } = await supabase
         .from('reports')
