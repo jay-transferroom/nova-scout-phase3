@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -30,6 +31,15 @@ const PlayerSearch = ({ onSelectPlayer }: PlayerSearchProps) => {
   const [contractFilter, setContractFilter] = useState<string>("all");
   const [regionFilter, setRegionFilter] = useState<string>("all");
 
+  // Debug logging
+  useEffect(() => {
+    console.log('Players loading:', isLoading);
+    console.log('Players error:', error);
+    console.log('Search query:', searchQuery);
+    console.log('Filtered players:', filteredPlayers);
+    console.log('Show results:', searchQuery.length > 0);
+  }, [isLoading, error, searchQuery, filteredPlayers]);
+
   // Create a map of team names to team data for quick lookup
   const teamMap = teams.reduce((acc, team) => {
     acc[team.name] = team;
@@ -56,18 +66,23 @@ const PlayerSearch = ({ onSelectPlayer }: PlayerSearchProps) => {
 
   // Filter players based on search query and filters
   useEffect(() => {
-    if (!players.length) return;
+    if (!players.length) {
+      setFilteredPlayers([]);
+      return;
+    }
     
     let results = [...players];
+    console.log('Starting with players:', results.length);
     
-    if (searchQuery) {
-      const lowercaseQuery = searchQuery.toLowerCase();
+    if (searchQuery.trim()) {
+      const lowercaseQuery = searchQuery.toLowerCase().trim();
       results = results.filter(player => 
         player.name.toLowerCase().includes(lowercaseQuery) || 
         player.club.toLowerCase().includes(lowercaseQuery) || 
         player.id.toLowerCase() === lowercaseQuery ||
         player.positions.some(pos => pos.toLowerCase().includes(lowercaseQuery))
       );
+      console.log('After search filter:', results.length);
     }
     
     if (ageFilter !== "all") {
@@ -78,14 +93,17 @@ const PlayerSearch = ({ onSelectPlayer }: PlayerSearchProps) => {
       } else if (ageFilter === "26+") {
         results = results.filter(player => player.age > 25);
       }
+      console.log('After age filter:', results.length);
     }
     
     if (contractFilter !== "all") {
       results = results.filter(player => player.contractStatus === contractFilter);
+      console.log('After contract filter:', results.length);
     }
     
     if (regionFilter !== "all") {
       results = results.filter(player => player.region === regionFilter);
+      console.log('After region filter:', results.length);
     }
     
     setFilteredPlayers(results);
@@ -177,6 +195,8 @@ const PlayerSearch = ({ onSelectPlayer }: PlayerSearchProps) => {
     );
   }
 
+  const showSearchResults = searchQuery.trim().length > 0;
+
   return (
     <div className="space-y-4">
       <div className="flex items-center space-x-2">
@@ -267,11 +287,11 @@ const PlayerSearch = ({ onSelectPlayer }: PlayerSearchProps) => {
         </DropdownMenu>
       </div>
       
-      {searchQuery && (
+      {showSearchResults && (
         <div className="rounded-md border">
-          <h3 className="px-4 py-2 text-sm font-medium border-b">Search Results</h3>
+          <h3 className="px-4 py-2 text-sm font-medium border-b">Search Results ({filteredPlayers.length})</h3>
           {filteredPlayers.length > 0 ? (
-            <ul className="divide-y">
+            <ul className="divide-y max-h-96 overflow-y-auto">
               {filteredPlayers.map((player) => (
                 <PlayerItem key={player.id} player={player} />
               ))}
@@ -282,7 +302,7 @@ const PlayerSearch = ({ onSelectPlayer }: PlayerSearchProps) => {
         </div>
       )}
       
-      {!searchQuery && recentPlayers.length > 0 && (
+      {!showSearchResults && recentPlayers.length > 0 && (
         <div className="rounded-md border">
           <h3 className="px-4 py-2 text-sm font-medium border-b">Recently Viewed</h3>
           <ul className="divide-y">

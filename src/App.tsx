@@ -50,6 +50,7 @@ function App() {
                                 <Route path="/squad" element={<SquadView />} />
                                 <Route path="/reports" element={<ReportsList />} />
                                 <Route path="/reports/:id" element={<ReportView />} />
+                                <Route path="/players/:id" element={<PlayerProfile />} />
                                 <Route path="/transfers/requirements" element={<RequirementsList />} />
                                 <Route path="/transfers/requirements/:id" element={<RequirementDetails />} />
                                 <Route path="/transfers/pitches" element={<PlayerPitches />} />
