@@ -13,6 +13,7 @@ import ScoutingDashboard from "@/pages/ScoutingDashboard";
 import SquadView from "@/pages/SquadView";
 import ReportsList from "@/pages/ReportsList";
 import ReportView from "@/pages/ReportView";
+import PlayerProfile from "@/pages/PlayerProfile";
 import RequirementsList from "@/pages/transfers/RequirementsList";
 import RequirementDetails from "@/pages/transfers/RequirementDetails";
 import PlayerPitches from "@/pages/transfers/PlayerPitches";
