@@ -7,6 +7,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import AppInitializer from "@/components/AppInitializer";
 import MainNavigation from "@/components/MainNavigation";
+import Header from "@/components/Header";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import ScoutingDashboard from "@/pages/ScoutingDashboard";
 import SquadView from "@/pages/SquadView";
@@ -39,27 +40,30 @@ function App() {
                   <ProtectedRoute>
                     <AppInitializer>
                       <SidebarProvider>
-                        <div className="flex w-full">
-                          <MainNavigation />
-                          <main className="flex-1 overflow-hidden">
-                            <Routes>
-                              <Route path="/dashboard" element={<ScoutingDashboard />} />
-                              <Route path="/squad" element={<SquadView />} />
-                              <Route path="/reports" element={<ReportsList />} />
-                              <Route path="/reports/:id" element={<ReportView />} />
-                              <Route path="/transfers/requirements" element={<RequirementsList />} />
-                              <Route path="/transfers/requirements/:id" element={<RequirementDetails />} />
-                              <Route path="/transfers/pitches" element={<PlayerPitches />} />
-                              <Route path="/transfers/scouting-tasks" element={<ScoutingTasks />} />
-                              <Route path="/transfers/upcoming-matches" element={<UpcomingMatches />} />
-                              <Route path="/transfers/data-import" element={<DataImport />} />
-                              <Route path="/templates" element={<TemplateAdmin />} />
-                              <Route path="/admin/users" element={<UserManagement />} />
-                              <Route path="/profile" element={<Profile />} />
-                              <Route path="/settings" element={<Settings />} />
-                              <Route path="*" element={<ScoutingDashboard />} />
-                            </Routes>
-                          </main>
+                        <div className="flex flex-col w-full min-h-screen">
+                          <Header />
+                          <div className="flex flex-1">
+                            <MainNavigation />
+                            <main className="flex-1 overflow-hidden">
+                              <Routes>
+                                <Route path="/dashboard" element={<ScoutingDashboard />} />
+                                <Route path="/squad" element={<SquadView />} />
+                                <Route path="/reports" element={<ReportsList />} />
+                                <Route path="/reports/:id" element={<ReportView />} />
+                                <Route path="/transfers/requirements" element={<RequirementsList />} />
+                                <Route path="/transfers/requirements/:id" element={<RequirementDetails />} />
+                                <Route path="/transfers/pitches" element={<PlayerPitches />} />
+                                <Route path="/transfers/scouting-tasks" element={<ScoutingTasks />} />
+                                <Route path="/transfers/upcoming-matches" element={<UpcomingMatches />} />
+                                <Route path="/transfers/data-import" element={<DataImport />} />
+                                <Route path="/templates" element={<TemplateAdmin />} />
+                                <Route path="/admin/users" element={<UserManagement />} />
+                                <Route path="/profile" element={<Profile />} />
+                                <Route path="/settings" element={<Settings />} />
+                                <Route path="*" element={<ScoutingDashboard />} />
+                              </Routes>
+                            </main>
+                          </div>
                         </div>
                       </SidebarProvider>
                     </AppInitializer>
