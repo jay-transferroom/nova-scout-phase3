@@ -39,7 +39,7 @@ const RequirementCard = ({ position, status, count, onCreateAd, onViewPitches }:
             onClick={onViewPitches}
             className="w-full text-xs"
           >
-            View Pitches
+            View Details
           </Button>
         ) : (
           <Button 
@@ -48,7 +48,7 @@ const RequirementCard = ({ position, status, count, onCreateAd, onViewPitches }:
             onClick={onCreateAd}
             className="w-full text-xs"
           >
-            Create Advert
+            Create Requirement
           </Button>
         )}
       </CardContent>

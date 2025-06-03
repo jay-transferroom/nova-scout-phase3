@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -11,7 +11,8 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Plus } from "lucide-react";
 import { RequirementProfile } from "@/types/report";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
+import NewRequirementDialog from "@/components/NewRequirementDialog";
 
 // Mock requirement profiles for demo purposes
 const mockRequirementProfiles: RequirementProfile[] = [
@@ -66,6 +67,17 @@ const mockRequirementProfiles: RequirementProfile[] = [
 
 const RequirementsList = () => {
   const [requirements] = useState<RequirementProfile[]>(mockRequirementProfiles);
+  const [isNewRequirementOpen, setIsNewRequirementOpen] = useState(false);
+  const [initialPosition, setInitialPosition] = useState<string | undefined>();
+  const location = useLocation();
+
+  useEffect(() => {
+    // Check if we came from dashboard with a position to create
+    if (location.state?.position && location.state?.action === 'create') {
+      setInitialPosition(location.state.position);
+      setIsNewRequirementOpen(true);
+    }
+  }, [location.state]);
 
   return (
     <div className="container mx-auto py-8">
@@ -76,7 +88,10 @@ const RequirementsList = () => {
             Create and manage requirements for players your club is looking for
           </p>
         </div>
-        <Button className="flex items-center gap-2">
+        <Button 
+          className="flex items-center gap-2"
+          onClick={() => setIsNewRequirementOpen(true)}
+        >
           <Plus className="h-4 w-4" />
           <span>New Requirement</span>
         </Button>
@@ -141,6 +156,15 @@ const RequirementsList = () => {
           </Card>
         ))}
       </div>
+
+      <NewRequirementDialog 
+        isOpen={isNewRequirementOpen}
+        onClose={() => {
+          setIsNewRequirementOpen(false);
+          setInitialPosition(undefined);
+        }}
+        initialPosition={initialPosition}
+      />
     </div>
   );
 };

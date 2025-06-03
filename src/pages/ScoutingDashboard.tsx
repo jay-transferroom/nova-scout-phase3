@@ -6,7 +6,7 @@ import TemplateSelection from "@/components/TemplateSelection";
 import RequirementCard from "@/components/RequirementCard";
 import PlayerPitchModal from "@/components/PlayerPitchModal";
 import { Player } from "@/types/player";
-import { ReportTemplate } from "@/types/report";
+import { ReportTemplate, RequirementProfile } from "@/types/report";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -15,6 +15,48 @@ import { toast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 import { useReports } from "@/hooks/useReports";
 import ReportsTable from "@/components/reports/ReportsTable";
+
+// Mock requirement profiles (matching the data from RequirementsList)
+const mockRequirementProfiles: RequirementProfile[] = [
+  {
+    id: "req-1",
+    name: "Central Defender",
+    description: "Experienced central defender with good aerial ability and leadership",
+    requiredPositions: ["CB"],
+    ageRange: { min: 24, max: 29 },
+    preferredRegions: ["Europe", "South America"],
+    requiredAttributes: [
+      { attributeName: "Aerial Ability", minRating: 8 },
+      { attributeName: "Leadership", minRating: 7 },
+      { attributeName: "Positioning", minRating: 8 },
+    ],
+  },
+  {
+    id: "req-2",
+    name: "Creative Midfielder",
+    description: "Technical attacking midfielder with vision and creativity",
+    requiredPositions: ["CAM", "CM"],
+    ageRange: { min: 20, max: 26 },
+    preferredRegions: ["Europe", "South America"],
+    requiredAttributes: [
+      { attributeName: "Technical", minRating: 8 },
+      { attributeName: "Vision", minRating: 8 },
+      { attributeName: "Creativity", minRating: 7 },
+    ],
+  },
+  {
+    id: "req-3",
+    name: "Promising Goalkeeper",
+    description: "Young goalkeeper with good reflexes and distribution",
+    requiredPositions: ["GK"],
+    ageRange: { min: 18, max: 23 },
+    preferredRegions: ["Europe", "South America", "North America"],
+    requiredAttributes: [
+      { attributeName: "Reflexes", minRating: 7 },
+      { attributeName: "Distribution", minRating: 7 },
+    ],
+  },
+];
 
 const ScoutingDashboard = () => {
   const navigate = useNavigate();
@@ -67,6 +109,14 @@ const ScoutingDashboard = () => {
     }
   };
 
+  const handleCreateRequirement = () => {
+    navigate('/transfers/requirements');
+  };
+
+  const handleViewRequirement = (requirementId: string) => {
+    navigate(`/transfers/requirements/${requirementId}`);
+  };
+
   const handleCreateAd = (position: string) => {
     navigate('/transfers/requirements', { state: { position, action: 'create' } });
   };
@@ -81,18 +131,24 @@ const ScoutingDashboard = () => {
     { title: "Shortlist", value: "30", subtitle: "Players", color: "text-purple-600", icon: Star },
   ];
 
-  const requirementItems = [
-    { position: "Goalkeeper", count: "20 new pitches", active: true },
-    { position: "Left Back", count: "10 new pitches", active: false },
-    { position: "Right Back", count: undefined, active: false },
-    { position: "Centre Back (all)", count: undefined, active: false },
-    { position: "Centre Back (left footed)", count: undefined, active: false },
-    { position: "Defensive Midfielder", count: undefined, active: false },
-    { position: "Central Midfielder", count: undefined, active: false },
-    { position: "Attacking Midfielder", count: undefined, active: false },
-    { position: "Winger", count: "5 new pitches", active: true },
-    { position: "Forward", count: undefined, active: false },
+  // Map requirements to card format
+  const requirementCards = mockRequirementProfiles.map(req => ({
+    id: req.id,
+    position: req.name,
+    status: 'active' as const,
+    count: `${Math.floor(Math.random() * 20) + 5} new pitches`,
+    description: req.description,
+    requirement: req
+  }));
+
+  // Add some inactive requirements for display
+  const inactiveRequirements = [
+    { id: "inactive-1", position: "Right Back", status: 'inactive' as const },
+    { id: "inactive-2", position: "Left Winger", status: 'inactive' as const },
+    { id: "inactive-3", position: "Striker", status: 'inactive' as const },
   ];
+
+  const allRequirements = [...requirementCards, ...inactiveRequirements];
 
   // Get the 5 most recent reports for the dashboard
   const recentReports = reports.slice(0, 5);
@@ -137,16 +193,37 @@ const ScoutingDashboard = () => {
 
         {/* Your Club Requirements Section */}
         <div className="mb-8">
-          <h2 className="text-xl font-bold mb-6 text-gray-900">Your Club Requirements</h2>
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-xl font-bold text-gray-900">Your Club Requirements</h2>
+            <div className="flex gap-3">
+              <Button 
+                variant="outline" 
+                onClick={() => navigate("/transfers/requirements")}
+                className="text-sm"
+              >
+                View All Requirements
+              </Button>
+              <Button 
+                onClick={handleCreateRequirement}
+                className="gap-2"
+              >
+                <Plus className="h-4 w-4" />
+                New Requirement
+              </Button>
+            </div>
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-            {requirementItems.map((item, index) => (
+            {allRequirements.slice(0, 10).map((item) => (
               <RequirementCard
-                key={index}
+                key={item.id}
                 position={item.position}
-                status={item.active ? 'active' : 'inactive'}
+                status={item.status}
                 count={item.count}
                 onCreateAd={() => handleCreateAd(item.position)}
-                onViewPitches={() => handleViewPitches(item.position)}
+                onViewPitches={item.status === 'active' && 'requirement' in item ? 
+                  () => handleViewRequirement(item.requirement.id) : 
+                  () => handleViewPitches(item.position)
+                }
               />
             ))}
           </div>
