@@ -8,7 +8,7 @@ import AppInitializer from "@/components/AppInitializer";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Header from "@/components/Header";
 import MainNavigation from "@/components/MainNavigation";
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Profile from "./pages/Profile";
@@ -44,11 +44,11 @@ const AppContent = () => {
 
   return (
     <SidebarProvider>
-      <div className="min-h-screen flex flex-col w-full">
-        <Header />
-        <div className="flex flex-1 w-full">
-          <MainNavigation />
-          <main className="flex-1 overflow-auto">
+      <div className="min-h-screen flex w-full">
+        <MainNavigation />
+        <SidebarInset>
+          <Header />
+          <div className="flex-1 overflow-auto">
             <Routes>
               <Route path="/" element={
                 <ProtectedRoute>
@@ -108,8 +108,8 @@ const AppContent = () => {
                 <Route path="upcoming-matches" element={<UpcomingMatches />} />
               </Route>
             </Routes>
-          </main>
-        </div>
+          </div>
+        </SidebarInset>
       </div>
     </SidebarProvider>
   );
