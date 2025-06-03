@@ -14,6 +14,12 @@ export const useDataImport = () => {
       // Clear reports first (due to foreign key constraints)
       await supabase.from('reports').delete().neq('id', '00000000-0000-0000-0000-000000000000');
       
+      // Clear player form data
+      await supabase.from('player_recent_form').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+      
+      // Clear player fixtures
+      await supabase.from('player_fixtures').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+      
       // Clear players
       await supabase.from('players').delete().neq('id', '00000000-0000-0000-0000-000000000000');
       
@@ -62,14 +68,19 @@ export const useDataImport = () => {
         console.warn('Fixtures import failed, but continuing...', fixturesError);
       }
 
-      setImportProgress('Data import completed successfully!');
-      toast.success('Premier League data imported successfully');
+      const duplicatesMessage = importResult?.duplicatesSkipped > 0 
+        ? ` (${importResult.duplicatesSkipped} duplicates avoided)`
+        : '';
+
+      setImportProgress(`Data import completed successfully!${duplicatesMessage}`);
+      toast.success(`Premier League data imported successfully${duplicatesMessage}`);
       
       return {
         success: true,
         message: importResult?.message || 'Import completed',
         teams: importResult?.teamsImported || 0,
-        players: importResult?.playersImported || 0
+        players: importResult?.playersImported || 0,
+        duplicatesSkipped: importResult?.duplicatesSkipped || 0
       };
       
     } catch (error) {

@@ -180,8 +180,31 @@ serve(async (req) => {
     const squad = data.response.list.squad
     let totalPlayersFound = 0
     let playersInserted = 0
+    let duplicatesSkipped = 0
 
     console.log(`Processing ${squad.length} squad categories for ${finalTeamName}`)
+
+    // Get all existing player names to check for duplicates across the entire database
+    const { data: allExistingPlayers, error: allPlayersError } = await supabase
+      .from('players')
+      .select('name, club')
+
+    if (allPlayersError) {
+      console.error('Error fetching existing players for duplicate check:', allPlayersError)
+      return new Response(
+        JSON.stringify({ 
+          error: `Failed to check for existing players: ${allPlayersError.message}`,
+          teamId,
+          teamName: finalTeamName
+        }),
+        { 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 500
+        }
+      )
+    }
+
+    const existingPlayerNames = new Set(allExistingPlayers?.map(p => p.name.toLowerCase()) || [])
 
     // Process all squad categories
     for (const [categoryIndex, category] of squad.entries()) {
@@ -196,6 +219,15 @@ serve(async (req) => {
           }
 
           totalPlayersFound++
+
+          // Check for duplicates (case-insensitive)
+          const playerNameLower = player.name.toLowerCase()
+          if (existingPlayerNames.has(playerNameLower)) {
+            console.log(`Skipping duplicate player: ${player.name}`)
+            duplicatesSkipped++
+            continue
+          }
+
           console.log(`Processing player ${playerIndex + 1}/${category.members.length}: ${player.name}`)
 
           const positions = player.positionIdsDesc ? player.positionIdsDesc.split(',').map((p: string) => p.trim()) : ['Unknown']
@@ -273,6 +305,9 @@ serve(async (req) => {
           } else {
             console.log(`Successfully inserted player: ${player.name} from ${finalTeamName}`)
             playersInserted++
+            
+            // Add the player name to our set to prevent duplicates within this import
+            existingPlayerNames.add(playerNameLower)
 
             // Insert recent form data if available
             if (player.rating && player.goals !== undefined && player.assists !== undefined) {
@@ -306,13 +341,14 @@ serve(async (req) => {
       }
     }
 
-    console.log(`Import completed for ${finalTeamName}: found ${totalPlayersFound} players, successfully inserted ${playersInserted}`)
+    console.log(`Import completed for ${finalTeamName}: found ${totalPlayersFound} players, successfully inserted ${playersInserted}, skipped ${duplicatesSkipped} duplicates`)
 
     return new Response(
       JSON.stringify({ 
-        message: `Successfully imported ${playersInserted} players for ${finalTeamName}`,
+        message: `Successfully imported ${playersInserted} players for ${finalTeamName}${duplicatesSkipped > 0 ? ` (${duplicatesSkipped} duplicates skipped)` : ''}`,
         totalPlayersFound,
         playersInserted,
+        duplicatesSkipped,
         teamId,
         teamName: finalTeamName,
         forceReimport: force_reimport
