@@ -1,4 +1,5 @@
 
+import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,13 +11,21 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { SidebarTrigger } from '@/components/ui/sidebar';
-import { User, Settings, LogOut, Users, Search } from 'lucide-react';
+import { User, Settings, LogOut, Users, Search, Menu } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import PlayerSearch from '@/components/PlayerSearch';
+import { Player } from '@/types/player';
 
 const Header = () => {
   const { user, profile, signOut } = useAuth();
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
 
   const getInitials = () => {
     if (profile?.first_name && profile?.last_name) {
@@ -45,18 +54,46 @@ const Header = () => {
     await signOut();
   };
 
+  const handleSelectPlayer = (player: Player) => {
+    console.log('Selected player:', player);
+    setIsSearchOpen(false);
+    // Add navigation logic here if needed
+  };
+
   const canManageUsers = profile?.role === 'recruitment';
 
   return (
     <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
       <div className="container mx-auto px-6 py-4">
-        {/* Top row with logo and user profile */}
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
-            <SidebarTrigger />
+            <SidebarTrigger>
+              <Menu className="h-5 w-5" />
+            </SidebarTrigger>
             <Link to="/" className="font-bold text-xl text-primary">
               Scout Pro
             </Link>
+          </div>
+
+          <div className="flex-1 max-w-lg mx-8">
+            <Popover open={isSearchOpen} onOpenChange={setIsSearchOpen}>
+              <PopoverTrigger asChild>
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Find players"
+                    className="pl-10 bg-muted/30 border-muted-foreground/20 h-11 cursor-pointer"
+                    onClick={() => setIsSearchOpen(true)}
+                    readOnly
+                  />
+                </div>
+              </PopoverTrigger>
+              <PopoverContent className="w-[500px] p-0" align="center">
+                <div className="p-4">
+                  <PlayerSearch onSelectPlayer={handleSelectPlayer} />
+                </div>
+              </PopoverContent>
+            </Popover>
           </div>
 
           <div className="flex items-center space-x-4">
@@ -115,15 +152,6 @@ const Header = () => {
               </DropdownMenu>
             )}
           </div>
-        </div>
-
-        {/* Search bar */}
-        <div className="relative max-w-lg">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Find players, head coaches and agencies"
-            className="pl-10 bg-muted/30 border-muted-foreground/20 h-11"
-          />
         </div>
       </div>
     </header>
