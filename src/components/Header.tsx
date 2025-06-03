@@ -11,6 +11,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { SidebarTrigger } from '@/components/ui/sidebar';
 import { User, Settings, LogOut, Users, Search } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
@@ -52,6 +53,7 @@ const Header = () => {
         {/* Top row with logo and user profile */}
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center space-x-4">
+            <SidebarTrigger />
             <Link to="/" className="font-bold text-xl text-primary">
               Scout Pro
             </Link>

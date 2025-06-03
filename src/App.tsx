@@ -8,6 +8,7 @@ import AppInitializer from "@/components/AppInitializer";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Header from "@/components/Header";
 import MainNavigation from "@/components/MainNavigation";
+import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Profile from "./pages/Profile";
@@ -31,73 +32,86 @@ const AppContent = () => {
   const location = useLocation();
   const isAuthPage = location.pathname === '/auth';
 
-  return (
-    <div className="min-h-screen flex flex-col">
-      {!isAuthPage && <Header />}
-      {!isAuthPage && <MainNavigation />}
+  if (isAuthPage) {
+    return (
       <main className="flex-1">
         <Routes>
           <Route path="/auth" element={<Auth />} />
-          <Route path="/" element={
-            <ProtectedRoute>
-              <Index />
-            </ProtectedRoute>
-          } />
-          <Route path="/profile" element={
-            <ProtectedRoute>
-              <Profile />
-            </ProtectedRoute>
-          } />
-          <Route path="/settings" element={
-            <ProtectedRoute>
-              <Settings />
-            </ProtectedRoute>
-          } />
-          <Route path="/admin/users" element={
-            <ProtectedRoute requiredRole="recruitment">
-              <UserManagement />
-            </ProtectedRoute>
-          } />
-          <Route path="/reports" element={
-            <ProtectedRoute>
-              <ReportsList />
-            </ProtectedRoute>
-          } />
-          <Route path="/reports/new" element={
-            <ProtectedRoute>
-              <ReportBuilder />
-            </ProtectedRoute>
-          } />
-          <Route path="/reports/:id" element={
-            <ProtectedRoute>
-              <ReportView />
-            </ProtectedRoute>
-          } />
-          <Route path="/dashboard" element={
-            <ProtectedRoute>
-              <ScoutingDashboard />
-            </ProtectedRoute>
-          } />
-          <Route path="/templates" element={
-            <ProtectedRoute allowedRoles={['recruitment']}>
-              <TemplateAdmin />
-            </ProtectedRoute>
-          } />
-          <Route path="/transfers" element={
-            <ProtectedRoute>
-              <TransfersLayout />
-            </ProtectedRoute>
-          }>
-            <Route index element={<DataImportPage />} />
-            <Route path="data-import" element={<DataImportPage />} />
-            <Route path="pitches" element={<PlayerPitches />} />
-            <Route path="requirements" element={<RequirementsList />} />
-            <Route path="scouting-tasks" element={<ScoutingTasks />} />
-            <Route path="upcoming-matches" element={<UpcomingMatches />} />
-          </Route>
         </Routes>
       </main>
-    </div>
+    );
+  }
+
+  return (
+    <SidebarProvider>
+      <div className="min-h-screen flex flex-col w-full">
+        <Header />
+        <div className="flex flex-1 w-full">
+          <MainNavigation />
+          <main className="flex-1 overflow-auto">
+            <Routes>
+              <Route path="/" element={
+                <ProtectedRoute>
+                  <Index />
+                </ProtectedRoute>
+              } />
+              <Route path="/profile" element={
+                <ProtectedRoute>
+                  <Profile />
+                </ProtectedRoute>
+              } />
+              <Route path="/settings" element={
+                <ProtectedRoute>
+                  <Settings />
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/users" element={
+                <ProtectedRoute requiredRole="recruitment">
+                  <UserManagement />
+                </ProtectedRoute>
+              } />
+              <Route path="/reports" element={
+                <ProtectedRoute>
+                  <ReportsList />
+                </ProtectedRoute>
+              } />
+              <Route path="/reports/new" element={
+                <ProtectedRoute>
+                  <ReportBuilder />
+                </ProtectedRoute>
+              } />
+              <Route path="/reports/:id" element={
+                <ProtectedRoute>
+                  <ReportView />
+                </ProtectedRoute>
+              } />
+              <Route path="/dashboard" element={
+                <ProtectedRoute>
+                  <ScoutingDashboard />
+                </ProtectedRoute>
+              } />
+              <Route path="/templates" element={
+                <ProtectedRoute allowedRoles={['recruitment']}>
+                  <TemplateAdmin />
+                </ProtectedRoute>
+              } />
+              <Route path="/transfers" element={
+                <ProtectedRoute>
+                  <TransfersLayout />
+                </ProtectedRoute>
+              }>
+                <Route index element={<DataImportPage />} />
+                <Route path="data-import" element={<DataImportPage />} />
+                <Route path="pitches" element={<PlayerPitches />} />
+                <Route path="requirements" element={<RequirementsList />} />
+                <Route path="scouting-tasks" element={<ScoutingTasks />} />
+                <Route path="upcoming-matches" element={<UpcomingMatches />} />
+              </Route>
+            </Routes>
+          </main>
+        </div>
+      </div>
+    </SidebarProvider>
   );
 };
 
