@@ -1,42 +1,43 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { UploadCloud } from "lucide-react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
+import { useDataImport } from "@/hooks/useDataImport";
+import { toast } from "sonner";
+import { Loader2, Download, Database, AlertCircle } from "lucide-react";
 
 const DataImport = () => {
-  const [file, setFile] = useState<File | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [selectedLeague, setSelectedLeague] = useState("");
+  const [forceReimport, setForceReimport] = useState(false);
+  const { isImporting, importProgress, importPremierLeagueData } = useDataImport();
+  const [importResults, setImportResults] = useState<{
+    message: string;
+    teams: number;
+    players: number;
+    duplicatesSkipped: number;
+  } | null>(null);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files.length > 0) {
-      setFile(e.target.files[0]);
+  const handleImportData = async () => {
+    if (selectedLeague === "Premier League") {
+      const result = await importPremierLeagueData();
+      if (result.success) {
+        setImportResults({
+          message: result.message,
+          teams: result.teams,
+          players: result.players,
+          duplicatesSkipped: result.duplicatesSkipped
+        });
+      }
+    } else {
+      toast.error("Only Premier League import is currently supported");
     }
   };
 
-  const handleUpload = async () => {
-    if (!file) return;
-    setLoading(true);
-
-    try {
-      // Implement your upload logic here, e.g., upload to server or cloud storage
-      console.log("Uploading file:", file.name);
-      // Simulate upload delay
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-      alert(`File "${file.name}" uploaded successfully!`);
-      setFile(null);
-    } catch (error) {
-      console.error("Upload failed:", error);
-      alert("Failed to upload file.");
-    } finally {
-      setLoading(false);
-    }
+  const handleForceReimportChange = (checked: boolean | "indeterminate") => {
+    setForceReimport(checked === true);
   };
 
   return (
@@ -44,46 +45,117 @@ const DataImport = () => {
       <div className="mb-8">
         <h1 className="text-3xl font-bold">Data Import</h1>
         <p className="text-muted-foreground mt-2">
-          Import player data or reports from external sources
+          Import football data from external APIs to populate your database
         </p>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Upload File</CardTitle>
-          <CardDescription>
-            Supported formats: CSV, XLSX, JSON
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-col items-center justify-center gap-4">
-            <label
-              htmlFor="file-upload"
-              className="flex cursor-pointer flex-col items-center justify-center rounded-md border border-dashed border-gray-300 p-10 text-center hover:border-gray-400"
-            >
-              <UploadCloud className="h-10 w-10 text-gray-400" />
-              <span className="mt-2 text-sm text-gray-600">
-                {file ? file.name : "Click to select a file or drag and drop"}
-              </span>
-              <input
-                id="file-upload"
-                type="file"
-                accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/json"
-                className="hidden"
-                onChange={handleFileChange}
-              />
-            </label>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Database className="h-5 w-5" />
+              League Import
+            </CardTitle>
+            <CardDescription>
+              Import teams and players for a specific league from external APIs.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <Select onValueChange={(value) => setSelectedLeague(value)}>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select League" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Premier League">Premier League</SelectItem>
+                <SelectItem value="La Liga">La Liga</SelectItem>
+                <SelectItem value="Serie A">Serie A</SelectItem>
+                <SelectItem value="Bundesliga">Bundesliga</SelectItem>
+                <SelectItem value="Ligue 1">Ligue 1</SelectItem>
+              </SelectContent>
+            </Select>
 
-            <Button
-              onClick={handleUpload}
-              disabled={!file || loading}
-              className="w-full max-w-xs"
-            >
-              {loading ? "Uploading..." : "Upload"}
+            <div className="flex items-center space-x-2">
+              <Checkbox id="force-reimport" onCheckedChange={handleForceReimportChange} />
+              <label
+                htmlFor="force-reimport"
+                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+              >
+                Force Re-import (Clears existing data first)
+              </label>
+            </div>
+
+            <Button onClick={handleImportData} disabled={isImporting || !selectedLeague} className="w-full">
+              {isImporting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Importing...
+                </>
+              ) : (
+                <>
+                  <Download className="mr-2 h-4 w-4" />
+                  Import Data
+                </>
+              )}
             </Button>
-          </div>
-        </CardContent>
-      </Card>
+
+            {isImporting && importProgress && (
+              <div className="text-sm text-muted-foreground">
+                Status: {importProgress}
+              </div>
+            )}
+
+            {importResults && (
+              <div className="space-y-2">
+                <p><strong>{importResults.message}</strong></p>
+                <div className="flex flex-wrap gap-2">
+                  <Badge variant="secondary">
+                    Teams: {importResults.teams}
+                  </Badge>
+                  <Badge variant="default">
+                    Players: {importResults.players}
+                  </Badge>
+                  {importResults.duplicatesSkipped > 0 && (
+                    <Badge variant="outline">
+                      <AlertCircle className="mr-1 h-3 w-3" />
+                      Duplicates Skipped: {importResults.duplicatesSkipped}
+                    </Badge>
+                  )}
+                </div>
+              </div>
+            )}
+
+            <p className="text-sm text-muted-foreground">
+              This will import teams, players, and fixtures for the selected league using external football APIs.
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Import Status</CardTitle>
+            <CardDescription>
+              Monitor the progress of your data imports
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {isImporting ? (
+              <div className="space-y-2">
+                <div className="flex items-center space-x-2">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <span className="text-sm">Import in progress...</span>
+                </div>
+                {importProgress && (
+                  <p className="text-sm text-muted-foreground">{importProgress}</p>
+                )}
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                No import currently running. Select a league and click "Import Data" to begin.
+              </p>
+            )}
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 };
