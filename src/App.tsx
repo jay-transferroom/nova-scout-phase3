@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
@@ -5,7 +6,7 @@ import { Toaster } from "sonner";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import AppInitializer from "@/components/AppInitializer";
 import MainNavigation from "@/components/MainNavigation";
-import { SidebarProvider } from "@/contexts/SidebarContext";
+import { SidebarProvider } from "@/components/ui/sidebar";
 import Dashboard from "@/pages/Dashboard";
 import SquadView from "@/pages/SquadView";
 import ReportsList from "@/pages/ReportsList";
