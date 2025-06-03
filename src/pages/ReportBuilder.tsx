@@ -9,6 +9,9 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useReports } from "@/hooks/useReports";
 import { ArrowLeft, Save, Send, Settings } from "lucide-react";
 import { toast } from "sonner";
+import PlayerSearch from "@/components/PlayerSearch";
+import TemplateSelection from "@/components/TemplateSelection";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface LocationState {
   player: Player;
@@ -22,31 +25,34 @@ const ReportBuilder = () => {
   const [template, setTemplate] = useState<ReportTemplate | null>(null);
   const [report, setReport] = useState<Report | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showPlayerSearch, setShowPlayerSearch] = useState(false);
+  const [showTemplateSelection, setShowTemplateSelection] = useState(false);
   const { user } = useAuth();
   const { saveReport } = useReports();
 
   useEffect(() => {
     // Get player and template from location state
     const state = location.state as LocationState;
-    if (!state?.player || !state?.template) {
-      navigate("/");
-      toast.error("Missing player or template information");
-      return;
+    if (state?.player && state?.template) {
+      setPlayer(state.player);
+      setTemplate(state.template);
+      initializeReport(state.player, state.template);
+    } else {
+      // If no data provided, show player selection
+      setShowPlayerSearch(true);
     }
+  }, [location, user]);
 
-    setPlayer(state.player);
-    setTemplate(state.template);
-
-    // Initialize report data
+  const initializeReport = (selectedPlayer: Player, selectedTemplate: ReportTemplate) => {
     const newReport: Report = {
       id: `report-${Date.now()}`,
-      playerId: state.player.id,
-      templateId: state.template.id,
+      playerId: selectedPlayer.id,
+      templateId: selectedTemplate.id,
       scoutId: user?.id || "",
       createdAt: new Date(),
       updatedAt: new Date(),
       status: "draft",
-      sections: state.template.sections.map((section) => ({
+      sections: selectedTemplate.sections.map((section) => ({
         sectionId: section.id,
         fields: section.fields.map((field) => ({
           fieldId: field.id,
@@ -56,7 +62,19 @@ const ReportBuilder = () => {
     };
 
     setReport(newReport);
-  }, [location, navigate, user]);
+  };
+
+  const handlePlayerSelect = (selectedPlayer: Player) => {
+    setPlayer(selectedPlayer);
+    setShowPlayerSearch(false);
+    setShowTemplateSelection(true);
+  };
+
+  const handleTemplateSelect = (selectedPlayer: Player, selectedTemplate: ReportTemplate) => {
+    setTemplate(selectedTemplate);
+    setShowTemplateSelection(false);
+    initializeReport(selectedPlayer, selectedTemplate);
+  };
 
   const handleFieldChange = (
     sectionId: string,
@@ -122,7 +140,52 @@ const ReportBuilder = () => {
     }
   };
 
-  if (!player || !template || !report) {
+  // Show player search if no player selected
+  if (showPlayerSearch || !player) {
+    return (
+      <div className="container mx-auto py-8 max-w-4xl">
+        <div className="flex justify-between items-center mb-6">
+          <Button variant="ghost" onClick={() => navigate("/")} className="gap-2">
+            <ArrowLeft size={16} />
+            Back to Dashboard
+          </Button>
+        </div>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Create New Report</CardTitle>
+            <p className="text-muted-foreground">First, select a player to create a report for.</p>
+          </CardHeader>
+          <CardContent>
+            <PlayerSearch onSelectPlayer={handlePlayerSelect} />
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // Show template selection if no template selected
+  if (showTemplateSelection || !template) {
+    return (
+      <div className="container mx-auto py-8 max-w-4xl">
+        <div className="flex justify-between items-center mb-6">
+          <Button variant="ghost" onClick={() => setShowPlayerSearch(true)} className="gap-2">
+            <ArrowLeft size={16} />
+            Back to Player Selection
+          </Button>
+        </div>
+
+        <TemplateSelection 
+          player={player}
+          isOpen={true}
+          onClose={() => setShowPlayerSearch(true)}
+          onSelectTemplate={handleTemplateSelect}
+        />
+      </div>
+    );
+  }
+
+  if (!report) {
     return (
       <div className="container mx-auto py-8 flex items-center justify-center">
         <p>Loading report builder...</p>
