@@ -126,8 +126,8 @@ const ReportBuilder = () => {
     try {
       const reportData = {
         id: report.id,
-        player_id: player.id,
-        template_id: template?.id || "",
+        playerId: player.id,  // Changed from player_id to playerId
+        templateId: template?.id || "",
         status,
         sections: report.sections,
       };
