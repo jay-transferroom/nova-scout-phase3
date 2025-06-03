@@ -3,12 +3,22 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 
+interface Club {
+  id: string;
+  name: string;
+  league: string | null;
+  country: string | null;
+  logo_url: string | null;
+}
+
 interface Profile {
   id: string;
   email: string;
   first_name?: string;
   last_name?: string;
   role: 'scout' | 'recruitment';
+  club_id?: string;
+  club?: Club;
   created_at: string;
   updated_at: string;
 }
@@ -39,18 +49,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUser(session?.user ?? null);
         
         if (session?.user) {
-          // Fetch user profile
+          // Fetch user profile with club information
           setTimeout(async () => {
             const { data: profile } = await supabase
               .from('profiles')
-              .select('*')
+              .select(`
+                *,
+                clubs (
+                  id,
+                  name,
+                  league,
+                  country,
+                  logo_url
+                )
+              `)
               .eq('id', session.user.id)
               .single();
             
             if (profile) {
               setProfile({
                 ...profile,
-                role: profile.role as 'scout' | 'recruitment'
+                role: profile.role as 'scout' | 'recruitment',
+                club: profile.clubs || undefined
               });
             }
           }, 0);

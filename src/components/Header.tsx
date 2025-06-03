@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -183,6 +184,11 @@ const Header = () => {
                       <p className="text-xs leading-none text-muted-foreground capitalize">
                         {profile?.role || 'scout'}
                       </p>
+                      {profile?.club && (
+                        <p className="text-xs leading-none text-muted-foreground">
+                          {profile.club.name}
+                        </p>
+                      )}
                     </div>
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />

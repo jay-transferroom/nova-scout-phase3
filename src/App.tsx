@@ -67,22 +67,22 @@ const AppContent = () => {
                 </ProtectedRoute>
               } />
               <Route path="/admin/users" element={
-                <ProtectedRoute requiredRole="recruitment">
+                <ProtectedRoute requiredRole="recruitment" requiredPermission="user_management">
                   <UserManagement />
                 </ProtectedRoute>
               } />
               <Route path="/reports" element={
-                <ProtectedRoute>
+                <ProtectedRoute requiredPermission="reports">
                   <ReportsList />
                 </ProtectedRoute>
               } />
               <Route path="/reports/new" element={
-                <ProtectedRoute>
+                <ProtectedRoute requiredPermission="reports">
                   <ReportBuilder />
                 </ProtectedRoute>
               } />
               <Route path="/reports/:id" element={
-                <ProtectedRoute>
+                <ProtectedRoute requiredPermission="reports">
                   <ReportView />
                 </ProtectedRoute>
               } />
@@ -92,12 +92,12 @@ const AppContent = () => {
                 </ProtectedRoute>
               } />
               <Route path="/dashboard" element={
-                <ProtectedRoute>
+                <ProtectedRoute requiredPermission="dashboard">
                   <ScoutingDashboard />
                 </ProtectedRoute>
               } />
               <Route path="/templates" element={
-                <ProtectedRoute allowedRoles={['recruitment']}>
+                <ProtectedRoute allowedRoles={['recruitment']} requiredPermission="templates">
                   <TemplateAdmin />
                 </ProtectedRoute>
               } />
@@ -106,12 +106,36 @@ const AppContent = () => {
                   <TransfersLayout />
                 </ProtectedRoute>
               }>
-                <Route index element={<DataImportPage />} />
-                <Route path="data-import" element={<DataImportPage />} />
-                <Route path="pitches" element={<PlayerPitches />} />
-                <Route path="requirements" element={<RequirementsList />} />
-                <Route path="scouting-tasks" element={<ScoutingTasks />} />
-                <Route path="upcoming-matches" element={<UpcomingMatches />} />
+                <Route index element={
+                  <ProtectedRoute requiredPermission="data_import">
+                    <DataImportPage />
+                  </ProtectedRoute>
+                } />
+                <Route path="data-import" element={
+                  <ProtectedRoute requiredPermission="data_import">
+                    <DataImportPage />
+                  </ProtectedRoute>
+                } />
+                <Route path="pitches" element={
+                  <ProtectedRoute requiredPermission="pitches">
+                    <PlayerPitches />
+                  </ProtectedRoute>
+                } />
+                <Route path="requirements" element={
+                  <ProtectedRoute requiredPermission="requirements">
+                    <RequirementsList />
+                  </ProtectedRoute>
+                } />
+                <Route path="scouting-tasks" element={
+                  <ProtectedRoute requiredPermission="scouting_tasks">
+                    <ScoutingTasks />
+                  </ProtectedRoute>
+                } />
+                <Route path="upcoming-matches" element={
+                  <ProtectedRoute requiredPermission="upcoming_matches">
+                    <UpcomingMatches />
+                  </ProtectedRoute>
+                } />
               </Route>
             </Routes>
           </div>

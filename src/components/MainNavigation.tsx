@@ -22,12 +22,20 @@ import {
   User,
   Upload
 } from "lucide-react";
+import { useMyPermissions } from "@/hooks/useUserPermissions";
+import { useAuth } from "@/contexts/AuthContext";
 
 const MainNavigation = () => {
   const location = useLocation();
+  const { profile } = useAuth();
+  const { data: permissions } = useMyPermissions();
   
   const isActive = (path: string) => {
     return location.pathname.startsWith(path);
+  };
+
+  const hasPermission = (permission: string) => {
+    return permissions?.[permission] !== false;
   };
 
   const mainItems = [
@@ -35,36 +43,43 @@ const MainNavigation = () => {
       title: "Dashboard",
       url: "/dashboard",
       icon: BarChart3,
+      permission: "dashboard"
     },
     {
       title: "Player Reports",
       url: "/reports",
       icon: FileText,
+      permission: "reports"
     },
     {
       title: "Requirements",
       url: "/transfers/requirements",
       icon: ArrowRight,
+      permission: "requirements"
     },
     {
       title: "Player Pitches",
       url: "/transfers/pitches",
       icon: Users,
+      permission: "pitches"
     },
     {
       title: "Scouting Tasks",
       url: "/transfers/scouting-tasks",
       icon: MapPin,
+      permission: "scouting_tasks"
     },
     {
       title: "Upcoming Matches",
       url: "/transfers/upcoming-matches",
       icon: CalendarDays,
+      permission: "upcoming_matches"
     },
     {
       title: "Data Import",
       url: "/transfers/data-import",
       icon: Upload,
+      permission: "data_import"
     }
   ];
 
@@ -73,11 +88,13 @@ const MainNavigation = () => {
       title: "Template Admin",
       url: "/templates",
       icon: FileText,
+      permission: "templates"
     },
     {
       title: "User Management",
       url: "/admin/users",
       icon: Users,
+      permission: "user_management"
     }
   ];
 
@@ -101,7 +118,9 @@ const MainNavigation = () => {
           <SidebarGroupLabel>Main</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {mainItems.map((item) => (
+              {mainItems
+                .filter(item => hasPermission(item.permission))
+                .map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild isActive={isActive(item.url)} tooltip={item.title}>
                     <Link to={item.url}>
@@ -115,23 +134,27 @@ const MainNavigation = () => {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        <SidebarGroup>
-          <SidebarGroupLabel>Administration</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {adminItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild isActive={isActive(item.url)} tooltip={item.title}>
-                    <Link to={item.url}>
-                      <item.icon className="h-4 w-4" />
-                      <span>{item.title}</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+        {profile?.role === 'recruitment' && (
+          <SidebarGroup>
+            <SidebarGroupLabel>Administration</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {adminItems
+                  .filter(item => hasPermission(item.permission))
+                  .map((item) => (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton asChild isActive={isActive(item.url)} tooltip={item.title}>
+                      <Link to={item.url}>
+                        <item.icon className="h-4 w-4" />
+                        <span>{item.title}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
 
         <SidebarGroup>
           <SidebarGroupLabel>Account</SidebarGroupLabel>

@@ -9,6 +9,36 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      clubs: {
+        Row: {
+          country: string | null
+          created_at: string
+          id: string
+          league: string | null
+          logo_url: string | null
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          country?: string | null
+          created_at?: string
+          id?: string
+          league?: string | null
+          logo_url?: string | null
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          country?: string | null
+          created_at?: string
+          id?: string
+          league?: string | null
+          logo_url?: string | null
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       fixtures: {
         Row: {
           away_score: number | null
@@ -202,6 +232,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          club_id: string | null
           created_at: string
           email: string
           first_name: string | null
@@ -211,6 +242,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          club_id?: string | null
           created_at?: string
           email: string
           first_name?: string | null
@@ -220,6 +252,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          club_id?: string | null
           created_at?: string
           email?: string
           first_name?: string | null
@@ -228,7 +261,15 @@ export type Database = {
           role?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       report_templates: {
         Row: {
@@ -358,6 +399,41 @@ export type Database = {
           venue?: string | null
         }
         Relationships: []
+      }
+      user_permissions: {
+        Row: {
+          created_at: string
+          enabled: boolean
+          id: string
+          permission: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          permission: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          permission?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_permissions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
