@@ -83,8 +83,27 @@ const ReportView = () => {
           matchContext: typeof data.match_context === 'string' ? JSON.parse(data.match_context) : data.match_context,
           tags: data.tags || [],
           flaggedForReview: data.flagged_for_review || false,
-          player: data.player,
-          scoutProfile: data.scout_profile,
+          player: {
+            id: data.player.id,
+            name: data.player.name,
+            club: data.player.club,
+            age: data.player.age,
+            dateOfBirth: data.player.date_of_birth,
+            positions: data.player.positions,
+            dominantFoot: data.player.dominant_foot as 'Left' | 'Right' | 'Both',
+            nationality: data.player.nationality,
+            contractStatus: data.player.contract_status as 'Free Agent' | 'Under Contract' | 'Loan' | 'Youth Contract',
+            contractExpiry: data.player.contract_expiry,
+            region: data.player.region,
+            image: data.player.image_url,
+          },
+          scoutProfile: data.scout_profile ? {
+            id: data.scout_profile.id,
+            first_name: data.scout_profile.first_name,
+            last_name: data.scout_profile.last_name,
+            email: data.scout_profile.email,
+            role: data.scout_profile.role as 'scout' | 'recruitment',
+          } : undefined,
         };
 
         console.log('Transformed report:', transformedReport);
@@ -166,9 +185,9 @@ const ReportView = () => {
             <CardContent>
               <div className="space-y-4">
                 <div className="flex flex-col items-center mb-4">
-                  {report.player.image_url ? (
+                  {report.player.image ? (
                     <img 
-                      src={report.player.image_url} 
+                      src={report.player.image} 
                       alt={report.player.name} 
                       className="w-24 h-24 rounded-full object-cover mb-2" 
                     />
@@ -202,11 +221,11 @@ const ReportView = () => {
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Foot</span>
-                    <span className="font-medium">{report.player.dominant_foot}</span>
+                    <span className="font-medium">{report.player.dominantFoot}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Contract</span>
-                    <span className="font-medium">{report.player.contract_status}</span>
+                    <span className="font-medium">{report.player.contractStatus}</span>
                   </div>
                 </div>
                 
