@@ -1,6 +1,7 @@
 
 import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -15,10 +16,14 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import { User, Settings, LogOut, Users, Search, Menu } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { usePlayersData } from '@/hooks/usePlayersData';
 
 const Header = () => {
   const { user, profile, signOut } = useAuth();
+  const { data: players = [] } = usePlayersData();
+  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
+  const [showResults, setShowResults] = useState(false);
 
   const getInitials = () => {
     if (profile?.first_name && profile?.last_name) {
@@ -47,10 +52,30 @@ const Header = () => {
     await signOut();
   };
 
+  // Filter players based on search query
+  const filteredPlayers = searchQuery.trim() 
+    ? players.filter(player => 
+        player.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+        player.club.toLowerCase().includes(searchQuery.toLowerCase()) || 
+        player.id.toLowerCase() === searchQuery.toLowerCase() ||
+        player.positions.some(pos => pos.toLowerCase().includes(searchQuery.toLowerCase()))
+      ).slice(0, 5) // Limit to 5 results
+    : [];
+
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Searching for:', searchQuery);
-    // Add search logic here
+    if (searchQuery.trim()) {
+      // Navigate to reports page with search query as state
+      navigate('/reports', { state: { searchQuery: searchQuery.trim() } });
+      setSearchQuery('');
+      setShowResults(false);
+    }
+  };
+
+  const handlePlayerSelect = (playerId: string) => {
+    navigate(`/reports/new`, { state: { selectedPlayerId: playerId } });
+    setSearchQuery('');
+    setShowResults(false);
   };
 
   const canManageUsers = profile?.role === 'recruitment';
@@ -68,16 +93,46 @@ const Header = () => {
             </Link>
           </div>
 
-          <div className="flex-1 max-w-lg mx-8">
+          <div className="flex-1 max-w-lg mx-8 relative">
             <form onSubmit={handleSearchSubmit} className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="Search players..."
                 className="pl-10 bg-muted/30 border-muted-foreground/20 h-11"
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  setShowResults(e.target.value.trim().length > 0);
+                }}
+                onFocus={() => setShowResults(searchQuery.trim().length > 0)}
+                onBlur={() => {
+                  // Delay hiding results to allow for clicks
+                  setTimeout(() => setShowResults(false), 200);
+                }}
               />
             </form>
+            
+            {showResults && filteredPlayers.length > 0 && (
+              <div className="absolute top-full left-0 right-0 mt-1 bg-background border rounded-md shadow-lg z-50 max-h-60 overflow-y-auto">
+                {filteredPlayers.map((player) => (
+                  <button
+                    key={player.id}
+                    className="w-full px-4 py-3 text-left hover:bg-accent flex items-center gap-3"
+                    onMouseDown={() => handlePlayerSelect(player.id)}
+                  >
+                    <Avatar className="h-8 w-8">
+                      <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white text-xs font-semibold">
+                        {player.name.split(' ').map(n => n[0]).join('').toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1">
+                      <p className="font-medium text-sm">{player.name}</p>
+                      <p className="text-xs text-muted-foreground">{player.club} • {player.positions.join(", ")}</p>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
           <div className="flex items-center space-x-4">
