@@ -26,6 +26,20 @@ const regions = [
   "Europe", "South America", "North America", "Africa", "Asia", "Oceania"
 ];
 
+const squads = [
+  { value: "first-team", label: "First Team" },
+  { value: "under-21", label: "Under 21" },
+  { value: "under-18", label: "Under 18" },
+  { value: "academy", label: "Academy" },
+  { value: "reserves", label: "Reserves" },
+];
+
+const priorities = [
+  { value: "high", label: "High Priority" },
+  { value: "medium", label: "Medium Priority" },
+  { value: "low", label: "Low Priority" },
+];
+
 const NewRequirementDialog = ({ isOpen, onClose, initialPosition }: NewRequirementDialogProps) => {
   const [formData, setFormData] = useState({
     name: "",
@@ -34,6 +48,8 @@ const NewRequirementDialog = ({ isOpen, onClose, initialPosition }: NewRequireme
     ageMin: "",
     ageMax: "",
     preferredRegions: [],
+    squad: "first-team",
+    priority: "medium",
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -66,6 +82,8 @@ const NewRequirementDialog = ({ isOpen, onClose, initialPosition }: NewRequireme
       ageMin: "",
       ageMax: "",
       preferredRegions: [],
+      squad: "first-team",
+      priority: "medium",
     });
   };
 
@@ -129,6 +147,46 @@ const NewRequirementDialog = ({ isOpen, onClose, initialPosition }: NewRequireme
               placeholder="Describe the type of player you're looking for..."
               required
             />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>Squad *</Label>
+              <Select 
+                value={formData.squad} 
+                onValueChange={(value) => setFormData(prev => ({ ...prev, squad: value }))}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {squads.map(squad => (
+                    <SelectItem key={squad.value} value={squad.value}>
+                      {squad.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Priority</Label>
+              <Select 
+                value={formData.priority} 
+                onValueChange={(value) => setFormData(prev => ({ ...prev, priority: value }))}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {priorities.map(priority => (
+                    <SelectItem key={priority.value} value={priority.value}>
+                      {priority.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
           <div className="space-y-2">

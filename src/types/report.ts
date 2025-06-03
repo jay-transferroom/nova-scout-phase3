@@ -106,6 +106,9 @@ export interface RequirementProfile {
     minRating: number | string;
   }[];
   notes?: string;
+  squad?: 'first-team' | 'under-21' | 'under-18' | 'academy' | 'reserves';
+  priority?: 'high' | 'medium' | 'low';
+  deadline?: string;
 }
 
 export const DEFAULT_RATING_SYSTEMS: Record<RatingSystemType, RatingSystem> = {
