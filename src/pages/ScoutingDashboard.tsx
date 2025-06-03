@@ -135,9 +135,9 @@ const ScoutingDashboard = () => {
           </div>
         </div>
 
-        {/* Your Requirements Section */}
+        {/* Your Club Requirements Section */}
         <div className="mb-8">
-          <h2 className="text-xl font-bold mb-6 text-gray-900">Your Requirements</h2>
+          <h2 className="text-xl font-bold mb-6 text-gray-900">Your Club Requirements</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
             {requirementItems.map((item, index) => (
               <RequirementCard
