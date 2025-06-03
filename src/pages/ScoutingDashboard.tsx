@@ -11,11 +11,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BookmarkCheck, File, FileText, Star, Users, Plus } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
+import { useReports } from "@/hooks/useReports";
+import ReportsTable from "@/components/reports/ReportsTable";
 
 const ScoutingDashboard = () => {
   const navigate = useNavigate();
   const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null);
   const [isTemplateDialogOpen, setIsTemplateDialogOpen] = useState(false);
+  const { reports, loading, deleteReport } = useReports();
 
   const handleSelectPlayer = (player: Player) => {
     setSelectedPlayer(player);
@@ -39,6 +42,28 @@ const ScoutingDashboard = () => {
     setSelectedPlayer(null);
   };
 
+  const handleViewReport = (reportId: string) => {
+    navigate(`/reports/${reportId}`);
+  };
+
+  const handleDeleteReport = async (reportId: string, playerName: string) => {
+    if (window.confirm(`Are you sure you want to delete the report for ${playerName}?`)) {
+      try {
+        await deleteReport(reportId);
+        toast({
+          title: "Success",
+          description: "Report deleted successfully",
+        });
+      } catch (error) {
+        toast({
+          title: "Error",
+          description: "Failed to delete report",
+          variant: "destructive",
+        });
+      }
+    }
+  };
+
   const statsCards = [
     { title: "Received Pitches", value: "29", subtitle: "New Pitches", color: "text-green-600", icon: FileText },
     { title: "Saved Pitches", value: "22", subtitle: "Players", color: "text-blue-600", icon: BookmarkCheck },
@@ -57,6 +82,9 @@ const ScoutingDashboard = () => {
     { position: "Winger", count: "5 new pitches", active: true },
     { position: "Forward", count: "Inactive", active: false },
   ];
+
+  // Get the 5 most recent reports for the dashboard
+  const recentReports = reports.slice(0, 5);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -110,41 +138,29 @@ const ScoutingDashboard = () => {
 
         {/* Latest Scouting Reports Section */}
         <div className="mb-8">
-          <h2 className="text-xl font-bold mb-6 text-gray-900">Latest Scouting Reports</h2>
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-xl font-bold text-gray-900">Latest Scouting Reports</h2>
+            <Button 
+              variant="outline" 
+              onClick={() => navigate("/reports")}
+              className="text-sm"
+            >
+              View All Reports
+            </Button>
+          </div>
           <Card className="bg-white border-0 shadow-sm">
             <CardContent className="p-0">
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead className="bg-gray-50 border-b">
-                    <tr>
-                      <th className="text-left p-4 font-medium text-gray-700 text-sm">Player</th>
-                      <th className="text-left p-4 font-medium text-gray-700 text-sm">Rating</th>
-                      <th className="text-left p-4 font-medium text-gray-700 text-sm">Recommend</th>
-                      <th className="text-left p-4 font-medium text-gray-700 text-sm">Scouts</th>
-                      <th className="text-left p-4 font-medium text-gray-700 text-sm">Reports</th>
-                      <th className="text-left p-4 font-medium text-gray-700 text-sm">Notes</th>
-                      <th className="text-left p-4 font-medium text-gray-700 text-sm">Shortlists</th>
-                      <th className="text-left p-4 font-medium text-gray-700 text-sm">Ad Relevancy</th>
-                      <th className="text-left p-4 font-medium text-gray-700 text-sm">Potential Role</th>
-                      <th className="text-left p-4 font-medium text-gray-700 text-sm">TR Pathways</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr className="border-b hover:bg-gray-50">
-                      <td className="p-4 text-sm text-gray-600">No reports available</td>
-                      <td className="p-4"></td>
-                      <td className="p-4"></td>
-                      <td className="p-4"></td>
-                      <td className="p-4"></td>
-                      <td className="p-4"></td>
-                      <td className="p-4"></td>
-                      <td className="p-4"></td>
-                      <td className="p-4"></td>
-                      <td className="p-4"></td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
+              {loading ? (
+                <div className="p-8 text-center text-gray-500">
+                  Loading reports...
+                </div>
+              ) : (
+                <ReportsTable 
+                  reports={recentReports}
+                  onViewReport={handleViewReport}
+                  onDeleteReport={handleDeleteReport}
+                />
+              )}
             </CardContent>
           </Card>
         </div>
