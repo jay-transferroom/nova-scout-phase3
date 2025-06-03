@@ -45,12 +45,13 @@ const ReportsList = () => {
     }
   });
 
-  const formatDate = (date: string) => {
+  const formatDate = (date: string | Date) => {
+    const dateObj = typeof date === 'string' ? new Date(date) : date;
     return new Intl.DateTimeFormat("en-GB", {
       day: "2-digit",
       month: "short",
       year: "numeric"
-    }).format(new Date(date));
+    }).format(dateObj);
   };
 
   const handleViewReport = (reportId: string) => {
@@ -157,7 +158,7 @@ const ReportsList = () => {
                       <TableCell className="font-medium">{report.player?.name}</TableCell>
                       <TableCell>{report.player?.club}</TableCell>
                       <TableCell>{report.player?.positions?.join(", ")}</TableCell>
-                      <TableCell>{formatDate(report.created_at)}</TableCell>
+                      <TableCell>{formatDate(report.createdAt)}</TableCell>
                       <TableCell>
                         {report.status === "draft" ? (
                           <span className="inline-flex items-center rounded-full bg-yellow-100 px-2.5 py-0.5 text-xs font-medium text-yellow-800">
