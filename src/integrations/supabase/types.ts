@@ -200,6 +200,126 @@ export type Database = {
         }
         Relationships: []
       }
+      profiles: {
+        Row: {
+          created_at: string
+          email: string
+          first_name: string | null
+          id: string
+          last_name: string | null
+          role: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          first_name?: string | null
+          id: string
+          last_name?: string | null
+          role?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          first_name?: string | null
+          id?: string
+          last_name?: string | null
+          role?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      report_templates: {
+        Row: {
+          created_at: string
+          default_rating_system: Json | null
+          default_template: boolean | null
+          description: string | null
+          id: string
+          name: string
+          sections: Json
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          default_rating_system?: Json | null
+          default_template?: boolean | null
+          description?: string | null
+          id?: string
+          name: string
+          sections?: Json
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          default_rating_system?: Json | null
+          default_template?: boolean | null
+          description?: string | null
+          id?: string
+          name?: string
+          sections?: Json
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      reports: {
+        Row: {
+          created_at: string
+          flagged_for_review: boolean | null
+          id: string
+          match_context: Json | null
+          player_id: string
+          scout_id: string
+          sections: Json
+          status: string
+          tags: string[] | null
+          template_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          flagged_for_review?: boolean | null
+          id?: string
+          match_context?: Json | null
+          player_id: string
+          scout_id: string
+          sections?: Json
+          status?: string
+          tags?: string[] | null
+          template_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          flagged_for_review?: boolean | null
+          id?: string
+          match_context?: Json | null
+          player_id?: string
+          scout_id?: string
+          sections?: Json
+          status?: string
+          tags?: string[] | null
+          template_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reports_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reports_scout_id_fkey"
+            columns: ["scout_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       teams: {
         Row: {
           country: string

@@ -5,8 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Player } from "@/types/player";
 import { ReportTemplate, Report, ReportSectionData } from "@/types/report";
 import ReportSection from "@/components/ReportSection";
-import { toast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
+import { useReports } from "@/hooks/useReports";
 import { ArrowLeft, Save, Send, Settings } from "lucide-react";
+import { toast } from "sonner";
 
 interface LocationState {
   player: Player;
@@ -20,17 +22,15 @@ const ReportBuilder = () => {
   const [template, setTemplate] = useState<ReportTemplate | null>(null);
   const [report, setReport] = useState<Report | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { user } = useAuth();
+  const { saveReport } = useReports();
 
   useEffect(() => {
     // Get player and template from location state
     const state = location.state as LocationState;
     if (!state?.player || !state?.template) {
       navigate("/");
-      toast({
-        title: "Error",
-        description: "Missing player or template information",
-        variant: "destructive",
-      });
+      toast.error("Missing player or template information");
       return;
     }
 
@@ -42,7 +42,7 @@ const ReportBuilder = () => {
       id: `report-${Date.now()}`,
       playerId: state.player.id,
       templateId: state.template.id,
-      scoutId: "scout-1", // In a real app, this would come from authentication
+      scoutId: user?.id || "",
       createdAt: new Date(),
       updatedAt: new Date(),
       status: "draft",
@@ -56,7 +56,7 @@ const ReportBuilder = () => {
     };
 
     setReport(newReport);
-  }, [location, navigate]);
+  }, [location, navigate, user]);
 
   const handleFieldChange = (
     sectionId: string,
@@ -92,38 +92,34 @@ const ReportBuilder = () => {
     });
   };
 
-  const saveReport = (status: "draft" | "submitted") => {
-    if (!report) return;
+  const handleSaveReport = async (status: "draft" | "submitted") => {
+    if (!report || !player) return;
     
     setIsSubmitting(true);
 
-    // In a real app, this would save to a database
-    const updatedReport = {
-      ...report,
-      status,
-      updatedAt: new Date(),
-    };
+    try {
+      const reportData = {
+        id: report.id,
+        player_id: player.id,
+        template_id: template?.id || "",
+        status,
+        sections: report.sections,
+      };
 
-    console.log("Saving report:", updatedReport);
-
-    // Simulate API call
-    setTimeout(() => {
-      setReport(updatedReport);
-      setIsSubmitting(false);
+      await saveReport(reportData);
       
       if (status === "submitted") {
-        toast({
-          title: "Report Submitted",
-          description: `Report for ${player?.name} has been submitted successfully.`,
-        });
-        navigate("/");
+        toast.success(`Report for ${player.name} has been submitted successfully.`);
+        navigate("/reports");
       } else {
-        toast({
-          title: "Report Saved",
-          description: `Report saved as draft.`,
-        });
+        toast.success("Report saved as draft.");
       }
-    }, 1000);
+    } catch (error) {
+      toast.error("Failed to save report. Please try again.");
+      console.error("Error saving report:", error);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (!player || !template || !report) {
@@ -157,7 +153,7 @@ const ReportBuilder = () => {
           </Button>
           <Button 
             variant="outline" 
-            onClick={() => saveReport("draft")} 
+            onClick={() => handleSaveReport("draft")} 
             disabled={isSubmitting}
             className="gap-2"
           >
@@ -165,7 +161,7 @@ const ReportBuilder = () => {
             Save Draft
           </Button>
           <Button 
-            onClick={() => saveReport("submitted")} 
+            onClick={() => handleSaveReport("submitted")} 
             disabled={isSubmitting}
             className="gap-2"
           >
