@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -17,6 +16,15 @@ interface LocationState {
   player: Player;
   template: ReportTemplate;
 }
+
+// Generate a proper UUID v4
+const generateUUID = () => {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    const r = Math.random() * 16 | 0;
+    const v = c == 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
+};
 
 const ReportBuilder = () => {
   const location = useLocation();
@@ -45,7 +53,7 @@ const ReportBuilder = () => {
 
   const initializeReport = (selectedPlayer: Player, selectedTemplate: ReportTemplate) => {
     const newReport: Report = {
-      id: `report-${Date.now()}`,
+      id: generateUUID(),
       playerId: selectedPlayer.id,
       templateId: selectedTemplate.id,
       scoutId: user?.id || "",
