@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -20,10 +19,14 @@ import { usePlayersData } from '@/hooks/usePlayersData';
 
 const Header = () => {
   const { user, profile, signOut } = useAuth();
-  const { data: players = [] } = usePlayersData();
+  const { data: players = [], isLoading, error } = usePlayersData();
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [showResults, setShowResults] = useState(false);
+
+  console.log('Players data:', players);
+  console.log('Players loading:', isLoading);
+  console.log('Players error:', error);
 
   const getInitials = () => {
     if (profile?.first_name && profile?.last_name) {
@@ -54,18 +57,24 @@ const Header = () => {
 
   // Filter players based on search query
   const filteredPlayers = searchQuery.trim() 
-    ? players.filter(player => 
-        player.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-        player.club.toLowerCase().includes(searchQuery.toLowerCase()) || 
-        player.id.toLowerCase() === searchQuery.toLowerCase() ||
-        player.positions.some(pos => pos.toLowerCase().includes(searchQuery.toLowerCase()))
-      ).slice(0, 5) // Limit to 5 results
+    ? players.filter(player => {
+        const searchLower = searchQuery.toLowerCase();
+        const matchesName = player.name.toLowerCase().includes(searchLower);
+        const matchesClub = player.club.toLowerCase().includes(searchLower);
+        const matchesId = player.id.toLowerCase().includes(searchLower);
+        const matchesPosition = player.positions.some(pos => pos.toLowerCase().includes(searchLower));
+        
+        return matchesName || matchesClub || matchesId || matchesPosition;
+      }).slice(0, 5)
     : [];
+
+  console.log('Search query:', searchQuery);
+  console.log('Filtered players:', filteredPlayers);
+  console.log('Show results:', showResults);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
-      // Navigate to reports page with search query as state
       navigate('/reports', { state: { searchQuery: searchQuery.trim() } });
       setSearchQuery('');
       setShowResults(false);
@@ -97,40 +106,55 @@ const Header = () => {
             <form onSubmit={handleSearchSubmit} className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search players..."
+                placeholder={isLoading ? "Loading players..." : "Search players..."}
                 className="pl-10 bg-muted/30 border-muted-foreground/20 h-11"
                 value={searchQuery}
                 onChange={(e) => {
-                  setSearchQuery(e.target.value);
-                  setShowResults(e.target.value.trim().length > 0);
+                  const value = e.target.value;
+                  setSearchQuery(value);
+                  setShowResults(value.trim().length > 0);
+                  console.log('Search input changed:', value);
                 }}
-                onFocus={() => setShowResults(searchQuery.trim().length > 0)}
+                onFocus={() => {
+                  if (searchQuery.trim().length > 0) {
+                    setShowResults(true);
+                  }
+                }}
                 onBlur={() => {
                   // Delay hiding results to allow for clicks
                   setTimeout(() => setShowResults(false), 200);
                 }}
+                disabled={isLoading}
               />
             </form>
             
-            {showResults && filteredPlayers.length > 0 && (
+            {showResults && (
               <div className="absolute top-full left-0 right-0 mt-1 bg-background border rounded-md shadow-lg z-50 max-h-60 overflow-y-auto">
-                {filteredPlayers.map((player) => (
-                  <button
-                    key={player.id}
-                    className="w-full px-4 py-3 text-left hover:bg-accent flex items-center gap-3"
-                    onMouseDown={() => handlePlayerSelect(player.id)}
-                  >
-                    <Avatar className="h-8 w-8">
-                      <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white text-xs font-semibold">
-                        {player.name.split(' ').map(n => n[0]).join('').toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1">
-                      <p className="font-medium text-sm">{player.name}</p>
-                      <p className="text-xs text-muted-foreground">{player.club} • {player.positions.join(", ")}</p>
-                    </div>
-                  </button>
-                ))}
+                {isLoading ? (
+                  <div className="px-4 py-3 text-sm text-muted-foreground">Loading players...</div>
+                ) : error ? (
+                  <div className="px-4 py-3 text-sm text-red-500">Error loading players</div>
+                ) : filteredPlayers.length > 0 ? (
+                  filteredPlayers.map((player) => (
+                    <button
+                      key={player.id}
+                      className="w-full px-4 py-3 text-left hover:bg-accent flex items-center gap-3 transition-colors"
+                      onMouseDown={() => handlePlayerSelect(player.id)}
+                    >
+                      <Avatar className="h-8 w-8">
+                        <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white text-xs font-semibold">
+                          {player.name.split(' ').map(n => n[0]).join('').toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1">
+                        <p className="font-medium text-sm">{player.name}</p>
+                        <p className="text-xs text-muted-foreground">{player.club} • {player.positions.join(", ")}</p>
+                      </div>
+                    </button>
+                  ))
+                ) : searchQuery.trim().length > 0 ? (
+                  <div className="px-4 py-3 text-sm text-muted-foreground">No players found for "{searchQuery}"</div>
+                ) : null}
               </div>
             )}
           </div>
