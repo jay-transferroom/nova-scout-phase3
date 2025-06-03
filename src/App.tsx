@@ -6,9 +6,13 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import AppInitializer from "@/components/AppInitializer";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import Header from "@/components/Header";
 import MainNavigation from "@/components/MainNavigation";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
+import Profile from "./pages/Profile";
+import Settings from "./pages/Settings";
+import UserManagement from "./pages/admin/UserManagement";
 import ReportsList from "./pages/ReportsList";
 import ReportBuilder from "./pages/ReportBuilder";
 import ReportView from "./pages/ReportView";
@@ -31,6 +35,7 @@ const App = () => (
           <Toaster />
           <BrowserRouter>
             <div className="min-h-screen flex flex-col">
+              <Header />
               <MainNavigation />
               <main className="flex-1">
                 <Routes>
@@ -38,6 +43,21 @@ const App = () => (
                   <Route path="/" element={
                     <ProtectedRoute>
                       <Index />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/profile" element={
+                    <ProtectedRoute>
+                      <Profile />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/settings" element={
+                    <ProtectedRoute>
+                      <Settings />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/admin/users" element={
+                    <ProtectedRoute requiredRole="recruitment">
+                      <UserManagement />
                     </ProtectedRoute>
                   } />
                   <Route path="/reports" element={
@@ -72,7 +92,7 @@ const App = () => (
                   }>
                     <Route index element={<DataImportPage />} />
                     <Route path="data-import" element={<DataImportPage />} />
-                    <Route path="player-pitches" element={<PlayerPitches />} />
+                    <Route path="pitches" element={<PlayerPitches />} />
                     <Route path="requirements" element={<RequirementsList />} />
                     <Route path="scouting-tasks" element={<ScoutingTasks />} />
                     <Route path="upcoming-matches" element={<UpcomingMatches />} />
