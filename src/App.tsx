@@ -20,6 +20,8 @@ import UpcomingMatches from "@/pages/transfers/UpcomingMatches";
 import DataImport from "@/pages/transfers/DataImport";
 import Profile from "@/pages/Profile";
 import Settings from "@/pages/Settings";
+import TemplateAdmin from "@/pages/TemplateAdmin";
+import UserManagement from "@/pages/admin/UserManagement";
 
 const queryClient = new QueryClient();
 
@@ -51,6 +53,8 @@ function App() {
                               <Route path="/transfers/scouting-tasks" element={<ScoutingTasks />} />
                               <Route path="/transfers/upcoming-matches" element={<UpcomingMatches />} />
                               <Route path="/transfers/data-import" element={<DataImport />} />
+                              <Route path="/templates" element={<TemplateAdmin />} />
+                              <Route path="/admin/users" element={<UserManagement />} />
                               <Route path="/profile" element={<Profile />} />
                               <Route path="/settings" element={<Settings />} />
                               <Route path="*" element={<ScoutingDashboard />} />
