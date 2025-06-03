@@ -1,4 +1,5 @@
 
+
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import {
@@ -120,7 +121,7 @@ const MainNavigation = () => {
   
   return (
     <Sidebar collapsible="icon" className="border-r z-40">
-      <SidebarContent>
+      <SidebarContent className="py-4">
         <SidebarGroup>
           <SidebarGroupLabel>Main</SidebarGroupLabel>
           <SidebarGroupContent>
