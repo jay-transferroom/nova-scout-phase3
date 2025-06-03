@@ -11,10 +11,13 @@ import { toast } from "sonner";
 import PlayerSearch from "@/components/PlayerSearch";
 import TemplateSelection from "@/components/TemplateSelection";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery } from "@tanstack/react-query";
 
 interface LocationState {
-  player: Player;
-  template: ReportTemplate;
+  player?: Player;
+  template?: ReportTemplate;
+  selectedPlayerId?: string;
 }
 
 // Generate a proper UUID v4
@@ -38,18 +41,81 @@ const ReportBuilder = () => {
   const { user } = useAuth();
   const { saveReport } = useReports();
 
+  const state = location.state as LocationState;
+  
+  // Fetch player data if we have a selectedPlayerId but no player object
+  const { data: fetchedPlayer } = useQuery({
+    queryKey: ['player', state?.selectedPlayerId],
+    queryFn: async (): Promise<Player | null> => {
+      if (!state?.selectedPlayerId) return null;
+      
+      const { data, error } = await supabase
+        .from('players')
+        .select(`
+          *,
+          player_recent_form (
+            matches,
+            goals,
+            assists,
+            rating
+          )
+        `)
+        .eq('id', state.selectedPlayerId)
+        .single();
+
+      if (error) {
+        console.error('Error fetching player:', error);
+        throw error;
+      }
+
+      if (!data) return null;
+
+      return {
+        id: data.id,
+        name: data.name,
+        club: data.club,
+        age: data.age,
+        dateOfBirth: data.date_of_birth,
+        positions: data.positions,
+        dominantFoot: data.dominant_foot,
+        nationality: data.nationality,
+        contractStatus: data.contract_status,
+        contractExpiry: data.contract_expiry,
+        region: data.region,
+        image: data.image_url,
+        recentForm: data.player_recent_form?.[0] ? {
+          matches: data.player_recent_form[0].matches,
+          goals: data.player_recent_form[0].goals,
+          assists: data.player_recent_form[0].assists,
+          rating: data.player_recent_form[0].rating,
+        } : undefined,
+      };
+    },
+    enabled: !!state?.selectedPlayerId && !state?.player,
+  });
+
   useEffect(() => {
     // Get player and template from location state
-    const state = location.state as LocationState;
     if (state?.player && state?.template) {
       setPlayer(state.player);
       setTemplate(state.template);
       initializeReport(state.player, state.template);
+    } else if (state?.player) {
+      // Player provided, show template selection
+      setPlayer(state.player);
+      setShowTemplateSelection(true);
+    } else if (fetchedPlayer) {
+      // Player fetched from database
+      setPlayer(fetchedPlayer);
+      setShowTemplateSelection(true);
+    } else if (state?.selectedPlayerId) {
+      // Wait for player to be fetched
+      return;
     } else {
-      // If no data provided, show player selection
+      // No data provided, show player selection
       setShowPlayerSearch(true);
     }
-  }, [location, user]);
+  }, [state, fetchedPlayer, user]);
 
   const initializeReport = (selectedPlayer: Player, selectedTemplate: ReportTemplate) => {
     const newReport: Report = {
@@ -126,7 +192,7 @@ const ReportBuilder = () => {
     try {
       const reportData = {
         id: report.id,
-        playerId: player.id,  // Changed from player_id to playerId
+        playerId: player.id,
         templateId: template?.id || "",
         status,
         sections: report.sections,
@@ -149,7 +215,7 @@ const ReportBuilder = () => {
   };
 
   // Show player search if no player selected
-  if (showPlayerSearch || !player) {
+  if (showPlayerSearch || (!player && !state?.selectedPlayerId)) {
     return (
       <div className="container mx-auto py-8 max-w-4xl">
         <div className="flex justify-between items-center mb-6">
@@ -177,18 +243,20 @@ const ReportBuilder = () => {
     return (
       <div className="container mx-auto py-8 max-w-4xl">
         <div className="flex justify-between items-center mb-6">
-          <Button variant="ghost" onClick={() => setShowPlayerSearch(true)} className="gap-2">
+          <Button variant="ghost" onClick={() => navigate(-1)} className="gap-2">
             <ArrowLeft size={16} />
-            Back to Player Selection
+            Back
           </Button>
         </div>
 
-        <TemplateSelection 
-          player={player}
-          isOpen={true}
-          onClose={() => setShowPlayerSearch(true)}
-          onSelectTemplate={handleTemplateSelect}
-        />
+        {player && (
+          <TemplateSelection 
+            player={player}
+            isOpen={true}
+            onClose={() => navigate(-1)}
+            onSelectTemplate={handleTemplateSelect}
+          />
+        )}
       </div>
     );
   }
