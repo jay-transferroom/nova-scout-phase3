@@ -8,6 +8,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import AppInitializer from "@/components/AppInitializer";
 import MainNavigation from "@/components/MainNavigation";
 import { SidebarProvider } from "@/components/ui/sidebar";
+import ScoutingDashboard from "@/pages/ScoutingDashboard";
 import SquadView from "@/pages/SquadView";
 import ReportsList from "@/pages/ReportsList";
 import ReportView from "@/pages/ReportView";
@@ -40,6 +41,7 @@ function App() {
                           <MainNavigation />
                           <main className="flex-1 overflow-hidden">
                             <Routes>
+                              <Route path="/dashboard" element={<ScoutingDashboard />} />
                               <Route path="/squad" element={<SquadView />} />
                               <Route path="/reports" element={<ReportsList />} />
                               <Route path="/reports/:id" element={<ReportView />} />
@@ -51,7 +53,7 @@ function App() {
                               <Route path="/transfers/data-import" element={<DataImport />} />
                               <Route path="/profile" element={<Profile />} />
                               <Route path="/settings" element={<Settings />} />
-                              <Route path="*" element={<SquadView />} />
+                              <Route path="*" element={<ScoutingDashboard />} />
                             </Routes>
                           </main>
                         </div>
