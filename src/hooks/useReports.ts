@@ -48,7 +48,6 @@ export const useReports = () => {
         flaggedForReview: report.flagged_for_review || false,
         player: report.player,
         scout: report.scout,
-        created_at: report.created_at, // Keep snake_case for compatibility with ReportsList
       }));
 
       setReports(transformedReports);
@@ -70,8 +69,8 @@ export const useReports = () => {
         template_id: reportData.templateId,
         scout_id: user.id,
         status: reportData.status || 'draft',
-        sections: reportData.sections || [],
-        match_context: reportData.matchContext,
+        sections: JSON.stringify(reportData.sections || []), // Convert to JSON string
+        match_context: reportData.matchContext ? JSON.stringify(reportData.matchContext) : null, // Convert to JSON string
         tags: reportData.tags,
         flagged_for_review: reportData.flaggedForReview,
         updated_at: new Date().toISOString(),
