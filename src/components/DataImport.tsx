@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -22,7 +23,6 @@ const DataImport = () => {
     totalTeams: number;
     forceReimport: boolean;
   } | null>(null);
-  const [teams, setTeams] = useState([]);
 
   const handleImportData = async () => {
     setIsImporting(true);
@@ -53,7 +53,6 @@ const DataImport = () => {
         forceReimport: data.forceReimport
       });
 
-      setTeams([]); // Clear existing teams
       toast.success(data.message);
 
     } catch (error) {
@@ -62,6 +61,10 @@ const DataImport = () => {
     } finally {
       setIsImporting(false);
     }
+  };
+
+  const handleForceReimportChange = (checked: boolean | "indeterminate") => {
+    setForceReimport(checked === true);
   };
 
   return (
@@ -99,7 +102,7 @@ const DataImport = () => {
             </Select>
 
             <div className="flex items-center space-x-2">
-              <Checkbox id="force-reimport" onCheckedChange={(checked) => setForceReimport(checked || false)} />
+              <Checkbox id="force-reimport" onCheckedChange={handleForceReimportChange} />
               <label
                 htmlFor="force-reimport"
                 className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
@@ -151,7 +154,7 @@ const DataImport = () => {
         <PlayerPhotoUpdater />
       </div>
 
-      <TeamsDisplay teams={teams} setTeams={setTeams} />
+      <TeamsDisplay />
     </div>
   );
 };
