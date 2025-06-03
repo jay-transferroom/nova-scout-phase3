@@ -5,6 +5,7 @@ import PlayerProfilePreview from "@/components/PlayerProfilePreview";
 import TemplateSelection from "@/components/TemplateSelection";
 import RequirementCard from "@/components/RequirementCard";
 import PlayerPitchModal from "@/components/PlayerPitchModal";
+import NewRequirementDialog from "@/components/NewRequirementDialog";
 import { Player } from "@/types/player";
 import { ReportTemplate, RequirementProfile } from "@/types/report";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
@@ -63,6 +64,8 @@ const ScoutingDashboard = () => {
   const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null);
   const [isTemplateDialogOpen, setIsTemplateDialogOpen] = useState(false);
   const [selectedPitchPosition, setSelectedPitchPosition] = useState<string | null>(null);
+  const [isNewRequirementOpen, setIsNewRequirementOpen] = useState(false);
+  const [initialPosition, setInitialPosition] = useState<string | undefined>();
   const { reports, loading, deleteReport } = useReports();
 
   const handleSelectPlayer = (player: Player) => {
@@ -110,7 +113,7 @@ const ScoutingDashboard = () => {
   };
 
   const handleCreateRequirement = () => {
-    navigate('/transfers/requirements');
+    setIsNewRequirementOpen(true);
   };
 
   const handleViewRequirement = (requirementId: string) => {
@@ -118,7 +121,8 @@ const ScoutingDashboard = () => {
   };
 
   const handleCreateAd = (position: string) => {
-    navigate('/transfers/requirements', { state: { position, action: 'create' } });
+    setInitialPosition(position);
+    setIsNewRequirementOpen(true);
   };
 
   const handleViewPitches = (position: string) => {
@@ -218,7 +222,7 @@ const ScoutingDashboard = () => {
                 key={item.id}
                 position={item.position}
                 status={item.status}
-                count={item.count}
+                count={'count' in item ? item.count : undefined}
                 onCreateAd={() => handleCreateAd(item.position)}
                 onViewPitches={item.status === 'active' && 'requirement' in item ? 
                   () => handleViewRequirement(item.requirement.id) : 
@@ -335,6 +339,16 @@ const ScoutingDashboard = () => {
         isOpen={!!selectedPitchPosition}
         onClose={() => setSelectedPitchPosition(null)}
         position={selectedPitchPosition || ''}
+      />
+
+      {/* New Requirement Dialog */}
+      <NewRequirementDialog 
+        isOpen={isNewRequirementOpen}
+        onClose={() => {
+          setIsNewRequirementOpen(false);
+          setInitialPosition(undefined);
+        }}
+        initialPosition={initialPosition}
       />
     </div>
   );
