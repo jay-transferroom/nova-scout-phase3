@@ -20,8 +20,7 @@ import {
   BarChart3, 
   Settings, 
   User,
-  Upload,
-  FileTemplate
+  Upload
 } from "lucide-react";
 
 const MainNavigation = () => {
@@ -41,10 +40,7 @@ const MainNavigation = () => {
       title: "Player Reports",
       url: "/reports",
       icon: FileText,
-    }
-  ];
-
-  const transferItems = [
+    },
     {
       title: "Requirements",
       url: "/transfers/requirements",
@@ -76,7 +72,7 @@ const MainNavigation = () => {
     {
       title: "Template Admin",
       url: "/templates",
-      icon: FileTemplate,
+      icon: FileText,
     },
     {
       title: "User Management",
@@ -106,24 +102,6 @@ const MainNavigation = () => {
           <SidebarGroupContent>
             <SidebarMenu>
               {mainItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild isActive={isActive(item.url)}>
-                    <Link to={item.url}>
-                      <item.icon className="h-4 w-4" />
-                      <span>{item.title}</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-
-        <SidebarGroup>
-          <SidebarGroupLabel>Transfers In</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {transferItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild isActive={isActive(item.url)}>
                     <Link to={item.url}>
