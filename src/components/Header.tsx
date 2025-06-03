@@ -82,7 +82,7 @@ const Header = () => {
   };
 
   const handlePlayerSelect = (playerId: string) => {
-    navigate(`/reports/new`, { state: { selectedPlayerId: playerId } });
+    navigate(`/players/${playerId}`);
     setSearchQuery('');
     setShowResults(false);
   };

@@ -1,6 +1,6 @@
-
 import { Button } from "@/components/ui/button";
 import { Player } from "@/types/player";
+import { useNavigate } from "react-router-dom";
 
 interface PlayerProfilePreviewProps {
   player: Player;
@@ -9,6 +9,8 @@ interface PlayerProfilePreviewProps {
 }
 
 const PlayerProfilePreview = ({ player, onCreateReport, onClose }: PlayerProfilePreviewProps) => {
+  const navigate = useNavigate();
+  
   const getPositionColor = (position: string) => {
     const colors: Record<string, string> = {
       'GK': 'bg-yellow-500',
@@ -49,6 +51,11 @@ const PlayerProfilePreview = ({ player, onCreateReport, onClose }: PlayerProfile
     }
     
     return age;
+  };
+  
+  const handleViewFullProfile = () => {
+    navigate(`/players/${player.id}`);
+    onClose();
   };
   
   return (
@@ -155,12 +162,19 @@ const PlayerProfilePreview = ({ player, onCreateReport, onClose }: PlayerProfile
         )}
       </div>
       
-      <div className="p-4 border-t">
+      <div className="p-4 border-t space-y-2">
         <Button 
           className="w-full" 
           onClick={() => onCreateReport(player)}
         >
           Create Report
+        </Button>
+        <Button 
+          variant="outline"
+          className="w-full" 
+          onClick={handleViewFullProfile}
+        >
+          View Full Profile
         </Button>
       </div>
     </div>

@@ -17,6 +17,7 @@ import UserManagement from "./pages/admin/UserManagement";
 import ReportsList from "./pages/ReportsList";
 import ReportBuilder from "./pages/ReportBuilder";
 import ReportView from "./pages/ReportView";
+import PlayerProfile from "./pages/PlayerProfile";
 import ScoutingDashboard from "./pages/ScoutingDashboard";
 import TemplateAdmin from "./pages/TemplateAdmin";
 import DataImportPage from "./pages/transfers/DataImport";
@@ -83,6 +84,11 @@ const AppContent = () => {
               <Route path="/reports/:id" element={
                 <ProtectedRoute>
                   <ReportView />
+                </ProtectedRoute>
+              } />
+              <Route path="/players/:id" element={
+                <ProtectedRoute>
+                  <PlayerProfile />
                 </ProtectedRoute>
               } />
               <Route path="/dashboard" element={
