@@ -11,7 +11,18 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import { FileText, ArrowRight, Users, MapPin, CalendarDays } from "lucide-react";
+import { 
+  FileText, 
+  ArrowRight, 
+  Users, 
+  MapPin, 
+  CalendarDays, 
+  BarChart3, 
+  Settings, 
+  User,
+  Upload,
+  FileTemplate
+} from "lucide-react";
 
 const MainNavigation = () => {
   const location = useLocation();
@@ -20,7 +31,12 @@ const MainNavigation = () => {
     return location.pathname.startsWith(path);
   };
 
-  const navigationItems = [
+  const mainItems = [
+    {
+      title: "Dashboard",
+      url: "/dashboard",
+      icon: BarChart3,
+    },
     {
       title: "Player Reports",
       url: "/reports",
@@ -48,6 +64,37 @@ const MainNavigation = () => {
       title: "Upcoming Matches",
       url: "/transfers/upcoming-matches",
       icon: CalendarDays,
+    },
+    {
+      title: "Data Import",
+      url: "/transfers/data-import",
+      icon: Upload,
+    }
+  ];
+
+  const adminItems = [
+    {
+      title: "Template Admin",
+      url: "/templates",
+      icon: FileTemplate,
+    },
+    {
+      title: "User Management",
+      url: "/admin/users",
+      icon: Users,
+    }
+  ];
+
+  const accountItems = [
+    {
+      title: "Profile",
+      url: "/profile",
+      icon: User,
+    },
+    {
+      title: "Settings",
+      url: "/settings",
+      icon: Settings,
     }
   ];
   
@@ -58,7 +105,7 @@ const MainNavigation = () => {
           <SidebarGroupLabel>Main</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {navigationItems.map((item) => (
+              {mainItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild isActive={isActive(item.url)}>
                     <Link to={item.url}>
@@ -77,6 +124,42 @@ const MainNavigation = () => {
           <SidebarGroupContent>
             <SidebarMenu>
               {transferItems.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton asChild isActive={isActive(item.url)}>
+                    <Link to={item.url}>
+                      <item.icon className="h-4 w-4" />
+                      <span>{item.title}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarGroup>
+          <SidebarGroupLabel>Administration</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {adminItems.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton asChild isActive={isActive(item.url)}>
+                    <Link to={item.url}>
+                      <item.icon className="h-4 w-4" />
+                      <span>{item.title}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarGroup>
+          <SidebarGroupLabel>Account</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {accountItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild isActive={isActive(item.url)}>
                     <Link to={item.url}>

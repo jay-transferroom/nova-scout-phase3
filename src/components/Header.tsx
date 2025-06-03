@@ -11,21 +11,14 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import { User, Settings, LogOut, Users, Search, Menu } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import PlayerSearch from '@/components/PlayerSearch';
-import { Player } from '@/types/player';
 
 const Header = () => {
   const { user, profile, signOut } = useAuth();
-  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const getInitials = () => {
     if (profile?.first_name && profile?.last_name) {
@@ -54,10 +47,10 @@ const Header = () => {
     await signOut();
   };
 
-  const handleSelectPlayer = (player: Player) => {
-    console.log('Selected player:', player);
-    setIsSearchOpen(false);
-    // Add navigation logic here if needed
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    console.log('Searching for:', searchQuery);
+    // Add search logic here
   };
 
   const canManageUsers = profile?.role === 'recruitment';
@@ -76,24 +69,15 @@ const Header = () => {
           </div>
 
           <div className="flex-1 max-w-lg mx-8">
-            <Popover open={isSearchOpen} onOpenChange={setIsSearchOpen}>
-              <PopoverTrigger asChild>
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    placeholder="Find players"
-                    className="pl-10 bg-muted/30 border-muted-foreground/20 h-11 cursor-pointer"
-                    onClick={() => setIsSearchOpen(true)}
-                    readOnly
-                  />
-                </div>
-              </PopoverTrigger>
-              <PopoverContent className="w-[500px] p-0" align="center">
-                <div className="p-4">
-                  <PlayerSearch onSelectPlayer={handleSelectPlayer} />
-                </div>
-              </PopoverContent>
-            </Popover>
+            <form onSubmit={handleSearchSubmit} className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search players..."
+                className="pl-10 bg-muted/30 border-muted-foreground/20 h-11"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </form>
           </div>
 
           <div className="flex items-center space-x-4">
