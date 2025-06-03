@@ -33,7 +33,25 @@ export const useReports = () => {
 
       if (error) throw error;
 
-      setReports(data || []);
+      // Transform the data to match our ReportWithPlayer interface
+      const transformedReports: ReportWithPlayer[] = (data || []).map((report: any) => ({
+        id: report.id,
+        playerId: report.player_id,
+        templateId: report.template_id,
+        scoutId: report.scout_id,
+        createdAt: new Date(report.created_at),
+        updatedAt: new Date(report.updated_at),
+        status: report.status as 'draft' | 'submitted' | 'reviewed',
+        sections: Array.isArray(report.sections) ? report.sections : [],
+        matchContext: report.match_context,
+        tags: report.tags || [],
+        flaggedForReview: report.flagged_for_review || false,
+        player: report.player,
+        scout: report.scout,
+        created_at: report.created_at, // Keep snake_case for compatibility with ReportsList
+      }));
+
+      setReports(transformedReports);
     } catch (error) {
       console.error('Error fetching reports:', error);
     } finally {
@@ -45,13 +63,23 @@ export const useReports = () => {
     if (!user) throw new Error('User not authenticated');
 
     try {
+      // Transform camelCase to snake_case for database
+      const dbData = {
+        id: reportData.id,
+        player_id: reportData.playerId,
+        template_id: reportData.templateId,
+        scout_id: user.id,
+        status: reportData.status || 'draft',
+        sections: reportData.sections || [],
+        match_context: reportData.matchContext,
+        tags: reportData.tags,
+        flagged_for_review: reportData.flaggedForReview,
+        updated_at: new Date().toISOString(),
+      };
+
       const { data, error } = await supabase
         .from('reports')
-        .upsert({
-          ...reportData,
-          scout_id: user.id,
-          updated_at: new Date().toISOString(),
-        })
+        .upsert(dbData)
         .select()
         .single();
 

@@ -46,7 +46,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               .select('*')
               .eq('id', session.user.id)
               .single();
-            setProfile(profile);
+            
+            if (profile) {
+              setProfile({
+                ...profile,
+                role: profile.role as 'scout' | 'recruitment'
+              });
+            }
           }, 0);
         } else {
           setProfile(null);

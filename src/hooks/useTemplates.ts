@@ -17,7 +17,17 @@ export const useTemplates = () => {
 
       if (error) throw error;
 
-      setTemplates(data || []);
+      // Transform the data to match our ReportTemplate interface
+      const transformedTemplates: ReportTemplate[] = (data || []).map((template: any) => ({
+        id: template.id,
+        name: template.name,
+        description: template.description || '',
+        sections: Array.isArray(template.sections) ? template.sections : [],
+        defaultTemplate: template.default_template || false,
+        defaultRatingSystem: template.default_rating_system || undefined,
+      }));
+
+      setTemplates(transformedTemplates);
     } catch (error) {
       console.error('Error fetching templates:', error);
     } finally {
