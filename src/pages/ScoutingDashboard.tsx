@@ -3,12 +3,14 @@ import { useState } from "react";
 import PlayerSearch from "@/components/PlayerSearch";
 import PlayerProfilePreview from "@/components/PlayerProfilePreview";
 import TemplateSelection from "@/components/TemplateSelection";
+import RequirementCard from "@/components/RequirementCard";
+import PlayerPitchModal from "@/components/PlayerPitchModal";
 import { Player } from "@/types/player";
 import { ReportTemplate } from "@/types/report";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { BookmarkCheck, File, FileText, Star, Users, Plus } from "lucide-react";
+import { BookmarkCheck, File, FileText, Star, Users, Plus, Target } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 import { useReports } from "@/hooks/useReports";
@@ -18,6 +20,7 @@ const ScoutingDashboard = () => {
   const navigate = useNavigate();
   const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null);
   const [isTemplateDialogOpen, setIsTemplateDialogOpen] = useState(false);
+  const [selectedPitchPosition, setSelectedPitchPosition] = useState<string | null>(null);
   const { reports, loading, deleteReport } = useReports();
 
   const handleSelectPlayer = (player: Player) => {
@@ -64,6 +67,14 @@ const ScoutingDashboard = () => {
     }
   };
 
+  const handleCreateAd = (position: string) => {
+    navigate('/transfers/requirements', { state: { position, action: 'create' } });
+  };
+
+  const handleViewPitches = (position: string) => {
+    setSelectedPitchPosition(position);
+  };
+
   const statsCards = [
     { title: "Received Pitches", value: "29", subtitle: "New Pitches", color: "text-green-600", icon: FileText },
     { title: "Saved Pitches", value: "22", subtitle: "Players", color: "text-blue-600", icon: BookmarkCheck },
@@ -73,14 +84,14 @@ const ScoutingDashboard = () => {
   const requirementItems = [
     { position: "Goalkeeper", count: "20 new pitches", active: true },
     { position: "Left Back", count: "10 new pitches", active: false },
-    { position: "Right Back", count: "Inactive", active: false },
-    { position: "Centre Back (all)", count: "Inactive", active: false },
-    { position: "Centre Back (left footed)", count: "Inactive", active: false },
-    { position: "Defensive Midfielder", count: "Inactive", active: false },
-    { position: "Central Midfielder", count: "Inactive", active: false },
-    { position: "Attacking Midfielder", count: "Inactive", active: false },
+    { position: "Right Back", count: undefined, active: false },
+    { position: "Centre Back (all)", count: undefined, active: false },
+    { position: "Centre Back (left footed)", count: undefined, active: false },
+    { position: "Defensive Midfielder", count: undefined, active: false },
+    { position: "Central Midfielder", count: undefined, active: false },
+    { position: "Attacking Midfielder", count: undefined, active: false },
     { position: "Winger", count: "5 new pitches", active: true },
-    { position: "Forward", count: "Inactive", active: false },
+    { position: "Forward", count: undefined, active: false },
   ];
 
   // Get the 5 most recent reports for the dashboard
@@ -91,7 +102,17 @@ const ScoutingDashboard = () => {
       <div className="container mx-auto px-6 py-8 max-w-7xl">
         {/* Transfers In Section */}
         <div className="mb-8">
-          <h1 className="text-2xl font-bold mb-6 text-gray-900">Transfers In</h1>
+          <div className="flex items-center justify-between mb-6">
+            <h1 className="text-2xl font-bold text-gray-900">Transfers In</h1>
+            <Button 
+              onClick={() => navigate('/squad')}
+              variant="outline"
+              className="gap-2"
+            >
+              <Target className="h-4 w-4" />
+              View Squad Analysis
+            </Button>
+          </div>
           
           {/* Stats Cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
@@ -119,19 +140,14 @@ const ScoutingDashboard = () => {
           <h2 className="text-xl font-bold mb-6 text-gray-900">Your Requirements</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
             {requirementItems.map((item, index) => (
-              <Card key={index} className={`bg-white border-0 shadow-sm hover:shadow-md transition-shadow cursor-pointer ${item.active ? 'ring-2 ring-green-500' : ''}`}>
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex-1">
-                      <h3 className="font-medium text-gray-900 text-sm mb-1">{item.position}</h3>
-                      <p className={`text-xs ${item.active ? 'text-green-600 font-medium' : 'text-gray-500'}`}>
-                        {item.count}
-                      </p>
-                    </div>
-                    <Plus className="h-4 w-4 text-gray-400" />
-                  </div>
-                </CardContent>
-              </Card>
+              <RequirementCard
+                key={index}
+                position={item.position}
+                status={item.active ? 'active' : 'inactive'}
+                count={item.count}
+                onCreateAd={() => handleCreateAd(item.position)}
+                onViewPitches={() => handleViewPitches(item.position)}
+              />
             ))}
           </div>
         </div>
@@ -236,6 +252,13 @@ const ScoutingDashboard = () => {
           onSelectTemplate={handleSelectTemplate}
         />
       )}
+
+      {/* Player Pitch Modal */}
+      <PlayerPitchModal
+        isOpen={!!selectedPitchPosition}
+        onClose={() => setSelectedPitchPosition(null)}
+        position={selectedPitchPosition || ''}
+      />
     </div>
   );
 };

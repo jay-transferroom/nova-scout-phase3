@@ -1,4 +1,3 @@
-
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import {
@@ -20,7 +19,8 @@ import {
   BarChart3, 
   Settings, 
   User,
-  Upload
+  Upload,
+  Target
 } from "lucide-react";
 import { useMyPermissions } from "@/hooks/useUserPermissions";
 import { useAuth } from "@/contexts/AuthContext";
@@ -44,6 +44,12 @@ const MainNavigation = () => {
       url: "/dashboard",
       icon: BarChart3,
       permission: "dashboard"
+    },
+    {
+      title: "Squad Analysis",
+      url: "/squad",
+      icon: Target,
+      permission: "squad"
     },
     {
       title: "Player Reports",
