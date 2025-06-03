@@ -1,219 +1,157 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
-import { Loader2, Download, Globe, Database, Users, RefreshCw } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import { Loader2, Download, Database, AlertCircle } from "lucide-react";
 import TeamsDisplay from "./TeamsDisplay";
+import PlayerPhotoUpdater from "./PlayerPhotoUpdater";
 
 const DataImport = () => {
-  const [isImportingLeague, setIsImportingLeague] = useState(false);
   const [selectedLeague, setSelectedLeague] = useState("");
+  const [isImporting, setIsImporting] = useState(false);
   const [forceReimport, setForceReimport] = useState(false);
-  const { toast } = useToast();
+  const [importResults, setImportResults] = useState<{
+    message: string;
+    league: string;
+    teamsImported: number;
+    playersImported: number;
+    totalTeams: number;
+    forceReimport: boolean;
+  } | null>(null);
+  const [teams, setTeams] = useState([]);
 
-  const availableLeagues = [
-    'Premier League',
-    'La Liga', 
-    'Serie A',
-    'Bundesliga',
-    'Ligue 1'
-  ];
+  const handleImportData = async () => {
+    setIsImporting(true);
+    setImportResults(null);
 
-  const importLeagueData = async () => {
-    if (!selectedLeague) {
-      toast({
-        title: "Error",
-        description: "Please select a league first",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setIsImportingLeague(true);
     try {
-      console.log(`Starting import for ${selectedLeague}, force reimport: ${forceReimport}...`);
+      console.log(`Starting data import for ${selectedLeague}, force reimport: ${forceReimport}`);
+
       const { data, error } = await supabase.functions.invoke('import-league-data', {
-        body: { 
-          league_name: selectedLeague,
-          force_reimport: forceReimport
-        }
+        body: { league_name: selectedLeague, force_reimport: forceReimport }
       });
-      
+
       if (error) {
-        console.error('League import error:', error);
+        console.error('Function invocation error:', error);
         throw error;
       }
-      
-      console.log('League import response:', data);
-      
-      const actionType = forceReimport ? 'reimported' : 'imported';
-      const message = data.forceReimport 
-        ? `Successfully reimported ${selectedLeague} with ${data.teamsImported} teams and ${data.playersImported} players!`
-        : `Successfully imported ${selectedLeague} with ${data.teamsImported} teams and ${data.playersImported} players!`;
-      
-      toast({
-        title: "Success",
-        description: message,
-      });
-    } catch (error) {
-      console.error('Error importing league data:', error);
-      toast({
-        title: "Error",
-        description: `Failed to import ${selectedLeague}: ${error.message || 'Unknown error'}`,
-        variant: "destructive",
-      });
-    } finally {
-      setIsImportingLeague(false);
-    }
-  };
 
-  const checkData = async () => {
-    try {
-      console.log('Checking current data...');
-      
-      // Check teams
-      const { data: teams, error: teamsError } = await supabase
-        .from('teams')
-        .select('*')
-        .limit(10);
-      
-      if (teamsError) throw teamsError;
-      
-      // Check players
-      const { data: players, error: playersError } = await supabase
-        .from('players')
-        .select('*')
-        .limit(10);
-      
-      if (playersError) throw playersError;
-      
-      console.log('Current teams:', teams);
-      console.log('Current players:', players);
-      
-      toast({
-        title: "Data Check Complete",
-        description: `Found ${teams?.length || 0} teams and ${players?.length || 0} players in database`,
+      if (!data?.message) {
+        throw new Error(data?.error || 'Unknown error occurred');
+      }
+
+      setImportResults({
+        message: data.message,
+        league: data.league,
+        teamsImported: data.teamsImported,
+        playersImported: data.playersImported,
+        totalTeams: data.totalTeams,
+        forceReimport: data.forceReimport
       });
+
+      setTeams([]); // Clear existing teams
+      toast.success(data.message);
+
     } catch (error) {
-      console.error('Error checking data:', error);
-      toast({
-        title: "Error",
-        description: "Failed to check current data",
-        variant: "destructive",
-      });
+      console.error('Error importing data:', error);
+      toast.error('Failed to import data. Please try again.');
+    } finally {
+      setIsImporting(false);
     }
   };
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold mb-2">League Data Import</h2>
+    <div className="container mx-auto px-4 py-8">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold mb-2">Data Import</h1>
         <p className="text-muted-foreground">
-          Select a league to automatically import all teams and players. This will make them searchable in your scouting database.
+          Import football data from external APIs to populate your database.
         </p>
       </div>
 
-      {/* Main League Import */}
-      <Card className="border-blue-200 bg-blue-50/50">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-blue-700">
-            <Globe className="h-5 w-5" />
-            Import Complete League Data
-          </CardTitle>
-          <CardDescription>
-            Choose a league and we'll automatically import all teams and their players for you to scout.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <label htmlFor="league-select" className="text-sm font-medium">
-              Select League
-            </label>
-            <Select value={selectedLeague} onValueChange={setSelectedLeague}>
-              <SelectTrigger>
-                <SelectValue placeholder="Choose a league to import" />
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Database className="h-5 w-5" />
+              League Import
+            </CardTitle>
+            <CardDescription>
+              Import teams and players for a specific league.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <Select onValueChange={(value) => setSelectedLeague(value)}>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select League" />
               </SelectTrigger>
               <SelectContent>
-                {availableLeagues.map((league) => (
-                  <SelectItem key={league} value={league}>
-                    {league}
-                  </SelectItem>
-                ))}
+                <SelectItem value="Premier League">Premier League</SelectItem>
+                <SelectItem value="La Liga">La Liga</SelectItem>
+                <SelectItem value="Serie A">Serie A</SelectItem>
+                <SelectItem value="Bundesliga">Bundesliga</SelectItem>
+                <SelectItem value="Ligue 1">Ligue 1</SelectItem>
               </SelectContent>
             </Select>
-          </div>
 
-          <div className="flex items-center space-x-2">
-            <Checkbox 
-              id="force-reimport" 
-              checked={forceReimport}
-              onCheckedChange={(checked) => setForceReimport(checked as boolean)}
-            />
-            <label 
-              htmlFor="force-reimport" 
-              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-            >
-              Force reimport (overwrites existing data)
-            </label>
-          </div>
-          
-          <Button 
-            onClick={importLeagueData} 
-            disabled={isImportingLeague || !selectedLeague}
-            className="w-full bg-blue-600 hover:bg-blue-700"
-            size="lg"
-          >
-            {isImportingLeague ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                {forceReimport ? 'Reimporting' : 'Importing'} {selectedLeague}...
-              </>
-            ) : (
-              <>
-                {forceReimport ? <RefreshCw className="mr-2 h-4 w-4" /> : <Download className="mr-2 h-4 w-4" />}
-                {forceReimport ? 'Reimport' : 'Import'} {selectedLeague || 'League'} Data
-              </>
-            )}
-          </Button>
-          
-          {selectedLeague && (
-            <p className="text-sm text-muted-foreground">
-              This will {forceReimport ? 'reimport and overwrite existing' : 'import'} all teams and players from {selectedLeague}, making them searchable in your database.
-              {forceReimport && (
-                <span className="text-amber-600 font-medium block mt-1">
-                  ⚠️ Warning: This will delete and replace existing {selectedLeague} data.
-                </span>
+            <div className="flex items-center space-x-2">
+              <Checkbox id="force-reimport" onCheckedChange={(checked) => setForceReimport(checked || false)} />
+              <label
+                htmlFor="force-reimport"
+                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+              >
+                Force Re-import (Deletes existing data)
+              </label>
+            </div>
+
+            <Button onClick={handleImportData} disabled={isImporting || !selectedLeague} className="w-full">
+              {isImporting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Importing...
+                </>
+              ) : (
+                <>
+                  <Download className="mr-2 h-4 w-4" />
+                  Import Data
+                </>
               )}
+            </Button>
+
+            {importResults && (
+              <div className="space-y-2">
+                <p><strong>{importResults.message}</strong></p>
+                <div className="flex flex-wrap gap-2">
+                  <Badge variant="secondary">
+                    Teams: {importResults.teamsImported} / {importResults.totalTeams}
+                  </Badge>
+                  <Badge variant="default">
+                    Players: {importResults.playersImported}
+                  </Badge>
+                  {importResults.forceReimport && (
+                    <Badge variant="destructive">
+                      <AlertCircle className="mr-1 h-3 w-3" />
+                      Forced Re-import
+                    </Badge>
+                  )}
+                </div>
+              </div>
+            )}
+
+            <p className="text-sm text-muted-foreground">
+              This will import teams and players for the selected league.
             </p>
-          )}
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+        
+        <PlayerPhotoUpdater />
+      </div>
 
-      {/* Teams Display */}
-      <TeamsDisplay />
-
-      {/* Data Status */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Database className="h-5 w-5" />
-            Database Status
-          </CardTitle>
-          <CardDescription>
-            Check what data is currently in your scouting database.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Button onClick={checkData} variant="outline" className="w-full">
-            <Users className="mr-2 h-4 w-4" />
-            Check Current Data
-          </Button>
-        </CardContent>
-      </Card>
+      <TeamsDisplay teams={teams} setTeams={setTeams} />
     </div>
   );
 };
