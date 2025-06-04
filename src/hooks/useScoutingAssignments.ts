@@ -48,7 +48,11 @@ export const useScoutingAssignments = () => {
         throw error;
       }
 
-      return data || [];
+      return (data || []).map(assignment => ({
+        ...assignment,
+        priority: assignment.priority as 'High' | 'Medium' | 'Low',
+        status: assignment.status as 'assigned' | 'in_progress' | 'completed' | 'reviewed'
+      }));
     },
     enabled: !!user,
   });
@@ -67,14 +71,18 @@ export const useMyScoutingTasks = () => {
           players!inner(name, club, positions, age)
         `)
         .eq('assigned_to_scout_id', user?.id)
-        .order('deadline', { ascending: true, nullsLast: true });
+        .order('deadline', { ascending: true, nullsFirst: false });
 
       if (error) {
         console.error('Error fetching my scouting tasks:', error);
         throw error;
       }
 
-      return data || [];
+      return (data || []).map(assignment => ({
+        ...assignment,
+        priority: assignment.priority as 'High' | 'Medium' | 'Low',
+        status: assignment.status as 'assigned' | 'in_progress' | 'completed' | 'reviewed'
+      }));
     },
     enabled: !!user,
   });
