@@ -14,9 +14,10 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { SidebarTrigger } from '@/components/ui/sidebar';
-import { User, Settings, LogOut, Users, Search, Menu } from 'lucide-react';
+import { User, Settings, LogOut, Users, Search, Menu, Sparkles } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { usePlayersData } from '@/hooks/usePlayersData';
+import { supabase } from '@/integrations/supabase/client';
 
 const Header = () => {
   const { user, profile, signOut } = useAuth();
@@ -24,6 +25,7 @@ const Header = () => {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [showResults, setShowResults] = useState(false);
+  const [aiSearchLoading, setAiSearchLoading] = useState(false);
 
   console.log('Players data:', players);
   console.log('Players loading:', isLoading);
@@ -82,6 +84,16 @@ const Header = () => {
     }
   };
 
+  const handleAISearch = async () => {
+    if (!searchQuery.trim()) return;
+    
+    setAiSearchLoading(true);
+    navigate('/ai-search', { state: { initialQuery: searchQuery.trim() } });
+    setSearchQuery('');
+    setShowResults(false);
+    setAiSearchLoading(false);
+  };
+
   const handlePlayerSelect = (playerId: string) => {
     navigate(`/players/${playerId}`);
     setSearchQuery('');
@@ -108,7 +120,7 @@ const Header = () => {
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder={isLoading ? "Loading players..." : "Search players..."}
-                className="pl-10 bg-muted/30 border-muted-foreground/20 h-11"
+                className="pl-10 pr-24 bg-muted/30 border-muted-foreground/20 h-11"
                 value={searchQuery}
                 onChange={(e) => {
                   const value = e.target.value;
@@ -127,6 +139,17 @@ const Header = () => {
                 }}
                 disabled={isLoading}
               />
+              <Button
+                type="button"
+                onClick={handleAISearch}
+                size="sm"
+                variant="ghost"
+                className="absolute right-1 top-1/2 transform -translate-y-1/2 h-9 px-2 text-purple-600 hover:text-purple-700 hover:bg-purple-50"
+                disabled={!searchQuery.trim() || aiSearchLoading}
+                title="AI Search"
+              >
+                <Sparkles className="h-4 w-4" />
+              </Button>
             </form>
             
             {showResults && (
@@ -136,25 +159,47 @@ const Header = () => {
                 ) : error ? (
                   <div className="px-4 py-3 text-sm text-red-500">Error loading players</div>
                 ) : filteredPlayers.length > 0 ? (
-                  filteredPlayers.map((player) => (
-                    <button
-                      key={player.id}
-                      className="w-full px-4 py-3 text-left hover:bg-accent flex items-center gap-3 transition-colors"
-                      onMouseDown={() => handlePlayerSelect(player.id)}
-                    >
-                      <Avatar className="h-8 w-8">
-                        <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white text-xs font-semibold">
-                          {player.name.split(' ').map(n => n[0]).join('').toUpperCase()}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="flex-1">
-                        <p className="font-medium text-sm">{player.name}</p>
-                        <p className="text-xs text-muted-foreground">{player.club} • {player.positions.join(", ")}</p>
-                      </div>
-                    </button>
-                  ))
+                  <>
+                    {filteredPlayers.map((player) => (
+                      <button
+                        key={player.id}
+                        className="w-full px-4 py-3 text-left hover:bg-accent flex items-center gap-3 transition-colors"
+                        onMouseDown={() => handlePlayerSelect(player.id)}
+                      >
+                        <Avatar className="h-8 w-8">
+                          <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white text-xs font-semibold">
+                            {player.name.split(' ').map(n => n[0]).join('').toUpperCase()}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1">
+                          <p className="font-medium text-sm">{player.name}</p>
+                          <p className="text-xs text-muted-foreground">{player.club} • {player.positions.join(", ")}</p>
+                        </div>
+                      </button>
+                    ))}
+                    <div className="border-t">
+                      <button
+                        className="w-full px-4 py-3 text-left hover:bg-accent flex items-center gap-3 transition-colors text-purple-600"
+                        onMouseDown={handleAISearch}
+                      >
+                        <Sparkles className="h-4 w-4" />
+                        <span className="text-sm font-medium">Search with AI: "{searchQuery}"</span>
+                      </button>
+                    </div>
+                  </>
                 ) : searchQuery.trim().length > 0 ? (
-                  <div className="px-4 py-3 text-sm text-muted-foreground">No players found for "{searchQuery}"</div>
+                  <>
+                    <div className="px-4 py-3 text-sm text-muted-foreground">No players found for "{searchQuery}"</div>
+                    <div className="border-t">
+                      <button
+                        className="w-full px-4 py-3 text-left hover:bg-accent flex items-center gap-3 transition-colors text-purple-600"
+                        onMouseDown={handleAISearch}
+                      >
+                        <Sparkles className="h-4 w-4" />
+                        <span className="text-sm font-medium">Try AI search instead</span>
+                      </button>
+                    </div>
+                  </>
                 ) : null}
               </div>
             )}
