@@ -45,33 +45,40 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        console.log('Auth state changed:', event, session);
         setSession(session);
         setUser(session?.user ?? null);
         
         if (session?.user) {
           // Fetch user profile with club information
           setTimeout(async () => {
-            const { data: profile } = await supabase
-              .from('profiles')
-              .select(`
-                *,
-                clubs (
-                  id,
-                  name,
-                  league,
-                  country,
-                  logo_url
-                )
-              `)
-              .eq('id', session.user.id)
-              .single();
-            
-            if (profile) {
-              setProfile({
-                ...profile,
-                role: profile.role as 'scout' | 'recruitment',
-                club: profile.clubs || undefined
-              });
+            try {
+              const { data: profile, error } = await supabase
+                .from('profiles')
+                .select(`
+                  *,
+                  clubs (
+                    id,
+                    name,
+                    league,
+                    country,
+                    logo_url
+                  )
+                `)
+                .eq('id', session.user.id)
+                .single();
+              
+              if (error) {
+                console.error('Error fetching profile:', error);
+              } else if (profile) {
+                setProfile({
+                  ...profile,
+                  role: profile.role as 'scout' | 'recruitment',
+                  club: profile.clubs || undefined
+                });
+              }
+            } catch (error) {
+              console.error('Profile fetch error:', error);
             }
           }, 0);
         } else {
@@ -84,9 +91,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     // Check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
+      console.log('Initial session check:', session);
       setSession(session);
       setUser(session?.user ?? null);
-      setLoading(false);
+      if (!session) {
+        setLoading(false);
+      }
     });
 
     return () => subscription.unsubscribe();

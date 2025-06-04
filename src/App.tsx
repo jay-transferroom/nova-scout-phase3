@@ -9,6 +9,7 @@ import AppInitializer from "@/components/AppInitializer";
 import MainNavigation from "@/components/MainNavigation";
 import Header from "@/components/Header";
 import { SidebarProvider } from "@/components/ui/sidebar";
+import Auth from "@/pages/Auth";
 import ScoutingDashboard from "@/pages/ScoutingDashboard";
 import SquadView from "@/pages/SquadView";
 import ReportsList from "@/pages/ReportsList";
@@ -36,6 +37,10 @@ function App() {
           <div className="min-h-screen bg-background">
             <Toaster />
             <Routes>
+              {/* Public auth route */}
+              <Route path="/auth" element={<Auth />} />
+              
+              {/* Protected routes */}
               <Route
                 path="/*"
                 element={
@@ -48,6 +53,7 @@ function App() {
                             <MainNavigation />
                             <main className="flex-1 overflow-hidden">
                               <Routes>
+                                <Route path="/" element={<ScoutingDashboard />} />
                                 <Route path="/dashboard" element={<ScoutingDashboard />} />
                                 <Route path="/squad" element={<SquadView />} />
                                 <Route path="/reports" element={<ReportsList />} />
@@ -64,7 +70,6 @@ function App() {
                                 <Route path="/admin/users" element={<UserManagement />} />
                                 <Route path="/profile" element={<Profile />} />
                                 <Route path="/settings" element={<Settings />} />
-                                <Route path="*" element={<ScoutingDashboard />} />
                               </Routes>
                             </main>
                           </div>
