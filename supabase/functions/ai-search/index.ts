@@ -29,11 +29,6 @@ serve(async (req) => {
       throw new Error('Search query is required');
     }
 
-    const openaiApiKey = Deno.env.get('OPENAI_API_KEY');
-    if (!openaiApiKey) {
-      throw new Error('OpenAI API key not configured');
-    }
-
     // Create Supabase client
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
@@ -67,156 +62,8 @@ serve(async (req) => {
     console.log('Found players:', players?.length || 0);
     console.log('Found reports:', reports?.length || 0);
 
-    // Use OpenAI to analyze and rank results instead of embeddings
-    const analysisPrompt = `
-    You are a football scout assistant. Analyze this search query: "${query}"
-    
-    Based on the query, rank and filter these players and reports by relevance.
-    Focus on matching:
-    - Player positions and playing style
-    - Age requirements
-    - Nationality or region
-    - Club information
-    - Performance characteristics
-    
-    Players available:
-    ${JSON.stringify((players || []).slice(0, 20).map(p => ({
-      id: p.id,
-      name: p.name,
-      club: p.club,
-      positions: p.positions,
-      age: p.age,
-      nationality: p.nationality,
-      contractStatus: p.contract_status
-    })))}
-    
-    Reports available:
-    ${JSON.stringify((reports || []).slice(0, 10).map(r => ({
-      id: r.id,
-      playerName: r.players?.name,
-      club: r.players?.club,
-      positions: r.players?.positions,
-      status: r.status
-    })))}
-    
-    Return ONLY a JSON array of the most relevant results (max ${limit}) in this exact format:
-    [
-      {
-        "type": "player",
-        "id": "player-uuid",
-        "title": "Player Name",
-        "description": "Position at Club • Age X • Nationality",
-        "relevanceScore": 0.95
-      }
-    ]
-    
-    If no results are relevant, return an empty array [].
-    `;
-
-    const analysisResponse = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${openaiApiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'gpt-4o-mini',
-        messages: [
-          {
-            role: 'system',
-            content: 'You are a football scout assistant. Return only valid JSON arrays with search results.'
-          },
-          {
-            role: 'user',
-            content: analysisPrompt
-          }
-        ],
-        temperature: 0.1,
-        max_tokens: 2000,
-      }),
-    });
-
-    if (!analysisResponse.ok) {
-      console.error('OpenAI API error:', analysisResponse.status, analysisResponse.statusText);
-      const errorText = await analysisResponse.text();
-      console.error('OpenAI error response:', errorText);
-      throw new Error(`OpenAI API failed: ${analysisResponse.status}`);
-    }
-
-    const analysisData = await analysisResponse.json();
-    let searchResults: SearchResult[] = [];
-
-    try {
-      const content = analysisData.choices[0].message.content;
-      console.log('OpenAI response:', content);
-      
-      // Extract JSON from the response
-      const jsonMatch = content.match(/\[[\s\S]*\]/);
-      if (jsonMatch) {
-        const parsedResults = JSON.parse(jsonMatch[0]);
-        
-        // Enhance results with metadata
-        searchResults = parsedResults.map((result: any) => {
-          if (result.type === 'player') {
-            const player = players?.find(p => p.id === result.id);
-            return {
-              ...result,
-              metadata: player
-            };
-          } else if (result.type === 'report') {
-            const report = reports?.find(r => r.id === result.id);
-            return {
-              ...result,
-              metadata: report
-            };
-          }
-          return result;
-        });
-      }
-    } catch (parseError) {
-      console.error('Error parsing AI response:', parseError);
-      
-      // Fallback: simple keyword matching
-      const queryLower = query.toLowerCase();
-      searchResults = [];
-      
-      // Add matching players
-      if (players) {
-        players.forEach(player => {
-          const searchText = `${player.name} ${player.club} ${player.positions.join(' ')} ${player.nationality}`.toLowerCase();
-          if (searchText.includes(queryLower)) {
-            searchResults.push({
-              type: 'player',
-              id: player.id,
-              title: player.name,
-              description: `${player.positions.join(', ')} at ${player.club} • Age ${player.age} • ${player.nationality}`,
-              relevanceScore: 0.7,
-              metadata: player
-            });
-          }
-        });
-      }
-      
-      // Add matching reports
-      if (reports) {
-        reports.forEach(report => {
-          const searchText = `${report.players?.name || ''} ${report.players?.club || ''}`.toLowerCase();
-          if (searchText.includes(queryLower)) {
-            searchResults.push({
-              type: 'report',
-              id: report.id,
-              title: `Report: ${report.players?.name || 'Unknown Player'}`,
-              description: `${report.status} report for ${report.players?.club || 'Unknown Club'}`,
-              relevanceScore: 0.6,
-              metadata: report
-            });
-          }
-        });
-      }
-      
-      // Limit results
-      searchResults = searchResults.slice(0, limit);
-    }
+    // Enhanced keyword search with scoring
+    const searchResults = performKeywordSearch(query, players || [], reports || [], limit);
 
     console.log('Search completed, found', searchResults.length, 'results');
 
@@ -242,3 +89,88 @@ serve(async (req) => {
     );
   }
 });
+
+function performKeywordSearch(query: string, players: any[], reports: any[], limit: number): SearchResult[] {
+  const queryLower = query.toLowerCase();
+  const searchTerms = queryLower.split(' ').filter(term => term.length > 2);
+  const results: SearchResult[] = [];
+
+  // Helper function to calculate relevance score
+  function calculateRelevance(text: string, terms: string[]): number {
+    const textLower = text.toLowerCase();
+    let score = 0;
+    
+    // Exact phrase match gets highest score
+    if (textLower.includes(queryLower)) {
+      score += 1.0;
+    }
+    
+    // Individual term matches
+    terms.forEach(term => {
+      if (textLower.includes(term)) {
+        score += 0.3;
+      }
+    });
+    
+    return Math.min(score, 1.0);
+  }
+
+  // Search players
+  players.forEach(player => {
+    const searchableText = [
+      player.name,
+      player.club,
+      player.positions?.join(' ') || '',
+      player.nationality,
+      player.contract_status,
+      player.region
+    ].join(' ');
+    
+    const relevance = calculateRelevance(searchableText, searchTerms);
+    
+    if (relevance > 0) {
+      const positions = Array.isArray(player.positions) ? player.positions.join(', ') : 'Unknown';
+      results.push({
+        type: 'player',
+        id: player.id,
+        title: player.name,
+        description: `${positions} at ${player.club} • Age ${player.age} • ${player.nationality}`,
+        relevanceScore: relevance,
+        metadata: player
+      });
+    }
+  });
+
+  // Search reports
+  reports.forEach(report => {
+    const playerName = report.players?.name || 'Unknown Player';
+    const playerClub = report.players?.club || 'Unknown Club';
+    const playerPositions = report.players?.positions?.join(' ') || '';
+    
+    const searchableText = [
+      playerName,
+      playerClub,
+      playerPositions,
+      report.status,
+      'report'
+    ].join(' ');
+    
+    const relevance = calculateRelevance(searchableText, searchTerms);
+    
+    if (relevance > 0) {
+      results.push({
+        type: 'report',
+        id: report.id,
+        title: `Report: ${playerName}`,
+        description: `${report.status} report for ${playerClub}`,
+        relevanceScore: relevance,
+        metadata: report
+      });
+    }
+  });
+
+  // Sort by relevance score and limit results
+  return results
+    .sort((a, b) => b.relevanceScore - a.relevanceScore)
+    .slice(0, limit);
+}
