@@ -20,7 +20,8 @@ import {
   Settings, 
   User,
   Upload,
-  Target
+  Target,
+  Brain
 } from "lucide-react";
 import { useMyPermissions } from "@/hooks/useUserPermissions";
 import { useAuth } from "@/contexts/AuthContext";
@@ -44,6 +45,12 @@ const MainNavigation = () => {
       url: "/dashboard",
       icon: BarChart3,
       permission: "dashboard"
+    },
+    {
+      title: "AI Search",
+      url: "/ai-search",
+      icon: Brain,
+      permission: "dashboard" // Using dashboard permission as a baseline
     },
     {
       title: "Squad Analysis",
