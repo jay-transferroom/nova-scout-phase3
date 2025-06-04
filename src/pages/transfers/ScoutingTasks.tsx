@@ -10,9 +10,10 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { MapPin, Calendar, FileText, ArrowRight, Loader2 } from "lucide-react";
+import { MapPin, Calendar, FileText, ArrowRight, Loader2, CheckCircle } from "lucide-react";
 import { Link } from "react-router-dom";
-import { useScoutingTasks } from "@/hooks/useScoutingTasks";
+import { useMyScoutingTasks, useUpdateAssignmentStatus } from "@/hooks/useScoutingAssignments";
+import { toast } from "@/hooks/use-toast";
 
 const getPriorityBadgeVariant = (priority: string) => {
   switch (priority) {
@@ -25,13 +26,58 @@ const getPriorityBadgeVariant = (priority: string) => {
   }
 };
 
+const getStatusBadgeVariant = (status: string) => {
+  switch (status) {
+    case 'assigned': return 'secondary';
+    case 'in_progress': return 'default';
+    case 'completed': return 'outline';
+    case 'reviewed': return 'default';
+    default: return 'secondary';
+  }
+};
+
 const ScoutingTasks = () => {
-  const { data: tasks = [], isLoading, error } = useScoutingTasks();
+  const { data: tasks = [], isLoading, error } = useMyScoutingTasks();
+  const updateStatus = useUpdateAssignmentStatus();
   const [filter, setFilter] = useState<string>("all");
   
   const filteredTasks = filter === "all" 
     ? tasks 
     : tasks.filter(task => task.priority.toLowerCase() === filter.toLowerCase());
+
+  const handleStartScouting = async (taskId: string) => {
+    try {
+      await updateStatus.mutateAsync({ id: taskId, status: 'in_progress' });
+      toast({
+        title: "Task Started",
+        description: "Scouting task marked as in progress.",
+      });
+    } catch (error) {
+      console.error('Error updating task status:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update task status.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleCompleteTask = async (taskId: string) => {
+    try {
+      await updateStatus.mutateAsync({ id: taskId, status: 'completed' });
+      toast({
+        title: "Task Completed",
+        description: "Scouting task marked as completed.",
+      });
+    } catch (error) {
+      console.error('Error updating task status:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update task status.",
+        variant: "destructive",
+      });
+    }
+  };
 
   if (isLoading) {
     return (
@@ -57,9 +103,9 @@ const ScoutingTasks = () => {
   return (
     <div className="container mx-auto py-8">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold">Scouting Tasks</h1>
+        <h1 className="text-3xl font-bold">My Scouting Tasks</h1>
         <p className="text-muted-foreground mt-2">
-          Players assigned to you based on your location and availability
+          Players assigned to you for scouting and reporting
         </p>
       </div>
       
@@ -98,9 +144,9 @@ const ScoutingTasks = () => {
             <TableRow>
               <TableHead>Player</TableHead>
               <TableHead>Position</TableHead>
-              <TableHead>Location</TableHead>
               <TableHead>Priority</TableHead>
-              <TableHead>Upcoming Match</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead>Deadline</TableHead>
               <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -110,18 +156,12 @@ const ScoutingTasks = () => {
                 <TableRow key={task.id}>
                   <TableCell>
                     <div>
-                      <div className="font-medium">{task.playerName}</div>
-                      <div className="text-muted-foreground text-sm">{task.club}</div>
+                      <div className="font-medium">{task.players?.name}</div>
+                      <div className="text-muted-foreground text-sm">{task.players?.club}</div>
                     </div>
                   </TableCell>
                   <TableCell>
-                    <Badge variant="outline">{task.position}</Badge>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center">
-                      <MapPin className="mr-1 h-3 w-3 text-muted-foreground" />
-                      <span>{task.location}</span>
-                    </div>
+                    <Badge variant="outline">{task.players?.positions[0]}</Badge>
                   </TableCell>
                   <TableCell>
                     <Badge variant={getPriorityBadgeVariant(task.priority)}>
@@ -129,37 +169,54 @@ const ScoutingTasks = () => {
                     </Badge>
                   </TableCell>
                   <TableCell>
-                    {task.upcomingMatch ? (
+                    <Badge variant={getStatusBadgeVariant(task.status)}>
+                      {task.status.replace('_', ' ')}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    {task.deadline ? (
                       <div className="text-sm">
                         <div className="flex items-center">
                           <Calendar className="mr-1 h-3 w-3 text-muted-foreground" />
-                          <span>{new Date(task.upcomingMatch.date).toLocaleDateString()}</span>
-                        </div>
-                        <div className="text-muted-foreground mt-1">
-                          {task.upcomingMatch.opposition} ({task.upcomingMatch.competition})
-                        </div>
-                        <div className="text-muted-foreground text-xs">
-                          {task.upcomingMatch.venue}
+                          <span>{new Date(task.deadline).toLocaleDateString()}</span>
                         </div>
                       </div>
                     ) : (
-                      <span className="text-muted-foreground">No upcoming matches</span>
+                      <span className="text-muted-foreground">No deadline</span>
                     )}
                   </TableCell>
                   <TableCell>
                     <div className="flex gap-2">
-                      <Link to={`/reports/new?playerId=${task.playerId}&requirementId=${task.requirementId}`}>
+                      {task.status === 'assigned' && (
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={() => handleStartScouting(task.id)}
+                          disabled={updateStatus.isPending}
+                        >
+                          <ArrowRight className="h-3 w-3 mr-1" />
+                          Start
+                        </Button>
+                      )}
+                      
+                      <Link to={`/reports/new?playerId=${task.player_id}&assignmentId=${task.id}`}>
                         <Button variant="outline" size="sm" className="flex items-center gap-1">
                           <FileText className="h-3 w-3" />
                           <span>Scout</span>
                         </Button>
                       </Link>
-                      <Link to={`/transfers/requirements/${task.requirementId}`}>
-                        <Button variant="ghost" size="sm" className="flex items-center gap-1">
-                          <ArrowRight className="h-3 w-3" />
-                          <span>View Requirement</span>
+
+                      {task.status === 'in_progress' && (
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={() => handleCompleteTask(task.id)}
+                          disabled={updateStatus.isPending}
+                        >
+                          <CheckCircle className="h-3 w-3 mr-1" />
+                          Complete
                         </Button>
-                      </Link>
+                      )}
                     </div>
                   </TableCell>
                 </TableRow>

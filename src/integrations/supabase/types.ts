@@ -361,6 +361,70 @@ export type Database = {
           },
         ]
       }
+      scouting_assignments: {
+        Row: {
+          assigned_by_manager_id: string
+          assigned_to_scout_id: string
+          assignment_notes: string | null
+          created_at: string
+          deadline: string | null
+          id: string
+          player_id: string
+          priority: string
+          report_type: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          assigned_by_manager_id: string
+          assigned_to_scout_id: string
+          assignment_notes?: string | null
+          created_at?: string
+          deadline?: string | null
+          id?: string
+          player_id: string
+          priority?: string
+          report_type?: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          assigned_by_manager_id?: string
+          assigned_to_scout_id?: string
+          assignment_notes?: string | null
+          created_at?: string
+          deadline?: string | null
+          id?: string
+          player_id?: string
+          priority?: string
+          report_type?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "scouting_assignments_assigned_by_manager_id_fkey"
+            columns: ["assigned_by_manager_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "scouting_assignments_assigned_to_scout_id_fkey"
+            columns: ["assigned_to_scout_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "scouting_assignments_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       teams: {
         Row: {
           country: string

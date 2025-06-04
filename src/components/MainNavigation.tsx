@@ -21,7 +21,8 @@ import {
   User,
   Upload,
   Target,
-  Brain
+  Brain,
+  UserCheck
 } from "lucide-react";
 import { useMyPermissions } from "@/hooks/useUserPermissions";
 import { useAuth } from "@/contexts/AuthContext";
@@ -97,6 +98,12 @@ const MainNavigation = () => {
   ];
 
   const adminItems = [
+    {
+      title: "Scout Management",
+      url: "/scout-management",
+      icon: UserCheck,
+      permission: "user_management"
+    },
     {
       title: "Template Admin",
       url: "/templates",

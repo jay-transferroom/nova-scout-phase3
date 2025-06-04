@@ -1,6 +1,6 @@
 
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { useMyScoutingTasks } from "@/hooks/useScoutingAssignments";
 
 interface ScoutingTask {
   id: string;
@@ -20,44 +20,22 @@ interface ScoutingTask {
 }
 
 export const useScoutingTasks = () => {
-  return useQuery({
-    queryKey: ['scouting-tasks'],
-    queryFn: async (): Promise<ScoutingTask[]> => {
-      const { data: players, error } = await supabase
-        .from('players')
-        .select('*')
-        .limit(10);
+  const { data: assignments = [], ...query } = useMyScoutingTasks();
 
-      if (error) {
-        console.error('Error fetching players for scouting tasks:', error);
-        throw error;
-      }
+  const transformedData = assignments.map((assignment) => ({
+    id: assignment.id,
+    playerName: assignment.players?.name || 'Unknown Player',
+    club: assignment.players?.club || 'Unknown Club',
+    position: assignment.players?.positions[0] || 'Unknown',
+    location: 'TBD', // Could be enhanced with player location data
+    priority: assignment.priority,
+    upcomingMatch: null, // Could be enhanced with fixture data
+    requirementId: assignment.id, // Using assignment ID for now
+    playerId: assignment.player_id,
+  }));
 
-      // Transform players into scouting tasks with some mock task data
-      const tasks: ScoutingTask[] = players.map((player, index) => {
-        const priorities: ("High" | "Medium" | "Low")[] = ["High", "Medium", "Low"];
-        const competitions = ["Premier League", "Champions League", "Europa League", "FA Cup"];
-        const venues = ["Home", "Away"];
-        
-        return {
-          id: `st-${player.id}`,
-          playerName: player.name,
-          club: player.club,
-          position: player.positions[0] || "Unknown",
-          location: player.region,
-          priority: priorities[index % 3],
-          upcomingMatch: Math.random() > 0.3 ? {
-            date: new Date(Date.now() + Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-            opposition: `vs ${["Manchester City", "Liverpool", "Arsenal", "Chelsea", "Tottenham"][Math.floor(Math.random() * 5)]}`,
-            competition: competitions[Math.floor(Math.random() * competitions.length)],
-            venue: `${venues[Math.floor(Math.random() * venues.length)]} - ${player.club} Stadium`,
-          } : null,
-          requirementId: `req-${(index % 3) + 1}`,
-          playerId: player.id,
-        };
-      });
-
-      return tasks;
-    },
-  });
+  return {
+    ...query,
+    data: transformedData,
+  };
 };

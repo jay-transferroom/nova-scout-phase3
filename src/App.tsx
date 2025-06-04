@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
@@ -26,6 +27,7 @@ import Settings from "@/pages/Settings";
 import TemplateAdmin from "@/pages/TemplateAdmin";
 import UserManagement from "@/pages/admin/UserManagement";
 import AISearchPage from "@/pages/AISearch";
+import ScoutManagement from "@/pages/ScoutManagement";
 
 const queryClient = new QueryClient();
 
@@ -67,6 +69,7 @@ function App() {
                                 <Route path="/transfers/scouting-tasks" element={<ScoutingTasks />} />
                                 <Route path="/transfers/upcoming-matches" element={<UpcomingMatches />} />
                                 <Route path="/transfers/data-import" element={<DataImport />} />
+                                <Route path="/scout-management" element={<ScoutManagement />} />
                                 <Route path="/templates" element={<TemplateAdmin />} />
                                 <Route path="/admin/users" element={<UserManagement />} />
                                 <Route path="/profile" element={<Profile />} />
