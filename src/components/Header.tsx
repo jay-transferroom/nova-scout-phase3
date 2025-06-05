@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -110,8 +109,8 @@ const Header = () => {
             <SidebarTrigger>
               <Menu className="h-5 w-5" />
             </SidebarTrigger>
-            <Link to="/" className="font-bold text-xl text-primary">
-              Scout Pro
+            <Link to="/" className="font-bold text-xl text-brand-600">
+              ScoutRoom
             </Link>
           </div>
 
