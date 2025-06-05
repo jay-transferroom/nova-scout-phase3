@@ -18,7 +18,145 @@ export default {
 			}
 		},
 		extend: {
+			fontFamily: {
+				'sans': ['Lato', 'sans-serif'],
+				'lato': ['Lato', 'sans-serif'],
+			},
 			colors: {
+				// Brand colors
+				brand: {
+					25: '#f0fdf9',
+					50: '#ecfdf5', 
+					100: '#d1fae5',
+					200: '#a7f3d0',
+					300: '#6ee7b7',
+					400: '#34d399',
+					500: '#10b981',
+					600: '#059669',
+					700: '#047857',
+					800: '#065f46',
+					900: '#064e3b',
+					950: '#022c22'
+				},
+				
+				// Neutral colors
+				neutral: {
+					25: '#fcfcfd',
+					50: '#f9fafb',
+					100: '#f2f4f7',
+					200: '#eaecf0',
+					300: '#d0d5dd',
+					400: '#98a2b3',
+					500: '#667085',
+					600: '#475467',
+					700: '#344054',
+					800: '#1d2939',
+					900: '#101828',
+					950: '#0c111d'
+				},
+				
+				// Error colors
+				error: {
+					25: '#fffbfa',
+					50: '#fef3f2',
+					100: '#fee4e2',
+					200: '#fecdca',
+					300: '#fda29b',
+					400: '#f97066',
+					500: '#f04438',
+					600: '#d92d20',
+					700: '#b42318',
+					800: '#912018',
+					900: '#7a271a',
+					950: '#55160c'
+				},
+				
+				// Warning colors
+				warning: {
+					25: '#fffcf5',
+					50: '#fffaeb',
+					100: '#fef0c7',
+					200: '#fedf89',
+					300: '#fec84b',
+					400: '#fdb022',
+					500: '#f79009',
+					600: '#dc6803',
+					700: '#b54708',
+					800: '#93370d',
+					900: '#7a2e0e',
+					950: '#4e1d09'
+				},
+				
+				// Information colors
+				information: {
+					25: '#f5faff',
+					50: '#eff8ff',
+					100: '#d1e9ff',
+					200: '#b2ddff',
+					300: '#84caff',
+					400: '#53b1fd',
+					500: '#2970ff',
+					600: '#155eef',
+					700: '#004eeb',
+					800: '#0040c1',
+					900: '#00359e',
+					950: '#002266'
+				},
+				
+				// Success colors
+				success: {
+					25: '#f6fef9',
+					50: '#ecfdf3',
+					100: '#d1fadf',
+					200: '#a6f4c5',
+					300: '#6ce9a6',
+					400: '#32d583',
+					500: '#12b76a',
+					600: '#039855',
+					700: '#027a48',
+					800: '#05603a',
+					900: '#054f31',
+					950: '#022c22'
+				},
+				
+				// Secondary colors
+				secondary: {
+					25: '#fafaff',
+					50: '#f4f3ff',
+					100: '#ebe9fe',
+					200: '#d9d6fe',
+					300: '#bdb4fe',
+					400: '#9b8afb',
+					500: '#7a5af8',
+					600: '#6938ef',
+					700: '#5925dc',
+					800: '#4a1fb8',
+					900: '#3e1c96',
+					950: '#27115f'
+				},
+				
+				// Grey colors
+				grey: {
+					25: '#fcfcfd',
+					50: '#f9fafb',
+					100: '#f2f4f7',
+					200: '#eaecf0',
+					300: '#d0d5dd',
+					400: '#98a2b3',
+					500: '#667085',
+					600: '#475467',
+					700: '#344054',
+					800: '#1d2939',
+					900: '#101828',
+					950: '#0c111d'
+				},
+				
+				// Focus color
+				focus: {
+					100: '#f4f3ff'
+				},
+				
+				// Keep existing shadcn colors for backward compatibility
 				border: 'hsl(var(--border))',
 				input: 'hsl(var(--input))',
 				ring: 'hsl(var(--ring))',
