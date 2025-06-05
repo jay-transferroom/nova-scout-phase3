@@ -8,6 +8,8 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import AppInitializer from "@/components/AppInitializer";
 import Header from "@/components/Header";
+import MainNavigation from "@/components/MainNavigation";
+import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 
 // Import pages
 import Index from "./pages/Index";
@@ -47,133 +49,140 @@ function App() {
           <Sonner />
           <BrowserRouter>
             <AppInitializer>
-              <div className="min-h-screen bg-background">
-                <Header />
-                <Routes>
-                  <Route path="/" element={<Index />} />
-                  <Route path="/auth" element={<Auth />} />
-                  <Route
-                    path="/dashboard"
-                    element={
-                      <ProtectedRoute>
-                        <ScoutingDashboard />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/profile"
-                    element={
-                      <ProtectedRoute>
-                        <Profile />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/reports/new"
-                    element={
-                      <ProtectedRoute>
-                        <ReportBuilder />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/reports/:id"
-                    element={
-                      <ProtectedRoute>
-                        <ReportView />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/reports"
-                    element={
-                      <ProtectedRoute>
-                        <ReportsList />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/players/:id"
-                    element={
-                      <ProtectedRoute>
-                        <PlayerProfile />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/scouts"
-                    element={
-                      <ProtectedRoute>
-                        <ScoutManagement />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/admin/users"
-                    element={
-                      <ProtectedRoute>
-                        <UserManagement />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/admin/templates"
-                    element={
-                      <ProtectedRoute>
-                        <TemplateAdmin />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/squad"
-                    element={
-                      <ProtectedRoute>
-                        <SquadView />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/search-results"
-                    element={
-                      <ProtectedRoute>
-                        <SearchResults />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/ai-search"
-                    element={
-                      <ProtectedRoute>
-                        <AISearch />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/settings"
-                    element={
-                      <ProtectedRoute>
-                        <Settings />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/transfers"
-                    element={
-                      <ProtectedRoute>
-                        <TransfersLayout />
-                      </ProtectedRoute>
-                    }
-                  >
-                    <Route index element={<RequirementsList />} />
-                    <Route path="requirements/:id" element={<RequirementDetails />} />
-                    <Route path="pitches" element={<PlayerPitches />} />
-                    <Route path="tasks" element={<ScoutingTasks />} />
-                    <Route path="matches" element={<UpcomingMatches />} />
-                    <Route path="import" element={<DataImport />} />
-                  </Route>
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
-              </div>
+              <SidebarProvider>
+                <div className="min-h-screen bg-background flex w-full">
+                  <MainNavigation />
+                  <SidebarInset>
+                    <Header />
+                    <main className="flex-1 p-6">
+                      <Routes>
+                        <Route path="/" element={<Index />} />
+                        <Route path="/auth" element={<Auth />} />
+                        <Route
+                          path="/dashboard"
+                          element={
+                            <ProtectedRoute>
+                              <ScoutingDashboard />
+                            </ProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="/profile"
+                          element={
+                            <ProtectedRoute>
+                              <Profile />
+                            </ProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="/reports/new"
+                          element={
+                            <ProtectedRoute>
+                              <ReportBuilder />
+                            </ProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="/reports/:id"
+                          element={
+                            <ProtectedRoute>
+                              <ReportView />
+                            </ProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="/reports"
+                          element={
+                            <ProtectedRoute>
+                              <ReportsList />
+                            </ProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="/players/:id"
+                          element={
+                            <ProtectedRoute>
+                              <PlayerProfile />
+                            </ProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="/scouts"
+                          element={
+                            <ProtectedRoute>
+                              <ScoutManagement />
+                            </ProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="/admin/users"
+                          element={
+                            <ProtectedRoute>
+                              <UserManagement />
+                            </ProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="/admin/templates"
+                          element={
+                            <ProtectedRoute>
+                              <TemplateAdmin />
+                            </ProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="/squad"
+                          element={
+                            <ProtectedRoute>
+                              <SquadView />
+                            </ProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="/search-results"
+                          element={
+                            <ProtectedRoute>
+                              <SearchResults />
+                            </ProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="/ai-search"
+                          element={
+                            <ProtectedRoute>
+                              <AISearch />
+                            </ProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="/settings"
+                          element={
+                            <ProtectedRoute>
+                              <Settings />
+                            </ProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="/transfers"
+                          element={
+                            <ProtectedRoute>
+                              <TransfersLayout />
+                            </ProtectedRoute>
+                          }
+                        >
+                          <Route index element={<RequirementsList />} />
+                          <Route path="requirements/:id" element={<RequirementDetails />} />
+                          <Route path="pitches" element={<PlayerPitches />} />
+                          <Route path="tasks" element={<ScoutingTasks />} />
+                          <Route path="matches" element={<UpcomingMatches />} />
+                          <Route path="import" element={<DataImport />} />
+                        </Route>
+                        <Route path="*" element={<NotFound />} />
+                      </Routes>
+                    </main>
+                  </SidebarInset>
+                </div>
+              </SidebarProvider>
             </AppInitializer>
           </BrowserRouter>
         </TooltipProvider>
