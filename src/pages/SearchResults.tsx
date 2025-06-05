@@ -1,47 +1,36 @@
+
 import { useState, useEffect } from "react";
-import { Input } from "@/components/ui/input";
+import { useSearchParams, useNavigate } from "react-router-dom";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuGroup, 
-  DropdownMenuItem, 
-  DropdownMenuLabel, 
-  DropdownMenuSeparator, 
-  DropdownMenuTrigger 
-} from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { Filter, Search, Loader2, ArrowRight } from "lucide-react";
-import { Player } from "@/types/player";
+import { ArrowLeft, Search, Filter, Loader2 } from "lucide-react";
 import { usePlayersData } from "@/hooks/usePlayersData";
 import { useTeamsData } from "@/hooks/useTeamsData";
-import { useNavigate } from "react-router-dom";
+import { Player } from "@/types/player";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger
+} from "@/components/ui/dropdown-menu";
 
-interface PlayerSearchProps {
-  onSelectPlayer: (player: Player) => void;
-}
-
-const PlayerSearch = ({ onSelectPlayer }: PlayerSearchProps) => {
-  const { data: players = [], isLoading, error } = usePlayersData();
-  const { data: teams = [] } = useTeamsData();
+const SearchResults = () => {
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const [searchQuery, setSearchQuery] = useState("");
+  const { data: players = [], isLoading } = usePlayersData();
+  const { data: teams = [] } = useTeamsData();
+  
+  const initialQuery = searchParams.get('q') || '';
+  const [searchQuery, setSearchQuery] = useState(initialQuery);
   const [filteredPlayers, setFilteredPlayers] = useState<Player[]>([]);
-  const [recentPlayers, setRecentPlayers] = useState<Player[]>([]);
   const [ageFilter, setAgeFilter] = useState<string>("all");
   const [contractFilter, setContractFilter] = useState<string>("all");
   const [regionFilter, setRegionFilter] = useState<string>("all");
-
-  const MAX_DISPLAY_RESULTS = 5;
-
-  // Debug logging
-  useEffect(() => {
-    console.log('Players loading:', isLoading);
-    console.log('Players error:', error);
-    console.log('Search query:', searchQuery);
-    console.log('Filtered players:', filteredPlayers);
-    console.log('Show results:', searchQuery.length > 0);
-  }, [isLoading, error, searchQuery, filteredPlayers]);
 
   // Create a map of team names to team data for quick lookup
   const teamMap = teams.reduce((acc, team) => {
@@ -54,18 +43,6 @@ const PlayerSearch = ({ onSelectPlayer }: PlayerSearchProps) => {
     const team = teamMap[clubName];
     return team?.logo_url;
   };
-
-  // Initialize recent players from localStorage
-  useEffect(() => {
-    const recentPlayerIds = JSON.parse(localStorage.getItem('recentPlayers') || '[]');
-    if (players.length > 0) {
-      const recent = recentPlayerIds
-        .map((id: string) => players.find(p => p.id === id))
-        .filter((player: Player | undefined): player is Player => player !== undefined)
-        .slice(0, 3);
-      setRecentPlayers(recent);
-    }
-  }, [players]);
 
   // Filter players based on search query and filters
   useEffect(() => {
@@ -107,105 +84,37 @@ const PlayerSearch = ({ onSelectPlayer }: PlayerSearchProps) => {
     setFilteredPlayers(results);
   }, [searchQuery, ageFilter, contractFilter, regionFilter, players]);
 
-  // Handle player selection
-  const handleSelectPlayer = (player: Player) => {
-    onSelectPlayer(player);
-    
-    // Update recent players in localStorage
-    const recentPlayerIds = JSON.parse(localStorage.getItem('recentPlayers') || '[]');
-    const updatedRecent = [player.id, ...recentPlayerIds.filter((id: string) => id !== player.id)].slice(0, 3);
-    localStorage.setItem('recentPlayers', JSON.stringify(updatedRecent));
-    
-    // Update local state
-    const isAlreadyRecent = recentPlayers.some(p => p.id === player.id);
-    if (!isAlreadyRecent) {
-      setRecentPlayers(prev => [player, ...prev.slice(0, 2)]);
-    }
-  };
-
-  const handleViewMore = () => {
-    const params = new URLSearchParams();
-    if (searchQuery.trim()) {
-      params.set('q', searchQuery.trim());
-    }
-    navigate(`/search-results?${params.toString()}`);
-  };
-
-  const PlayerItem = ({ player }: { player: Player }) => {
-    const teamLogo = getTeamLogo(player.club);
-    
-    return (
-      <li 
-        className="px-4 py-3 hover:bg-accent cursor-pointer flex items-center gap-3"
-        onClick={() => handleSelectPlayer(player)}
-      >
-        <Avatar className="h-12 w-12">
-          <AvatarImage 
-            src={player.image} 
-            alt={player.name}
-            onError={(e) => {
-              (e.target as HTMLImageElement).style.display = 'none';
-            }}
-          />
-          <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white font-semibold">
-            {player.name.split(' ').map(n => n[0]).join('').toUpperCase()}
-          </AvatarFallback>
-        </Avatar>
-        
-        <div className="flex-1">
-          <p className="font-medium">{player.name}</p>
-          <p className="text-sm text-muted-foreground">{player.club} • {player.positions.join(", ")}</p>
-        </div>
-        
-        <div className="flex items-center gap-3">
-          <div className="text-sm text-right">
-            <p>{player.age} yrs</p>
-            <p className="text-muted-foreground">{player.nationality}</p>
-          </div>
-          
-          {teamLogo && (
-            <Avatar className="h-8 w-8">
-              <AvatarImage 
-                src={teamLogo} 
-                alt={`${player.club} logo`}
-                onError={(e) => {
-                  (e.target as HTMLImageElement).style.display = 'none';
-                }}
-              />
-              <AvatarFallback className="bg-gradient-to-br from-green-500 to-blue-600 text-white text-xs font-semibold">
-                {player.club.substring(0, 2).toUpperCase()}
-              </AvatarFallback>
-            </Avatar>
-          )}
-        </div>
-      </li>
-    );
+  const handlePlayerClick = (player: Player) => {
+    navigate(`/players/${player.id}`);
   };
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center p-8">
-        <Loader2 className="h-6 w-6 animate-spin" />
-        <span className="ml-2">Loading players...</span>
+      <div className="container mx-auto py-8">
+        <div className="flex items-center justify-center p-8">
+          <Loader2 className="h-6 w-6 animate-spin" />
+          <span className="ml-2">Loading players...</span>
+        </div>
       </div>
     );
   }
-
-  if (error) {
-    return (
-      <div className="text-center p-8 text-red-500">
-        Error loading players. Please try again later.
-      </div>
-    );
-  }
-
-  const showSearchResults = searchQuery.trim().length > 0;
-  const displayedResults = filteredPlayers.slice(0, MAX_DISPLAY_RESULTS);
-  const hasMoreResults = filteredPlayers.length > MAX_DISPLAY_RESULTS;
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center space-x-2">
+    <div className="container mx-auto py-8">
+      <div className="flex items-center gap-4 mb-8">
+        <Button variant="ghost" onClick={() => navigate(-1)} className="gap-2">
+          <ArrowLeft size={16} />
+          Back
+        </Button>
+        <div>
+          <h1 className="text-3xl font-bold">Search Results</h1>
+          <p className="text-muted-foreground mt-2">
+            {searchQuery ? `Results for "${searchQuery}"` : "All players"}
+          </p>
+        </div>
+      </div>
+
+      <div className="flex items-center space-x-2 mb-6">
         <div className="relative flex-1">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
@@ -292,48 +201,72 @@ const PlayerSearch = ({ onSelectPlayer }: PlayerSearchProps) => {
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
-      
-      {showSearchResults && (
-        <div className="rounded-md border">
-          <h3 className="px-4 py-2 text-sm font-medium border-b">Search Results ({filteredPlayers.length})</h3>
-          {displayedResults.length > 0 ? (
-            <>
-              <ul className="divide-y">
-                {displayedResults.map((player) => (
-                  <PlayerItem key={player.id} player={player} />
-                ))}
-              </ul>
-              {hasMoreResults && (
-                <div className="p-4 border-t">
-                  <Button 
-                    variant="outline" 
-                    className="w-full"
-                    onClick={handleViewMore}
-                  >
-                    <ArrowRight className="mr-2 h-4 w-4" />
-                    View all {filteredPlayers.length} results
-                  </Button>
+
+      <div className="mb-4">
+        <p className="text-sm text-muted-foreground">
+          Found {filteredPlayers.length} players
+        </p>
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        {filteredPlayers.map((player) => {
+          const teamLogo = getTeamLogo(player.club);
+          
+          return (
+            <Card 
+              key={player.id}
+              className="cursor-pointer hover:shadow-md transition-shadow"
+              onClick={() => handlePlayerClick(player)}
+            >
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3">
+                  <Avatar className="h-12 w-12">
+                    <AvatarImage 
+                      src={player.image} 
+                      alt={player.name}
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).style.display = 'none';
+                      }}
+                    />
+                    <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white font-semibold">
+                      {player.name.split(' ').map(n => n[0]).join('').toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                  
+                  <div className="flex-1">
+                    <p className="font-medium">{player.name}</p>
+                    <p className="text-sm text-muted-foreground">{player.club} • {player.positions.join(", ")}</p>
+                    <p className="text-sm text-muted-foreground">{player.age} yrs • {player.nationality}</p>
+                  </div>
+                  
+                  {teamLogo && (
+                    <Avatar className="h-8 w-8">
+                      <AvatarImage 
+                        src={teamLogo} 
+                        alt={`${player.club} logo`}
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).style.display = 'none';
+                        }}
+                      />
+                      <AvatarFallback className="bg-gradient-to-br from-green-500 to-blue-600 text-white text-xs font-semibold">
+                        {player.club.substring(0, 2).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                  )}
                 </div>
-              )}
-            </>
-          ) : (
-            <p className="p-4 text-center text-muted-foreground">No players found</p>
-          )}
-        </div>
-      )}
-      
-      {!showSearchResults && recentPlayers.length > 0 && (
-        <div className="rounded-md border">
-          <h3 className="px-4 py-2 text-sm font-medium border-b">Recently Viewed</h3>
-          <ul className="divide-y">
-            {recentPlayers.map((player) => (
-              <PlayerItem key={player.id} player={player} />
-            ))}
-          </ul>
+              </CardContent>
+            </Card>
+          );
+        })}
+      </div>
+
+      {filteredPlayers.length === 0 && (
+        <div className="text-center py-8">
+          <p className="text-muted-foreground">No players found matching your criteria</p>
         </div>
       )}
     </div>
   );
 };
 
-export default PlayerSearch;
+export default SearchResults;

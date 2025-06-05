@@ -1,33 +1,40 @@
 
-import { useState } from "react";
+import { Toaster } from "@/components/ui/toaster";
+import { Toaster as Sonner } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import { Toaster } from "sonner";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import AppInitializer from "@/components/AppInitializer";
-import MainNavigation from "@/components/MainNavigation";
 import Header from "@/components/Header";
-import { SidebarProvider } from "@/components/ui/sidebar";
-import Auth from "@/pages/Auth";
-import ScoutingDashboard from "@/pages/ScoutingDashboard";
-import SquadView from "@/pages/SquadView";
-import ReportsList from "@/pages/ReportsList";
-import ReportView from "@/pages/ReportView";
-import ReportBuilder from "@/pages/ReportBuilder";
-import PlayerProfile from "@/pages/PlayerProfile";
-import RequirementsList from "@/pages/transfers/RequirementsList";
-import RequirementDetails from "@/pages/transfers/RequirementDetails";
-import PlayerPitches from "@/pages/transfers/PlayerPitches";
-import ScoutingTasks from "@/pages/transfers/ScoutingTasks";
-import UpcomingMatches from "@/pages/transfers/UpcomingMatches";
-import DataImport from "@/pages/transfers/DataImport";
-import Profile from "@/pages/Profile";
-import Settings from "@/pages/Settings";
-import TemplateAdmin from "@/pages/TemplateAdmin";
-import UserManagement from "@/pages/admin/UserManagement";
-import AISearchPage from "@/pages/AISearch";
-import ScoutManagement from "@/pages/ScoutManagement";
+
+// Import pages
+import Index from "./pages/Index";
+import Auth from "./pages/Auth";
+import Profile from "./pages/Profile";
+import ReportBuilder from "./pages/ReportBuilder";
+import ReportView from "./pages/ReportView";
+import ReportsList from "./pages/ReportsList";
+import PlayerProfile from "./pages/PlayerProfile";
+import ScoutingDashboard from "./pages/ScoutingDashboard";
+import ScoutManagement from "./pages/ScoutManagement";
+import UserManagement from "./pages/admin/UserManagement";
+import TemplateAdmin from "./pages/TemplateAdmin";
+import SquadView from "./pages/SquadView";
+import SearchResults from "./pages/SearchResults";
+import AISearch from "./pages/AISearch";
+import Settings from "./pages/Settings";
+import NotFound from "./pages/NotFound";
+
+// Import transfer pages
+import TransfersLayout from "./pages/transfers/TransfersLayout";
+import RequirementsList from "./pages/transfers/RequirementsList";
+import RequirementDetails from "./pages/transfers/RequirementDetails";
+import PlayerPitches from "./pages/transfers/PlayerPitches";
+import ScoutingTasks from "./pages/transfers/ScoutingTasks";
+import UpcomingMatches from "./pages/transfers/UpcomingMatches";
+import DataImport from "./pages/transfers/DataImport";
 
 const queryClient = new QueryClient();
 
@@ -35,57 +42,141 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <Router>
-          <div className="min-h-screen bg-background">
-            <Toaster />
-            <Routes>
-              {/* Public auth route */}
-              <Route path="/auth" element={<Auth />} />
-              
-              {/* Protected routes */}
-              <Route
-                path="/*"
-                element={
-                  <ProtectedRoute>
-                    <AppInitializer>
-                      <SidebarProvider>
-                        <div className="flex flex-col w-full min-h-screen">
-                          <Header />
-                          <div className="flex flex-1 relative">
-                            <MainNavigation />
-                            <main className="flex-1 overflow-hidden">
-                              <Routes>
-                                <Route path="/" element={<ScoutingDashboard />} />
-                                <Route path="/dashboard" element={<ScoutingDashboard />} />
-                                <Route path="/ai-search" element={<AISearchPage />} />
-                                <Route path="/squad" element={<SquadView />} />
-                                <Route path="/reports" element={<ReportsList />} />
-                                <Route path="/reports/new" element={<ReportBuilder />} />
-                                <Route path="/reports/:id" element={<ReportView />} />
-                                <Route path="/players/:id" element={<PlayerProfile />} />
-                                <Route path="/transfers/requirements" element={<RequirementsList />} />
-                                <Route path="/transfers/requirements/:id" element={<RequirementDetails />} />
-                                <Route path="/transfers/pitches" element={<PlayerPitches />} />
-                                <Route path="/transfers/scouting-tasks" element={<ScoutingTasks />} />
-                                <Route path="/transfers/upcoming-matches" element={<UpcomingMatches />} />
-                                <Route path="/transfers/data-import" element={<DataImport />} />
-                                <Route path="/scout-management" element={<ScoutManagement />} />
-                                <Route path="/templates" element={<TemplateAdmin />} />
-                                <Route path="/admin/users" element={<UserManagement />} />
-                                <Route path="/profile" element={<Profile />} />
-                                <Route path="/settings" element={<Settings />} />
-                              </Routes>
-                            </main>
-                          </div>
-                        </div>
-                      </SidebarProvider>
-                    </AppInitializer>
-                  </ProtectedRoute>
-                }
-              />
-            </Routes>
-          </div>
-        </Router>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <AppInitializer>
+              <div className="min-h-screen bg-background">
+                <Header />
+                <Routes>
+                  <Route path="/" element={<Index />} />
+                  <Route path="/auth" element={<Auth />} />
+                  <Route
+                    path="/dashboard"
+                    element={
+                      <ProtectedRoute>
+                        <ScoutingDashboard />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/profile"
+                    element={
+                      <ProtectedRoute>
+                        <Profile />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/reports/new"
+                    element={
+                      <ProtectedRoute>
+                        <ReportBuilder />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/reports/:id"
+                    element={
+                      <ProtectedRoute>
+                        <ReportView />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/reports"
+                    element={
+                      <ProtectedRoute>
+                        <ReportsList />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/players/:id"
+                    element={
+                      <ProtectedRoute>
+                        <PlayerProfile />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/scouts"
+                    element={
+                      <ProtectedRoute>
+                        <ScoutManagement />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/admin/users"
+                    element={
+                      <ProtectedRoute>
+                        <UserManagement />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/admin/templates"
+                    element={
+                      <ProtectedRoute>
+                        <TemplateAdmin />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/squad"
+                    element={
+                      <ProtectedRoute>
+                        <SquadView />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/search-results"
+                    element={
+                      <ProtectedRoute>
+                        <SearchResults />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/ai-search"
+                    element={
+                      <ProtectedRoute>
+                        <AISearch />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/settings"
+                    element={
+                      <ProtectedRoute>
+                        <Settings />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/transfers"
+                    element={
+                      <ProtectedRoute>
+                        <TransfersLayout />
+                      </ProtectedRoute>
+                    }
+                  >
+                    <Route index element={<RequirementsList />} />
+                    <Route path="requirements/:id" element={<RequirementDetails />} />
+                    <Route path="pitches" element={<PlayerPitches />} />
+                    <Route path="tasks" element={<ScoutingTasks />} />
+                    <Route path="matches" element={<UpcomingMatches />} />
+                    <Route path="import" element={<DataImport />} />
+                  </Route>
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </div>
+            </AppInitializer>
+          </BrowserRouter>
+        </TooltipProvider>
       </AuthProvider>
     </QueryClientProvider>
   );

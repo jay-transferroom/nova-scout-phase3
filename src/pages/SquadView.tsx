@@ -1,14 +1,25 @@
 
+import { useState, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Users, TrendingUp, Target } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { usePlayersData } from "@/hooks/usePlayersData";
 import FootballPitch from "@/components/FootballPitch";
+import TeamSelector from "@/components/TeamSelector";
 
 const SquadView = () => {
   const navigate = useNavigate();
-  const { data: players = [], isLoading } = usePlayersData();
+  const { data: allPlayers = [], isLoading } = usePlayersData();
+  const [selectedTeam, setSelectedTeam] = useState<string | null>(null);
+
+  // Filter players based on selected team
+  const players = useMemo(() => {
+    if (!selectedTeam) {
+      return allPlayers;
+    }
+    return allPlayers.filter(player => player.club === selectedTeam);
+  }, [allPlayers, selectedTeam]);
 
   if (isLoading) {
     return (
@@ -17,6 +28,11 @@ const SquadView = () => {
       </div>
     );
   }
+
+  const displayTitle = selectedTeam ? `${selectedTeam} Squad Analysis` : "Squad Analysis";
+  const displaySubtitle = selectedTeam 
+    ? `Analyze ${selectedTeam}'s current squad and identify areas for improvement`
+    : "Analyze your current squad and identify areas for improvement";
 
   return (
     <div className="container mx-auto py-8">
@@ -27,12 +43,16 @@ const SquadView = () => {
             Back to Dashboard
           </Button>
           <div>
-            <h1 className="text-3xl font-bold">Squad Analysis</h1>
+            <h1 className="text-3xl font-bold">{displayTitle}</h1>
             <p className="text-muted-foreground mt-2">
-              Analyze your current squad and identify areas for improvement
+              {displaySubtitle}
             </p>
           </div>
         </div>
+        <TeamSelector 
+          onTeamSelect={setSelectedTeam}
+          selectedTeam={selectedTeam}
+        />
       </div>
 
       {/* Football Pitch Visualization */}
