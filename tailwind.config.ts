@@ -22,6 +22,36 @@ export default {
 				'sans': ['Lato', 'sans-serif'],
 				'lato': ['Lato', 'sans-serif'],
 			},
+			// Custom spacing scale based on your design tokens
+			spacing: {
+				'0': '0px',
+				'25': '1px',
+				'50': '2px',
+				'75': '3px',
+				'100': '4px',
+				'125': '5px',
+				'150': '6px',
+				'200': '8px',
+				'250': '10px',
+				'300': '12px',
+				'350': '14px',
+				'400': '16px',
+				'450': '18px',
+				'500': '20px',
+				'600': '24px',
+				'700': '28px',
+				'800': '32px',
+				'900': '36px',
+				'1000': '40px',
+				'1200': '48px',
+				'1400': '56px',
+				'1600': '64px',
+				'1800': '72px',
+				'2000': '80px',
+				'3000': '120px',
+				'4000': '160px',
+				'5000': '200px',
+			},
 			colors: {
 				// Brand colors
 				brand: {
@@ -202,9 +232,27 @@ export default {
 				}
 			},
 			borderRadius: {
+				'none': '0px',
+				'50': '2px',
+				'100': '4px',
+				'150': '6px',
+				'200': '8px',
+				'300': '12px',
+				'400': '16px',
+				'500': '20px',
+				'600': '24px',
+				'full': '9999px',
+				// Keep existing shadcn radius values
 				lg: 'var(--radius)',
 				md: 'calc(var(--radius) - 2px)',
 				sm: 'calc(var(--radius) - 4px)'
+			},
+			boxShadow: {
+				'sm': '0 1px 2px 0 rgba(152, 162, 179, 0.4), 0 5px 10px 0 rgba(152, 162, 179, 0.2)',
+				'md': '0 8px 12px 0 rgba(152, 162, 179, 0.4), 0 2px 4px 0 rgba(152, 162, 179, 0.2)',
+				'lg': '0 12px 16px 0 rgba(152, 162, 179, 0.4), 0 4px 6px 0 rgba(152, 162, 179, 0.2)',
+				'left': '-12px 0 12px 0 rgba(152, 162, 179, 0.4), -8px 0 6px 0 rgba(152, 162, 179, 0.2)',
+				'right': '12px 0 12px 0 rgba(152, 162, 179, 0.4), 4px 0 6px 0 rgba(152, 162, 179, 0.2)',
 			},
 			keyframes: {
 				'accordion-down': {
