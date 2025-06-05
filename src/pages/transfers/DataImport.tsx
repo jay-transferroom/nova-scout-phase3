@@ -12,27 +12,34 @@ import { Loader2, Download, Database, AlertCircle } from "lucide-react";
 const DataImport = () => {
   const [selectedLeague, setSelectedLeague] = useState("");
   const [forceReimport, setForceReimport] = useState(false);
-  const { isImporting, importProgress, importPremierLeagueData } = useDataImport();
+  const { isImporting, importProgress, importLeagueData } = useDataImport();
   const [importResults, setImportResults] = useState<{
     message: string;
+    league: string;
     teams: number;
     players: number;
     duplicatesSkipped: number;
+    totalTeams: number;
+    forceReimport: boolean;
   } | null>(null);
 
   const handleImportData = async () => {
-    if (selectedLeague === "Premier League") {
-      const result = await importPremierLeagueData();
-      if (result.success) {
-        setImportResults({
-          message: result.message,
-          teams: result.teams,
-          players: result.players,
-          duplicatesSkipped: result.duplicatesSkipped
-        });
-      }
-    } else {
-      toast.error("Only Premier League import is currently supported");
+    if (!selectedLeague) {
+      toast.error("Please select a league to import");
+      return;
+    }
+
+    const result = await importLeagueData(selectedLeague, forceReimport);
+    if (result.success) {
+      setImportResults({
+        message: result.message,
+        league: result.league,
+        teams: result.teams,
+        players: result.players,
+        duplicatesSkipped: result.duplicatesSkipped,
+        totalTeams: result.totalTeams,
+        forceReimport: result.forceReimport
+      });
     }
   };
 
@@ -80,7 +87,7 @@ const DataImport = () => {
                 htmlFor="force-reimport"
                 className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
               >
-                Force Re-import (Clears existing data first)
+                Force Re-import (Clears existing data for selected league)
               </label>
             </div>
 
@@ -109,7 +116,10 @@ const DataImport = () => {
                 <p><strong>{importResults.message}</strong></p>
                 <div className="flex flex-wrap gap-2">
                   <Badge variant="secondary">
-                    Teams: {importResults.teams}
+                    League: {importResults.league}
+                  </Badge>
+                  <Badge variant="secondary">
+                    Teams: {importResults.teams} / {importResults.totalTeams}
                   </Badge>
                   <Badge variant="default">
                     Players: {importResults.players}
@@ -120,12 +130,18 @@ const DataImport = () => {
                       Duplicates Skipped: {importResults.duplicatesSkipped}
                     </Badge>
                   )}
+                  {importResults.forceReimport && (
+                    <Badge variant="destructive">
+                      <AlertCircle className="mr-1 h-3 w-3" />
+                      Forced Re-import
+                    </Badge>
+                  )}
                 </div>
               </div>
             )}
 
             <p className="text-sm text-muted-foreground">
-              This will import teams, players, and fixtures for the selected league using external football APIs.
+              This will import teams, players, and fixtures (Premier League only) for the selected league using external football APIs.
             </p>
           </CardContent>
         </Card>
@@ -149,9 +165,14 @@ const DataImport = () => {
                 )}
               </div>
             ) : (
-              <p className="text-sm text-muted-foreground">
-                No import currently running. Select a league and click "Import Data" to begin.
-              </p>
+              <div className="space-y-2">
+                <p className="text-sm text-muted-foreground">
+                  No import currently running. Select a league and click "Import Data" to begin.
+                </p>
+                <div className="text-xs text-muted-foreground">
+                  <p><strong>Note:</strong> Match fixtures are currently only available for Premier League imports.</p>
+                </div>
+              </div>
             )}
           </CardContent>
         </Card>
