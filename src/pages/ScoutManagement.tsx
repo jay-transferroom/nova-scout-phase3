@@ -7,20 +7,157 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Users, Search, Plus, Eye, FileText, Calendar } from "lucide-react";
-import { useScoutingAssignments } from "@/hooks/useScoutingAssignments";
-import { usePlayersData } from "@/hooks/usePlayersData";
-import AssignScoutDialog from "@/components/AssignScoutDialog";
 import { format } from "date-fns";
 
+// Mock data for scouting assignments
+const mockAssignments = [
+  {
+    id: "1",
+    player_id: "p1",
+    assigned_to_scout_id: "s1",
+    priority: "High" as const,
+    status: "assigned" as const,
+    deadline: "2025-06-15",
+    report_type: "Full Report",
+    created_at: "2025-06-08T10:00:00Z",
+    players: {
+      name: "Marcus Johnson",
+      club: "Arsenal U21",
+      positions: ["CM", "CAM"],
+      age: 19
+    },
+    assigned_to_scout: {
+      first_name: "Sarah",
+      last_name: "Wilson",
+      email: "sarah.wilson@club.com"
+    }
+  },
+  {
+    id: "2",
+    player_id: "p2",
+    assigned_to_scout_id: "s2",
+    priority: "Medium" as const,
+    status: "in_progress" as const,
+    deadline: "2025-06-20",
+    report_type: "Match Report",
+    created_at: "2025-06-07T14:30:00Z",
+    players: {
+      name: "Diego Fernandez",
+      club: "Valencia CF",
+      positions: ["LW", "RW"],
+      age: 21
+    },
+    assigned_to_scout: {
+      first_name: "James",
+      last_name: "Thompson",
+      email: "james.thompson@club.com"
+    }
+  },
+  {
+    id: "3",
+    player_id: "p3",
+    assigned_to_scout_id: "s3",
+    priority: "High" as const,
+    status: "completed" as const,
+    deadline: "2025-06-12",
+    report_type: "Technical Analysis",
+    created_at: "2025-06-05T09:15:00Z",
+    players: {
+      name: "Luca Rossi",
+      club: "AC Milan Primavera",
+      positions: ["ST"],
+      age: 18
+    },
+    assigned_to_scout: {
+      first_name: "Emma",
+      last_name: "Davies",
+      email: "emma.davies@club.com"
+    }
+  },
+  {
+    id: "4",
+    player_id: "p4",
+    assigned_to_scout_id: "s1",
+    priority: "Low" as const,
+    status: "reviewed" as const,
+    deadline: "2025-06-10",
+    report_type: "Quick Assessment",
+    created_at: "2025-06-03T16:45:00Z",
+    players: {
+      name: "Kevin O'Connor",
+      club: "Celtic FC",
+      positions: ["CB", "CDM"],
+      age: 20
+    },
+    assigned_to_scout: {
+      first_name: "Sarah",
+      last_name: "Wilson",
+      email: "sarah.wilson@club.com"
+    }
+  },
+  {
+    id: "5",
+    player_id: "p5",
+    assigned_to_scout_id: "s4",
+    priority: "Medium" as const,
+    status: "assigned" as const,
+    deadline: "2025-06-25",
+    report_type: "Full Report",
+    created_at: "2025-06-09T11:20:00Z",
+    players: {
+      name: "Pierre Dubois",
+      club: "Olympique Lyon",
+      positions: ["GK"],
+      age: 22
+    },
+    assigned_to_scout: {
+      first_name: "Michael",
+      last_name: "Brown",
+      email: "michael.brown@club.com"
+    }
+  },
+  {
+    id: "6",
+    player_id: "p6",
+    assigned_to_scout_id: "s2",
+    priority: "High" as const,
+    status: "in_progress" as const,
+    deadline: "2025-06-18",
+    report_type: "Match Report",
+    created_at: "2025-06-06T08:30:00Z",
+    players: {
+      name: "Ahmed Hassan",
+      club: "Al Ahly SC",
+      positions: ["RB", "RM"],
+      age: 19
+    },
+    assigned_to_scout: {
+      first_name: "James",
+      last_name: "Thompson",
+      email: "james.thompson@club.com"
+    }
+  }
+];
+
+// Mock players for quick assign
+const mockPlayers = [
+  { id: "p7", name: "Carlos Silva", club: "Benfica B", positions: ["LB"] },
+  { id: "p8", name: "Erik Larsson", club: "Malmo FF", positions: ["CM"] },
+  { id: "p9", name: "Yuki Tanaka", club: "Yokohama FC", positions: ["CAM"] },
+  { id: "p10", name: "Antonio Greco", club: "Napoli Primavera", positions: ["ST"] },
+  { id: "p11", name: "João Santos", club: "Porto B", positions: ["CB"] },
+  { id: "p12", name: "Tom Mitchell", club: "Brighton U21", positions: ["GK"] },
+  { id: "p13", name: "Leon Müller", club: "Borussia Dortmund II", positions: ["RW"] },
+  { id: "p14", name: "Rafael Costa", club: "Sporting CP B", positions: ["CDM"] }
+];
+
 const ScoutManagement = () => {
-  const { data: assignments = [], isLoading } = useScoutingAssignments();
-  const { data: players = [] } = usePlayersData();
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [selectedPlayer, setSelectedPlayer] = useState(null);
   const [isAssignDialogOpen, setIsAssignDialogOpen] = useState(false);
 
-  const filteredAssignments = assignments.filter(assignment => {
+  const filteredAssignments = mockAssignments.filter(assignment => {
     const matchesSearch = assignment.players?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          assignment.players?.club.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === "all" || assignment.status === statusFilter;
@@ -52,21 +189,11 @@ const ScoutManagement = () => {
   };
 
   const stats = {
-    totalAssignments: assignments.length,
-    pendingAssignments: assignments.filter(a => a.status === 'assigned').length,
-    inProgress: assignments.filter(a => a.status === 'in_progress').length,
-    completed: assignments.filter(a => ['completed', 'reviewed'].includes(a.status)).length,
+    totalAssignments: mockAssignments.length,
+    pendingAssignments: mockAssignments.filter(a => a.status === 'assigned').length,
+    inProgress: mockAssignments.filter(a => a.status === 'in_progress').length,
+    completed: mockAssignments.filter(a => ['completed', 'reviewed'].includes(a.status)).length,
   };
-
-  if (isLoading) {
-    return (
-      <div className="container mx-auto py-8">
-        <div className="flex items-center justify-center py-12">
-          <div className="text-center">Loading scout management...</div>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="container mx-auto py-8 max-w-7xl">
@@ -148,7 +275,7 @@ const ScoutManagement = () => {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {players.slice(0, 8).map((player) => (
+            {mockPlayers.slice(0, 8).map((player) => (
               <div key={player.id} className="p-3 border rounded-lg">
                 <h4 className="font-medium">{player.name}</h4>
                 <p className="text-sm text-muted-foreground">{player.club}</p>
@@ -250,12 +377,6 @@ const ScoutManagement = () => {
           </div>
         </CardContent>
       </Card>
-
-      <AssignScoutDialog
-        isOpen={isAssignDialogOpen}
-        onClose={() => setIsAssignDialogOpen(false)}
-        player={selectedPlayer}
-      />
     </div>
   );
 };
