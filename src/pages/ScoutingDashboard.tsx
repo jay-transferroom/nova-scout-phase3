@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import PlayerSearch from "@/components/PlayerSearch";
 import PlayerProfilePreview from "@/components/PlayerProfilePreview";
@@ -325,5 +326,3 @@ const ScoutingDashboard = () => {
 };
 
 export default ScoutingDashboard;
-
-}
