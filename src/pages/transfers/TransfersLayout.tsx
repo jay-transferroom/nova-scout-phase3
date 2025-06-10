@@ -19,10 +19,10 @@ const TransfersLayout = () => {
       setActiveTab("requirements");
     } else if (location.pathname.includes("/transfers/pitches")) {
       setActiveTab("pitches");
-    } else if (location.pathname.includes("/transfers/scouting-tasks")) {
-      setActiveTab("scouting-tasks");
-    } else if (location.pathname.includes("/transfers/upcoming-matches")) {
-      setActiveTab("upcoming-matches");
+    } else if (location.pathname.includes("/transfers/tasks")) {
+      setActiveTab("tasks");
+    } else if (location.pathname.includes("/transfers/matches")) {
+      setActiveTab("matches");
     }
   }, [location]);
   
@@ -30,16 +30,16 @@ const TransfersLayout = () => {
     setActiveTab(value);
     switch (value) {
       case "requirements":
-        navigate("/transfers/requirements");
+        navigate("/transfers");
         break;
       case "pitches":
         navigate("/transfers/pitches");
         break;
-      case "scouting-tasks":
-        navigate("/transfers/scouting-tasks");
+      case "tasks":
+        navigate("/transfers/tasks");
         break;
-      case "upcoming-matches":
-        navigate("/transfers/upcoming-matches");
+      case "matches":
+        navigate("/transfers/matches");
         break;
     }
   };
@@ -55,10 +55,10 @@ const TransfersLayout = () => {
             <TabsTrigger value="pitches" className="py-3 px-6 rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none">
               Player Pitches
             </TabsTrigger>
-            <TabsTrigger value="scouting-tasks" className="py-3 px-6 rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none">
+            <TabsTrigger value="tasks" className="py-3 px-6 rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none">
               Scouting Tasks
             </TabsTrigger>
-            <TabsTrigger value="upcoming-matches" className="py-3 px-6 rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none">
+            <TabsTrigger value="matches" className="py-3 px-6 rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none">
               Upcoming Matches
             </TabsTrigger>
           </TabsList>
