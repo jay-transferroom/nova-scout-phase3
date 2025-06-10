@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -7,64 +7,105 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Users, Search, Plus, Filter, MoreHorizontal } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-
-// Mock data for kanban board
-const mockKanbanData = {
-  assigned: [
-    {
-      id: "1",
-      playerName: "Marcus Johnson",
-      club: "Brighton & Hove Albion",
-      position: "Right Back",
-      rating: 76.8,
-      assignedTo: "Sarah Williams",
-      updatedAt: "2 days ago",
-      avatar: "/placeholder.svg"
-    },
-    {
-      id: "2",
-      playerName: "Ahmed Hassan",
-      club: "Al Ahly",
-      position: "Winger",
-      rating: 75.6,
-      assignedTo: "Sarah Williams",
-      updatedAt: "3 days ago",
-      avatar: "/placeholder.svg"
-    }
-  ],
-  in_progress: [
-    {
-      id: "3",
-      playerName: "Luis Rodriguez",
-      club: "Real Sociedad",
-      position: "Central Midfielder",
-      rating: 82.3,
-      assignedTo: "James Mitchell",
-      updatedAt: "5 hours ago",
-      avatar: "/placeholder.svg"
-    }
-  ],
-  under_review: [],
-  completed: [
-    {
-      id: "4",
-      playerName: "Viktor Petrov",
-      club: "Dynamo Kiev",
-      position: "Centre Forward",
-      rating: null,
-      assignedTo: "Emma Thompson",
-      updatedAt: "1 week ago",
-      avatar: "/placeholder.svg"
-    }
-  ]
-};
+import { usePlayersData } from "@/hooks/usePlayersData";
+import { useMyScoutingTasks } from "@/hooks/useMyScoutingTasks";
 
 const ScoutManagement = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedScout, setSelectedScout] = useState("all");
-  const [kanbanData, setKanbanData] = useState(mockKanbanData);
+  const [kanbanData, setKanbanData] = useState({
+    assigned: [] as any[],
+    in_progress: [] as any[],
+    under_review: [] as any[],
+    completed: [] as any[]
+  });
   const [draggedPlayer, setDraggedPlayer] = useState<string | null>(null);
   const [dragOverColumn, setDragOverColumn] = useState<string | null>(null);
+
+  const { data: players = [] } = usePlayersData();
+  const { data: assignments = [] } = useMyScoutingTasks();
+
+  // Transform assignments and players into kanban format
+  useEffect(() => {
+    console.log('Scout Management - Players:', players.length);
+    console.log('Scout Management - Assignments:', assignments.length);
+
+    const newKanbanData = {
+      assigned: [] as any[],
+      in_progress: [] as any[],
+      under_review: [] as any[],
+      completed: [] as any[]
+    };
+
+    // Add real assignments to appropriate columns
+    assignments.forEach((assignment) => {
+      const playerData = {
+        id: assignment.id,
+        playerName: assignment.players?.name || 'Unknown Player',
+        club: assignment.players?.club || 'Unknown Club',
+        position: assignment.players?.positions?.[0] || 'Unknown',
+        rating: (Math.random() * 20 + 70).toFixed(1), // Mock rating for now
+        assignedTo: assignment.assigned_to_scout?.first_name 
+          ? `${assignment.assigned_to_scout.first_name} ${assignment.assigned_to_scout.last_name || ''}`.trim()
+          : assignment.assigned_to_scout?.email || 'Unknown Scout',
+        updatedAt: getUpdatedTime(assignment.status),
+        avatar: assignment.players?.name 
+          ? `https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=48&h=48&fit=crop&crop=face&auto=format`
+          : "/placeholder.svg",
+        priority: assignment.priority,
+        deadline: assignment.deadline
+      };
+
+      if (assignment.status === 'assigned') {
+        newKanbanData.assigned.push(playerData);
+      } else if (assignment.status === 'in_progress') {
+        newKanbanData.in_progress.push(playerData);
+      } else if (assignment.status === 'reviewed') {
+        newKanbanData.under_review.push(playerData);
+      } else if (assignment.status === 'completed') {
+        newKanbanData.completed.push(playerData);
+      }
+    });
+
+    // If we have fewer than 8 total assignments, add some mock ones using real players
+    const totalAssignments = Object.values(newKanbanData).flat().length;
+    if (totalAssignments < 8 && players.length > 0) {
+      const mockStatuses = ['assigned', 'in_progress', 'under_review', 'completed'] as const;
+      const mockScouts = ['Sarah Williams', 'James Mitchell', 'Emma Thompson', 'David Johnson'];
+      
+      const availablePlayers = players.slice(0, 8 - totalAssignments);
+      
+      availablePlayers.forEach((player, index) => {
+        const status = mockStatuses[index % 4];
+        const mockPlayer = {
+          id: `mock-${player.id}`,
+          playerName: player.name,
+          club: player.club,
+          position: player.positions[0] || 'Unknown',
+          rating: player.recentForm?.rating?.toFixed(1) || (Math.random() * 20 + 70).toFixed(1),
+          assignedTo: mockScouts[index % mockScouts.length],
+          updatedAt: getUpdatedTime(status),
+          avatar: `https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=48&h=48&fit=crop&crop=face&auto=format`,
+          priority: ['High', 'Medium', 'Low'][index % 3],
+          deadline: new Date(Date.now() + (index + 1) * 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+        };
+
+        newKanbanData[status].push(mockPlayer);
+      });
+    }
+
+    setKanbanData(newKanbanData);
+  }, [players, assignments]);
+
+  const getUpdatedTime = (status: string) => {
+    const times = {
+      'assigned': '2 days ago',
+      'in_progress': '5 hours ago', 
+      'completed': '1 week ago',
+      'reviewed': '3 days ago'
+    };
+    return times[status as keyof typeof times] || '1 day ago';
+  };
 
   const columns = [
     { id: 'assigned', title: 'Assigned', color: 'bg-red-500', count: kanbanData.assigned.length },
