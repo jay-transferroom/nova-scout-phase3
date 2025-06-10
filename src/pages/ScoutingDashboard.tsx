@@ -11,56 +11,71 @@ import { ReportTemplate, RequirementProfile } from "@/types/report";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { BookmarkCheck, File, FileText, Star, Users, Plus, Target } from "lucide-react";
+import { Users, FileText, Star, Clock, Calendar, MapPin } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 import { useReports } from "@/hooks/useReports";
-import ReportsTable from "@/components/reports/ReportsTable";
+import { useAuth } from "@/contexts/AuthContext";
+import { format } from "date-fns";
 
-// Mock requirement profiles (matching the data from RequirementsList)
-const mockRequirementProfiles: RequirementProfile[] = [
+// Mock data for upcoming fixtures
+const mockUpcomingFixtures = [
   {
-    id: "req-1",
-    name: "Central Defender",
-    description: "Experienced central defender with good aerial ability and leadership",
-    requiredPositions: ["CB"],
-    ageRange: { min: 24, max: 29 },
-    preferredRegions: ["Europe", "South America"],
-    requiredAttributes: [
-      { attributeName: "Aerial Ability", minRating: 8 },
-      { attributeName: "Leadership", minRating: 7 },
-      { attributeName: "Positioning", minRating: 8 },
-    ],
+    id: "1",
+    homeTeam: "Brighton",
+    awayTeam: "Liverpool",
+    playerToWatch: "Marcus Johnson",
+    date: new Date(),
+    time: "15:00",
+    competition: "Premier League"
   },
   {
-    id: "req-2",
-    name: "Creative Midfielder",
-    description: "Technical attacking midfielder with vision and creativity",
-    requiredPositions: ["CAM", "CM"],
-    ageRange: { min: 20, max: 26 },
-    preferredRegions: ["Europe", "South America"],
-    requiredAttributes: [
-      { attributeName: "Technical", minRating: 8 },
-      { attributeName: "Vision", minRating: 8 },
-      { attributeName: "Creativity", minRating: 7 },
-    ],
+    id: "2",
+    homeTeam: "Real Sociedad",
+    awayTeam: "Barcelona", 
+    playerToWatch: "Luis Rodriguez",
+    date: new Date(Date.now() + 24 * 60 * 60 * 1000),
+    time: "21:00",
+    competition: "La Liga"
   },
   {
-    id: "req-3",
-    name: "Promising Goalkeeper",
-    description: "Young goalkeeper with good reflexes and distribution",
-    requiredPositions: ["GK"],
-    ageRange: { min: 18, max: 23 },
-    preferredRegions: ["Europe", "South America", "North America"],
-    requiredAttributes: [
-      { attributeName: "Reflexes", minRating: 7 },
-      { attributeName: "Distribution", minRating: 7 },
-    ],
+    id: "3",
+    homeTeam: "Dynamo Kiev",
+    awayTeam: "Shakhtar",
+    playerToWatch: "Viktor Petrov",
+    date: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000),
+    time: "17:30",
+    competition: "Ukrainian Premier League"
+  }
+];
+
+// Mock recent activity data
+const mockRecentActivity = [
+  {
+    id: "1",
+    action: "Viktor Petrov report approved",
+    time: "2 hours ago"
   },
+  {
+    id: "2", 
+    action: "Marcus Johnson assigned to Sarah Williams",
+    time: "4 hours ago"
+  },
+  {
+    id: "3",
+    action: "Ahmed Hassan added to Young Prospects",
+    time: "1 day ago"
+  },
+  {
+    id: "4",
+    action: "Brighton vs Liverpool - Marcus Johnson playing",
+    time: "2 days ago"
+  }
 ];
 
 const ScoutingDashboard = () => {
   const navigate = useNavigate();
+  const { profile } = useAuth();
   const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null);
   const [isTemplateDialogOpen, setIsTemplateDialogOpen] = useState(false);
   const [selectedPitchPosition, setSelectedPitchPosition] = useState<string | null>(null);
@@ -130,184 +145,122 @@ const ScoutingDashboard = () => {
   };
 
   const statsCards = [
-    { title: "Received Pitches", value: "29", subtitle: "New Pitches", color: "text-green-600", icon: FileText },
-    { title: "Saved Pitches", value: "22", subtitle: "Players", color: "text-blue-600", icon: BookmarkCheck },
-    { title: "Shortlist", value: "30", subtitle: "Players", color: "text-purple-600", icon: Star },
+    { 
+      title: "Total Players", 
+      value: "4", 
+      subtitle: "Assigned for scouting", 
+      color: "bg-purple-100", 
+      icon: Users,
+      iconColor: "text-purple-600"
+    },
+    { 
+      title: "Completed Reports", 
+      value: "1", 
+      subtitle: "This month", 
+      color: "bg-green-100", 
+      icon: FileText,
+      iconColor: "text-green-600"
+    },
+    { 
+      title: "Shortlisted Players", 
+      value: "5", 
+      subtitle: "Across 2 lists", 
+      color: "bg-yellow-100", 
+      icon: Star,
+      iconColor: "text-yellow-600"
+    },
+    { 
+      title: "Pending Actions", 
+      value: "3", 
+      subtitle: "Require attention", 
+      color: "bg-red-100", 
+      icon: Clock,
+      iconColor: "text-red-600"
+    },
   ];
-
-  // Map requirements to card format
-  const requirementCards = mockRequirementProfiles.map(req => ({
-    id: req.id,
-    position: req.name,
-    status: 'active' as const,
-    count: `${Math.floor(Math.random() * 20) + 5} new pitches`,
-    description: req.description,
-    requirement: req
-  }));
-
-  // Add some inactive requirements for display
-  const inactiveRequirements = [
-    { id: "inactive-1", position: "Right Back", status: 'inactive' as const },
-    { id: "inactive-2", position: "Left Winger", status: 'inactive' as const },
-    { id: "inactive-3", position: "Striker", status: 'inactive' as const },
-  ];
-
-  const allRequirements = [...requirementCards, ...inactiveRequirements];
-
-  // Get the 5 most recent reports for the dashboard
-  const recentReports = reports.slice(0, 5);
 
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="container mx-auto px-6 py-8 max-w-7xl">
-        {/* Transfers In Section */}
+        {/* Welcome Header */}
         <div className="mb-8">
-          <div className="flex items-center justify-between mb-6">
-            <h1 className="text-2xl font-bold text-gray-900">Transfers In</h1>
-            <Button 
-              onClick={() => navigate('/squad')}
-              variant="outline"
-              className="gap-2"
-            >
-              <Target className="h-4 w-4" />
-              View Squad Analysis
-            </Button>
-          </div>
-          
-          {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            {statsCards.map((card, index) => (
-              <Card key={index} className="bg-white border-0 shadow-sm hover:shadow-md transition-shadow">
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <div className="flex items-center gap-2 mb-2">
-                        <card.icon className="h-5 w-5 text-gray-400" />
-                        <h3 className="font-medium text-gray-900">{card.title}</h3>
-                      </div>
-                      <p className="text-2xl font-bold text-gray-900">{card.value}</p>
-                      <p className={`text-sm ${card.color}`}>{card.subtitle}</p>
-                    </div>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            Welcome back, {profile?.full_name || 'Scout'}
+          </h1>
+          <p className="text-gray-600">
+            Here's what's happening with your scouting activities today.
+          </p>
+        </div>
+
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          {statsCards.map((card, index) => (
+            <Card key={index} className="bg-white border-0 shadow-sm hover:shadow-md transition-shadow">
+              <CardContent className="p-6">
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-gray-600 mb-2">{card.title}</p>
+                    <p className="text-3xl font-bold text-gray-900 mb-1">{card.value}</p>
+                    <p className="text-sm text-gray-500">{card.subtitle}</p>
                   </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-
-        {/* Your Club Requirements Section */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-bold text-gray-900">Your Club Requirements</h2>
-            <div className="flex gap-3">
-              <Button 
-                variant="outline" 
-                onClick={() => navigate("/transfers/requirements")}
-                className="text-sm"
-              >
-                View All Requirements
-              </Button>
-              <Button 
-                onClick={handleCreateRequirement}
-                className="gap-2"
-              >
-                <Plus className="h-4 w-4" />
-                New Requirement
-              </Button>
-            </div>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-            {allRequirements.slice(0, 10).map((item) => (
-              <RequirementCard
-                key={item.id}
-                position={item.position}
-                status={item.status}
-                count={'count' in item ? item.count : undefined}
-                onCreateAd={() => handleCreateAd(item.position)}
-                onViewPitches={item.status === 'active' && 'requirement' in item ? 
-                  () => handleViewRequirement(item.requirement.id) : 
-                  () => handleViewPitches(item.position)
-                }
-              />
-            ))}
-          </div>
-        </div>
-
-        {/* Latest Scouting Reports Section */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-bold text-gray-900">Latest Scouting Reports</h2>
-            <Button 
-              variant="outline" 
-              onClick={() => navigate("/reports")}
-              className="text-sm"
-            >
-              View All Reports
-            </Button>
-          </div>
-          <Card className="bg-white border-0 shadow-sm">
-            <CardContent className="p-0">
-              {loading ? (
-                <div className="p-8 text-center text-gray-500">
-                  Loading reports...
+                  <div className={`w-12 h-12 ${card.color} rounded-lg flex items-center justify-center`}>
+                    <card.icon className={`h-6 w-6 ${card.iconColor}`} />
+                  </div>
                 </div>
-              ) : (
-                <ReportsTable 
-                  reports={recentReports}
-                  onViewReport={handleViewReport}
-                  onDeleteReport={handleDeleteReport}
-                />
-              )}
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
+        {/* Main Content Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Recent Activity */}
+          <Card className="bg-white border-0 shadow-sm">
+            <CardHeader>
+              <CardTitle className="text-xl font-bold text-gray-900">Recent Activity</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {mockRecentActivity.map((activity) => (
+                <div key={activity.id} className="flex items-start gap-3">
+                  <div className="w-2 h-2 bg-purple-500 rounded-full mt-2 flex-shrink-0"></div>
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-gray-900">{activity.action}</p>
+                    <p className="text-xs text-gray-500">{activity.time}</p>
+                  </div>
+                </div>
+              ))}
             </CardContent>
           </Card>
-        </div>
 
-        {/* Explore and Browse Section */}
-        <div>
-          <h2 className="text-xl font-bold mb-6 text-gray-900">Explore and browse</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <Card className="bg-white border-0 shadow-sm hover:shadow-md transition-shadow cursor-pointer">
-              <CardContent className="p-6">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                    <Users className="h-5 w-5 text-blue-600" />
+          {/* Upcoming Fixtures */}
+          <Card className="bg-white border-0 shadow-sm">
+            <CardHeader>
+              <CardTitle className="text-xl font-bold text-gray-900">Upcoming Fixtures</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {mockUpcomingFixtures.map((fixture) => (
+                <div key={fixture.id} className="border-l-4 border-purple-500 pl-4">
+                  <div className="flex items-center justify-between mb-1">
+                    <h4 className="font-semibold text-gray-900">
+                      {fixture.homeTeam} vs {fixture.awayTeam}
+                    </h4>
+                    <div className="text-right">
+                      <p className="text-sm font-medium text-gray-900">
+                        {format(fixture.date, 'MMM d') === format(new Date(), 'MMM d') 
+                          ? 'Today' 
+                          : format(fixture.date, 'MMM d') === format(new Date(Date.now() + 24 * 60 * 60 * 1000), 'MMM d')
+                          ? 'Tomorrow'
+                          : format(fixture.date, 'MMM d, yyyy')
+                        } {fixture.time}
+                      </p>
+                      <p className="text-xs text-gray-500">{fixture.competition}</p>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="font-medium text-gray-900">Browse All</h3>
-                    <p className="text-sm text-gray-500">Discover your next signing</p>
-                  </div>
+                  <p className="text-sm text-gray-600">{fixture.playerToWatch} playing</p>
                 </div>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-white border-0 shadow-sm hover:shadow-md transition-shadow cursor-pointer">
-              <CardContent className="p-6">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-                    <FileText className="h-5 w-5 text-green-600" />
-                  </div>
-                  <div>
-                    <h3 className="font-medium text-gray-900">Available Players</h3>
-                    <p className="text-sm text-gray-500">Players who are transfer or loan listed</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-white border-0 shadow-sm hover:shadow-md transition-shadow cursor-pointer">
-              <CardContent className="p-6">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center">
-                    <Star className="h-5 w-5 text-orange-600" />
-                  </div>
-                  <div>
-                    <h3 className="font-medium text-gray-900">Expiring Contracts</h3>
-                    <p className="text-sm text-gray-500">Contracts expiring in the next 12 months</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+              ))}
+            </CardContent>
+          </Card>
         </div>
       </div>
       
