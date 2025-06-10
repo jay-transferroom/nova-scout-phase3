@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -20,6 +19,9 @@ import ReportView from "./pages/ReportView";
 import ReportsList from "./pages/ReportsList";
 import PlayerProfile from "./pages/PlayerProfile";
 import ScoutingDashboard from "./pages/ScoutingDashboard";
+import Calendar from "./pages/Calendar";
+import AssignedPlayers from "./pages/AssignedPlayers";
+import Shortlists from "./pages/Shortlists";
 import ScoutManagement from "./pages/ScoutManagement";
 import UserManagement from "./pages/admin/UserManagement";
 import TemplateAdmin from "./pages/TemplateAdmin";
@@ -59,10 +61,34 @@ function App() {
                         <Route path="/" element={<Index />} />
                         <Route path="/auth" element={<Auth />} />
                         <Route
-                          path="/dashboard"
+                          path="/calendar"
                           element={
                             <ProtectedRoute>
-                              <ScoutingDashboard />
+                              <Calendar />
+                            </ProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="/assigned-players"
+                          element={
+                            <ProtectedRoute>
+                              <AssignedPlayers />
+                            </ProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="/shortlists"
+                          element={
+                            <ProtectedRoute>
+                              <Shortlists />
+                            </ProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="/scout-management"
+                          element={
+                            <ProtectedRoute>
+                              <ScoutManagement />
                             </ProtectedRoute>
                           }
                         />
@@ -107,38 +133,6 @@ function App() {
                           }
                         />
                         <Route
-                          path="/scouts"
-                          element={
-                            <ProtectedRoute>
-                              <ScoutManagement />
-                            </ProtectedRoute>
-                          }
-                        />
-                        <Route
-                          path="/admin/users"
-                          element={
-                            <ProtectedRoute>
-                              <UserManagement />
-                            </ProtectedRoute>
-                          }
-                        />
-                        <Route
-                          path="/admin/templates"
-                          element={
-                            <ProtectedRoute>
-                              <TemplateAdmin />
-                            </ProtectedRoute>
-                          }
-                        />
-                        <Route
-                          path="/squad"
-                          element={
-                            <ProtectedRoute>
-                              <SquadView />
-                            </ProtectedRoute>
-                          }
-                        />
-                        <Route
                           path="/search-results"
                           element={
                             <ProtectedRoute>
@@ -162,21 +156,6 @@ function App() {
                             </ProtectedRoute>
                           }
                         />
-                        <Route
-                          path="/transfers"
-                          element={
-                            <ProtectedRoute>
-                              <TransfersLayout />
-                            </ProtectedRoute>
-                          }
-                        >
-                          <Route index element={<RequirementsList />} />
-                          <Route path="requirements/:id" element={<RequirementDetails />} />
-                          <Route path="pitches" element={<PlayerPitches />} />
-                          <Route path="tasks" element={<ScoutingTasks />} />
-                          <Route path="matches" element={<UpcomingMatches />} />
-                          <Route path="import" element={<DataImport />} />
-                        </Route>
                         <Route path="*" element={<NotFound />} />
                       </Routes>
                     </main>

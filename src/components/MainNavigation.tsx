@@ -1,3 +1,4 @@
+
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import {
@@ -11,18 +12,14 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import { 
-  FileText, 
-  ArrowRight, 
-  Users, 
-  MapPin, 
-  CalendarDays, 
-  BarChart3, 
-  Settings, 
-  User,
-  Upload,
-  Target,
-  Brain,
-  UserCheck
+  Home,
+  Kanban,
+  Calendar,
+  UserCheck,
+  Bookmark,
+  FileText,
+  Settings,
+  User
 } from "lucide-react";
 import { useMyPermissions } from "@/hooks/useUserPermissions";
 import { useAuth } from "@/contexts/AuthContext";
@@ -42,79 +39,41 @@ const MainNavigation = () => {
 
   const mainItems = [
     {
-      title: "Dashboard",
-      url: "/dashboard",
-      icon: BarChart3,
+      title: "Home",
+      url: "/",
+      icon: Home,
       permission: "dashboard"
     },
     {
-      title: "AI Search",
-      url: "/ai-search",
-      icon: Brain,
-      permission: "dashboard" // Using dashboard permission as a baseline
+      title: "Scout Management",
+      url: "/scout-management",
+      icon: Kanban,
+      permission: "user_management",
+      restricted: true // Only for Scout Managers
     },
     {
-      title: "Squad Analysis",
-      url: "/squad",
-      icon: Target,
-      permission: "squad"
+      title: "Calendar",
+      url: "/calendar",
+      icon: Calendar,
+      permission: "dashboard"
     },
     {
-      title: "Player Reports",
+      title: "Assigned Players",
+      url: "/assigned-players",
+      icon: UserCheck,
+      permission: "dashboard"
+    },
+    {
+      title: "Shortlists",
+      url: "/shortlists",
+      icon: Bookmark,
+      permission: "dashboard"
+    },
+    {
+      title: "Reports",
       url: "/reports",
       icon: FileText,
       permission: "reports"
-    },
-    {
-      title: "Requirements",
-      url: "/transfers/requirements",
-      icon: ArrowRight,
-      permission: "requirements"
-    },
-    {
-      title: "Player Pitches",
-      url: "/transfers/pitches",
-      icon: Users,
-      permission: "pitches"
-    },
-    {
-      title: "Scouting Tasks",
-      url: "/transfers/scouting-tasks",
-      icon: MapPin,
-      permission: "scouting_tasks"
-    },
-    {
-      title: "Upcoming Matches",
-      url: "/transfers/upcoming-matches",
-      icon: CalendarDays,
-      permission: "upcoming_matches"
-    },
-    {
-      title: "Data Import",
-      url: "/transfers/data-import",
-      icon: Upload,
-      permission: "data_import"
-    }
-  ];
-
-  const adminItems = [
-    {
-      title: "Scout Management",
-      url: "/scout-management",
-      icon: UserCheck,
-      permission: "user_management"
-    },
-    {
-      title: "Template Admin",
-      url: "/templates",
-      icon: FileText,
-      permission: "templates"
-    },
-    {
-      title: "User Management",
-      url: "/admin/users",
-      icon: Users,
-      permission: "user_management"
     }
   ];
 
@@ -139,7 +98,12 @@ const MainNavigation = () => {
           <SidebarGroupContent>
             <SidebarMenu>
               {mainItems
-                .filter(item => hasPermission(item.permission))
+                .filter(item => {
+                  if (item.restricted && profile?.role !== 'recruitment') {
+                    return false;
+                  }
+                  return hasPermission(item.permission);
+                })
                 .map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild isActive={isActive(item.url)} tooltip={item.title}>
@@ -153,28 +117,6 @@ const MainNavigation = () => {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
-
-        {profile?.role === 'recruitment' && (
-          <SidebarGroup>
-            <SidebarGroupLabel>Administration</SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {adminItems
-                  .filter(item => hasPermission(item.permission))
-                  .map((item) => (
-                  <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton asChild isActive={isActive(item.url)} tooltip={item.title}>
-                      <Link to={item.url}>
-                        <item.icon className="h-4 w-4" />
-                        <span>{item.title}</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-        )}
 
         <SidebarGroup>
           <SidebarGroupLabel>Account</SidebarGroupLabel>
