@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import PlayerSearch from "@/components/PlayerSearch";
 import PlayerProfilePreview from "@/components/PlayerProfilePreview";
@@ -151,7 +150,8 @@ const ScoutingDashboard = () => {
       subtitle: "Assigned for scouting", 
       color: "bg-purple-100", 
       icon: Users,
-      iconColor: "text-purple-600"
+      iconColor: "text-purple-600",
+      onClick: () => navigate("/assigned-players")
     },
     { 
       title: "Completed Reports", 
@@ -159,7 +159,8 @@ const ScoutingDashboard = () => {
       subtitle: "This month", 
       color: "bg-green-100", 
       icon: FileText,
-      iconColor: "text-green-600"
+      iconColor: "text-green-600",
+      onClick: () => navigate("/reports")
     },
     { 
       title: "Shortlisted Players", 
@@ -167,7 +168,8 @@ const ScoutingDashboard = () => {
       subtitle: "Across 2 lists", 
       color: "bg-yellow-100", 
       icon: Star,
-      iconColor: "text-yellow-600"
+      iconColor: "text-yellow-600",
+      onClick: () => navigate("/shortlists")
     },
     { 
       title: "Pending Actions", 
@@ -175,7 +177,8 @@ const ScoutingDashboard = () => {
       subtitle: "Require attention", 
       color: "bg-red-100", 
       icon: Clock,
-      iconColor: "text-red-600"
+      iconColor: "text-red-600",
+      onClick: () => navigate("/scout-management")
     },
   ];
 
@@ -205,7 +208,11 @@ const ScoutingDashboard = () => {
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           {statsCards.map((card, index) => (
-            <Card key={index} className="bg-white border-0 shadow-sm hover:shadow-md transition-shadow">
+            <Card 
+              key={index} 
+              className="bg-white border-0 shadow-sm hover:shadow-md transition-all cursor-pointer hover:scale-105"
+              onClick={card.onClick}
+            >
               <CardContent className="p-6">
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
@@ -318,3 +325,5 @@ const ScoutingDashboard = () => {
 };
 
 export default ScoutingDashboard;
+
+}

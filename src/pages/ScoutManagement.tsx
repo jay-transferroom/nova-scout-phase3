@@ -63,6 +63,7 @@ const ScoutManagement = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedScout, setSelectedScout] = useState("all");
   const [kanbanData, setKanbanData] = useState(mockKanbanData);
+  const [draggedPlayer, setDraggedPlayer] = useState<string | null>(null);
 
   const columns = [
     { id: 'assigned', title: 'Assigned', color: 'bg-red-500', count: kanbanData.assigned.length },
@@ -77,24 +78,54 @@ const ScoutManagement = () => {
     const nextColumn = columnOrder[currentIndex + 1];
     
     if (nextColumn) {
-      setKanbanData(prev => {
-        const newData = { ...prev };
-        const playerIndex = newData[currentColumn as keyof typeof newData].findIndex(p => p.id === playerId);
-        const player = newData[currentColumn as keyof typeof newData][playerIndex];
-        
-        // Remove from current column
-        newData[currentColumn as keyof typeof newData] = newData[currentColumn as keyof typeof newData].filter(p => p.id !== playerId);
-        
-        // Add to next column
-        newData[nextColumn as keyof typeof newData] = [...newData[nextColumn as keyof typeof newData], player];
-        
-        return newData;
-      });
+      movePlayer(playerId, currentColumn, nextColumn);
     }
   };
 
+  const movePlayer = (playerId: string, fromColumn: string, toColumn: string) => {
+    setKanbanData(prev => {
+      const newData = { ...prev };
+      const playerIndex = newData[fromColumn as keyof typeof newData].findIndex(p => p.id === playerId);
+      const player = newData[fromColumn as keyof typeof newData][playerIndex];
+      
+      // Remove from current column
+      newData[fromColumn as keyof typeof newData] = newData[fromColumn as keyof typeof newData].filter(p => p.id !== playerId);
+      
+      // Add to new column
+      newData[toColumn as keyof typeof newData] = [...newData[toColumn as keyof typeof newData], player];
+      
+      return newData;
+    });
+  };
+
+  const handleDragStart = (e: React.DragEvent, playerId: string, columnId: string) => {
+    setDraggedPlayer(playerId);
+    e.dataTransfer.setData('text/plain', JSON.stringify({ playerId, sourceColumn: columnId }));
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+  };
+
+  const handleDrop = (e: React.DragEvent, targetColumn: string) => {
+    e.preventDefault();
+    const data = JSON.parse(e.dataTransfer.getData('text/plain'));
+    const { playerId, sourceColumn } = data;
+    
+    if (sourceColumn !== targetColumn) {
+      movePlayer(playerId, sourceColumn, targetColumn);
+    }
+    setDraggedPlayer(null);
+  };
+
   const PlayerCard = ({ player, columnId }: { player: any, columnId: string }) => (
-    <Card className="mb-3 hover:shadow-md transition-shadow cursor-pointer">
+    <Card 
+      className={`mb-3 hover:shadow-md transition-shadow cursor-grab active:cursor-grabbing ${
+        draggedPlayer === player.id ? 'opacity-50' : ''
+      }`}
+      draggable
+      onDragStart={(e) => handleDragStart(e, player.id, columnId)}
+    >
       <CardContent className="p-4">
         <div className="flex items-start gap-3">
           <Avatar className="h-10 w-10">
@@ -140,7 +171,7 @@ const ScoutManagement = () => {
           <div>
             <h1 className="text-3xl font-bold">Scout Management</h1>
             <p className="text-muted-foreground mt-2">
-              Manage player assignments and track scouting progress
+              Manage player assignments and track scouting progress. Drag cards between columns to update status.
             </p>
           </div>
           <Button className="bg-purple-600 hover:bg-purple-700">
@@ -197,14 +228,18 @@ const ScoutManagement = () => {
             </div>
 
             {/* Column Content */}
-            <div className="flex-1 min-h-[400px] bg-gray-50 rounded-lg p-3">
+            <div 
+              className="flex-1 min-h-[400px] bg-gray-50 rounded-lg p-3 transition-colors"
+              onDragOver={handleDragOver}
+              onDrop={(e) => handleDrop(e, column.id)}
+            >
               {kanbanData[column.id as keyof typeof kanbanData].length > 0 ? (
                 kanbanData[column.id as keyof typeof kanbanData].map((player) => (
                   <PlayerCard key={player.id} player={player} columnId={column.id} />
                 ))
               ) : (
-                <div className="flex items-center justify-center h-32 text-muted-foreground text-sm">
-                  No players in this stage
+                <div className="flex items-center justify-center h-32 text-muted-foreground text-sm border-2 border-dashed border-gray-300 rounded-lg">
+                  Drop players here or no players in this stage
                 </div>
               )}
             </div>
