@@ -64,6 +64,7 @@ const ScoutManagement = () => {
   const [selectedScout, setSelectedScout] = useState("all");
   const [kanbanData, setKanbanData] = useState(mockKanbanData);
   const [draggedPlayer, setDraggedPlayer] = useState<string | null>(null);
+  const [dragOverColumn, setDragOverColumn] = useState<string | null>(null);
 
   const columns = [
     { id: 'assigned', title: 'Assigned', color: 'bg-red-500', count: kanbanData.assigned.length },
@@ -71,16 +72,6 @@ const ScoutManagement = () => {
     { id: 'under_review', title: 'Under Review', color: 'bg-blue-500', count: kanbanData.under_review.length },
     { id: 'completed', title: 'Completed', color: 'bg-green-500', count: kanbanData.completed.length },
   ];
-
-  const handleMoveForward = (playerId: string, currentColumn: string) => {
-    const columnOrder = ['assigned', 'in_progress', 'under_review', 'completed'];
-    const currentIndex = columnOrder.indexOf(currentColumn);
-    const nextColumn = columnOrder[currentIndex + 1];
-    
-    if (nextColumn) {
-      movePlayer(playerId, currentColumn, nextColumn);
-    }
-  };
 
   const movePlayer = (playerId: string, fromColumn: string, toColumn: string) => {
     setKanbanData(prev => {
@@ -101,10 +92,22 @@ const ScoutManagement = () => {
   const handleDragStart = (e: React.DragEvent, playerId: string, columnId: string) => {
     setDraggedPlayer(playerId);
     e.dataTransfer.setData('text/plain', JSON.stringify({ playerId, sourceColumn: columnId }));
+    e.dataTransfer.effectAllowed = 'move';
   };
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+  };
+
+  const handleDragEnter = (e: React.DragEvent, columnId: string) => {
+    e.preventDefault();
+    setDragOverColumn(columnId);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    setDragOverColumn(null);
   };
 
   const handleDrop = (e: React.DragEvent, targetColumn: string) => {
@@ -116,12 +119,15 @@ const ScoutManagement = () => {
       movePlayer(playerId, sourceColumn, targetColumn);
     }
     setDraggedPlayer(null);
+    setDragOverColumn(null);
   };
 
   const PlayerCard = ({ player, columnId }: { player: any, columnId: string }) => (
     <Card 
-      className={`mb-3 hover:shadow-md transition-shadow cursor-grab active:cursor-grabbing ${
-        draggedPlayer === player.id ? 'opacity-50' : ''
+      className={`mb-3 hover:shadow-md transition-all duration-200 cursor-grab active:cursor-grabbing border-2 ${
+        draggedPlayer === player.id 
+          ? 'opacity-50 border-purple-400 scale-105' 
+          : 'border-transparent hover:border-purple-200'
       }`}
       draggable
       onDragStart={(e) => handleDragStart(e, player.id, columnId)}
@@ -148,16 +154,6 @@ const ScoutManagement = () => {
               <p className="text-xs text-muted-foreground">Assigned to {player.assignedTo}</p>
               <p className="text-xs text-muted-foreground">Updated {player.updatedAt}</p>
             </div>
-            
-            {columnId !== 'completed' && (
-              <Button 
-                size="sm" 
-                className="w-full mt-3 bg-purple-600 hover:bg-purple-700"
-                onClick={() => handleMoveForward(player.id, columnId)}
-              >
-                Move Forward
-              </Button>
-            )}
           </div>
         </div>
       </CardContent>
@@ -229,8 +225,14 @@ const ScoutManagement = () => {
 
             {/* Column Content */}
             <div 
-              className="flex-1 min-h-[400px] bg-gray-50 rounded-lg p-3 transition-colors"
+              className={`flex-1 min-h-[400px] rounded-lg p-3 transition-all duration-200 ${
+                dragOverColumn === column.id 
+                  ? 'bg-purple-50 border-2 border-purple-300 border-dashed' 
+                  : 'bg-gray-50 border-2 border-transparent'
+              }`}
               onDragOver={handleDragOver}
+              onDragEnter={(e) => handleDragEnter(e, column.id)}
+              onDragLeave={handleDragLeave}
               onDrop={(e) => handleDrop(e, column.id)}
             >
               {kanbanData[column.id as keyof typeof kanbanData].length > 0 ? (
@@ -239,7 +241,7 @@ const ScoutManagement = () => {
                 ))
               ) : (
                 <div className="flex items-center justify-center h-32 text-muted-foreground text-sm border-2 border-dashed border-gray-300 rounded-lg">
-                  Drop players here or no players in this stage
+                  Drag players here
                 </div>
               )}
             </div>
