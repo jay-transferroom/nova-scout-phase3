@@ -179,13 +179,23 @@ const ScoutingDashboard = () => {
     },
   ];
 
+  const getDisplayName = () => {
+    if (profile?.first_name && profile?.last_name) {
+      return `${profile.first_name} ${profile.last_name}`;
+    }
+    if (profile?.first_name) {
+      return profile.first_name;
+    }
+    return 'Scout';
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="container mx-auto px-6 py-8 max-w-7xl">
         {/* Welcome Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Welcome back, {profile?.full_name || 'Scout'}
+            Welcome back, {getDisplayName()}
           </h1>
           <p className="text-gray-600">
             Here's what's happening with your scouting activities today.
