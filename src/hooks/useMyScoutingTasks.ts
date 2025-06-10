@@ -34,6 +34,8 @@ export const useMyScoutingTasks = () => {
   return useQuery({
     queryKey: ['my-scouting-tasks'],
     queryFn: async (): Promise<ScoutingAssignment[]> => {
+      console.log('Fetching scouting tasks for user:', user?.id);
+      
       // First try to get actual scouting assignments
       const { data: assignments, error: assignmentsError } = await supabase
         .from('scouting_assignments')
@@ -44,6 +46,8 @@ export const useMyScoutingTasks = () => {
         .eq('assigned_to_scout_id', user?.id)
         .order('deadline', { ascending: true, nullsFirst: false });
 
+      console.log('Real assignments found:', assignments?.length || 0);
+
       if (!assignmentsError && assignments && assignments.length > 0) {
         return assignments.map(assignment => ({
           ...assignment,
@@ -52,11 +56,15 @@ export const useMyScoutingTasks = () => {
         }));
       }
 
+      console.log('No real assignments found, creating mock assignments...');
+
       // If no assignments found, create mock assignments with real players from database
       const { data: players, error: playersError } = await supabase
         .from('players')
         .select('id, name, club, positions, age')
         .limit(8);
+
+      console.log('Players fetched for mock assignments:', players?.length || 0);
 
       if (playersError || !players || players.length === 0) {
         console.error('Error fetching players for mock assignments:', playersError);
@@ -68,7 +76,7 @@ export const useMyScoutingTasks = () => {
         ['assigned', 'in_progress', 'completed', 'reviewed'];
       const mockPriorities: ('High' | 'Medium' | 'Low')[] = ['High', 'Medium', 'Low'];
       
-      return players.slice(0, 6).map((player, index) => ({
+      const mockAssignments = players.slice(0, 6).map((player, index) => ({
         id: `mock-assignment-${player.id}`,
         player_id: player.id,
         assigned_to_scout_id: user?.id || '',
@@ -87,6 +95,9 @@ export const useMyScoutingTasks = () => {
           age: player.age
         }
       }));
+
+      console.log('Mock assignments created:', mockAssignments.length);
+      return mockAssignments;
     },
     enabled: !!user,
   });

@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Search, Filter, FileText, Eye, Edit } from "lucide-react";
-import { useMyScoutingTasks } from "@/hooks/useScoutingAssignments";
+import { useMyScoutingTasks } from "@/hooks/useMyScoutingTasks";
 import { format } from "date-fns";
 import { Link } from "react-router-dom";
 
