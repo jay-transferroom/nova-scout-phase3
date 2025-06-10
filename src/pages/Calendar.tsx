@@ -1,10 +1,10 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Calendar as CalendarIcon, Clock, MapPin, Users } from "lucide-react";
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, isToday } from "date-fns";
+import { cn } from "@/lib/utils";
 
 const Calendar = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
