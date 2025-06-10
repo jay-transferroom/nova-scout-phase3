@@ -5,13 +5,12 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Settings as SettingsIcon, Users, FileText, UserCheck } from 'lucide-react';
+import { Settings as SettingsIcon, Users, FileText } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 
 // Import existing admin components
 import UserManagement from './admin/UserManagement';
 import TemplateAdmin from './TemplateAdmin';
-import ScoutManagement from './ScoutManagement';
 
 const Settings = () => {
   const { profile } = useAuth();
@@ -27,17 +26,13 @@ const Settings = () => {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="preferences" className="flex items-center gap-2">
             <SettingsIcon className="h-4 w-4" />
             Preferences
           </TabsTrigger>
           {isAdmin && (
             <>
-              <TabsTrigger value="scout-management" className="flex items-center gap-2">
-                <UserCheck className="h-4 w-4" />
-                Scout Management
-              </TabsTrigger>
               <TabsTrigger value="user-management" className="flex items-center gap-2">
                 <Users className="h-4 w-4" />
                 User Management
@@ -108,10 +103,6 @@ const Settings = () => {
 
         {isAdmin && (
           <>
-            <TabsContent value="scout-management" className="mt-6">
-              <ScoutManagement />
-            </TabsContent>
-
             <TabsContent value="user-management" className="mt-6">
               <UserManagement />
             </TabsContent>
