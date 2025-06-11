@@ -167,8 +167,8 @@ const ScoutManagement = () => {
     <Card 
       className={`mb-3 hover:shadow-md transition-all duration-200 cursor-grab active:cursor-grabbing border-2 ${
         draggedPlayer === player.id 
-          ? 'opacity-50 border-purple-400 scale-105' 
-          : 'border-transparent hover:border-purple-200'
+          ? 'opacity-50 border-success-400 scale-105' 
+          : 'border-transparent hover:border-success-200'
       }`}
       draggable
       onDragStart={(e) => handleDragStart(e, player.id, columnId)}
@@ -187,7 +187,7 @@ const ScoutManagement = () => {
             
             {player.rating && (
               <div className="flex items-center justify-end mt-2">
-                <span className="text-lg font-bold text-purple-600">{player.rating}</span>
+                <span className="text-lg font-bold text-success-600">{player.rating}</span>
               </div>
             )}
             
@@ -211,7 +211,7 @@ const ScoutManagement = () => {
               Manage player assignments and track scouting progress. Drag cards between columns to update status.
             </p>
           </div>
-          <Button className="bg-purple-600 hover:bg-purple-700">
+          <Button>
             <Plus className="h-4 w-4 mr-2" />
             Assign Player
           </Button>
@@ -268,7 +268,7 @@ const ScoutManagement = () => {
             <div 
               className={`flex-1 min-h-[400px] rounded-lg p-3 transition-all duration-200 ${
                 dragOverColumn === column.id 
-                  ? 'bg-purple-50 border-2 border-purple-300 border-dashed' 
+                  ? 'bg-success-50 border-2 border-success-300 border-dashed' 
                   : 'bg-gray-50 border-2 border-transparent'
               }`}
               onDragOver={handleDragOver}
