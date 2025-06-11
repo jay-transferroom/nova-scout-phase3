@@ -1,9 +1,8 @@
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/contexts/AuthContext";
 
-export interface ScoutingAssignment {
+export interface ScoutingAssignmentWithDetails {
   id: string;
   player_id: string;
   assigned_to_scout_id: string;
@@ -26,20 +25,24 @@ export interface ScoutingAssignment {
     last_name?: string;
     email: string;
   };
+  assigned_by_manager?: {
+    first_name?: string;
+    last_name?: string;
+    email: string;
+  };
 }
 
 export const useScoutingAssignments = () => {
-  const { user } = useAuth();
-  
   return useQuery({
     queryKey: ['scouting-assignments'],
-    queryFn: async (): Promise<ScoutingAssignment[]> => {
+    queryFn: async (): Promise<ScoutingAssignmentWithDetails[]> => {
       const { data, error } = await supabase
         .from('scouting_assignments')
         .select(`
           *,
           players!inner(name, club, positions, age),
-          assigned_to_scout:profiles!assigned_to_scout_id(first_name, last_name, email)
+          assigned_to_scout:profiles!scouting_assignments_assigned_to_scout_id_fkey(first_name, last_name, email),
+          assigned_by_manager:profiles!scouting_assignments_assigned_by_manager_id_fkey(first_name, last_name, email)
         `)
         .order('created_at', { ascending: false });
 
@@ -54,58 +57,6 @@ export const useScoutingAssignments = () => {
         status: assignment.status as 'assigned' | 'in_progress' | 'completed' | 'reviewed'
       }));
     },
-    enabled: !!user,
-  });
-};
-
-export const useMyScoutingTasks = () => {
-  const { user } = useAuth();
-  
-  return useQuery({
-    queryKey: ['my-scouting-tasks'],
-    queryFn: async (): Promise<ScoutingAssignment[]> => {
-      const { data, error } = await supabase
-        .from('scouting_assignments')
-        .select(`
-          *,
-          players!inner(name, club, positions, age)
-        `)
-        .eq('assigned_to_scout_id', user?.id)
-        .order('deadline', { ascending: true, nullsFirst: false });
-
-      if (error) {
-        console.error('Error fetching my scouting tasks:', error);
-        throw error;
-      }
-
-      return (data || []).map(assignment => ({
-        ...assignment,
-        priority: assignment.priority as 'High' | 'Medium' | 'Low',
-        status: assignment.status as 'assigned' | 'in_progress' | 'completed' | 'reviewed'
-      }));
-    },
-    enabled: !!user,
-  });
-};
-
-export const useCreateAssignment = () => {
-  const queryClient = useQueryClient();
-  
-  return useMutation({
-    mutationFn: async (assignment: Omit<ScoutingAssignment, 'id' | 'created_at' | 'updated_at'>) => {
-      const { data, error } = await supabase
-        .from('scouting_assignments')
-        .insert([assignment])
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['scouting-assignments'] });
-      queryClient.invalidateQueries({ queryKey: ['my-scouting-tasks'] });
-    },
   });
 };
 
@@ -113,16 +64,16 @@ export const useUpdateAssignmentStatus = () => {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: async ({ id, status }: { id: string; status: ScoutingAssignment['status'] }) => {
-      const { data, error } = await supabase
+    mutationFn: async ({ assignmentId, status }: { assignmentId: string; status: string }) => {
+      const { error } = await supabase
         .from('scouting_assignments')
-        .update({ status, updated_at: new Date().toISOString() })
-        .eq('id', id)
-        .select()
-        .single();
-
+        .update({ 
+          status,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', assignmentId);
+      
       if (error) throw error;
-      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['scouting-assignments'] });

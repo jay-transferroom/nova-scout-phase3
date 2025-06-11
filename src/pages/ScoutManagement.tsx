@@ -5,10 +5,12 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Users, Search, Plus, Filter, MoreHorizontal } from "lucide-react";
+import { Users, Search, Filter, MoreHorizontal } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { usePlayersData } from "@/hooks/usePlayersData";
 import { useMyScoutingTasks } from "@/hooks/useMyScoutingTasks";
+import { useScoutUsers } from "@/hooks/useScoutUsers";
+import { AssignPlayerDialog } from "@/components/AssignPlayerDialog";
 
 const ScoutManagement = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -23,12 +25,14 @@ const ScoutManagement = () => {
   const [dragOverColumn, setDragOverColumn] = useState<string | null>(null);
 
   const { data: players = [] } = usePlayersData();
-  const { data: assignments = [] } = useMyScoutingTasks();
+  const { data: assignments = [], refetch: refetchAssignments } = useMyScoutingTasks();
+  const { data: scouts = [] } = useScoutUsers();
 
   // Transform assignments and players into kanban format
   useEffect(() => {
     console.log('Scout Management - Players:', players.length);
     console.log('Scout Management - Assignments:', assignments.length);
+    console.log('Scout Management - Scouts:', scouts.length);
 
     const newKanbanData = {
       assigned: [] as any[],
@@ -39,21 +43,36 @@ const ScoutManagement = () => {
 
     // Add real assignments to appropriate columns
     assignments.forEach((assignment) => {
+      const scoutName = assignment.assigned_to_scout?.first_name 
+        ? `${assignment.assigned_to_scout.first_name} ${assignment.assigned_to_scout.last_name || ''}`.trim()
+        : assignment.assigned_to_scout?.email || 'Unknown Scout';
+
+      // Apply scout filter
+      if (selectedScout !== "all" && assignment.assigned_to_scout_id !== selectedScout) {
+        return;
+      }
+
+      // Apply search filter
+      const playerName = assignment.players?.name || 'Unknown Player';
+      const club = assignment.players?.club || 'Unknown Club';
+      if (searchTerm && !playerName.toLowerCase().includes(searchTerm.toLowerCase()) && !club.toLowerCase().includes(searchTerm.toLowerCase())) {
+        return;
+      }
+
       const playerData = {
         id: assignment.id,
-        playerName: assignment.players?.name || 'Unknown Player',
-        club: assignment.players?.club || 'Unknown Club',
+        playerName,
+        club,
         position: assignment.players?.positions?.[0] || 'Unknown',
         rating: (Math.random() * 20 + 70).toFixed(1), // Mock rating for now
-        assignedTo: assignment.assigned_to_scout?.first_name 
-          ? `${assignment.assigned_to_scout.first_name} ${assignment.assigned_to_scout.last_name || ''}`.trim()
-          : assignment.assigned_to_scout?.email || 'Unknown Scout',
+        assignedTo: scoutName,
         updatedAt: getUpdatedTime(assignment.status),
         avatar: assignment.players?.name 
           ? `https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=48&h=48&fit=crop&crop=face&auto=format`
           : "/placeholder.svg",
         priority: assignment.priority,
-        deadline: assignment.deadline
+        deadline: assignment.deadline,
+        scoutId: assignment.assigned_to_scout_id
       };
 
       if (assignment.status === 'assigned') {
@@ -67,35 +86,8 @@ const ScoutManagement = () => {
       }
     });
 
-    // If we have fewer than 8 total assignments, add some mock ones using real players
-    const totalAssignments = Object.values(newKanbanData).flat().length;
-    if (totalAssignments < 8 && players.length > 0) {
-      const mockStatuses = ['assigned', 'in_progress', 'under_review', 'completed'] as const;
-      const mockScouts = ['Sarah Williams', 'James Mitchell', 'Emma Thompson', 'David Johnson'];
-      
-      const availablePlayers = players.slice(0, 8 - totalAssignments);
-      
-      availablePlayers.forEach((player, index) => {
-        const status = mockStatuses[index % 4];
-        const mockPlayer = {
-          id: `mock-${player.id}`,
-          playerName: player.name,
-          club: player.club,
-          position: player.positions[0] || 'Unknown',
-          rating: player.recentForm?.rating?.toFixed(1) || (Math.random() * 20 + 70).toFixed(1),
-          assignedTo: mockScouts[index % mockScouts.length],
-          updatedAt: getUpdatedTime(status),
-          avatar: `https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=48&h=48&fit=crop&crop=face&auto=format`,
-          priority: ['High', 'Medium', 'Low'][index % 3],
-          deadline: new Date(Date.now() + (index + 1) * 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
-        };
-
-        newKanbanData[status].push(mockPlayer);
-      });
-    }
-
     setKanbanData(newKanbanData);
-  }, [players, assignments]);
+  }, [players, assignments, scouts, selectedScout, searchTerm]);
 
   const getUpdatedTime = (status: string) => {
     const times = {
@@ -163,12 +155,16 @@ const ScoutManagement = () => {
     setDragOverColumn(null);
   };
 
+  const handleAssignmentCreated = () => {
+    refetchAssignments();
+  };
+
   const PlayerCard = ({ player, columnId }: { player: any, columnId: string }) => (
     <Card 
       className={`mb-3 hover:shadow-md transition-all duration-200 cursor-grab active:cursor-grabbing border-2 ${
         draggedPlayer === player.id 
-          ? 'opacity-50 border-success-400 scale-105' 
-          : 'border-transparent hover:border-success-200'
+          ? 'opacity-50 border-primary scale-105' 
+          : 'border-transparent hover:border-primary/20'
       }`}
       draggable
       onDragStart={(e) => handleDragStart(e, player.id, columnId)}
@@ -187,13 +183,21 @@ const ScoutManagement = () => {
             
             {player.rating && (
               <div className="flex items-center justify-end mt-2">
-                <span className="text-lg font-bold text-success-600">{player.rating}</span>
+                <span className="text-lg font-bold text-primary">{player.rating}</span>
               </div>
             )}
             
             <div className="mt-3 space-y-1">
               <p className="text-xs text-muted-foreground">Assigned to {player.assignedTo}</p>
               <p className="text-xs text-muted-foreground">Updated {player.updatedAt}</p>
+              {player.priority && (
+                <Badge 
+                  variant={player.priority === 'High' ? 'destructive' : player.priority === 'Medium' ? 'default' : 'secondary'}
+                  className="text-xs"
+                >
+                  {player.priority}
+                </Badge>
+              )}
             </div>
           </div>
         </div>
@@ -211,10 +215,7 @@ const ScoutManagement = () => {
               Manage player assignments and track scouting progress. Drag cards between columns to update status.
             </p>
           </div>
-          <Button>
-            <Plus className="h-4 w-4 mr-2" />
-            Assign Player
-          </Button>
+          <AssignPlayerDialog onAssignmentCreated={handleAssignmentCreated} />
         </div>
       </div>
 
@@ -230,14 +231,16 @@ const ScoutManagement = () => {
           />
         </div>
         <Select value={selectedScout} onValueChange={setSelectedScout}>
-          <SelectTrigger className="w-[180px]">
+          <SelectTrigger className="w-[200px]">
             <SelectValue placeholder="All Scouts" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Scouts</SelectItem>
-            <SelectItem value="sarah">Sarah Williams</SelectItem>
-            <SelectItem value="james">James Mitchell</SelectItem>
-            <SelectItem value="emma">Emma Thompson</SelectItem>
+            {scouts.map((scout) => (
+              <SelectItem key={scout.id} value={scout.id}>
+                {scout.first_name} {scout.last_name}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
         <Button variant="outline">
@@ -245,6 +248,36 @@ const ScoutManagement = () => {
           Filters
         </Button>
       </div>
+
+      {/* Scout Stats */}
+      {scouts.length > 0 && (
+        <div className="mb-6">
+          <h3 className="text-lg font-semibold mb-3">Scout Overview</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {scouts.slice(0, 4).map((scout) => {
+              const scoutAssignments = assignments.filter(a => a.assigned_to_scout_id === scout.id);
+              return (
+                <Card key={scout.id}>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-sm flex items-center gap-2">
+                      <Avatar className="h-8 w-8">
+                        <AvatarFallback className="text-xs">
+                          {scout.first_name?.[0]}{scout.last_name?.[0]}
+                        </AvatarFallback>
+                      </Avatar>
+                      {scout.first_name} {scout.last_name}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="pt-0">
+                    <div className="text-2xl font-bold">{scoutAssignments.length}</div>
+                    <p className="text-xs text-muted-foreground">Active assignments</p>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Kanban Board */}
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
@@ -268,8 +301,8 @@ const ScoutManagement = () => {
             <div 
               className={`flex-1 min-h-[400px] rounded-lg p-3 transition-all duration-200 ${
                 dragOverColumn === column.id 
-                  ? 'bg-success-50 border-2 border-success-300 border-dashed' 
-                  : 'bg-gray-50 border-2 border-transparent'
+                  ? 'bg-primary/10 border-2 border-primary border-dashed' 
+                  : 'bg-muted/20 border-2 border-transparent'
               }`}
               onDragOver={handleDragOver}
               onDragEnter={(e) => handleDragEnter(e, column.id)}
@@ -281,8 +314,8 @@ const ScoutManagement = () => {
                   <PlayerCard key={player.id} player={player} columnId={column.id} />
                 ))
               ) : (
-                <div className="flex items-center justify-center h-32 text-muted-foreground text-sm border-2 border-dashed border-gray-300 rounded-lg">
-                  Drag players here
+                <div className="flex items-center justify-center h-32 text-muted-foreground text-sm border-2 border-dashed border-muted-foreground/20 rounded-lg">
+                  {searchTerm || selectedScout !== "all" ? "No matching assignments" : "Drag players here"}
                 </div>
               )}
             </div>
