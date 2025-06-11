@@ -1,326 +1,216 @@
 
 import { useState } from "react";
-import PlayerSearch from "@/components/PlayerSearch";
-import PlayerProfilePreview from "@/components/PlayerProfilePreview";
-import TemplateSelection from "@/components/TemplateSelection";
-import RequirementCard from "@/components/RequirementCard";
-import PlayerPitchModal from "@/components/PlayerPitchModal";
-import NewRequirementDialog from "@/components/NewRequirementDialog";
-import { Player } from "@/types/player";
-import { ReportTemplate, RequirementProfile } from "@/types/report";
-import { Sheet, SheetContent } from "@/components/ui/sheet";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, FileText, Star, Clock, Calendar, MapPin } from "lucide-react";
-import { toast } from "@/hooks/use-toast";
-import { useNavigate } from "react-router-dom";
-import { useReports } from "@/hooks/useReports";
-import { useAuth } from "@/contexts/AuthContext";
-import { format } from "date-fns";
-
-// Mock data for upcoming fixtures
-const mockUpcomingFixtures = [
-  {
-    id: "1",
-    homeTeam: "Brighton",
-    awayTeam: "Liverpool",
-    playerToWatch: "Marcus Johnson",
-    date: new Date(),
-    time: "15:00",
-    competition: "Premier League"
-  },
-  {
-    id: "2",
-    homeTeam: "Real Sociedad",
-    awayTeam: "Barcelona", 
-    playerToWatch: "Luis Rodriguez",
-    date: new Date(Date.now() + 24 * 60 * 60 * 1000),
-    time: "21:00",
-    competition: "La Liga"
-  },
-  {
-    id: "3",
-    homeTeam: "Dynamo Kiev",
-    awayTeam: "Shakhtar",
-    playerToWatch: "Viktor Petrov",
-    date: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000),
-    time: "17:30",
-    competition: "Ukrainian Premier League"
-  }
-];
-
-// Mock recent activity data
-const mockRecentActivity = [
-  {
-    id: "1",
-    action: "Viktor Petrov report approved",
-    time: "2 hours ago"
-  },
-  {
-    id: "2", 
-    action: "Marcus Johnson assigned to Sarah Williams",
-    time: "4 hours ago"
-  },
-  {
-    id: "3",
-    action: "Ahmed Hassan added to Young Prospects",
-    time: "1 day ago"
-  },
-  {
-    id: "4",
-    action: "Brighton vs Liverpool - Marcus Johnson playing",
-    time: "2 days ago"
-  }
-];
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Calendar, Users, FileText, Search, Filter, Plus, TrendingUp, Target, Clock, CheckCircle } from "lucide-react";
+import { useMyScoutingTasks } from "@/hooks/useMyScoutingTasks";
+import { Link } from "react-router-dom";
 
 const ScoutingDashboard = () => {
-  const navigate = useNavigate();
-  const { profile } = useAuth();
-  const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null);
-  const [isTemplateDialogOpen, setIsTemplateDialogOpen] = useState(false);
-  const [selectedPitchPosition, setSelectedPitchPosition] = useState<string | null>(null);
-  const [isNewRequirementOpen, setIsNewRequirementOpen] = useState(false);
-  const [initialPosition, setInitialPosition] = useState<string | undefined>();
-  const { reports, loading, deleteReport } = useReports();
+  const { data: assignments = [], isLoading } = useMyScoutingTasks();
+  const [searchTerm, setSearchTerm] = useState("");
 
-  const handleSelectPlayer = (player: Player) => {
-    setSelectedPlayer(player);
+  const stats = {
+    totalAssignments: assignments.length,
+    pendingReports: assignments.filter(a => a.status === 'assigned').length,
+    completedReports: assignments.filter(a => a.status === 'completed').length,
+    upcomingMatches: 12,
   };
 
-  const handleClosePlayerProfile = () => {
-    setSelectedPlayer(null);
-  };
-
-  const handleCreateReport = (player: Player) => {
-    setIsTemplateDialogOpen(true);
-  };
-
-  const handleSelectTemplate = (player: Player, template: ReportTemplate) => {
-    setIsTemplateDialogOpen(false);
-    toast({
-      title: "Report Started",
-      description: `New ${template.name} for ${player.name} created.`,
-    });
-    console.log("Creating report for", player.name, "using template", template.name);
-    setSelectedPlayer(null);
-  };
-
-  const handleViewReport = (reportId: string) => {
-    navigate(`/reports/${reportId}`);
-  };
-
-  const handleDeleteReport = async (reportId: string, playerName: string) => {
-    if (window.confirm(`Are you sure you want to delete the report for ${playerName}?`)) {
-      try {
-        await deleteReport(reportId);
-        toast({
-          title: "Success",
-          description: "Report deleted successfully",
-        });
-      } catch (error) {
-        toast({
-          title: "Error",
-          description: "Failed to delete report",
-          variant: "destructive",
-        });
-      }
-    }
-  };
-
-  const handleCreateRequirement = () => {
-    setIsNewRequirementOpen(true);
-  };
-
-  const handleViewRequirement = (requirementId: string) => {
-    navigate(`/transfers/requirements/${requirementId}`);
-  };
-
-  const handleCreateAd = (position: string) => {
-    setInitialPosition(position);
-    setIsNewRequirementOpen(true);
-  };
-
-  const handleViewPitches = (position: string) => {
-    setSelectedPitchPosition(position);
-  };
-
-  const statsCards = [
-    { 
-      title: "Total Players", 
-      value: "4", 
-      subtitle: "Assigned for scouting", 
-      color: "bg-purple-100", 
-      icon: Users,
-      iconColor: "text-purple-600",
-      onClick: () => navigate("/assigned-players")
-    },
-    { 
-      title: "Completed Reports", 
-      value: "1", 
-      subtitle: "This month", 
-      color: "bg-green-100", 
-      icon: FileText,
-      iconColor: "text-green-600",
-      onClick: () => navigate("/reports")
-    },
-    { 
-      title: "Shortlisted Players", 
-      value: "5", 
-      subtitle: "Across 2 lists", 
-      color: "bg-yellow-100", 
-      icon: Star,
-      iconColor: "text-yellow-600",
-      onClick: () => navigate("/shortlists")
-    },
-    { 
-      title: "Pending Actions", 
-      value: "3", 
-      subtitle: "Require attention", 
-      color: "bg-red-100", 
-      icon: Clock,
-      iconColor: "text-red-600",
-      onClick: () => navigate("/scout-management")
-    },
+  const recentActivity = [
+    { type: 'report', player: 'Marcus Johnson', club: 'Arsenal', time: '2 hours ago' },
+    { type: 'assignment', player: 'David Silva', club: 'Chelsea', time: '5 hours ago' },
+    { type: 'match', event: 'Liverpool vs Manchester City', time: '1 day ago' },
   ];
 
-  const getDisplayName = () => {
-    if (profile?.first_name && profile?.last_name) {
-      return `${profile.first_name} ${profile.last_name}`;
-    }
-    if (profile?.first_name) {
-      return profile.first_name;
-    }
-    return 'Scout';
-  };
+  const upcomingTasks = assignments.slice(0, 3);
 
-  return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-6 py-8 max-w-7xl">
-        {/* Welcome Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Welcome back, {getDisplayName()}
-          </h1>
-          <p className="text-gray-600">
-            Here's what's happening with your scouting activities today.
-          </p>
-        </div>
-
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          {statsCards.map((card, index) => (
-            <Card 
-              key={index} 
-              className="bg-white border-0 shadow-sm hover:shadow-md transition-all cursor-pointer hover:scale-105"
-              onClick={card.onClick}
-            >
-              <CardContent className="p-6">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <p className="text-sm font-medium text-gray-600 mb-2">{card.title}</p>
-                    <p className="text-3xl font-bold text-gray-900 mb-1">{card.value}</p>
-                    <p className="text-sm text-gray-500">{card.subtitle}</p>
-                  </div>
-                  <div className={`w-12 h-12 ${card.color} rounded-lg flex items-center justify-center`}>
-                    <card.icon className={`h-6 w-6 ${card.iconColor}`} />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-
-        {/* Main Content Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Recent Activity */}
-          <Card className="bg-white border-0 shadow-sm">
-            <CardHeader>
-              <CardTitle className="text-xl font-bold text-gray-900">Recent Activity</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {mockRecentActivity.map((activity) => (
-                <div key={activity.id} className="flex items-start gap-3">
-                  <div className="w-2 h-2 bg-purple-500 rounded-full mt-2 flex-shrink-0"></div>
-                  <div className="flex-1">
-                    <p className="text-sm font-medium text-gray-900">{activity.action}</p>
-                    <p className="text-xs text-gray-500">{activity.time}</p>
-                  </div>
-                </div>
-              ))}
-            </CardContent>
-          </Card>
-
-          {/* Upcoming Fixtures */}
-          <Card className="bg-white border-0 shadow-sm">
-            <CardHeader>
-              <CardTitle className="text-xl font-bold text-gray-900">Upcoming Fixtures</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {mockUpcomingFixtures.map((fixture) => (
-                <div key={fixture.id} className="border-l-4 border-purple-500 pl-4">
-                  <div className="flex items-center justify-between mb-1">
-                    <h4 className="font-semibold text-gray-900">
-                      {fixture.homeTeam} vs {fixture.awayTeam}
-                    </h4>
-                    <div className="text-right">
-                      <p className="text-sm font-medium text-gray-900">
-                        {format(fixture.date, 'MMM d') === format(new Date(), 'MMM d') 
-                          ? 'Today' 
-                          : format(fixture.date, 'MMM d') === format(new Date(Date.now() + 24 * 60 * 60 * 1000), 'MMM d')
-                          ? 'Tomorrow'
-                          : format(fixture.date, 'MMM d, yyyy')
-                        } {fixture.time}
-                      </p>
-                      <p className="text-xs text-gray-500">{fixture.competition}</p>
-                    </div>
-                  </div>
-                  <p className="text-sm text-gray-600">{fixture.playerToWatch} playing</p>
-                </div>
-              ))}
-            </CardContent>
-          </Card>
+  if (isLoading) {
+    return (
+      <div className="container mx-auto py-8">
+        <div className="flex items-center justify-center py-12">
+          <div className="text-center">Loading dashboard...</div>
         </div>
       </div>
-      
-      {/* Mobile view for player profile */}
-      <Sheet open={!!selectedPlayer && window.innerWidth < 768} onOpenChange={(open) => !open && setSelectedPlayer(null)}>
-        <SheetContent className="w-full sm:max-w-md p-0">
-          {selectedPlayer && (
-            <PlayerProfilePreview 
-              player={selectedPlayer} 
-              onCreateReport={handleCreateReport} 
-              onClose={handleClosePlayerProfile} 
-            />
-          )}
-        </SheetContent>
-      </Sheet>
-      
-      {/* Template selection dialog */}
-      {selectedPlayer && (
-        <TemplateSelection 
-          player={selectedPlayer}
-          isOpen={isTemplateDialogOpen}
-          onClose={() => setIsTemplateDialogOpen(false)}
-          onSelectTemplate={handleSelectTemplate}
-        />
-      )}
+    );
+  }
 
-      {/* Player Pitch Modal */}
-      <PlayerPitchModal
-        isOpen={!!selectedPitchPosition}
-        onClose={() => setSelectedPitchPosition(null)}
-        position={selectedPitchPosition || ''}
-      />
+  return (
+    <div className="container mx-auto py-8 max-w-7xl bg-background">
+      {/* Header */}
+      <div className="flex justify-between items-start mb-8">
+        <div>
+          <h1 className="text-3xl font-bold">Scout Dashboard</h1>
+          <p className="text-muted-foreground mt-2">
+            Welcome back! Here's your scouting overview.
+          </p>
+        </div>
+        <div className="flex gap-3">
+          <Button variant="outline" className="flex items-center gap-2">
+            <Calendar className="h-4 w-4" />
+            Schedule
+          </Button>
+          <Link to="/reports/new">
+            <Button className="flex items-center gap-2">
+              <Plus className="h-4 w-4" />
+              New Report
+            </Button>
+          </Link>
+        </div>
+      </div>
 
-      {/* New Requirement Dialog */}
-      <NewRequirementDialog 
-        isOpen={isNewRequirementOpen}
-        onClose={() => {
-          setIsNewRequirementOpen(false);
-          setInitialPosition(undefined);
-        }}
-        initialPosition={initialPosition}
-      />
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-3">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Total Assignments</CardTitle>
+            <Target className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent className="pt-0">
+            <div className="text-3xl font-bold">{stats.totalAssignments}</div>
+            <p className="text-xs text-muted-foreground">Active scouting tasks</p>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-3">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Pending Reports</CardTitle>
+            <Clock className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent className="pt-0">
+            <div className="text-3xl font-bold text-warning-600">{stats.pendingReports}</div>
+            <p className="text-xs text-muted-foreground">Reports to submit</p>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-3">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Completed Reports</CardTitle>
+            <CheckCircle className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent className="pt-0">
+            <div className="text-3xl font-bold text-success-600">{stats.completedReports}</div>
+            <p className="text-xs text-muted-foreground">This month</p>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-3">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Upcoming Matches</CardTitle>
+            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent className="pt-0">
+            <div className="text-3xl font-bold">{stats.upcomingMatches}</div>
+            <p className="text-xs text-muted-foreground">Next 7 days</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Main Content Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* Recent Activity */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <FileText className="h-5 w-5" />
+              Recent Activity
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {recentActivity.map((activity, index) => (
+                <div key={index} className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
+                  <div className="w-2 h-2 rounded-full bg-success-500"></div>
+                  <div className="flex-1">
+                    <p className="text-sm font-medium">
+                      {activity.type === 'report' && `Report submitted for ${activity.player}`}
+                      {activity.type === 'assignment' && `New assignment: ${activity.player}`}
+                      {activity.type === 'match' && `Match watched: ${activity.event}`}
+                    </p>
+                    {activity.club && (
+                      <p className="text-xs text-muted-foreground">{activity.club}</p>
+                    )}
+                  </div>
+                  <span className="text-xs text-muted-foreground">{activity.time}</span>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Upcoming Tasks */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Users className="h-5 w-5" />
+              Upcoming Tasks
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {upcomingTasks.length > 0 ? (
+                upcomingTasks.map((task) => (
+                  <div key={task.id} className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
+                    <div className="flex-1">
+                      <p className="text-sm font-medium">{task.players?.name}</p>
+                      <p className="text-xs text-muted-foreground">{task.players?.club}</p>
+                    </div>
+                    <Badge 
+                      variant={task.status === 'assigned' ? 'destructive' : 'secondary'}
+                      className={task.status === 'assigned' ? 'bg-warning-100 text-warning-800 border-0' : ''}
+                    >
+                      {task.status === 'assigned' ? 'Pending' : task.status}
+                    </Badge>
+                  </div>
+                ))
+              ) : (
+                <p className="text-muted-foreground text-center py-4">No upcoming tasks</p>
+              )}
+            </div>
+            <div className="mt-4">
+              <Link to="/assigned-players">
+                <Button variant="outline" className="w-full">
+                  View All Assignments
+                </Button>
+              </Link>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Quick Actions */}
+      <div className="mt-8">
+        <Card>
+          <CardHeader>
+            <CardTitle>Quick Actions</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <Link to="/reports/new">
+                <Button variant="outline" className="w-full h-20 flex flex-col gap-2">
+                  <FileText className="h-6 w-6" />
+                  Create Report
+                </Button>
+              </Link>
+              <Link to="/assigned-players">
+                <Button variant="outline" className="w-full h-20 flex flex-col gap-2">
+                  <Users className="h-6 w-6" />
+                  View Assignments
+                </Button>
+              </Link>
+              <Link to="/calendar">
+                <Button variant="outline" className="w-full h-20 flex flex-col gap-2">
+                  <Calendar className="h-6 w-6" />
+                  Match Schedule
+                </Button>
+              </Link>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 };
