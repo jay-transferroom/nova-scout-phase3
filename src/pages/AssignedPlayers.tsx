@@ -90,7 +90,7 @@ const AssignedPlayers = () => {
             <Edit className="h-4 w-4" />
             Bulk Actions
           </Button>
-          <Button className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700">
+          <Button className="flex items-center gap-2">
             <FileText className="h-4 w-4" />
             Submit Reports
           </Button>
@@ -182,7 +182,7 @@ const AssignedPlayers = () => {
                   </p>
                 </div>
                 <div className="text-right">
-                  <div className="text-2xl font-bold text-purple-600">{getPlayerRating()}</div>
+                  <div className="text-2xl font-bold text-success-600">{getPlayerRating()}</div>
                   <div className="text-xs text-muted-foreground">Rating</div>
                 </div>
               </div>
@@ -207,7 +207,7 @@ const AssignedPlayers = () => {
               <div className="flex gap-2">
                 {assignment.status !== 'completed' && assignment.status !== 'reviewed' ? (
                   <Link to={`/reports/new?playerId=${assignment.player_id}&assignmentId=${assignment.id}`} className="flex-1">
-                    <Button className="w-full bg-purple-600 hover:bg-purple-700">
+                    <Button className="w-full">
                       Write Report
                     </Button>
                   </Link>
