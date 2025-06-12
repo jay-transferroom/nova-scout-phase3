@@ -110,7 +110,7 @@ const Header = () => {
               <Menu className="h-5 w-5" />
             </SidebarTrigger>
             <Link to="/" className="font-bold text-xl text-brand-600">
-              ScoutRoom
+              Nova
             </Link>
           </div>
 
