@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -53,20 +54,35 @@ export default {
 				'5000': '200px',
 			},
 			colors: {
-				// Brand colors
+				// Nova brand colors
 				brand: {
-					25: '#f0fdf9',
-					50: '#ecfdf5', 
-					100: '#d1fae5',
-					200: '#a7f3d0',
-					300: '#6ee7b7',
-					400: '#34d399',
-					500: '#10b981',
-					600: '#059669',
-					700: '#047857',
-					800: '#065f46',
-					900: '#064e3b',
-					950: '#022c22'
+					primary: '#3E7FFF', // Nova Blue
+					secondary: '#A678F2', // Pulse Purple
+					success: '#33D38A', // Signal Green
+					'accent-orange': '#FFAC4B', // Orbit Orange
+					'accent-pink': '#FF6B9C' // Solar Pink
+				},
+
+				// Nova light theme
+				nova: {
+					light: {
+						background: '#F9FAFC', // Starfield White
+						surface: '#FFFFFF', // Moonlight Grey
+						'text-primary': '#1E1E20', // Nova Black
+						'text-secondary': '#626A76', // Gravity Grey
+						border: '#E1E5EC', // Orbital Grey
+						'input-background': '#F2F4F7', // Frost Grey
+						'focus-ring': '#3E7FFF' // Nova Blue
+					},
+					dark: {
+						background: '#0C0F1C', // Stellar Midnight
+						surface: '#161B2B', // Deep Space
+						'text-primary': '#F5F8FA', // Starlight White
+						'text-secondary': '#A0A6B1', // Orbit Grey
+						border: '#2A2F42', // Dark Matter
+						'input-background': '#1E2335', // Nebula Grey
+						'focus-ring': '#3E7FFF' // Nova Blue
+					}
 				},
 				
 				// Neutral colors

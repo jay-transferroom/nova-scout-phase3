@@ -17,9 +17,9 @@ const AppInitializer: React.FC<AppInitializerProps> = ({ children }) => {
         <Card className="w-full max-w-md mx-4">
           <CardContent className="p-6">
             <div className="flex flex-col items-center space-y-4">
-              <Loader2 className="h-8 w-8 animate-spin text-success-600" />
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
               <div className="text-center">
-                <h2 className="text-lg font-semibold mb-2">Initializing Application</h2>
+                <h2 className="text-lg font-semibold mb-2">Initializing Nova</h2>
                 <p className="text-sm text-muted-foreground">{initializationStatus}</p>
               </div>
             </div>
