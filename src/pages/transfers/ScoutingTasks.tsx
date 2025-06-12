@@ -47,7 +47,7 @@ const ScoutingTasks = () => {
 
   const handleStartScouting = async (taskId: string) => {
     try {
-      await updateStatus.mutateAsync({ id: taskId, status: 'in_progress' });
+      await updateStatus.mutateAsync({ assignmentId: taskId, status: 'in_progress' });
       toast({
         title: "Task Started",
         description: "Scouting task marked as in progress.",
@@ -64,7 +64,7 @@ const ScoutingTasks = () => {
 
   const handleCompleteTask = async (taskId: string) => {
     try {
-      await updateStatus.mutateAsync({ id: taskId, status: 'completed' });
+      await updateStatus.mutateAsync({ assignmentId: taskId, status: 'completed' });
       toast({
         title: "Task Completed",
         description: "Scouting task marked as completed.",
