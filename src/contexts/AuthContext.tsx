@@ -103,7 +103,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const signUp = async (email: string, password: string, firstName?: string, lastName?: string) => {
-    const redirectUrl = `${window.location.origin}/`;
+    // Use the published Lovable URL for email confirmations
+    const redirectUrl = 'https://loving-mariner-lshs.lovable.app/';
     
     const { error } = await supabase.auth.signUp({
       email,
