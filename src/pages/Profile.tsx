@@ -54,7 +54,7 @@ const Profile = () => {
   };
 
   return (
-    <div className="container mx-auto pt-8 pb-16 max-w-2xl">
+    <div className="container mx-auto pt-8 pb-16 max-w-7xl">
       <div className="mb-8">
         <h1 className="text-3xl font-bold mb-2">Profile</h1>
         <p className="text-muted-foreground">Manage your account settings and preferences</p>

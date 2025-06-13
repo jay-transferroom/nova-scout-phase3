@@ -19,7 +19,7 @@ const Settings = () => {
   const isAdmin = profile?.role === 'recruitment';
 
   return (
-    <div className="container mx-auto pt-8 pb-16 max-w-4xl">
+    <div className="container mx-auto pt-8 pb-16 max-w-7xl">
       <div className="mb-8">
         <h1 className="text-3xl font-bold mb-2">Settings</h1>
         <p className="text-muted-foreground">Manage your application preferences and administration</p>
