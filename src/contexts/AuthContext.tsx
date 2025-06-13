@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -103,8 +102,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const signUp = async (email: string, password: string, firstName?: string, lastName?: string) => {
-    // Use the published Lovable URL for email confirmations
-    const redirectUrl = 'https://loving-mariner-lshs.lovable.app/';
+    // Use the correct published Lovable URL for email confirmations
+    const redirectUrl = 'https://transferroom-scout.lovable.app/';
     
     const { error } = await supabase.auth.signUp({
       email,
