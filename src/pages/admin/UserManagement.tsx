@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -32,13 +31,24 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { MoreHorizontal, UserPlus, Settings as SettingsIcon } from 'lucide-react';
+import { MoreHorizontal, UserPlus, Settings as SettingsIcon, Trash2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Navigate } from 'react-router-dom';
@@ -70,6 +80,7 @@ const UserManagement = () => {
   const [newUserRole, setNewUserRole] = useState<'scout' | 'recruitment'>('scout');
   const [isCreatingUser, setIsCreatingUser] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+  const [isDeletingUser, setIsDeletingUser] = useState(false);
   
   const { data: clubs } = useClubs();
   const { data: userPermissions } = useUserPermissions(selectedUserId || undefined);
@@ -124,6 +135,25 @@ const UserManagement = () => {
     } catch (error) {
       console.error('Error updating user role:', error);
       toast.error('Failed to update user role');
+    }
+  };
+
+  const deleteUser = async (userId: string) => {
+    setIsDeletingUser(true);
+    try {
+      // Delete from auth.users table using the admin API
+      const { error } = await supabase.auth.admin.deleteUser(userId);
+
+      if (error) throw error;
+
+      // Remove from local state
+      setUsers(users.filter(user => user.id !== userId));
+      toast.success('User deleted successfully');
+    } catch (error) {
+      console.error('Error deleting user:', error);
+      toast.error('Failed to delete user');
+    } finally {
+      setIsDeletingUser(false);
     }
   };
 
@@ -455,6 +485,36 @@ const UserManagement = () => {
                             </div>
                           </DialogContent>
                         </Dialog>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <DropdownMenuItem 
+                              onSelect={(e) => e.preventDefault()}
+                              className="text-destructive focus:text-destructive"
+                              disabled={user.id === profile?.id}
+                            >
+                              <Trash2 className="mr-2 h-4 w-4" />
+                              Delete User
+                            </DropdownMenuItem>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Delete User</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Are you sure you want to delete {getDisplayName(user)}? This action cannot be undone and will permanently remove their account and all associated data.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={() => deleteUser(user.id)}
+                                disabled={isDeletingUser}
+                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                              >
+                                {isDeletingUser ? 'Deleting...' : 'Delete User'}
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </TableCell>
