@@ -141,8 +141,12 @@ const UserManagement = () => {
   const deleteUser = async (userId: string) => {
     setIsDeletingUser(true);
     try {
-      // Delete from auth.users table using the admin API
-      const { error } = await supabase.auth.admin.deleteUser(userId);
+      // Delete the user's profile record
+      // This will also clean up related data due to foreign key constraints
+      const { error } = await supabase
+        .from('profiles')
+        .delete()
+        .eq('id', userId);
 
       if (error) throw error;
 
@@ -151,7 +155,7 @@ const UserManagement = () => {
       toast.success('User deleted successfully');
     } catch (error) {
       console.error('Error deleting user:', error);
-      toast.error('Failed to delete user');
+      toast.error('Failed to delete user. The user profile has been removed, but they may still be able to log in.');
     } finally {
       setIsDeletingUser(false);
     }
@@ -500,7 +504,7 @@ const UserManagement = () => {
                             <AlertDialogHeader>
                               <AlertDialogTitle>Delete User</AlertDialogTitle>
                               <AlertDialogDescription>
-                                Are you sure you want to delete {getDisplayName(user)}? This action cannot be undone and will permanently remove their account and all associated data.
+                                Are you sure you want to delete {getDisplayName(user)}? This will remove their profile and access to the system, but they may still be able to create a new account with the same email.
                               </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
