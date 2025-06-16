@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -51,117 +52,42 @@ function App() {
           <Sonner />
           <BrowserRouter>
             <AppInitializer>
-              <SidebarProvider>
-                <div className="min-h-screen bg-background flex w-full">
-                  <MainNavigation />
-                  <SidebarInset>
-                    <Header />
-                    <main className="flex-1 p-6">
-                      <Routes>
-                        <Route path="/" element={<Index />} />
-                        <Route path="/auth" element={<Auth />} />
-                        <Route
-                          path="/calendar"
-                          element={
-                            <ProtectedRoute>
-                              <Calendar />
-                            </ProtectedRoute>
-                          }
-                        />
-                        <Route
-                          path="/assigned-players"
-                          element={
-                            <ProtectedRoute>
-                              <AssignedPlayers />
-                            </ProtectedRoute>
-                          }
-                        />
-                        <Route
-                          path="/shortlists"
-                          element={
-                            <ProtectedRoute>
-                              <Shortlists />
-                            </ProtectedRoute>
-                          }
-                        />
-                        <Route
-                          path="/scout-management"
-                          element={
-                            <ProtectedRoute>
-                              <ScoutManagement />
-                            </ProtectedRoute>
-                          }
-                        />
-                        <Route
-                          path="/profile"
-                          element={
-                            <ProtectedRoute>
-                              <Profile />
-                            </ProtectedRoute>
-                          }
-                        />
-                        <Route
-                          path="/reports/new"
-                          element={
-                            <ProtectedRoute>
-                              <ReportBuilder />
-                            </ProtectedRoute>
-                          }
-                        />
-                        <Route
-                          path="/reports/:id"
-                          element={
-                            <ProtectedRoute>
-                              <ReportView />
-                            </ProtectedRoute>
-                          }
-                        />
-                        <Route
-                          path="/reports"
-                          element={
-                            <ProtectedRoute>
-                              <ReportsList />
-                            </ProtectedRoute>
-                          }
-                        />
-                        <Route
-                          path="/players/:id"
-                          element={
-                            <ProtectedRoute>
-                              <PlayerProfile />
-                            </ProtectedRoute>
-                          }
-                        />
-                        <Route
-                          path="/search-results"
-                          element={
-                            <ProtectedRoute>
-                              <SearchResults />
-                            </ProtectedRoute>
-                          }
-                        />
-                        <Route
-                          path="/ai-search"
-                          element={
-                            <ProtectedRoute>
-                              <AISearch />
-                            </ProtectedRoute>
-                          }
-                        />
-                        <Route
-                          path="/settings"
-                          element={
-                            <ProtectedRoute>
-                              <Settings />
-                            </ProtectedRoute>
-                          }
-                        />
-                        <Route path="*" element={<NotFound />} />
-                      </Routes>
-                    </main>
-                  </SidebarInset>
-                </div>
-              </SidebarProvider>
+              <Routes>
+                <Route path="/auth" element={<Auth />} />
+                <Route
+                  path="/*"
+                  element={
+                    <ProtectedRoute>
+                      <SidebarProvider>
+                        <div className="min-h-screen bg-background flex w-full">
+                          <MainNavigation />
+                          <SidebarInset>
+                            <Header />
+                            <main className="flex-1 p-6">
+                              <Routes>
+                                <Route path="/" element={<Index />} />
+                                <Route path="/calendar" element={<Calendar />} />
+                                <Route path="/assigned-players" element={<AssignedPlayers />} />
+                                <Route path="/shortlists" element={<Shortlists />} />
+                                <Route path="/scout-management" element={<ScoutManagement />} />
+                                <Route path="/profile" element={<Profile />} />
+                                <Route path="/reports/new" element={<ReportBuilder />} />
+                                <Route path="/reports/:id" element={<ReportView />} />
+                                <Route path="/reports" element={<ReportsList />} />
+                                <Route path="/players/:id" element={<PlayerProfile />} />
+                                <Route path="/search-results" element={<SearchResults />} />
+                                <Route path="/ai-search" element={<AISearch />} />
+                                <Route path="/settings" element={<Settings />} />
+                                <Route path="*" element={<NotFound />} />
+                              </Routes>
+                            </main>
+                          </SidebarInset>
+                        </div>
+                      </SidebarProvider>
+                    </ProtectedRoute>
+                  }
+                />
+              </Routes>
             </AppInitializer>
           </BrowserRouter>
         </TooltipProvider>
