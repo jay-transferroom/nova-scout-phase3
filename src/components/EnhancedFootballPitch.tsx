@@ -46,7 +46,6 @@ const EnhancedFootballPitch = ({ players, squadType, onPositionClick, selectedPo
       })
     );
 
-    // Always show 2 slots per position for proper depth visualization
     return positionPlayers.slice(0, 2);
   };
 
@@ -70,14 +69,12 @@ const EnhancedFootballPitch = ({ players, squadType, onPositionClick, selectedPo
   const getPositionRiskFactors = (positionPlayers: Player[]) => {
     const risks = [];
     
-    // Depth risk
     if (positionPlayers.length === 0) {
       risks.push({ type: 'critical', message: 'No players available' });
     } else if (positionPlayers.length === 1) {
       risks.push({ type: 'high', message: 'Limited depth - only 1 player' });
     }
     
-    // Contract risks
     const contractRisks = positionPlayers.filter(p => {
       const risk = getContractRiskLevel(p);
       return risk === 'high' || risk === 'medium';
@@ -90,7 +87,6 @@ const EnhancedFootballPitch = ({ players, squadType, onPositionClick, selectedPo
       });
     }
     
-    // Age risk (for this example, players over 32)
     const agingPlayers = positionPlayers.filter(p => p.age > 32);
     if (agingPlayers.length > 0) {
       risks.push({ 
@@ -102,50 +98,59 @@ const EnhancedFootballPitch = ({ players, squadType, onPositionClick, selectedPo
     return risks;
   };
 
-  const renderPlayerSlot = (player: Player | null, index: number, positionPlayers: Player[]) => {
-    if (!player) {
-      return (
-        <div className="w-12 h-12 rounded-full bg-gray-300 border-2 border-white flex items-center justify-center mb-1 shadow-md">
-          <Plus className="h-4 w-4 text-gray-500" />
-        </div>
-      );
-    }
-
+  const renderPlayerCard = (player: Player, index: number, x: number, y: number) => {
     const contractRisk = getContractRiskLevel(player);
-    const isInjured = Math.random() < 0.1; // Mock injury status for demo
+    const isInjured = Math.random() < 0.1; // Mock injury status
+    const mockValue = Math.floor(Math.random() * 80) + 5; // Mock transfer value
+
+    // Position the card based on formation position and index
+    const cardX = index === 0 ? x : x + (index % 2 === 0 ? -15 : 15);
+    const cardY = index === 0 ? y - 8 : y + 8;
 
     return (
-      <div className="relative mb-1">
-        <Avatar className="w-12 h-12 border-2 border-white shadow-md">
-          <AvatarImage src={player.image || `https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&crop=face&fit=crop`} />
-          <AvatarFallback className="bg-blue-600 text-white text-xs font-bold">
-            {player.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
-          </AvatarFallback>
-        </Avatar>
-        
-        {/* Risk indicators */}
-        <div className="absolute -top-1 -right-1 flex flex-col gap-1">
-          {contractRisk === 'high' && (
-            <div className="w-4 h-4 bg-red-500 rounded-full flex items-center justify-center">
-              <Clock className="h-2 w-2 text-white" />
+      <div
+        key={player.id}
+        className="absolute transform -translate-x-1/2 -translate-y-1/2"
+        style={{
+          left: `${Math.max(10, Math.min(90, cardX))}%`,
+          top: `${Math.max(5, Math.min(95, cardY))}%`,
+        }}
+      >
+        <div className="bg-white rounded-lg shadow-lg p-2 min-w-32 border">
+          <div className="flex items-center gap-2 mb-1">
+            <Avatar className="w-8 h-8">
+              <AvatarImage src={player.image || `https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&crop=face&fit=crop`} />
+              <AvatarFallback className="bg-blue-600 text-white text-xs">
+                {player.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
+              </AvatarFallback>
+            </Avatar>
+            <div className="flex-1 min-w-0">
+              <div className="text-xs font-medium truncate">{player.name}</div>
+              <div className="text-xs text-gray-500">'{player.age.toString().slice(-2)} {Math.floor(Math.random() * 20) + 170}cm</div>
             </div>
-          )}
-          {contractRisk === 'medium' && (
-            <div className="w-4 h-4 bg-amber-500 rounded-full flex items-center justify-center">
-              <Clock className="h-2 w-2 text-white" />
-            </div>
-          )}
-          {isInjured && (
-            <div className="w-4 h-4 bg-red-600 rounded-full flex items-center justify-center">
-              <AlertTriangle className="h-2 w-2 text-white" />
-            </div>
-          )}
+          </div>
+          
+          <div className="text-xs font-bold text-center">€{mockValue}M</div>
+          
+          {/* Risk indicators */}
+          <div className="flex gap-1 mt-1">
+            {contractRisk === 'high' && (
+              <div className="w-3 h-3 bg-red-500 rounded-full flex items-center justify-center">
+                <Clock className="h-1.5 w-1.5 text-white" />
+              </div>
+            )}
+            {contractRisk === 'medium' && (
+              <div className="w-3 h-3 bg-amber-500 rounded-full flex items-center justify-center">
+                <Clock className="h-1.5 w-1.5 text-white" />
+              </div>
+            )}
+            {isInjured && (
+              <div className="w-3 h-3 bg-red-600 rounded-full flex items-center justify-center">
+                <AlertTriangle className="h-1.5 w-1.5 text-white" />
+              </div>
+            )}
+          </div>
         </div>
-        
-        {/* Player name badge */}
-        <Badge variant="secondary" className="text-xs mt-1 px-1 py-0 max-w-20 truncate">
-          {player.name.split(' ')[0]}
-        </Badge>
       </div>
     );
   };
@@ -153,7 +158,7 @@ const EnhancedFootballPitch = ({ players, squadType, onPositionClick, selectedPo
   return (
     <Card className="p-6 bg-green-50">
       <div className="relative w-full h-96 bg-green-600 rounded-lg overflow-hidden">
-        {/* Pitch markings - keep existing code */}
+        {/* Pitch markings */}
         <div className="absolute inset-0">
           <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-20 h-20 border-2 border-white rounded-full"></div>
           <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-1 h-1 bg-white rounded-full"></div>
@@ -164,7 +169,7 @@ const EnhancedFootballPitch = ({ players, squadType, onPositionClick, selectedPo
           <div className="absolute bottom-0 left-1/4 right-1/4 h-16 border-2 border-white border-b-0"></div>
         </div>
 
-        {/* Players */}
+        {/* Players positioned around the pitch */}
         {Object.entries(FORMATION_POSITIONS).map(([position, coords]) => {
           const positionPlayers = getPlayersForPosition(position);
           const isSelected = selectedPosition === coords.label;
@@ -172,45 +177,51 @@ const EnhancedFootballPitch = ({ players, squadType, onPositionClick, selectedPo
           const hasHighRisk = riskFactors.some(r => r.type === 'critical' || r.type === 'high');
           
           return (
-            <div
-              key={position}
-              className={`absolute transform -translate-x-1/2 -translate-y-1/2 cursor-pointer transition-all hover:scale-105 ${
-                isSelected ? 'scale-105 z-10' : ''
-              }`}
-              style={{
-                left: `${coords.x}%`,
-                top: `${coords.y}%`,
-              }}
-              onClick={() => handlePositionClick(position, coords.label)}
-            >
-              <div className="flex flex-col items-center">
-                <div className="flex flex-col items-center">
-                  {/* First choice player */}
-                  {renderPlayerSlot(positionPlayers[0] || null, 0, positionPlayers)}
-                  
-                  {/* Second choice player */}
-                  {renderPlayerSlot(positionPlayers[1] || null, 1, positionPlayers)}
-                </div>
-                
+            <div key={position}>
+              {/* Position marker on pitch */}
+              <div
+                className={`absolute transform -translate-x-1/2 -translate-y-1/2 cursor-pointer transition-all hover:scale-105 ${
+                  isSelected ? 'scale-105 z-10' : ''
+                }`}
+                style={{
+                  left: `${coords.x}%`,
+                  top: `${coords.y}%`,
+                }}
+                onClick={() => handlePositionClick(position, coords.label)}
+              >
+                <div className="w-4 h-4 bg-white rounded-full border-2 border-gray-300 opacity-50"></div>
+              </div>
+
+              {/* Player cards */}
+              {positionPlayers.map((player, index) => 
+                renderPlayerCard(player, index, coords.x, coords.y)
+              )}
+              
+              {/* Position label */}
+              <div
+                className="absolute transform -translate-x-1/2 -translate-y-1/2 pointer-events-none"
+                style={{
+                  left: `${coords.x}%`,
+                  top: `${coords.y + 15}%`,
+                }}
+              >
                 <Badge 
                   variant={isSelected ? "default" : "secondary"} 
-                  className={`text-xs mt-1 px-1 py-0 ${
+                  className={`text-xs px-1 py-0 ${
                     isSelected ? 'bg-yellow-500' : hasHighRisk ? 'bg-red-100 border-red-300' : ''
                   }`}
                 >
                   {coords.label}
                 </Badge>
                 
-                {/* Risk indicator */}
                 {hasHighRisk && (
-                  <div className="flex items-center gap-1 mt-1">
+                  <div className="flex items-center gap-1 mt-1 justify-center">
                     <AlertTriangle className="h-3 w-3 text-red-500" />
                     <span className="text-xs text-red-600 font-medium">Risk</span>
                   </div>
                 )}
                 
-                {/* Depth indicator */}
-                <div className="text-xs text-white bg-black bg-opacity-50 px-1 rounded mt-1">
+                <div className="text-xs text-white bg-black bg-opacity-50 px-1 rounded mt-1 text-center">
                   {positionPlayers.length}/2
                 </div>
               </div>
