@@ -66,87 +66,59 @@ const EnhancedFootballPitch = ({ players, squadType, onPositionClick, selectedPo
     return 'low';
   };
 
-  const getPositionRiskFactors = (positionPlayers: Player[]) => {
-    const risks = [];
-    
-    if (positionPlayers.length === 0) {
-      risks.push({ type: 'critical', message: 'No players available' });
-    } else if (positionPlayers.length === 1) {
-      risks.push({ type: 'high', message: 'Limited depth - only 1 player' });
-    }
-    
-    const contractRisks = positionPlayers.filter(p => {
-      const risk = getContractRiskLevel(p);
-      return risk === 'high' || risk === 'medium';
-    });
-    
-    if (contractRisks.length > 0) {
-      risks.push({ 
-        type: 'medium', 
-        message: `${contractRisks.length} contract${contractRisks.length > 1 ? 's' : ''} expiring soon` 
-      });
-    }
-    
-    const agingPlayers = positionPlayers.filter(p => p.age > 32);
-    if (agingPlayers.length > 0) {
-      risks.push({ 
-        type: 'low', 
-        message: `${agingPlayers.length} aging player${agingPlayers.length > 1 ? 's' : ''}` 
-      });
-    }
-    
-    return risks;
-  };
-
   const renderPlayerCard = (player: Player, index: number, x: number, y: number) => {
     const contractRisk = getContractRiskLevel(player);
     const isInjured = Math.random() < 0.1; // Mock injury status
     const mockValue = Math.floor(Math.random() * 80) + 5; // Mock transfer value
+    const mockHeight = Math.floor(Math.random() * 20) + 170; // Mock height
 
     // Position the card based on formation position and index
-    const cardX = index === 0 ? x : x + (index % 2 === 0 ? -15 : 15);
-    const cardY = index === 0 ? y - 8 : y + 8;
+    const cardX = index === 0 ? x - 8 : x + 8;
+    const cardY = y;
 
     return (
       <div
         key={player.id}
-        className="absolute transform -translate-x-1/2 -translate-y-1/2"
+        className="absolute transform -translate-x-1/2 -translate-y-1/2 z-10"
         style={{
-          left: `${Math.max(10, Math.min(90, cardX))}%`,
-          top: `${Math.max(5, Math.min(95, cardY))}%`,
+          left: `${Math.max(12, Math.min(88, cardX))}%`,
+          top: `${Math.max(8, Math.min(92, cardY))}%`,
         }}
       >
-        <div className="bg-white rounded-lg shadow-lg p-2 min-w-32 border">
-          <div className="flex items-center gap-2 mb-1">
-            <Avatar className="w-8 h-8">
-              <AvatarImage src={player.image || `https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&crop=face&fit=crop`} />
+        <div className="bg-white rounded-lg shadow-lg p-3 min-w-36 border hover:shadow-xl transition-shadow">
+          <div className="flex items-center gap-2 mb-2">
+            <Avatar className="w-10 h-10">
+              <AvatarImage 
+                src={player.image || `https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&crop=face&fit=crop`} 
+                alt={player.name}
+              />
               <AvatarFallback className="bg-blue-600 text-white text-xs">
                 {player.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
               </AvatarFallback>
             </Avatar>
             <div className="flex-1 min-w-0">
-              <div className="text-xs font-medium truncate">{player.name}</div>
-              <div className="text-xs text-gray-500">'{player.age.toString().slice(-2)} {Math.floor(Math.random() * 20) + 170}cm</div>
+              <div className="text-sm font-medium truncate">{player.name}</div>
+              <div className="text-xs text-gray-500">Age {player.age} • {mockHeight}cm</div>
             </div>
           </div>
           
-          <div className="text-xs font-bold text-center">€{mockValue}M</div>
+          <div className="text-sm font-bold text-center mb-2 text-green-600">€{mockValue}M</div>
           
           {/* Risk indicators */}
-          <div className="flex gap-1 mt-1">
+          <div className="flex gap-1 justify-center">
             {contractRisk === 'high' && (
-              <div className="w-3 h-3 bg-red-500 rounded-full flex items-center justify-center">
-                <Clock className="h-1.5 w-1.5 text-white" />
+              <div className="w-4 h-4 bg-red-500 rounded-full flex items-center justify-center">
+                <Clock className="h-2 w-2 text-white" />
               </div>
             )}
             {contractRisk === 'medium' && (
-              <div className="w-3 h-3 bg-amber-500 rounded-full flex items-center justify-center">
-                <Clock className="h-1.5 w-1.5 text-white" />
+              <div className="w-4 h-4 bg-amber-500 rounded-full flex items-center justify-center">
+                <Clock className="h-2 w-2 text-white" />
               </div>
             )}
             {isInjured && (
-              <div className="w-3 h-3 bg-red-600 rounded-full flex items-center justify-center">
-                <AlertTriangle className="h-1.5 w-1.5 text-white" />
+              <div className="w-4 h-4 bg-red-600 rounded-full flex items-center justify-center">
+                <AlertTriangle className="h-2 w-2 text-white" />
               </div>
             )}
           </div>
@@ -157,7 +129,7 @@ const EnhancedFootballPitch = ({ players, squadType, onPositionClick, selectedPo
 
   return (
     <Card className="p-6 bg-green-50">
-      <div className="relative w-full h-96 bg-green-600 rounded-lg overflow-hidden">
+      <div className="relative w-full h-[600px] bg-green-600 rounded-lg overflow-hidden">
         {/* Pitch markings */}
         <div className="absolute inset-0">
           <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-20 h-20 border-2 border-white rounded-full"></div>
@@ -173,33 +145,17 @@ const EnhancedFootballPitch = ({ players, squadType, onPositionClick, selectedPo
         {Object.entries(FORMATION_POSITIONS).map(([position, coords]) => {
           const positionPlayers = getPlayersForPosition(position);
           const isSelected = selectedPosition === coords.label;
-          const riskFactors = getPositionRiskFactors(positionPlayers);
-          const hasHighRisk = riskFactors.some(r => r.type === 'critical' || r.type === 'high');
           
           return (
             <div key={position}>
-              {/* Position marker on pitch */}
-              <div
-                className={`absolute transform -translate-x-1/2 -translate-y-1/2 cursor-pointer transition-all hover:scale-105 ${
-                  isSelected ? 'scale-105 z-10' : ''
-                }`}
-                style={{
-                  left: `${coords.x}%`,
-                  top: `${coords.y}%`,
-                }}
-                onClick={() => handlePositionClick(position, coords.label)}
-              >
-                <div className="w-4 h-4 bg-white rounded-full border-2 border-gray-300 opacity-50"></div>
-              </div>
-
               {/* Player cards */}
               {positionPlayers.map((player, index) => 
                 renderPlayerCard(player, index, coords.x, coords.y)
               )}
               
-              {/* Position label */}
+              {/* Position labels and empty slots */}
               <div
-                className="absolute transform -translate-x-1/2 -translate-y-1/2 pointer-events-none"
+                className="absolute transform -translate-x-1/2 -translate-y-1/2 z-0"
                 style={{
                   left: `${coords.x}%`,
                   top: `${coords.y + 15}%`,
@@ -207,23 +163,31 @@ const EnhancedFootballPitch = ({ players, squadType, onPositionClick, selectedPo
               >
                 <Badge 
                   variant={isSelected ? "default" : "secondary"} 
-                  className={`text-xs px-1 py-0 ${
-                    isSelected ? 'bg-yellow-500' : hasHighRisk ? 'bg-red-100 border-red-300' : ''
+                  className={`text-xs px-2 py-1 cursor-pointer ${
+                    isSelected ? 'bg-yellow-500' : 'bg-white/80'
                   }`}
+                  onClick={() => handlePositionClick(position, coords.label)}
                 >
                   {coords.label}
                 </Badge>
                 
-                {hasHighRisk && (
+                <div className="text-xs text-white bg-black bg-opacity-50 px-2 py-1 rounded mt-1 text-center">
+                  {positionPlayers.length}/2 players
+                </div>
+
+                {positionPlayers.length === 0 && (
                   <div className="flex items-center gap-1 mt-1 justify-center">
                     <AlertTriangle className="h-3 w-3 text-red-500" />
-                    <span className="text-xs text-red-600 font-medium">Risk</span>
+                    <span className="text-xs text-red-600 font-medium bg-white px-1 rounded">No Players</span>
                   </div>
                 )}
-                
-                <div className="text-xs text-white bg-black bg-opacity-50 px-1 rounded mt-1 text-center">
-                  {positionPlayers.length}/2
-                </div>
+
+                {positionPlayers.length === 1 && (
+                  <div className="flex items-center gap-1 mt-1 justify-center">
+                    <AlertTriangle className="h-3 w-3 text-amber-500" />
+                    <span className="text-xs text-amber-600 font-medium bg-white px-1 rounded">Low Depth</span>
+                  </div>
+                )}
               </div>
             </div>
           );
