@@ -1,8 +1,10 @@
+
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Player } from "@/types/player";
-import { MoreHorizontal, Plus } from "lucide-react";
+import { MoreHorizontal, Plus, AlertTriangle, Clock } from "lucide-react";
 
 interface EnhancedFootballPitchProps {
   players: Player[];
@@ -44,8 +46,8 @@ const EnhancedFootballPitch = ({ players, squadType, onPositionClick, selectedPo
       })
     );
 
-    // For shadow squad, show multiple players; for others, show primary player
-    return squadType === 'shadow-squad' ? positionPlayers.slice(0, 4) : positionPlayers.slice(0, 1);
+    // Always show 2 slots per position for proper depth visualization
+    return positionPlayers.slice(0, 2);
   };
 
   const handlePositionClick = (position: string, label: string) => {
@@ -54,22 +56,96 @@ const EnhancedFootballPitch = ({ players, squadType, onPositionClick, selectedPo
     }
   };
 
-  const renderPlayerSlot = (player: Player | null, index: number, totalPlayers: number) => {
+  const getContractRiskLevel = (player: Player) => {
+    if (!player.contractExpiry) return 'none';
+    const expiryDate = new Date(player.contractExpiry);
+    const oneYearFromNow = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000);
+    const sixMonthsFromNow = new Date(Date.now() + 180 * 24 * 60 * 60 * 1000);
+    
+    if (expiryDate < sixMonthsFromNow) return 'high';
+    if (expiryDate < oneYearFromNow) return 'medium';
+    return 'low';
+  };
+
+  const getPositionRiskFactors = (positionPlayers: Player[]) => {
+    const risks = [];
+    
+    // Depth risk
+    if (positionPlayers.length === 0) {
+      risks.push({ type: 'critical', message: 'No players available' });
+    } else if (positionPlayers.length === 1) {
+      risks.push({ type: 'high', message: 'Limited depth - only 1 player' });
+    }
+    
+    // Contract risks
+    const contractRisks = positionPlayers.filter(p => {
+      const risk = getContractRiskLevel(p);
+      return risk === 'high' || risk === 'medium';
+    });
+    
+    if (contractRisks.length > 0) {
+      risks.push({ 
+        type: 'medium', 
+        message: `${contractRisks.length} contract${contractRisks.length > 1 ? 's' : ''} expiring soon` 
+      });
+    }
+    
+    // Age risk (for this example, players over 32)
+    const agingPlayers = positionPlayers.filter(p => p.age > 32);
+    if (agingPlayers.length > 0) {
+      risks.push({ 
+        type: 'low', 
+        message: `${agingPlayers.length} aging player${agingPlayers.length > 1 ? 's' : ''}` 
+      });
+    }
+    
+    return risks;
+  };
+
+  const renderPlayerSlot = (player: Player | null, index: number, positionPlayers: Player[]) => {
     if (!player) {
       return (
-        <div className={`w-6 h-6 rounded-full bg-gray-400 opacity-50 border border-white flex items-center justify-center ${
-          totalPlayers > 1 ? 'mb-1' : ''
-        }`}>
-          <Plus className="h-3 w-3 text-white" />
+        <div className="w-12 h-12 rounded-full bg-gray-300 border-2 border-white flex items-center justify-center mb-1 shadow-md">
+          <Plus className="h-4 w-4 text-gray-500" />
         </div>
       );
     }
 
+    const contractRisk = getContractRiskLevel(player);
+    const isInjured = Math.random() < 0.1; // Mock injury status for demo
+
     return (
-      <div className={`w-6 h-6 rounded-full bg-blue-600 border border-white text-white text-xs font-bold flex items-center justify-center ${
-        totalPlayers > 1 ? 'mb-1' : ''
-      }`}>
-        {player.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
+      <div className="relative mb-1">
+        <Avatar className="w-12 h-12 border-2 border-white shadow-md">
+          <AvatarImage src={player.image || `https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&crop=face&fit=crop`} />
+          <AvatarFallback className="bg-blue-600 text-white text-xs font-bold">
+            {player.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
+          </AvatarFallback>
+        </Avatar>
+        
+        {/* Risk indicators */}
+        <div className="absolute -top-1 -right-1 flex flex-col gap-1">
+          {contractRisk === 'high' && (
+            <div className="w-4 h-4 bg-red-500 rounded-full flex items-center justify-center">
+              <Clock className="h-2 w-2 text-white" />
+            </div>
+          )}
+          {contractRisk === 'medium' && (
+            <div className="w-4 h-4 bg-amber-500 rounded-full flex items-center justify-center">
+              <Clock className="h-2 w-2 text-white" />
+            </div>
+          )}
+          {isInjured && (
+            <div className="w-4 h-4 bg-red-600 rounded-full flex items-center justify-center">
+              <AlertTriangle className="h-2 w-2 text-white" />
+            </div>
+          )}
+        </div>
+        
+        {/* Player name badge */}
+        <Badge variant="secondary" className="text-xs mt-1 px-1 py-0 max-w-20 truncate">
+          {player.name.split(' ')[0]}
+        </Badge>
       </div>
     );
   };
@@ -92,13 +168,14 @@ const EnhancedFootballPitch = ({ players, squadType, onPositionClick, selectedPo
         {Object.entries(FORMATION_POSITIONS).map(([position, coords]) => {
           const positionPlayers = getPlayersForPosition(position);
           const isSelected = selectedPosition === coords.label;
-          const maxSlots = squadType === 'shadow-squad' ? 4 : 1;
+          const riskFactors = getPositionRiskFactors(positionPlayers);
+          const hasHighRisk = riskFactors.some(r => r.type === 'critical' || r.type === 'high');
           
           return (
             <div
               key={position}
-              className={`absolute transform -translate-x-1/2 -translate-y-1/2 cursor-pointer transition-all hover:scale-110 ${
-                isSelected ? 'scale-110 z-10' : ''
+              className={`absolute transform -translate-x-1/2 -translate-y-1/2 cursor-pointer transition-all hover:scale-105 ${
+                isSelected ? 'scale-105 z-10' : ''
               }`}
               style={{
                 left: `${coords.x}%`,
@@ -108,40 +185,34 @@ const EnhancedFootballPitch = ({ players, squadType, onPositionClick, selectedPo
             >
               <div className="flex flex-col items-center">
                 <div className="flex flex-col items-center">
-                  {Array.from({ length: maxSlots }).map((_, index) => {
-                    const player = positionPlayers[index] || null;
-                    return (
-                      <div key={index}>
-                        {renderPlayerSlot(player, index, maxSlots)}
-                      </div>
-                    );
-                  })}
+                  {/* First choice player */}
+                  {renderPlayerSlot(positionPlayers[0] || null, 0, positionPlayers)}
                   
-                  {squadType === 'shadow-squad' && positionPlayers.length > maxSlots && (
-                    <Button 
-                      size="sm"
-                      variant="secondary"
-                      className="h-4 px-2 text-xs mt-1"
-                    >
-                      <MoreHorizontal className="h-3 w-3" />
-                    </Button>
-                  )}
+                  {/* Second choice player */}
+                  {renderPlayerSlot(positionPlayers[1] || null, 1, positionPlayers)}
                 </div>
                 
                 <Badge 
                   variant={isSelected ? "default" : "secondary"} 
                   className={`text-xs mt-1 px-1 py-0 ${
-                    isSelected ? 'bg-yellow-500' : ''
+                    isSelected ? 'bg-yellow-500' : hasHighRisk ? 'bg-red-100 border-red-300' : ''
                   }`}
                 >
                   {coords.label}
                 </Badge>
                 
-                {squadType === 'shadow-squad' && (
-                  <div className="text-xs text-white bg-black bg-opacity-50 px-1 rounded mt-1">
-                    {positionPlayers.length}/{maxSlots}
+                {/* Risk indicator */}
+                {hasHighRisk && (
+                  <div className="flex items-center gap-1 mt-1">
+                    <AlertTriangle className="h-3 w-3 text-red-500" />
+                    <span className="text-xs text-red-600 font-medium">Risk</span>
                   </div>
                 )}
+                
+                {/* Depth indicator */}
+                <div className="text-xs text-white bg-black bg-opacity-50 px-1 rounded mt-1">
+                  {positionPlayers.length}/2
+                </div>
               </div>
             </div>
           );
@@ -150,11 +221,8 @@ const EnhancedFootballPitch = ({ players, squadType, onPositionClick, selectedPo
       
       <div className="mt-4 text-center">
         <p className="text-sm text-muted-foreground">
-          Formation: 4-3-3 • {players.length} players available • 
-          {squadType === 'shadow-squad' 
-            ? ' Shadow squad view with depth analysis'
-            : ` ${squadType.toUpperCase()} formation`
-          }
+          Formation: 4-3-3 • {players.length} players in squad • 
+          Click positions to analyze depth and risks
         </p>
       </div>
     </Card>
