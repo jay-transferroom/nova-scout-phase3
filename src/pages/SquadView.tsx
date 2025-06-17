@@ -7,8 +7,8 @@ import { ArrowLeft, TrendingUp, Target, Star, Users, DollarSign } from "lucide-r
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePlayersData } from "@/hooks/usePlayersData";
-import FootballPitch from "@/components/FootballPitch";
-import TeamSelector from "@/components/TeamSelector";
+import EnhancedFootballPitch from "@/components/EnhancedFootballPitch";
+import SquadSelector from "@/components/SquadSelector";
 import SquadRecommendations from "@/components/SquadRecommendations";
 import ProspectComparison from "@/components/ProspectComparison";
 
@@ -16,7 +16,7 @@ const SquadView = () => {
   const navigate = useNavigate();
   const { profile } = useAuth();
   const { data: allPlayers = [], isLoading } = usePlayersData();
-  const [selectedTeam, setSelectedTeam] = useState<string | null>(null);
+  const [selectedSquad, setSelectedSquad] = useState<string>('first-xi');
   const [selectedPosition, setSelectedPosition] = useState<string | null>(null);
 
   // Redirect if not recruitment role
@@ -25,26 +25,44 @@ const SquadView = () => {
     return null;
   }
 
-  // Filter players based on selected team
-  const players = useMemo(() => {
-    if (!selectedTeam) {
-      return allPlayers.slice(0, 25); // Show first 25 players as example squad
+  // For now, we'll use a mock club affiliation - in a real app this would come from the user profile
+  const userClub = "Manchester United"; // This should come from profile.club or similar
+
+  // Filter players based on user's club affiliation
+  const clubPlayers = useMemo(() => {
+    return allPlayers.filter(player => player.club === userClub);
+  }, [allPlayers, userClub]);
+
+  // Filter players based on selected squad type
+  const squadPlayers = useMemo(() => {
+    switch (selectedSquad) {
+      case 'first-xi':
+        return clubPlayers.slice(0, 11); // First choice 11
+      case 'shadow-squad':
+        return clubPlayers.slice(0, 25); // Full squad
+      case 'u23':
+        return clubPlayers.filter(p => p.age <= 23);
+      case 'u21':
+        return clubPlayers.filter(p => p.age <= 21);
+      case 'u18':
+        return clubPlayers.filter(p => p.age <= 18);
+      default:
+        return clubPlayers.slice(0, 11);
     }
-    return allPlayers.filter(player => player.club === selectedTeam);
-  }, [allPlayers, selectedTeam]);
+  }, [clubPlayers, selectedSquad]);
 
   // Calculate squad metrics
   const squadMetrics = useMemo(() => {
-    const totalValue = players.length * 15.5; // Mock xTV calculation
-    const avgAge = players.length > 0 
-      ? players.reduce((sum, p) => sum + p.age, 0) / players.length 
+    const totalValue = squadPlayers.length * 15.5; // Mock xTV calculation
+    const avgAge = squadPlayers.length > 0 
+      ? squadPlayers.reduce((sum, p) => sum + p.age, 0) / squadPlayers.length 
       : 0;
-    const contractsExpiring = players.filter(p => 
+    const contractsExpiring = squadPlayers.filter(p => 
       p.contractExpiry && new Date(p.contractExpiry) < new Date(Date.now() + 365 * 24 * 60 * 60 * 1000)
     ).length;
 
     return { totalValue, avgAge, contractsExpiring };
-  }, [players]);
+  }, [squadPlayers]);
 
   if (isLoading) {
     return (
@@ -54,7 +72,18 @@ const SquadView = () => {
     );
   }
 
-  const displayTitle = selectedTeam ? `${selectedTeam} Squad Analysis` : "Squad Analysis";
+  const getSquadDisplayName = (squadType: string) => {
+    switch (squadType) {
+      case 'first-xi': return 'First XI';
+      case 'shadow-squad': return 'Shadow Squad';
+      case 'u23': return 'Under 23s';
+      case 'u21': return 'Under 21s';
+      case 'u18': return 'Under 18s';
+      default: return 'Squad';
+    }
+  };
+
+  const displayTitle = `${userClub} ${getSquadDisplayName(selectedSquad)} Analysis`;
 
   return (
     <div className="container mx-auto py-8 space-y-8">
@@ -68,22 +97,25 @@ const SquadView = () => {
           <div>
             <h1 className="text-3xl font-bold">{displayTitle}</h1>
             <p className="text-muted-foreground mt-2">
-              Advanced squad analysis with recommendations and prospect insights
+              Manage squad formations, analyze depth, and identify recruitment opportunities
             </p>
           </div>
         </div>
-        <TeamSelector 
-          onTeamSelect={setSelectedTeam}
-          selectedTeam={selectedTeam}
-        />
       </div>
+
+      {/* Squad Selector */}
+      <SquadSelector 
+        selectedSquad={selectedSquad}
+        onSquadSelect={setSelectedSquad}
+        club={userClub}
+      />
 
       {/* Squad Value Overview */}
       <Card className="bg-gradient-to-r from-blue-50 to-purple-50 border-blue-200">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <DollarSign className="h-6 w-6 text-blue-600" />
-            Squad Value Overview
+            {getSquadDisplayName(selectedSquad)} Value Overview
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -93,7 +125,7 @@ const SquadView = () => {
               <div className="text-sm text-muted-foreground">Total xTV</div>
             </div>
             <div className="text-center">
-              <div className="text-3xl font-bold text-green-600">{players.length}</div>
+              <div className="text-3xl font-bold text-green-600">{squadPlayers.length}</div>
               <div className="text-sm text-muted-foreground">Squad Size</div>
             </div>
             <div className="text-center">
@@ -108,17 +140,23 @@ const SquadView = () => {
         </CardContent>
       </Card>
 
-      {/* Football Pitch Visualization */}
+      {/* Enhanced Football Pitch Visualization */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Users className="h-5 w-5" />
-            Squad Formation & Positioning
+            Squad Formation & Depth Analysis
+            {selectedSquad === 'shadow-squad' && (
+              <Badge variant="secondary" className="ml-2">
+                Full Depth View
+              </Badge>
+            )}
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <FootballPitch 
-            players={players} 
+          <EnhancedFootballPitch 
+            players={squadPlayers} 
+            squadType={selectedSquad}
             onPositionClick={setSelectedPosition}
             selectedPosition={selectedPosition}
           />
@@ -128,7 +166,7 @@ const SquadView = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Squad Recommendations */}
         <SquadRecommendations 
-          players={players}
+          players={squadPlayers}
           selectedPosition={selectedPosition}
           onPositionSelect={setSelectedPosition}
         />
@@ -137,7 +175,7 @@ const SquadView = () => {
         {selectedPosition && (
           <ProspectComparison 
             position={selectedPosition}
-            currentPlayers={players.filter(p => 
+            currentPlayers={squadPlayers.filter(p => 
               p.positions.some(pos => pos.toLowerCase().includes(selectedPosition.toLowerCase()))
             )}
           />
