@@ -5,27 +5,29 @@ import { Player } from "@/types/player";
 
 interface FootballPitchProps {
   players: Player[];
+  onPositionClick?: (position: string) => void;
+  selectedPosition?: string | null;
 }
 
 // Formation layout for 4-3-3
 const FORMATION_POSITIONS = {
-  GK: { x: 50, y: 5 },
+  GK: { x: 50, y: 5, label: 'Goalkeeper' },
   // Defense
-  LB: { x: 20, y: 25 },
-  CB1: { x: 40, y: 25 },
-  CB2: { x: 60, y: 25 },
-  RB: { x: 80, y: 25 },
+  LB: { x: 20, y: 25, label: 'Full Back' },
+  CB1: { x: 40, y: 25, label: 'Centre Back' },
+  CB2: { x: 60, y: 25, label: 'Centre Back' },
+  RB: { x: 80, y: 25, label: 'Full Back' },
   // Midfield
-  CDM: { x: 50, y: 45 },
-  CM1: { x: 35, y: 55 },
-  CM2: { x: 65, y: 55 },
+  CDM: { x: 50, y: 45, label: 'Central Midfield' },
+  CM1: { x: 35, y: 55, label: 'Central Midfield' },
+  CM2: { x: 65, y: 55, label: 'Central Midfield' },
   // Attack
-  LW: { x: 25, y: 75 },
-  ST: { x: 50, y: 85 },
-  RW: { x: 75, y: 75 },
+  LW: { x: 25, y: 75, label: 'Winger' },
+  ST: { x: 50, y: 85, label: 'Striker' },
+  RW: { x: 75, y: 75, label: 'Winger' },
 };
 
-const FootballPitch = ({ players }: FootballPitchProps) => {
+const FootballPitch = ({ players, onPositionClick, selectedPosition }: FootballPitchProps) => {
   // Simple position mapping - in a real app you'd want more sophisticated logic
   const getPlayersForPosition = (position: string) => {
     return players.filter(player => 
@@ -44,6 +46,12 @@ const FootballPitch = ({ players }: FootballPitchProps) => {
         }
       })
     ).slice(0, 1); // Take first player for each position
+  };
+
+  const handlePositionClick = (position: string, label: string) => {
+    if (onPositionClick) {
+      onPositionClick(label);
+    }
   };
 
   return (
@@ -71,19 +79,25 @@ const FootballPitch = ({ players }: FootballPitchProps) => {
         {Object.entries(FORMATION_POSITIONS).map(([position, coords]) => {
           const positionPlayers = getPlayersForPosition(position);
           const player = positionPlayers[0];
+          const isSelected = selectedPosition === coords.label;
           
           return (
             <div
               key={position}
-              className="absolute transform -translate-x-1/2 -translate-y-1/2"
+              className={`absolute transform -translate-x-1/2 -translate-y-1/2 cursor-pointer transition-all hover:scale-110 ${
+                isSelected ? 'scale-110 z-10' : ''
+              }`}
               style={{
                 left: `${coords.x}%`,
                 top: `${coords.y}%`,
               }}
+              onClick={() => handlePositionClick(position, coords.label)}
             >
               {player ? (
                 <div className="flex flex-col items-center">
-                  <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white text-xs font-bold border-2 border-white shadow-lg">
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold border-2 border-white shadow-lg transition-colors ${
+                    isSelected ? 'bg-yellow-500' : 'bg-blue-600'
+                  }`}>
                     {player.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
                   </div>
                   <Badge variant="secondary" className="text-xs mt-1 px-1 py-0">
@@ -92,10 +106,14 @@ const FootballPitch = ({ players }: FootballPitchProps) => {
                 </div>
               ) : (
                 <div className="flex flex-col items-center">
-                  <div className="w-8 h-8 bg-gray-400 rounded-full flex items-center justify-center text-white text-xs border-2 border-white opacity-50">
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-xs border-2 border-white transition-colors ${
+                    isSelected ? 'bg-yellow-400 opacity-75' : 'bg-gray-400 opacity-50'
+                  }`}>
                     ?
                   </div>
-                  <Badge variant="outline" className="text-xs mt-1 px-1 py-0 opacity-50">
+                  <Badge variant="outline" className={`text-xs mt-1 px-1 py-0 ${
+                    isSelected ? 'border-yellow-500' : 'opacity-50'
+                  }`}>
                     {position}
                   </Badge>
                 </div>
@@ -107,7 +125,7 @@ const FootballPitch = ({ players }: FootballPitchProps) => {
       
       <div className="mt-4 text-center">
         <p className="text-sm text-muted-foreground">
-          Formation: 4-3-3 • {players.length} players available
+          Formation: 4-3-3 • {players.length} players available • Click positions for analysis
         </p>
       </div>
     </Card>

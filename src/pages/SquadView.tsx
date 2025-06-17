@@ -2,24 +2,49 @@
 import { useState, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Users, TrendingUp, Target } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { ArrowLeft, TrendingUp, Target, Star, Users, DollarSign } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 import { usePlayersData } from "@/hooks/usePlayersData";
 import FootballPitch from "@/components/FootballPitch";
 import TeamSelector from "@/components/TeamSelector";
+import SquadRecommendations from "@/components/SquadRecommendations";
+import ProspectComparison from "@/components/ProspectComparison";
 
 const SquadView = () => {
   const navigate = useNavigate();
+  const { profile } = useAuth();
   const { data: allPlayers = [], isLoading } = usePlayersData();
   const [selectedTeam, setSelectedTeam] = useState<string | null>(null);
+  const [selectedPosition, setSelectedPosition] = useState<string | null>(null);
+
+  // Redirect if not recruitment role
+  if (profile?.role !== 'recruitment') {
+    navigate('/');
+    return null;
+  }
 
   // Filter players based on selected team
   const players = useMemo(() => {
     if (!selectedTeam) {
-      return allPlayers;
+      return allPlayers.slice(0, 25); // Show first 25 players as example squad
     }
     return allPlayers.filter(player => player.club === selectedTeam);
   }, [allPlayers, selectedTeam]);
+
+  // Calculate squad metrics
+  const squadMetrics = useMemo(() => {
+    const totalValue = players.length * 15.5; // Mock xTV calculation
+    const avgAge = players.length > 0 
+      ? players.reduce((sum, p) => sum + p.age, 0) / players.length 
+      : 0;
+    const contractsExpiring = players.filter(p => 
+      p.contractExpiry && new Date(p.contractExpiry) < new Date(Date.now() + 365 * 24 * 60 * 60 * 1000)
+    ).length;
+
+    return { totalValue, avgAge, contractsExpiring };
+  }, [players]);
 
   if (isLoading) {
     return (
@@ -30,22 +55,20 @@ const SquadView = () => {
   }
 
   const displayTitle = selectedTeam ? `${selectedTeam} Squad Analysis` : "Squad Analysis";
-  const displaySubtitle = selectedTeam 
-    ? `Analyze ${selectedTeam}'s current squad and identify areas for improvement`
-    : "Analyze your current squad and identify areas for improvement";
 
   return (
-    <div className="container mx-auto py-8">
-      <div className="flex items-center justify-between mb-8">
+    <div className="container mx-auto py-8 space-y-8">
+      {/* Header */}
+      <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <Button variant="ghost" onClick={() => navigate("/dashboard")} className="gap-2">
+          <Button variant="ghost" onClick={() => navigate("/")} className="gap-2">
             <ArrowLeft size={16} />
             Back to Dashboard
           </Button>
           <div>
             <h1 className="text-3xl font-bold">{displayTitle}</h1>
             <p className="text-muted-foreground mt-2">
-              {displaySubtitle}
+              Advanced squad analysis with recommendations and prospect insights
             </p>
           </div>
         </div>
@@ -55,145 +78,71 @@ const SquadView = () => {
         />
       </div>
 
-      {/* Football Pitch Visualization */}
-      <div className="mb-8">
-        <h2 className="text-xl font-semibold mb-4">Squad Formation</h2>
-        <FootballPitch players={players} />
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-lg flex items-center gap-2">
-              <Users className="h-5 w-5 text-blue-600" />
-              Squad Overview
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              <div className="flex justify-between">
-                <span className="text-sm text-muted-foreground">Total Players</span>
-                <span className="font-medium">{players.length}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-sm text-muted-foreground">Average Age</span>
-                <span className="font-medium">
-                  {players.length > 0 ? (players.reduce((sum, p) => sum + p.age, 0) / players.length).toFixed(1) : '0'}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-sm text-muted-foreground">Contract Expiring</span>
-                <span className="font-medium text-amber-600">
-                  {players.filter(p => p.contractExpiry && new Date(p.contractExpiry) < new Date(Date.now() + 365 * 24 * 60 * 60 * 1000)).length}
-                </span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-lg flex items-center gap-2">
-              <TrendingUp className="h-5 w-5 text-green-600" />
-              Performance
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              <div className="flex justify-between">
-                <span className="text-sm text-muted-foreground">Goals Scored</span>
-                <span className="font-medium">42</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-sm text-muted-foreground">Goals Conceded</span>
-                <span className="font-medium">18</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-sm text-muted-foreground">Clean Sheets</span>
-                <span className="font-medium">8</span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-lg flex items-center gap-2">
-              <Target className="h-5 w-5 text-purple-600" />
-              Priority Areas
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              <div className="text-sm">
-                <span className="text-muted-foreground">1. </span>
-                <span>Central Defender</span>
-              </div>
-              <div className="text-sm">
-                <span className="text-muted-foreground">2. </span>
-                <span>Creative Midfielder</span>
-              </div>
-              <div className="text-sm">
-                <span className="text-muted-foreground">3. </span>
-                <span>Backup Goalkeeper</span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      <Card>
+      {/* Squad Value Overview */}
+      <Card className="bg-gradient-to-r from-blue-50 to-purple-50 border-blue-200">
         <CardHeader>
-          <CardTitle>Position Analysis</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            <DollarSign className="h-6 w-6 text-blue-600" />
+            Squad Value Overview
+          </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {[
-              { 
-                position: 'Goalkeeper', 
-                players: players.filter(p => p.positions.includes('GK')).length, 
-                avgAge: players.filter(p => p.positions.includes('GK')).reduce((sum, p, _, arr) => sum + p.age / arr.length, 0) || 0, 
-                needs: 'Backup needed' 
-              },
-              { 
-                position: 'Defenders', 
-                players: players.filter(p => p.positions.some(pos => ['CB', 'LB', 'RB', 'LWB', 'RWB'].includes(pos))).length, 
-                avgAge: players.filter(p => p.positions.some(pos => ['CB', 'LB', 'RB', 'LWB', 'RWB'].includes(pos))).reduce((sum, p, _, arr) => sum + p.age / arr.length, 0) || 0, 
-                needs: 'Strong depth' 
-              },
-              { 
-                position: 'Midfielders', 
-                players: players.filter(p => p.positions.some(pos => ['CM', 'CDM', 'CAM', 'LM', 'RM'].includes(pos))).length, 
-                avgAge: players.filter(p => p.positions.some(pos => ['CM', 'CDM', 'CAM', 'LM', 'RM'].includes(pos))).reduce((sum, p, _, arr) => sum + p.age / arr.length, 0) || 0, 
-                needs: 'Creative player needed' 
-              },
-              { 
-                position: 'Forwards', 
-                players: players.filter(p => p.positions.some(pos => ['ST', 'CF', 'LW', 'RW'].includes(pos))).length, 
-                avgAge: players.filter(p => p.positions.some(pos => ['ST', 'CF', 'LW', 'RW'].includes(pos))).reduce((sum, p, _, arr) => sum + p.age / arr.length, 0) || 0, 
-                needs: 'Good balance' 
-              },
-            ].map((pos) => (
-              <div key={pos.position} className="p-4 border rounded-lg">
-                <h3 className="font-semibold mb-2">{pos.position}</h3>
-                <div className="space-y-1 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Players:</span>
-                    <span>{pos.players}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Avg Age:</span>
-                    <span>{pos.avgAge ? pos.avgAge.toFixed(1) : '0'}</span>
-                  </div>
-                  <div className="mt-2">
-                    <span className="text-xs text-muted-foreground">{pos.needs}</span>
-                  </div>
-                </div>
-              </div>
-            ))}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <div className="text-center">
+              <div className="text-3xl font-bold text-blue-600">£{squadMetrics.totalValue.toFixed(1)}M</div>
+              <div className="text-sm text-muted-foreground">Total xTV</div>
+            </div>
+            <div className="text-center">
+              <div className="text-3xl font-bold text-green-600">{players.length}</div>
+              <div className="text-sm text-muted-foreground">Squad Size</div>
+            </div>
+            <div className="text-center">
+              <div className="text-3xl font-bold text-amber-600">{squadMetrics.avgAge.toFixed(1)}</div>
+              <div className="text-sm text-muted-foreground">Average Age</div>
+            </div>
+            <div className="text-center">
+              <div className="text-3xl font-bold text-red-600">{squadMetrics.contractsExpiring}</div>
+              <div className="text-sm text-muted-foreground">Contracts Expiring</div>
+            </div>
           </div>
         </CardContent>
       </Card>
+
+      {/* Football Pitch Visualization */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Users className="h-5 w-5" />
+            Squad Formation & Positioning
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <FootballPitch 
+            players={players} 
+            onPositionClick={setSelectedPosition}
+            selectedPosition={selectedPosition}
+          />
+        </CardContent>
+      </Card>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* Squad Recommendations */}
+        <SquadRecommendations 
+          players={players}
+          selectedPosition={selectedPosition}
+          onPositionSelect={setSelectedPosition}
+        />
+
+        {/* Prospect Comparison */}
+        {selectedPosition && (
+          <ProspectComparison 
+            position={selectedPosition}
+            currentPlayers={players.filter(p => 
+              p.positions.some(pos => pos.toLowerCase().includes(selectedPosition.toLowerCase()))
+            )}
+          />
+        )}
+      </div>
     </div>
   );
 };

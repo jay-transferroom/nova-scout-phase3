@@ -70,6 +70,7 @@ function App() {
                                 <Route path="/assigned-players" element={<AssignedPlayers />} />
                                 <Route path="/shortlists" element={<Shortlists />} />
                                 <Route path="/scout-management" element={<ScoutManagement />} />
+                                <Route path="/squad-view" element={<SquadView />} />
                                 <Route path="/profile" element={<Profile />} />
                                 <Route path="/reports/new" element={<ReportBuilder />} />
                                 <Route path="/reports/:id" element={<ReportView />} />

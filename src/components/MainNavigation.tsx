@@ -19,7 +19,8 @@ import {
   Bookmark,
   FileText,
   Settings,
-  User
+  User,
+  Users
 } from "lucide-react";
 import { useMyPermissions } from "@/hooks/useUserPermissions";
 import { useAuth } from "@/contexts/AuthContext";
@@ -49,6 +50,13 @@ const MainNavigation = () => {
       url: "/scout-management",
       icon: Kanban,
       permission: "user_management",
+      restricted: true // Only for Scout Managers
+    },
+    {
+      title: "Squad View",
+      url: "/squad-view",
+      icon: Users,
+      permission: "dashboard",
       restricted: true // Only for Scout Managers
     },
     {
