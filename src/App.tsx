@@ -1,5 +1,4 @@
-
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
@@ -64,6 +63,11 @@ function App() {
                       </Layout>
                     </ProtectedRoute>
                   } 
+                />
+                {/* Redirect old plural route to singular route */}
+                <Route 
+                  path="/players/:id" 
+                  element={<Navigate to="/player/:id" replace />}
                 />
                 <Route 
                   path="/player/:id" 
