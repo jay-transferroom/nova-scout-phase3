@@ -31,6 +31,7 @@ import DataImport from "./pages/transfers/DataImport";
 import { AuthProvider } from "./contexts/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
 import AppInitializer from "./components/AppInitializer";
+import Layout from "./components/Layout";
 import { Toaster } from "./components/ui/sonner";
 
 const queryClient = new QueryClient();
@@ -48,7 +49,9 @@ function App() {
                   path="/" 
                   element={
                     <ProtectedRoute>
-                      <Index />
+                      <Layout>
+                        <Index />
+                      </Layout>
                     </ProtectedRoute>
                   } 
                 />
@@ -56,7 +59,9 @@ function App() {
                   path="/profile" 
                   element={
                     <ProtectedRoute>
-                      <Profile />
+                      <Layout>
+                        <Profile />
+                      </Layout>
                     </ProtectedRoute>
                   } 
                 />
@@ -64,7 +69,9 @@ function App() {
                   path="/player/:id" 
                   element={
                     <ProtectedRoute>
-                      <PlayerProfile />
+                      <Layout>
+                        <PlayerProfile />
+                      </Layout>
                     </ProtectedRoute>
                   } 
                 />
@@ -72,7 +79,9 @@ function App() {
                   path="/report/new" 
                   element={
                     <ProtectedRoute>
-                      <ReportBuilder />
+                      <Layout>
+                        <ReportBuilder />
+                      </Layout>
                     </ProtectedRoute>
                   } 
                 />
@@ -80,7 +89,9 @@ function App() {
                   path="/reports" 
                   element={
                     <ProtectedRoute>
-                      <ReportsList />
+                      <Layout>
+                        <ReportsList />
+                      </Layout>
                     </ProtectedRoute>
                   } 
                 />
@@ -88,7 +99,9 @@ function App() {
                   path="/reports/:id" 
                   element={
                     <ProtectedRoute>
-                      <ReportView />
+                      <Layout>
+                        <ReportView />
+                      </Layout>
                     </ProtectedRoute>
                   } 
                 />
@@ -96,7 +109,9 @@ function App() {
                   path="/reports/:id/edit" 
                   element={
                     <ProtectedRoute>
-                      <ReportEdit />
+                      <Layout>
+                        <ReportEdit />
+                      </Layout>
                     </ProtectedRoute>
                   } 
                 />
@@ -104,7 +119,9 @@ function App() {
                   path="/scouting" 
                   element={
                     <ProtectedRoute>
-                      <ScoutingDashboard />
+                      <Layout>
+                        <ScoutingDashboard />
+                      </Layout>
                     </ProtectedRoute>
                   } 
                 />
@@ -112,7 +129,9 @@ function App() {
                   path="/calendar" 
                   element={
                     <ProtectedRoute>
-                      <Calendar />
+                      <Layout>
+                        <Calendar />
+                      </Layout>
                     </ProtectedRoute>
                   } 
                 />
@@ -120,15 +139,19 @@ function App() {
                   path="/settings" 
                   element={
                     <ProtectedRoute>
-                      <Settings />
+                      <Layout>
+                        <Settings />
+                      </Layout>
                     </ProtectedRoute>
                   } 
                 />
                 <Route 
-                  path="/squad" 
+                  path="/squad-view" 
                   element={
                     <ProtectedRoute>
-                      <SquadView />
+                      <Layout>
+                        <SquadView />
+                      </Layout>
                     </ProtectedRoute>
                   } 
                 />
@@ -136,7 +159,9 @@ function App() {
                   path="/shortlists" 
                   element={
                     <ProtectedRoute>
-                      <Shortlists />
+                      <Layout>
+                        <Shortlists />
+                      </Layout>
                     </ProtectedRoute>
                   } 
                 />
@@ -144,7 +169,9 @@ function App() {
                   path="/search" 
                   element={
                     <ProtectedRoute>
-                      <SearchResults />
+                      <Layout>
+                        <SearchResults />
+                      </Layout>
                     </ProtectedRoute>
                   } 
                 />
@@ -152,7 +179,9 @@ function App() {
                   path="/ai-search" 
                   element={
                     <ProtectedRoute>
-                      <AISearch />
+                      <Layout>
+                        <AISearch />
+                      </Layout>
                     </ProtectedRoute>
                   } 
                 />
@@ -160,7 +189,9 @@ function App() {
                   path="/assigned-players" 
                   element={
                     <ProtectedRoute>
-                      <AssignedPlayers />
+                      <Layout>
+                        <AssignedPlayers />
+                      </Layout>
                     </ProtectedRoute>
                   } 
                 />
@@ -168,7 +199,9 @@ function App() {
                   path="/scout-management" 
                   element={
                     <ProtectedRoute>
-                      <ScoutManagement />
+                      <Layout>
+                        <ScoutManagement />
+                      </Layout>
                     </ProtectedRoute>
                   } 
                 />
@@ -176,7 +209,9 @@ function App() {
                   path="/template-admin" 
                   element={
                     <ProtectedRoute>
-                      <TemplateAdmin />
+                      <Layout>
+                        <TemplateAdmin />
+                      </Layout>
                     </ProtectedRoute>
                   } 
                 />
@@ -184,7 +219,9 @@ function App() {
                   path="/admin/users" 
                   element={
                     <ProtectedRoute>
-                      <UserManagement />
+                      <Layout>
+                        <UserManagement />
+                      </Layout>
                     </ProtectedRoute>
                   } 
                 />
@@ -192,7 +229,9 @@ function App() {
                   path="/transfers" 
                   element={
                     <ProtectedRoute>
-                      <TransfersLayout />
+                      <Layout>
+                        <TransfersLayout />
+                      </Layout>
                     </ProtectedRoute>
                   }
                 >
