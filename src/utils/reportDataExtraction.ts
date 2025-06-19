@@ -1,5 +1,16 @@
-
 import { ReportWithPlayer } from "@/types/report";
+
+// Helper function to convert numeric recommendation to text
+const convertNumericRecommendationToText = (value: any): string | null => {
+  if (typeof value === 'number') {
+    if (value >= 9) return "Priority Sign";
+    if (value >= 8) return "Monitor / Track Further";
+    if (value >= 7) return "Consider";
+    if (value >= 6) return "Keep Watching";
+    if (value < 6) return "Pass";
+  }
+  return null;
+};
 
 // Get overall rating from a report - improved logic with better data handling
 export const getOverallRating = (report: ReportWithPlayer) => {
@@ -129,10 +140,37 @@ export const getRecommendation = (report: ReportWithPlayer) => {
       
       console.log(`Field ${field.fieldId} is recommendation field:`, isRecommendationField);
       
-      if (isRecommendationField && field.value && field.value !== "") {
+      if (isRecommendationField && field.value !== null && field.value !== undefined && field.value !== "") {
         console.log('Found recommendation field:', field);
-        return field.value;
+        
+        // If it's already a text recommendation, return it
+        if (typeof field.value === 'string' && isNaN(parseFloat(field.value))) {
+          console.log('Returning text recommendation:', field.value);
+          return field.value;
+        }
+        
+        // If it's a numeric value, try to convert it to meaningful text
+        const numericRecommendation = convertNumericRecommendationToText(field.value);
+        if (numericRecommendation) {
+          console.log('Converted numeric recommendation to text:', numericRecommendation);
+          return numericRecommendation;
+        }
+        
+        // Otherwise return the raw value
+        console.log('Returning raw recommendation value:', field.value);
+        return field.value.toString();
       }
+    }
+  }
+
+  // If no dedicated recommendation field found, try to derive from overall rating
+  console.log('No recommendation field found, trying to derive from overall rating');
+  const overallRating = getOverallRating(report);
+  if (overallRating !== null && overallRating !== undefined) {
+    const derivedRecommendation = convertNumericRecommendationToText(overallRating);
+    if (derivedRecommendation) {
+      console.log('Derived recommendation from overall rating:', derivedRecommendation);
+      return derivedRecommendation;
     }
   }
   
