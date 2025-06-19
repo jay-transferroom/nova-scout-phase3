@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, TrendingUp, Target, Star, Users, DollarSign } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { usePlayersData } from "@/hooks/usePlayersData";
+import { mockPlayers } from "@/data/mockPlayers";
 import EnhancedFootballPitch from "@/components/EnhancedFootballPitch";
 import SquadSelector from "@/components/SquadSelector";
 import SquadRecommendations from "@/components/SquadRecommendations";
@@ -15,7 +15,6 @@ import ProspectComparison from "@/components/ProspectComparison";
 const SquadView = () => {
   const navigate = useNavigate();
   const { profile } = useAuth();
-  const { data: allPlayers = [], isLoading } = usePlayersData();
   const [selectedSquad, setSelectedSquad] = useState<string>('first-xi');
   const [selectedPosition, setSelectedPosition] = useState<string | null>(null);
 
@@ -30,8 +29,8 @@ const SquadView = () => {
 
   // Filter players based on user's club affiliation
   const clubPlayers = useMemo(() => {
-    return allPlayers.filter(player => player.club === userClub);
-  }, [allPlayers, userClub]);
+    return mockPlayers.filter(player => player.club === userClub);
+  }, [userClub]);
 
   // Filter players based on selected squad type
   const squadPlayers = useMemo(() => {
@@ -39,7 +38,7 @@ const SquadView = () => {
       case 'first-xi':
         return clubPlayers.slice(0, 11); // First choice 11
       case 'shadow-squad':
-        return clubPlayers.slice(0, 25); // Full squad
+        return clubPlayers; // Full squad
       case 'u23':
         return clubPlayers.filter(p => p.age <= 23);
       case 'u21':
@@ -51,26 +50,38 @@ const SquadView = () => {
     }
   }, [clubPlayers, selectedSquad]);
 
-  // Calculate squad metrics
+  // Calculate squad metrics with realistic values
   const squadMetrics = useMemo(() => {
-    const totalValue = squadPlayers.length * 15.5; // Mock xTV calculation
-    const avgAge = squadPlayers.length > 0 
-      ? squadPlayers.reduce((sum, p) => sum + p.age, 0) / squadPlayers.length 
-      : 0;
+    if (squadPlayers.length === 0) {
+      return { totalValue: 0, avgAge: 0, contractsExpiring: 0 };
+    }
+
+    // Calculate total value based on player ages and positions
+    const totalValue = squadPlayers.reduce((sum, player) => {
+      let baseValue = 15; // Base value in millions
+      
+      // Adjust value based on age
+      if (player.age < 20) baseValue *= 1.5; // Young prospects
+      else if (player.age < 25) baseValue *= 1.8; // Prime development age
+      else if (player.age < 30) baseValue *= 1.2; // Peak years
+      else baseValue *= 0.7; // Veteran players
+      
+      // Adjust based on position
+      if (player.positions.includes('ST') || player.positions.includes('CF')) baseValue *= 1.4;
+      else if (player.positions.includes('CAM') || player.positions.includes('CM')) baseValue *= 1.2;
+      else if (player.positions.includes('GK')) baseValue *= 0.8;
+      
+      return sum + baseValue;
+    }, 0);
+
+    const avgAge = squadPlayers.reduce((sum, p) => sum + p.age, 0) / squadPlayers.length;
+    
     const contractsExpiring = squadPlayers.filter(p => 
       p.contractExpiry && new Date(p.contractExpiry) < new Date(Date.now() + 365 * 24 * 60 * 60 * 1000)
     ).length;
 
     return { totalValue, avgAge, contractsExpiring };
   }, [squadPlayers]);
-
-  if (isLoading) {
-    return (
-      <div className="container mx-auto py-8">
-        <div className="text-center">Loading squad data...</div>
-      </div>
-    );
-  }
 
   const getSquadDisplayName = (squadType: string) => {
     switch (squadType) {
@@ -108,6 +119,7 @@ const SquadView = () => {
         selectedSquad={selectedSquad}
         onSquadSelect={setSelectedSquad}
         club={userClub}
+        players={clubPlayers}
       />
 
       {/* Squad Value Overview */}
@@ -122,7 +134,7 @@ const SquadView = () => {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
             <div className="text-center">
               <div className="text-3xl font-bold text-blue-600">£{squadMetrics.totalValue.toFixed(1)}M</div>
-              <div className="text-sm text-muted-foreground">Total xTV</div>
+              <div className="text-sm text-muted-foreground">Total Squad Value</div>
             </div>
             <div className="text-center">
               <div className="text-3xl font-bold text-green-600">{squadPlayers.length}</div>
