@@ -28,7 +28,7 @@ import ScoutingTasks from "./pages/transfers/ScoutingTasks";
 import PlayerPitches from "./pages/transfers/PlayerPitches";
 import UpcomingMatches from "./pages/transfers/UpcomingMatches";
 import DataImport from "./pages/transfers/DataImport";
-import { AuthContextProvider } from "./contexts/AuthContext";
+import { AuthProvider } from "./contexts/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
 import AppInitializer from "./components/AppInitializer";
 import { Toaster } from "./components/ui/sonner";
@@ -38,7 +38,7 @@ const queryClient = new QueryClient();
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthContextProvider>
+      <AuthProvider>
         <Router>
           <AppInitializer>
             <div className="min-h-screen bg-background">
@@ -210,7 +210,7 @@ function App() {
             </div>
           </AppInitializer>
         </Router>
-      </AuthContextProvider>
+      </AuthProvider>
     </QueryClientProvider>
   );
 }

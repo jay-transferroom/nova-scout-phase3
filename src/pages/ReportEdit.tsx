@@ -8,7 +8,7 @@ import { ReportWithPlayer, Report } from "@/types/report";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
-import ReportSection from "@/components/ReportSection";
+import ReportEditSection from "@/components/ReportEditSection";
 import { useReports } from "@/hooks/useReports";
 
 const ReportEdit = () => {
@@ -205,10 +205,12 @@ const ReportEdit = () => {
 
       <div className="space-y-6">
         {report.sections.map((section) => (
-          <ReportSection
+          <ReportEditSection
             key={section.sectionId}
             section={section}
+            sectionTitle={section.sectionId.charAt(0).toUpperCase() + section.sectionId.slice(1)}
             onUpdate={handleSectionUpdate}
+            isOverallSection={section.sectionId === "overall"}
           />
         ))}
       </div>
