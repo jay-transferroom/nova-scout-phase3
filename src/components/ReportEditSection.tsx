@@ -86,11 +86,12 @@ const ReportEditSection = ({
                 ratingSystem: templateField?.ratingSystem
               };
 
-              // Special handling for recommendation fields to ensure they use the latest options
+              // Only apply scout recommendations to specific recommendation fields
+              // Be more specific - only exact matches for recommendation fields
               if (fieldData.fieldId === 'recommendation' || 
-                  field.label.toLowerCase().includes('recommendation') ||
-                  field.label.toLowerCase().includes('verdict') ||
-                  field.label.toLowerCase().includes('decision')) {
+                  fieldData.fieldId === 'overall_recommendation' ||
+                  fieldData.fieldId === 'verdict' ||
+                  fieldData.fieldId === 'final_recommendation') {
                 field = {
                   ...field,
                   type: 'dropdown' as const,

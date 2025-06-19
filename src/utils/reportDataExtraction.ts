@@ -127,3 +127,49 @@ export const getRecommendation = (report: ReportWithPlayer) => {
   console.log('No recommendation found for player', report.player?.name);
   return null;
 };
+
+// Extract report data for display
+export const extractReportDataForDisplay = (report: ReportWithPlayer, template: any) => {
+  let sections = report.sections;
+  if (typeof sections === 'string') {
+    try {
+      sections = JSON.parse(sections);
+    } catch (e) {
+      console.error('Failed to parse sections:', e);
+      return [];
+    }
+  }
+
+  if (!sections || !Array.isArray(sections)) {
+    return [];
+  }
+
+  return sections.map((section) => {
+    const templateSection = template?.sections?.find((ts: any) => ts.id === section.sectionId);
+    
+    return {
+      sectionId: section.sectionId,
+      title: templateSection?.title || section.sectionId.charAt(0).toUpperCase() + section.sectionId.slice(1),
+      fields: section.fields.map((field) => {
+        const templateField = templateSection?.fields?.find((tf: any) => tf.id === field.fieldId);
+        
+        let displayValue = field.value;
+        if (field.value !== null && field.value !== undefined && field.value !== "") {
+          if (templateField?.type === 'rating' && typeof field.value === 'number') {
+            displayValue = `${field.value}/10`;
+          } else {
+            displayValue = field.value.toString();
+          }
+        }
+
+        return {
+          fieldId: field.fieldId,
+          label: templateField?.label || field.fieldId.charAt(0).toUpperCase() + field.fieldId.slice(1),
+          value: field.value,
+          displayValue,
+          notes: field.notes
+        };
+      })
+    };
+  });
+};
