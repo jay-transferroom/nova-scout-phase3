@@ -23,10 +23,18 @@ interface ReportFieldProps {
 
 const ReportField = ({ field, value, notes, onChange }: ReportFieldProps) => {
   const [fieldNotes, setFieldNotes] = useState<string>(notes || "");
+  
   const handleNotesChange = (newNotes: string) => {
     setFieldNotes(newNotes);
     onChange(value, newNotes);
   };
+
+  console.log(`ReportField for ${field.id}:`, { 
+    fieldType: field.type, 
+    options: field.options, 
+    value: value,
+    label: field.label 
+  });
 
   return (
     <div className="space-y-2">
@@ -66,12 +74,16 @@ const ReportField = ({ field, value, notes, onChange }: ReportFieldProps) => {
             value={value || ""}
             onValueChange={(newValue) => onChange(newValue, fieldNotes)}
           >
-            <SelectTrigger>
+            <SelectTrigger className="bg-background">
               <SelectValue placeholder={`Select ${field.label.toLowerCase()}`} />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="bg-background border shadow-lg z-50">
               {field.options.map((option) => (
-                <SelectItem key={option.toString()} value={option.toString()}>
+                <SelectItem 
+                  key={option.toString()} 
+                  value={option.toString()}
+                  className="hover:bg-accent hover:text-accent-foreground"
+                >
                   {option.toString()}
                 </SelectItem>
               ))}

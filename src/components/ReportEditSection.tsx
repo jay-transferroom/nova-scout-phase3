@@ -13,6 +13,15 @@ interface ReportEditSectionProps {
   isOverallSection?: boolean;
 }
 
+// Standard scout recommendations
+const SCOUT_RECOMMENDATIONS = [
+  "Sign / Proceed to next stage",
+  "Monitor / Track Further", 
+  "Further Scouting Required",
+  "Concerns / With Reservations",
+  "Do Not Pursue"
+];
+
 const ReportEditSection = ({ 
   section, 
   sectionTitle, 
@@ -67,7 +76,7 @@ const ReportEditSection = ({
               const templateField = templateSection?.fields?.find((tf: any) => tf.id === fieldData.fieldId);
               
               // Create a proper field structure for ReportField component
-              const field = {
+              let field = {
                 id: fieldData.fieldId,
                 label: templateField?.label || fieldData.fieldId.charAt(0).toUpperCase() + fieldData.fieldId.slice(1),
                 type: templateField?.type || 'text' as const,
@@ -76,6 +85,18 @@ const ReportEditSection = ({
                 options: templateField?.options,
                 ratingSystem: templateField?.ratingSystem
               };
+
+              // Special handling for recommendation fields to ensure they use the latest options
+              if (fieldData.fieldId === 'recommendation' || 
+                  field.label.toLowerCase().includes('recommendation') ||
+                  field.label.toLowerCase().includes('verdict') ||
+                  field.label.toLowerCase().includes('decision')) {
+                field = {
+                  ...field,
+                  type: 'dropdown' as const,
+                  options: SCOUT_RECOMMENDATIONS
+                };
+              }
 
               return (
                 <ReportField
