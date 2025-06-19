@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate, useParams } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
@@ -35,6 +35,12 @@ import { Toaster } from "./components/ui/sonner";
 
 const queryClient = new QueryClient();
 
+// Component to handle the redirect with proper ID parameter
+const PlayerRedirect = () => {
+  const { id } = useParams();
+  return <Navigate to={`/player/${id}`} replace />;
+};
+
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
@@ -67,7 +73,7 @@ function App() {
                 {/* Redirect old plural route to singular route */}
                 <Route 
                   path="/players/:id" 
-                  element={<Navigate to="/player/:id" replace />}
+                  element={<PlayerRedirect />}
                 />
                 <Route 
                   path="/player/:id" 
