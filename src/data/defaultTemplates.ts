@@ -1,4 +1,3 @@
-
 import { ReportTemplate, DEFAULT_RATING_SYSTEMS } from "@/types/report";
 
 export const DEFAULT_TEMPLATES: ReportTemplate[] = [
@@ -23,7 +22,7 @@ export const DEFAULT_TEMPLATES: ReportTemplate[] = [
           },
           {
             id: "recommendation",
-            label: "Scout Recommendation",
+            label: "Recommendation",
             type: "dropdown",
             required: true,
             options: [
@@ -189,7 +188,7 @@ export const DEFAULT_TEMPLATES: ReportTemplate[] = [
           },
           {
             id: "recommendation",
-            label: "Scout Recommendation",
+            label: "Recommendation",
             type: "dropdown",
             required: true,
             options: [
@@ -272,7 +271,7 @@ export const DEFAULT_TEMPLATES: ReportTemplate[] = [
           },
           {
             id: "recommendation",
-            label: "Scout Recommendation",
+            label: "Recommendation",
             type: "dropdown",
             required: true,
             options: [
