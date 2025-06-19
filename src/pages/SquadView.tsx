@@ -1,4 +1,3 @@
-
 import { useState, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -32,33 +31,75 @@ const SquadView = () => {
     return mockPlayers.filter(player => player.club === userClub);
   }, [userClub]);
 
-  // Filter players based on selected squad type
+  // Filter players based on selected squad type with no duplicates
   const squadPlayers = useMemo(() => {
+    const firstTeamIds = clubPlayers
+      .filter(p => !p.id.includes('23_') && !p.id.includes('21_') && !p.id.includes('18_'))
+      .slice(0, 28)
+      .map(p => p.id);
+
+    const shadowSquadIds = firstTeamIds.slice(0, 14);
+
+    const u23Players = clubPlayers.filter(p => 
+      p.age <= 23 && !firstTeamIds.includes(p.id)
+    ).slice(0, 21);
+
+    const u21Players = clubPlayers.filter(p => 
+      p.age <= 21 && !firstTeamIds.includes(p.id) && !u23Players.find(u23 => u23.id === p.id)
+    ).slice(0, 30);
+
+    const u18Players = clubPlayers.filter(p => 
+      p.age <= 18 && 
+      !firstTeamIds.includes(p.id) && 
+      !u23Players.find(u23 => u23.id === p.id) &&
+      !u21Players.find(u21 => u21.id === p.id)
+    ).slice(0, 30);
+
     switch (selectedSquad) {
       case 'first-xi':
-        return clubPlayers.slice(0, 11); // First choice 11
+        return clubPlayers.filter(p => firstTeamIds.includes(p.id));
       case 'shadow-squad':
-        return clubPlayers; // Full squad
+        return clubPlayers.filter(p => shadowSquadIds.includes(p.id));
       case 'u23':
-        return clubPlayers.filter(p => p.age <= 23);
+        return u23Players;
       case 'u21':
-        return clubPlayers.filter(p => p.age <= 21);
+        return u21Players;
       case 'u18':
-        return clubPlayers.filter(p => p.age <= 18);
+        return u18Players;
       default:
-        return clubPlayers.slice(0, 11);
+        return clubPlayers.filter(p => firstTeamIds.includes(p.id));
     }
   }, [clubPlayers, selectedSquad]);
 
-  // Calculate squad metrics with realistic values
+  // Calculate squad metrics with realistic values based on squad type
   const squadMetrics = useMemo(() => {
     if (squadPlayers.length === 0) {
       return { totalValue: 0, avgAge: 0, contractsExpiring: 0 };
     }
 
+    // Different base values for different squad types
+    let baseValueMultiplier = 1;
+    switch (selectedSquad) {
+      case 'first-xi':
+        baseValueMultiplier = 2.5; // Most valuable
+        break;
+      case 'shadow-squad':
+        baseValueMultiplier = 2.0; // High value subset
+        break;
+      case 'u23':
+        baseValueMultiplier = 0.8; // Developing players
+        break;
+      case 'u21':
+        baseValueMultiplier = 0.4; // Youth prospects
+        break;
+      case 'u18':
+        baseValueMultiplier = 0.2; // Academy players
+        break;
+    }
+
     // Calculate total value based on player ages and positions
     const totalValue = squadPlayers.reduce((sum, player) => {
-      let baseValue = 15; // Base value in millions
+      let baseValue = 15 * baseValueMultiplier; // Base value in millions
       
       // Adjust value based on age
       if (player.age < 20) baseValue *= 1.5; // Young prospects
@@ -81,7 +122,7 @@ const SquadView = () => {
     ).length;
 
     return { totalValue, avgAge, contractsExpiring };
-  }, [squadPlayers]);
+  }, [squadPlayers, selectedSquad]);
 
   const getSquadDisplayName = (squadType: string) => {
     switch (squadType) {
