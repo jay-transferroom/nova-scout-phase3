@@ -53,11 +53,23 @@ export const getOverallRating = (report: ReportWithPlayer) => {
       
       if (isRatingField && field.value !== null && field.value !== undefined && field.value !== "") {
         console.log('Found rating field:', field);
-        const numericValue = typeof field.value === 'number' ? field.value : parseFloat(field.value);
+        
+        // Handle different rating types
+        if (typeof field.value === 'number') {
+          console.log('Returning numeric rating:', field.value);
+          return field.value;
+        }
+        
+        // Try to parse as number first
+        const numericValue = parseFloat(field.value);
         if (!isNaN(numericValue)) {
-          console.log('Returning numeric rating:', numericValue);
+          console.log('Returning parsed numeric rating:', numericValue);
           return numericValue;
         }
+        
+        // If it's a letter or other string value, return as is
+        console.log('Returning string rating:', field.value);
+        return field.value;
       }
     }
   }
