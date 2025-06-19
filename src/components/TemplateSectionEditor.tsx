@@ -19,6 +19,15 @@ interface TemplateSectionEditorProps {
   defaultRatingSystem?: RatingSystem;
 }
 
+// Standard scout recommendations
+const SCOUT_RECOMMENDATIONS = [
+  "Sign / Proceed to next stage",
+  "Monitor / Track Further", 
+  "Further Scouting Required",
+  "Concerns / With Reservations",
+  "Do Not Pursue"
+];
+
 const createNewSection = (defaultRatingSystem?: RatingSystem): ReportSection => {
   const ratingField: ReportField = {
     id: `field-rating-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
@@ -26,6 +35,14 @@ const createNewSection = (defaultRatingSystem?: RatingSystem): ReportSection => 
     type: "rating",
     required: true,
     ratingSystem: defaultRatingSystem ? { ...defaultRatingSystem } : undefined
+  };
+
+  const recommendationField: ReportField = {
+    id: `field-recommendation-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+    label: "Recommendation",
+    type: "dropdown",
+    required: true,
+    options: [...SCOUT_RECOMMENDATIONS]
   };
 
   const descriptionField: ReportField = {
@@ -38,7 +55,7 @@ const createNewSection = (defaultRatingSystem?: RatingSystem): ReportSection => 
   return {
     id: `section-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
     title: "New Section",
-    fields: [ratingField, descriptionField],
+    fields: [ratingField, recommendationField, descriptionField],
     optional: false
   };
 };
@@ -92,6 +109,46 @@ const TemplateSectionEditor = ({ sections, onUpdate, defaultRatingSystem }: Temp
     });
     
     onUpdate(updatedSections);
+  };
+
+  const handleAddField = (sectionId: string) => {
+    const newField: ReportField = {
+      id: `field-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+      label: "New Field",
+      type: "text",
+      required: false
+    };
+
+    const updatedSections = sections.map(section => {
+      if (section.id === sectionId) {
+        return {
+          ...section,
+          fields: [...section.fields, newField]
+        };
+      }
+      return section;
+    });
+    
+    onUpdate(updatedSections);
+    setEditingFieldId(newField.id);
+  };
+
+  const handleDeleteField = (sectionId: string, fieldId: string) => {
+    const updatedSections = sections.map(section => {
+      if (section.id === sectionId) {
+        return {
+          ...section,
+          fields: section.fields.filter(field => field.id !== fieldId)
+        };
+      }
+      return section;
+    });
+    
+    onUpdate(updatedSections);
+    
+    if (editingFieldId === fieldId) {
+      setEditingFieldId(null);
+    }
   };
 
   const handleMoveSectionUp = (index: number) => {
@@ -228,7 +285,18 @@ const TemplateSectionEditor = ({ sections, onUpdate, defaultRatingSystem }: Temp
                 </div>
                 
                 <div className="space-y-3">
-                  <div className="text-sm font-medium">Fields</div>
+                  <div className="flex items-center justify-between">
+                    <div className="text-sm font-medium">Fields</div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleAddField(section.id)}
+                      className="gap-1"
+                    >
+                      <Plus size={16} />
+                      Add Field
+                    </Button>
+                  </div>
                   
                   <div className="space-y-2">
                     {section.fields.map((field) => (
@@ -261,6 +329,14 @@ const TemplateSectionEditor = ({ sections, onUpdate, defaultRatingSystem }: Temp
                               )}
                             >
                               {editingFieldId === field.id ? "Done" : "Edit"}
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-7 w-7 p-0 text-destructive hover:text-destructive"
+                              onClick={() => handleDeleteField(section.id, field.id)}
+                            >
+                              <Trash2 size={16} />
                             </Button>
                           </div>
                         </div>
