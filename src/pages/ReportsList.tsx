@@ -19,6 +19,10 @@ const ReportsList = () => {
     navigate(`/reports/${reportId}`);
   };
 
+  const handleEditReport = (reportId: string) => {
+    navigate(`/reports/${reportId}/edit`);
+  };
+
   const handleDeleteReport = async (reportId: string, playerName: string) => {
     if (window.confirm(`Are you sure you want to delete the report for ${playerName}?`)) {
       try {
@@ -32,7 +36,7 @@ const ReportsList = () => {
 
   const getCardTitle = () => {
     if (activeTab === "all-reports") return "All Scouting Reports";
-    if (activeTab === "my-reports") return "Submitted Reports";
+    if (activeTab === "my-reports") return "My Reports";
     return "Draft Reports";
   };
 
@@ -61,6 +65,7 @@ const ReportsList = () => {
           <ReportsTable 
             reports={filteredReports}
             onViewReport={handleViewReport}
+            onEditReport={handleEditReport}
             onDeleteReport={handleDeleteReport}
           />
 

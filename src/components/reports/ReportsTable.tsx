@@ -1,20 +1,43 @@
 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Award, Trash2 } from "lucide-react";
+import { Award, Trash2, Edit, Eye } from "lucide-react";
 import { ReportWithPlayer } from "@/types/report";
-import { groupReportsByPlayer } from "@/utils/reportGrouping";
 import { getRatingColor, formatDate } from "@/utils/reportFormatting";
+import { Badge } from "@/components/ui/badge";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface ReportsTableProps {
   reports: ReportWithPlayer[];
   onViewReport: (reportId: string) => void;
+  onEditReport?: (reportId: string) => void;
   onDeleteReport: (reportId: string, playerName: string) => void;
 }
 
-const ReportsTable = ({ reports, onViewReport, onDeleteReport }: ReportsTableProps) => {
-  const groupedReports = groupReportsByPlayer(reports);
-  console.log('Final grouped reports with ratings:', groupedReports);
+const ReportsTable = ({ reports, onViewReport, onEditReport, onDeleteReport }: ReportsTableProps) => {
+  const { user } = useAuth();
+
+  // Helper function to get overall rating from a report
+  const getOverallRating = (report: ReportWithPlayer) => {
+    const overallSection = report.sections.find(section => section.sectionId === "overall");
+    const ratingField = overallSection?.fields.find(field => field.fieldId === "overallRating");
+    return ratingField?.value;
+  };
+
+  // Helper function to get recommendation from a report
+  const getRecommendation = (report: ReportWithPlayer) => {
+    const sections = report.sections;
+    for (const section of sections) {
+      const recommendationField = section.fields.find(field => 
+        field.fieldId === "recommendation" || 
+        field.fieldId.toLowerCase().includes('recommendation')
+      );
+      if (recommendationField?.value) {
+        return recommendationField.value;
+      }
+    }
+    return null;
+  };
 
   return (
     <Table>
@@ -23,94 +46,88 @@ const ReportsTable = ({ reports, onViewReport, onDeleteReport }: ReportsTablePro
           <TableHead>Player</TableHead>
           <TableHead>Club</TableHead>
           <TableHead>Positions</TableHead>
-          <TableHead>Reports</TableHead>
-          <TableHead>Latest Report</TableHead>
+          <TableHead>Report Date</TableHead>
           <TableHead className="w-[100px]">Status</TableHead>
           <TableHead>
             <div className="flex items-center gap-1">
               <Award size={14} />
-              <span>Avg Rating</span>
+              <span>Rating</span>
             </div>
           </TableHead>
           <TableHead>Recommendation</TableHead>
           <TableHead>Scout</TableHead>
-          <TableHead className="w-[150px] text-right">Actions</TableHead>
+          <TableHead className="w-[200px] text-right">Actions</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
-        {groupedReports.length > 0 ? (
-          groupedReports.map((groupedReport) => {
+        {reports.length > 0 ? (
+          reports.map((report) => {
+            const canEdit = user && report.scoutId === user.id;
+            const overallRating = getOverallRating(report);
+            const recommendation = getRecommendation(report);
+
             return (
-              <TableRow key={groupedReport.playerId}>
-                <TableCell className="font-medium">{groupedReport.player?.name}</TableCell>
-                <TableCell>{groupedReport.player?.club}</TableCell>
-                <TableCell>{groupedReport.player?.positions?.join(", ")}</TableCell>
+              <TableRow key={report.id}>
+                <TableCell className="font-medium">{report.player?.name}</TableCell>
+                <TableCell>{report.player?.club}</TableCell>
+                <TableCell>{report.player?.positions?.join(", ")}</TableCell>
+                <TableCell>{formatDate(report.createdAt)}</TableCell>
                 <TableCell>
-                  <span className="text-sm text-muted-foreground">
-                    {groupedReport.reportCount} report{groupedReport.reportCount > 1 ? 's' : ''}
-                  </span>
-                </TableCell>
-                <TableCell>{formatDate(groupedReport.createdAt)}</TableCell>
-                <TableCell>
-                  {groupedReport.status === "draft" ? (
-                    <span className="inline-flex items-center rounded-full bg-yellow-100 px-2.5 py-0.5 text-xs font-medium text-yellow-800">
-                      Draft
-                    </span>
-                  ) : (
-                    <span className="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">
-                      Submitted
-                    </span>
-                  )}
+                  <Badge variant={report.status === "submitted" ? "secondary" : "outline"}>
+                    {report.status === "draft" ? "Draft" : "Submitted"}
+                  </Badge>
                 </TableCell>
                 <TableCell>
-                  {groupedReport.avgRating !== null && groupedReport.avgRating !== undefined ? (
-                    <span className={`font-semibold text-base ${getRatingColor(groupedReport.avgRating)}`}>
-                      {groupedReport.avgRating}
-                      {groupedReport.reportCount > 1 && (
-                        <span className="text-xs text-muted-foreground ml-1">
-                          (avg)
-                        </span>
-                      )}
+                  {overallRating !== null && overallRating !== undefined ? (
+                    <span className={`font-semibold text-base ${getRatingColor(overallRating)}`}>
+                      {overallRating}
                     </span>
                   ) : (
                     <span className="text-muted-foreground text-sm">-</span>
                   )}
                 </TableCell>
                 <TableCell>
-                  {groupedReport.recommendation ? (
-                    <span className={getRatingColor(groupedReport.recommendation)}>
-                      {groupedReport.recommendation}
+                  {recommendation ? (
+                    <span className={getRatingColor(recommendation)}>
+                      {recommendation}
                     </span>
                   ) : (
                     <span className="text-muted-foreground text-sm">-</span>
                   )}
                 </TableCell>
                 <TableCell>
-                  {groupedReport.scoutProfile?.first_name || "Scout"}
-                  {groupedReport.reportCount > 1 && (
-                    <span className="text-xs text-muted-foreground block">
-                      +{groupedReport.reportCount - 1} more
-                    </span>
-                  )}
+                  {report.scoutProfile?.first_name || "Scout"}
                 </TableCell>
                 <TableCell className="text-right">
                   <div className="flex gap-2 justify-end">
                     <Button 
                       variant="outline" 
                       size="sm" 
-                      onClick={() => onViewReport(groupedReport.id)}
-                      title={groupedReport.reportCount > 1 ? "View latest report" : "View report"}
+                      onClick={() => onViewReport(report.id)}
+                      title="View report"
                     >
-                      View Latest
+                      <Eye className="h-4 w-4" />
                     </Button>
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => onDeleteReport(groupedReport.id, groupedReport.player?.name || "Unknown")}
-                      title="Delete latest report"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+                    {canEdit && onEditReport && (
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => onEditReport(report.id)}
+                        title="Edit report"
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                    )}
+                    {canEdit && (
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => onDeleteReport(report.id, report.player?.name || "Unknown")}
+                        title="Delete report"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    )}
                   </div>
                 </TableCell>
               </TableRow>
@@ -118,7 +135,7 @@ const ReportsTable = ({ reports, onViewReport, onDeleteReport }: ReportsTablePro
           })
         ) : (
           <TableRow>
-            <TableCell colSpan={10} className="text-center py-6 text-muted-foreground">
+            <TableCell colSpan={9} className="text-center py-6 text-muted-foreground">
               No reports found.
             </TableCell>
           </TableRow>
