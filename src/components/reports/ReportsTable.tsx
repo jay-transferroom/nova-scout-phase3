@@ -27,6 +27,95 @@ const getRatingColor = (value: any): string => {
   return "";
 };
 
+// Get overall rating from a report - improved logic
+const getOverallRating = (report: ReportWithPlayer) => {
+  console.log(`Extracting rating for player ${report.player?.name}:`, report.sections);
+  
+  if (!report.sections || !Array.isArray(report.sections)) {
+    console.log('No sections or sections not array');
+    return null;
+  }
+  
+  // Try to find overall rating in different sections and field names
+  for (const section of report.sections) {
+    console.log(`Checking section:`, section);
+    
+    if (!section.fields || !Array.isArray(section.fields)) {
+      console.log('Section has no fields or fields not array');
+      continue;
+    }
+    
+    // Look for common rating field names - check both fieldId and label
+    for (const field of section.fields) {
+      console.log(`Checking field:`, field);
+      
+      const isRatingField = 
+        field.fieldId === "overallRating" || 
+        field.fieldId === "overall_rating" ||
+        field.fieldId === "rating" ||
+        field.fieldId === "overall" ||
+        (field.label && field.label.toLowerCase().includes("overall")) ||
+        (field.label && field.label.toLowerCase().includes("rating")) ||
+        (field.label && field.label.toLowerCase().includes("score"));
+      
+      if (isRatingField && field.value !== null && field.value !== undefined && field.value !== "") {
+        console.log('Found rating field:', field);
+        const numericValue = typeof field.value === 'number' ? field.value : parseFloat(field.value);
+        if (!isNaN(numericValue)) {
+          return numericValue;
+        }
+      }
+    }
+  }
+  
+  console.log('No rating found');
+  return null;
+};
+
+// Get recommendation from a report - improved logic
+const getRecommendation = (report: ReportWithPlayer) => {
+  console.log(`Extracting recommendation for player ${report.player?.name}:`, report.sections);
+  
+  if (!report.sections || !Array.isArray(report.sections)) {
+    console.log('No sections or sections not array');
+    return null;
+  }
+  
+  // Try to find recommendation in different sections and field names
+  for (const section of report.sections) {
+    console.log(`Checking section for recommendation:`, section);
+    
+    if (!section.fields || !Array.isArray(section.fields)) {
+      console.log('Section has no fields or fields not array');
+      continue;
+    }
+    
+    // Look for common recommendation field names
+    for (const field of section.fields) {
+      console.log(`Checking recommendation field:`, field);
+      
+      const isRecommendationField = 
+        field.fieldId === "recommendation" || 
+        field.fieldId === "overall_recommendation" ||
+        field.fieldId === "verdict" ||
+        field.fieldId === "decision" ||
+        field.fieldId === "outcome" ||
+        (field.label && field.label.toLowerCase().includes("recommendation")) ||
+        (field.label && field.label.toLowerCase().includes("verdict")) ||
+        (field.label && field.label.toLowerCase().includes("decision")) ||
+        (field.label && field.label.toLowerCase().includes("outcome"));
+      
+      if (isRecommendationField && field.value && field.value !== "") {
+        console.log('Found recommendation field:', field);
+        return field.value;
+      }
+    }
+  }
+  
+  console.log('No recommendation found');
+  return null;
+};
+
 // Helper function to group reports by player
 const groupReportsByPlayer = (reports: ReportWithPlayer[]) => {
   const grouped = reports.reduce((acc, report) => {
@@ -46,12 +135,12 @@ const groupReportsByPlayer = (reports: ReportWithPlayer[]) => {
 
     const mostRecentReport = sortedReports[0];
     
-    // Get all ratings for this player - try multiple field names
+    // Get all ratings for this player
     const ratings = sortedReports
       .map(report => getOverallRating(report))
       .filter(rating => rating !== null && rating !== undefined && typeof rating === "number") as number[];
 
-    console.log(`Player ${mostRecentReport.player?.name} ratings:`, ratings);
+    console.log(`Player ${mostRecentReport.player?.name} all ratings:`, ratings);
 
     // Calculate average rating
     const avgRating = ratings.length > 0 
@@ -61,6 +150,7 @@ const groupReportsByPlayer = (reports: ReportWithPlayer[]) => {
     // Get the most recent recommendation
     const recommendation = getRecommendation(mostRecentReport);
     console.log(`Player ${mostRecentReport.player?.name} recommendation:`, recommendation);
+    console.log(`Player ${mostRecentReport.player?.name} avg rating:`, avgRating);
 
     return {
       ...mostRecentReport,
@@ -70,60 +160,6 @@ const groupReportsByPlayer = (reports: ReportWithPlayer[]) => {
       allReports: sortedReports
     };
   });
-};
-
-// Get overall rating from a report - try multiple possible field names
-const getOverallRating = (report: ReportWithPlayer) => {
-  if (!report.sections || !Array.isArray(report.sections)) return null;
-  
-  // Try to find overall rating in different sections and field names
-  for (const section of report.sections) {
-    if (!section.fields || !Array.isArray(section.fields)) continue;
-    
-    // Look for common rating field names
-    const ratingField = section.fields.find((field: any) => 
-      field.fieldId === "overallRating" || 
-      field.fieldId === "overall_rating" ||
-      field.fieldId === "rating" ||
-      field.fieldId === "overall" ||
-      field.label?.toLowerCase().includes("overall") ||
-      field.label?.toLowerCase().includes("rating")
-    );
-    
-    if (ratingField && ratingField.value !== null && ratingField.value !== undefined) {
-      console.log('Found rating field:', ratingField);
-      return typeof ratingField.value === 'number' ? ratingField.value : parseFloat(ratingField.value);
-    }
-  }
-  
-  return null;
-};
-
-// Get recommendation from a report - try multiple possible field names
-const getRecommendation = (report: ReportWithPlayer) => {
-  if (!report.sections || !Array.isArray(report.sections)) return null;
-  
-  // Try to find recommendation in different sections and field names
-  for (const section of report.sections) {
-    if (!section.fields || !Array.isArray(section.fields)) continue;
-    
-    // Look for common recommendation field names
-    const recommendationField = section.fields.find((field: any) => 
-      field.fieldId === "recommendation" || 
-      field.fieldId === "overall_recommendation" ||
-      field.fieldId === "verdict" ||
-      field.fieldId === "decision" ||
-      field.label?.toLowerCase().includes("recommendation") ||
-      field.label?.toLowerCase().includes("verdict")
-    );
-    
-    if (recommendationField && recommendationField.value) {
-      console.log('Found recommendation field:', recommendationField);
-      return recommendationField.value;
-    }
-  }
-  
-  return null;
 };
 
 const ReportsTable = ({ reports, onViewReport, onDeleteReport }: ReportsTableProps) => {
@@ -137,7 +173,7 @@ const ReportsTable = ({ reports, onViewReport, onDeleteReport }: ReportsTablePro
   };
 
   const groupedReports = groupReportsByPlayer(reports);
-  console.log('Grouped reports:', groupedReports);
+  console.log('Final grouped reports with ratings:', groupedReports);
 
   return (
     <Table>
