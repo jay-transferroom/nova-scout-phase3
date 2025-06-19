@@ -69,7 +69,7 @@ export const PlayerReports = ({ playerReports, reportsLoading, onViewReport }: P
                         {recommendation && (
                           <div className="flex items-center gap-2">
                             <Award className="h-4 w-4 text-blue-500" />
-                            <span className={`font-medium ${getRatingColor(recommendation)}`}>
+                            <span className="font-medium text-slate-600">
                               {recommendation}
                             </span>
                           </div>

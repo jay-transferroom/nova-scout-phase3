@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Award, Trash2, Edit, Eye } from "lucide-react";
 import { ReportWithPlayer } from "@/types/report";
 import { getRatingColor, formatDate } from "@/utils/reportFormatting";
+import { getOverallRating, getRecommendation } from "@/utils/reportDataExtraction";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -16,28 +17,6 @@ interface ReportsTableProps {
 
 const ReportsTable = ({ reports, onViewReport, onEditReport, onDeleteReport }: ReportsTableProps) => {
   const { user } = useAuth();
-
-  // Helper function to get overall rating from a report
-  const getOverallRating = (report: ReportWithPlayer) => {
-    const overallSection = report.sections.find(section => section.sectionId === "overall");
-    const ratingField = overallSection?.fields.find(field => field.fieldId === "overallRating");
-    return ratingField?.value;
-  };
-
-  // Helper function to get recommendation from a report
-  const getRecommendation = (report: ReportWithPlayer) => {
-    const sections = report.sections;
-    for (const section of sections) {
-      const recommendationField = section.fields.find(field => 
-        field.fieldId === "recommendation" || 
-        field.fieldId.toLowerCase().includes('recommendation')
-      );
-      if (recommendationField?.value) {
-        return recommendationField.value;
-      }
-    }
-    return null;
-  };
 
   return (
     <Table>
@@ -88,7 +67,7 @@ const ReportsTable = ({ reports, onViewReport, onEditReport, onDeleteReport }: R
                 </TableCell>
                 <TableCell>
                   {recommendation ? (
-                    <span className={getRatingColor(recommendation)}>
+                    <span className="text-slate-600 font-medium">
                       {recommendation}
                     </span>
                   ) : (
