@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Search, Sparkles, User, FileText, Loader2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
@@ -85,7 +84,7 @@ const AISearch = ({ placeholder = "Describe what you're looking for...", showSug
 
   const handleResultClick = (result: SearchResult) => {
     if (result.type === 'player') {
-      navigate(`/players/${result.id}`);
+      navigate(`/player/${result.id}`); // Fixed: changed from /players/ to /player/
     } else if (result.type === 'report') {
       navigate(`/reports/${result.id}`);
     }

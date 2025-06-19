@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -85,7 +84,7 @@ const SearchResults = () => {
   }, [searchQuery, ageFilter, contractFilter, regionFilter, players]);
 
   const handlePlayerClick = (player: Player) => {
-    navigate(`/players/${player.id}`);
+    navigate(`/player/${player.id}`); // Fixed: changed from /players/ to /player/
   };
 
   if (isLoading) {

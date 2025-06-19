@@ -8,11 +8,18 @@ import { ChevronDown, ChevronUp, Award } from "lucide-react";
 interface ReportEditSectionProps {
   section: ReportSectionData;
   sectionTitle: string;
+  templateSection?: any; // Add template section to get field metadata
   onUpdate: (updatedSection: ReportSectionData) => void;
   isOverallSection?: boolean;
 }
 
-const ReportEditSection = ({ section, sectionTitle, onUpdate, isOverallSection = false }: ReportEditSectionProps) => {
+const ReportEditSection = ({ 
+  section, 
+  sectionTitle, 
+  templateSection, 
+  onUpdate, 
+  isOverallSection = false 
+}: ReportEditSectionProps) => {
   const [isExpanded, setIsExpanded] = useState(true);
 
   const toggleExpand = () => {
@@ -56,18 +63,24 @@ const ReportEditSection = ({ section, sectionTitle, onUpdate, isOverallSection =
         <div className="p-4 pt-0 border-t">
           <div className="grid gap-4">
             {section.fields.map((fieldData) => {
-              // Create a mock field structure for ReportField component
-              const mockField = {
+              // Find the corresponding field definition from the template
+              const templateField = templateSection?.fields?.find((tf: any) => tf.id === fieldData.fieldId);
+              
+              // Create a proper field structure for ReportField component
+              const field = {
                 id: fieldData.fieldId,
-                label: fieldData.fieldId.charAt(0).toUpperCase() + fieldData.fieldId.slice(1),
-                type: 'text' as const, // Default to text, this would need to be enhanced
-                required: false
+                label: templateField?.label || fieldData.fieldId.charAt(0).toUpperCase() + fieldData.fieldId.slice(1),
+                type: templateField?.type || 'text' as const,
+                required: templateField?.required || false,
+                description: templateField?.description,
+                options: templateField?.options,
+                ratingSystem: templateField?.ratingSystem
               };
 
               return (
                 <ReportField
                   key={fieldData.fieldId}
-                  field={mockField}
+                  field={field}
                   value={fieldData.value}
                   notes={fieldData.notes}
                   onChange={(value, notes) => handleFieldUpdate(fieldData.fieldId, value, notes)}

@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -17,6 +16,7 @@ const ReportEdit = () => {
   const { user } = useAuth();
   const { saveReport } = useReports();
   const [report, setReport] = useState<ReportWithPlayer | null>(null);
+  const [template, setTemplate] = useState<any>(null); // Add template state
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -54,6 +54,19 @@ const ReportEdit = () => {
         if (data.scout_id !== user.id) {
           setError('You can only edit your own reports');
           return;
+        }
+
+        // Fetch the template to get field definitions
+        const { data: templateData, error: templateError } = await supabase
+          .from('report_templates')
+          .select('*')
+          .eq('id', data.template_id)
+          .single();
+
+        if (templateError) {
+          console.error('Error fetching template:', templateError);
+        } else {
+          setTemplate(templateData);
         }
 
         // Transform the data to match our ReportWithPlayer interface
@@ -204,15 +217,21 @@ const ReportEdit = () => {
       </Card>
 
       <div className="space-y-6">
-        {report.sections.map((section) => (
-          <ReportEditSection
-            key={section.sectionId}
-            section={section}
-            sectionTitle={section.sectionId.charAt(0).toUpperCase() + section.sectionId.slice(1)}
-            onUpdate={handleSectionUpdate}
-            isOverallSection={section.sectionId === "overall"}
-          />
-        ))}
+        {report.sections.map((section) => {
+          // Find the corresponding template section
+          const templateSection = template?.sections?.find((ts: any) => ts.id === section.sectionId);
+          
+          return (
+            <ReportEditSection
+              key={section.sectionId}
+              section={section}
+              sectionTitle={templateSection?.title || section.sectionId.charAt(0).toUpperCase() + section.sectionId.slice(1)}
+              templateSection={templateSection}
+              onUpdate={handleSectionUpdate}
+              isOverallSection={section.sectionId === "overall"}
+            />
+          );
+        })}
       </div>
     </div>
   );
