@@ -13,6 +13,7 @@ import TemplateSelection from "@/components/TemplateSelection";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
+import { DEFAULT_TEMPLATES } from "@/data/defaultTemplates";
 
 interface LocationState {
   player?: Player;
@@ -118,6 +119,8 @@ const ReportBuilder = () => {
   }, [state, fetchedPlayer, user]);
 
   const initializeReport = (selectedPlayer: Player, selectedTemplate: ReportTemplate) => {
+    console.log('Initializing report with template:', selectedTemplate);
+    
     const newReport: Report = {
       id: generateUUID(),
       playerId: selectedPlayer.id,
@@ -145,6 +148,7 @@ const ReportBuilder = () => {
   };
 
   const handleTemplateSelect = (selectedPlayer: Player, selectedTemplate: ReportTemplate) => {
+    console.log('Template selected:', selectedTemplate);
     setTemplate(selectedTemplate);
     setShowTemplateSelection(false);
     initializeReport(selectedPlayer, selectedTemplate);

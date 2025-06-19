@@ -9,6 +9,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import ReportEditSection from "@/components/ReportEditSection";
 import { useReports } from "@/hooks/useReports";
+import { DEFAULT_TEMPLATES } from "@/data/defaultTemplates";
 
 const ReportEdit = () => {
   const { id } = useParams<{ id: string }>();
@@ -16,7 +17,7 @@ const ReportEdit = () => {
   const { user } = useAuth();
   const { saveReport } = useReports();
   const [report, setReport] = useState<ReportWithPlayer | null>(null);
-  const [template, setTemplate] = useState<any>(null); // Add template state
+  const [template, setTemplate] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -56,18 +57,38 @@ const ReportEdit = () => {
           return;
         }
 
-        // Fetch the template to get field definitions
+        // Try to fetch template from database first
         const { data: templateData, error: templateError } = await supabase
           .from('report_templates')
           .select('*')
           .eq('id', data.template_id)
           .single();
 
-        if (templateError) {
-          console.error('Error fetching template:', templateError);
+        let templateToUse = null;
+        
+        if (templateError || !templateData) {
+          // If template not found in database, check default templates
+          console.log('Template not found in database, checking default templates');
+          templateToUse = DEFAULT_TEMPLATES.find(t => t.id === data.template_id);
+          
+          if (!templateToUse) {
+            // Fallback to first default template
+            templateToUse = DEFAULT_TEMPLATES[0];
+            console.log('Using fallback template:', templateToUse.name);
+          }
         } else {
-          setTemplate(templateData);
+          // Convert database template to our format
+          templateToUse = {
+            id: templateData.id,
+            name: templateData.name,
+            description: templateData.description || '',
+            defaultTemplate: templateData.default_template || false,
+            defaultRatingSystem: templateData.default_rating_system,
+            sections: templateData.sections || []
+          };
         }
+
+        setTemplate(templateToUse);
 
         // Transform the data to match our ReportWithPlayer interface
         const transformedReport: ReportWithPlayer = {
