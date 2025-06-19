@@ -45,7 +45,7 @@ const getOverallRating = (report: ReportWithPlayer) => {
       continue;
     }
     
-    // Look for common rating field names - check both fieldId and label
+    // Look for common rating field names - only check fieldId since label doesn't exist on data
     for (const field of section.fields) {
       console.log(`Checking field:`, field);
       
@@ -54,9 +54,9 @@ const getOverallRating = (report: ReportWithPlayer) => {
         field.fieldId === "overall_rating" ||
         field.fieldId === "rating" ||
         field.fieldId === "overall" ||
-        (field.label && field.label.toLowerCase().includes("overall")) ||
-        (field.label && field.label.toLowerCase().includes("rating")) ||
-        (field.label && field.label.toLowerCase().includes("score"));
+        field.fieldId.toLowerCase().includes("overall") ||
+        field.fieldId.toLowerCase().includes("rating") ||
+        field.fieldId.toLowerCase().includes("score");
       
       if (isRatingField && field.value !== null && field.value !== undefined && field.value !== "") {
         console.log('Found rating field:', field);
@@ -90,7 +90,7 @@ const getRecommendation = (report: ReportWithPlayer) => {
       continue;
     }
     
-    // Look for common recommendation field names
+    // Look for common recommendation field names - only check fieldId since label doesn't exist on data
     for (const field of section.fields) {
       console.log(`Checking recommendation field:`, field);
       
@@ -100,10 +100,10 @@ const getRecommendation = (report: ReportWithPlayer) => {
         field.fieldId === "verdict" ||
         field.fieldId === "decision" ||
         field.fieldId === "outcome" ||
-        (field.label && field.label.toLowerCase().includes("recommendation")) ||
-        (field.label && field.label.toLowerCase().includes("verdict")) ||
-        (field.label && field.label.toLowerCase().includes("decision")) ||
-        (field.label && field.label.toLowerCase().includes("outcome"));
+        field.fieldId.toLowerCase().includes("recommendation") ||
+        field.fieldId.toLowerCase().includes("verdict") ||
+        field.fieldId.toLowerCase().includes("decision") ||
+        field.fieldId.toLowerCase().includes("outcome");
       
       if (isRecommendationField && field.value && field.value !== "") {
         console.log('Found recommendation field:', field);
