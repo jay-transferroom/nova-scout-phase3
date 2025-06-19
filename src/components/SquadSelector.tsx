@@ -22,17 +22,41 @@ const SQUAD_TYPES = [
 
 const SquadSelector = ({ selectedSquad, onSquadSelect, club, players }: SquadSelectorProps) => {
   const getSquadPlayerCount = (squadType: string) => {
+    const firstTeamIds = players
+      .filter(p => !p.id.includes('23_') && !p.id.includes('21_') && !p.id.includes('18_'))
+      .slice(0, 25)
+      .map(p => p.id);
+
+    const shadowSquadIds = firstTeamIds.slice(0, 11);
+
+    const u23Players = players.filter(p => 
+      p.age <= 23 && !firstTeamIds.includes(p.id)
+    ).slice(0, 20);
+
+    const u21Players = players.filter(p => 
+      p.age <= 21 && 
+      !firstTeamIds.includes(p.id) && 
+      !u23Players.find(u23 => u23.id === p.id)
+    ).slice(0, 20);
+
+    const u18Players = players.filter(p => 
+      p.age <= 18 && 
+      !firstTeamIds.includes(p.id) && 
+      !u23Players.find(u23 => u23.id === p.id) &&
+      !u21Players.find(u21 => u21.id === p.id)
+    ).slice(0, 20);
+
     switch (squadType) {
       case 'first-xi':
-        return Math.min(players.length, 11);
+        return Math.min(players.filter(p => firstTeamIds.includes(p.id)).length, 25);
       case 'shadow-squad':
-        return players.length;
+        return Math.min(players.filter(p => shadowSquadIds.includes(p.id)).length, 11);
       case 'u23':
-        return players.filter(p => p.age <= 23).length;
+        return u23Players.length;
       case 'u21':
-        return players.filter(p => p.age <= 21).length;
+        return u21Players.length;
       case 'u18':
-        return players.filter(p => p.age <= 18).length;
+        return u18Players.length;
       default:
         return 0;
     }
@@ -80,7 +104,7 @@ const SquadSelector = ({ selectedSquad, onSquadSelect, club, players }: SquadSel
         </div>
         <p className="text-sm text-muted-foreground mt-2">
           {selectedSquad === 'shadow-squad' 
-            ? 'View full squad depth with multiple players per position'
+            ? 'View core starting XI players with tactical depth'
             : 'Select squad to analyze formation and player assignments'
           }
         </p>
