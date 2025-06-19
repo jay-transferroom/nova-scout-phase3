@@ -84,7 +84,7 @@ const SearchResults = () => {
   }, [searchQuery, ageFilter, contractFilter, regionFilter, players]);
 
   const handlePlayerClick = (player: Player) => {
-    navigate(`/player/${player.id}`); // Fixed: changed from /players/ to /player/
+    navigate(`/player/${player.id}`);
   };
 
   if (isLoading) {
