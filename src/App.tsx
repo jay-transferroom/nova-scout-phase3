@@ -60,6 +60,7 @@ const App = () => (
                   <Route path="/admin/users" element={<ProtectedRoute><UserManagement /></ProtectedRoute>} />
                   <Route path="/admin/templates" element={<ProtectedRoute><TemplateAdmin /></ProtectedRoute>} />
                   <Route path="/squad" element={<ProtectedRoute><SquadView /></ProtectedRoute>} />
+                  <Route path="/squad-view" element={<ProtectedRoute><SquadView /></ProtectedRoute>} />
                   <Route path="/scouting" element={<ProtectedRoute><ScoutingDashboard /></ProtectedRoute>} />
                   <Route path="/assigned-players" element={<ProtectedRoute><AssignedPlayers /></ProtectedRoute>} />
                   <Route path="/shortlists" element={<ProtectedRoute><Shortlists /></ProtectedRoute>} />
