@@ -55,7 +55,7 @@ const FieldEditor = ({ field, onUpdate }: FieldEditorProps) => {
   };
 
   const handleAddDropdownOption = () => {
-    const currentOptions = field.options || [];
+    const currentOptions = (field.options as string[]) || [];
     onUpdate({
       ...field,
       options: [...currentOptions, `Option ${currentOptions.length + 1}`]
@@ -63,7 +63,7 @@ const FieldEditor = ({ field, onUpdate }: FieldEditorProps) => {
   };
 
   const handleUpdateDropdownOption = (index: number, value: string) => {
-    const currentOptions = field.options || [];
+    const currentOptions = (field.options as string[]) || [];
     const updatedOptions = [...currentOptions];
     updatedOptions[index] = value;
     onUpdate({
@@ -73,7 +73,7 @@ const FieldEditor = ({ field, onUpdate }: FieldEditorProps) => {
   };
 
   const handleRemoveDropdownOption = (index: number) => {
-    const currentOptions = field.options || [];
+    const currentOptions = (field.options as string[]) || [];
     onUpdate({
       ...field,
       options: currentOptions.filter((_, i) => i !== index)
@@ -151,10 +151,10 @@ const FieldEditor = ({ field, onUpdate }: FieldEditorProps) => {
           </div>
           
           <div className="space-y-2">
-            {(field.options || []).map((option, index) => (
+            {((field.options as string[]) || []).map((option, index) => (
               <div key={index} className="flex items-center space-x-2">
                 <Input
-                  value={option.toString()}
+                  value={option}
                   onChange={(e) => handleUpdateDropdownOption(index, e.target.value)}
                   placeholder={`Option ${index + 1}`}
                 />
