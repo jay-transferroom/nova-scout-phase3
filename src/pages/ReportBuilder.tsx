@@ -33,25 +33,33 @@ const ReportBuilder = () => {
   const { data: fetchedPlayer } = usePlayerData(state?.selectedPlayerId);
 
   useEffect(() => {
+    console.log('ReportBuilder useEffect - state:', state);
+    console.log('ReportBuilder useEffect - fetchedPlayer:', fetchedPlayer);
+    
     // Get player and template from location state
     if (state?.player && state?.template) {
+      console.log('Both player and template provided');
       setPlayer(state.player);
       setTemplate(state.template);
       const newReport = initializeReport(state.player, state.template);
       setReport(newReport);
     } else if (state?.player) {
       // Player provided, show template selection
+      console.log('Player provided, showing template selection');
       setPlayer(state.player);
       setShowTemplateSelection(true);
     } else if (fetchedPlayer) {
       // Player fetched from database
+      console.log('Player fetched from database');
       setPlayer(fetchedPlayer);
       setShowTemplateSelection(true);
     } else if (state?.selectedPlayerId) {
       // Wait for player to be fetched
+      console.log('Waiting for player to be fetched');
       return;
     } else {
       // No data provided, show player selection
+      console.log('No data provided, showing player selection');
       setShowPlayerSearch(true);
     }
   }, [state, fetchedPlayer, user, initializeReport]);
