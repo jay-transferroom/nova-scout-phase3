@@ -1,13 +1,41 @@
+
 import { ReportWithPlayer } from "@/types/report";
+
+// Helper function to convert various rating types to numeric for recommendation logic
+const convertRatingToNumeric = (value: any): number | null => {
+  if (typeof value === 'number') {
+    return value;
+  }
+  
+  if (typeof value === 'string') {
+    // Handle letter grades
+    const letterGrade = value.trim().toUpperCase();
+    switch (letterGrade) {
+      case 'A': return 9;
+      case 'B': return 7.5;
+      case 'C': return 6;
+      case 'D': return 4;
+      case 'E': return 2;
+      default:
+        // Try to parse as number
+        const numericValue = parseFloat(value);
+        return !isNaN(numericValue) ? numericValue : null;
+    }
+  }
+  
+  return null;
+};
 
 // Helper function to convert numeric recommendation to text
 const convertNumericRecommendationToText = (value: any): string | null => {
-  if (typeof value === 'number') {
-    if (value >= 9) return "Priority Sign";
-    if (value >= 8) return "Monitor / Track Further";
-    if (value >= 7) return "Consider";
-    if (value >= 6) return "Keep Watching";
-    if (value < 6) return "Pass";
+  const numericValue = convertRatingToNumeric(value);
+  
+  if (numericValue !== null) {
+    if (numericValue >= 9) return "Priority Sign";
+    if (numericValue >= 8) return "Monitor / Track Further";
+    if (numericValue >= 7) return "Consider";
+    if (numericValue >= 6) return "Keep Watching";
+    if (numericValue < 6) return "Pass";
   }
   return null;
 };
