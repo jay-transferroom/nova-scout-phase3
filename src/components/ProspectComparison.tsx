@@ -2,7 +2,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { TrendingUp, Star, ArrowRight, Users } from "lucide-react";
 import { Player } from "@/types/player";
@@ -43,14 +42,35 @@ const mockProspects = {
       transferValue: '£28M',
       nationality: 'Portugal'
     }
+  ],
+  'Right Back': [
+    {
+      id: '3',
+      name: 'Carlos Mendoza',
+      club: 'Valencia CF',
+      age: 21,
+      xTV: 25.8,
+      rating: 78.9,
+      strengths: ['Pace', 'Crossing', 'Defensive work rate'],
+      recommendation: 'Promising prospect',
+      matchPercentage: 82,
+      transferValue: '£18M',
+      nationality: 'Spain'
+    }
   ]
 };
 
 const ProspectComparison = ({ position, currentPlayers }: ProspectComparisonProps) => {
   const prospects = mockProspects[position as keyof typeof mockProspects] || [];
-  const currentBest = currentPlayers.reduce((best, player) => 
-    (player.recentForm?.rating || 0) > (best?.recentForm?.rating || 0) ? player : best
-  , currentPlayers[0]);
+  
+  // Find the best current player for this position based on recent form rating
+  const currentBest = currentPlayers.length > 0 
+    ? currentPlayers.reduce((best, player) => {
+        const bestRating = best?.recentForm?.rating || 0;
+        const playerRating = player.recentForm?.rating || 0;
+        return playerRating > bestRating ? player : best;
+      }, currentPlayers[0])
+    : null;
 
   if (prospects.length === 0) {
     return (
@@ -120,7 +140,7 @@ const ProspectComparison = ({ position, currentPlayers }: ProspectComparisonProp
               <TrendingUp className="h-4 w-4 text-blue-600" />
               Current Best
             </h4>
-            {currentBest && (
+            {currentBest ? (
               <div className="p-3 border rounded-lg">
                 <div className="font-medium">{currentBest.name}</div>
                 <div className="text-sm text-muted-foreground mb-2">
@@ -129,13 +149,23 @@ const ProspectComparison = ({ position, currentPlayers }: ProspectComparisonProp
                 <div className="space-y-1">
                   <div className="flex justify-between text-sm">
                     <span>Rating</span>
-                    <span className="font-medium">{currentBest.recentForm?.rating || 'N/A'}</span>
+                    <span className="font-medium">
+                      {currentBest.recentForm?.rating ? currentBest.recentForm.rating.toFixed(1) : 'N/A'}
+                    </span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span>xTV</span>
-                    <span className="font-medium">£22.3M</span>
+                    <span>Matches</span>
+                    <span className="font-medium">{currentBest.recentForm?.matches || 0}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span>Goals</span>
+                    <span className="font-medium">{currentBest.recentForm?.goals || 0}</span>
                   </div>
                 </div>
+              </div>
+            ) : (
+              <div className="p-3 border rounded-lg">
+                <p className="text-sm text-muted-foreground">No current players for this position</p>
               </div>
             )}
           </div>
@@ -182,7 +212,12 @@ const ProspectComparison = ({ position, currentPlayers }: ProspectComparisonProp
           <div className="space-y-2">
             <div className="flex justify-between items-center">
               <span className="text-sm">Squad Rating Improvement</span>
-              <span className="font-medium text-green-600">+12.3%</span>
+              <span className="font-medium text-green-600">
+                {currentBest && currentBest.recentForm?.rating 
+                  ? `+${(prospect.rating - currentBest.recentForm.rating).toFixed(1)}` 
+                  : '+12.3%'
+                }
+              </span>
             </div>
             <div className="flex justify-between items-center">
               <span className="text-sm">Position Depth</span>
