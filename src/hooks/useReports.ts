@@ -33,23 +33,46 @@ export const useReports = () => {
 
       if (error) throw error;
 
-      // Transform the data to match our ReportWithPlayer interface
-      const transformedReports: ReportWithPlayer[] = (data || []).map((report: any) => ({
-        id: report.id,
-        playerId: report.player_id,
-        templateId: report.template_id,
-        scoutId: report.scout_id,
-        createdAt: new Date(report.created_at),
-        updatedAt: new Date(report.updated_at),
-        status: report.status as 'draft' | 'submitted' | 'reviewed',
-        sections: Array.isArray(report.sections) ? report.sections : [],
-        matchContext: report.match_context,
-        tags: report.tags || [],
-        flaggedForReview: report.flagged_for_review || false,
-        player: report.player,
-        scoutProfile: report.scout_profile,
-      }));
+      console.log('Raw reports data from database:', data);
 
+      // Transform the data to match our ReportWithPlayer interface
+      const transformedReports: ReportWithPlayer[] = (data || []).map((report: any) => {
+        console.log(`Processing report ${report.id}:`, {
+          sections: report.sections,
+          sectionsType: typeof report.sections,
+          isArray: Array.isArray(report.sections)
+        });
+
+        // Parse sections if it's a string
+        let sections = report.sections;
+        if (typeof sections === 'string') {
+          try {
+            sections = JSON.parse(sections);
+            console.log(`Parsed sections for report ${report.id}:`, sections);
+          } catch (e) {
+            console.log(`Failed to parse sections for report ${report.id}:`, e);
+            sections = [];
+          }
+        }
+
+        return {
+          id: report.id,
+          playerId: report.player_id,
+          templateId: report.template_id,
+          scoutId: report.scout_id,
+          createdAt: new Date(report.created_at),
+          updatedAt: new Date(report.updated_at),
+          status: report.status as 'draft' | 'submitted' | 'reviewed',
+          sections: Array.isArray(sections) ? sections : [],
+          matchContext: report.match_context,
+          tags: report.tags || [],
+          flaggedForReview: report.flagged_for_review || false,
+          player: report.player,
+          scoutProfile: report.scout_profile,
+        };
+      });
+
+      console.log('Final transformed reports:', transformedReports);
       setReports(transformedReports);
     } catch (error) {
       console.error('Error fetching reports:', error);
