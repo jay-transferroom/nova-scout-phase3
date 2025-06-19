@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Award, Edit, Eye, Users } from "lucide-react";
 import { ReportWithPlayer } from "@/types/report";
 import { getRatingColor, formatDate } from "@/utils/reportFormatting";
+import { getRecommendation } from "@/utils/reportDataExtraction";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/contexts/AuthContext";
 import { groupReportsByPlayer, GroupedReport } from "@/utils/reportGrouping";
@@ -44,6 +45,7 @@ const GroupedReportsTable = ({ reports, onViewReport, onEditReport, onViewAllRep
           groupedReports.map((groupedReport: GroupedReport) => {
             const canEdit = user && groupedReport.scoutId === user.id;
             const latestReport = groupedReport.allReports[0]; // Most recent report
+            const recommendation = getRecommendation(latestReport);
 
             return (
               <TableRow key={`${groupedReport.playerId}-grouped`}>
@@ -72,9 +74,9 @@ const GroupedReportsTable = ({ reports, onViewReport, onEditReport, onViewAllRep
                   )}
                 </TableCell>
                 <TableCell>
-                  {groupedReport.recommendation ? (
-                    <span className={getRatingColor(groupedReport.recommendation)}>
-                      {groupedReport.recommendation}
+                  {recommendation ? (
+                    <span className="text-slate-600 font-medium">
+                      {recommendation}
                     </span>
                   ) : (
                     <span className="text-muted-foreground text-sm">-</span>
