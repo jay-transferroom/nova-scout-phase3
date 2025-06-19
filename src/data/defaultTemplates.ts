@@ -1,323 +1,306 @@
 
-import { ReportTemplate, DEFAULT_RATING_SYSTEMS } from '@/types/report';
+import { ReportTemplate, DEFAULT_RATING_SYSTEMS } from "@/types/report";
 
 export const DEFAULT_TEMPLATES: ReportTemplate[] = [
   {
-    id: 'initial-assessment',
-    name: '📄 Initial Assessment Template',
-    description: 'Quickly record first impressions from video or data review. Used by analysts, solo scouts, early-stage filters.',
+    id: "comprehensive-assessment",
+    name: "Comprehensive Player Assessment",
+    description: "Complete evaluation covering all aspects of player performance",
     defaultTemplate: true,
-    defaultRatingSystem: DEFAULT_RATING_SYSTEMS['numeric-1-5'],
+    defaultRatingSystem: DEFAULT_RATING_SYSTEMS['numeric-1-10'],
     sections: [
       {
-        id: 'player-info',
-        title: 'Player Information',
+        id: "overall",
+        title: "Overall Assessment",
         fields: [
           {
-            id: 'discovery-context',
-            label: 'How discovered',
-            type: 'dropdown',
+            id: "overallRating",
+            label: "Overall Rating",
+            type: "rating",
             required: true,
-            options: ['TransferRoom', 'Wyscout', 'Data shortlist', 'Referral', 'Live scouting', 'Social media', 'Other'],
-            description: 'Platform or method used to discover this player'
+            ratingSystem: DEFAULT_RATING_SYSTEMS['numeric-1-10'],
+            description: "Overall assessment of the player (1-10 scale)"
+          },
+          {
+            id: "recommendation",
+            label: "Scout Recommendation",
+            type: "dropdown",
+            required: true,
+            options: [
+              "Sign / Proceed to next stage",
+              "Monitor / Track Further", 
+              "Further Scouting Required",
+              "Concerns / With Reservations",
+              "Do Not Pursue"
+            ],
+            description: "Final recommendation based on assessment"
+          },
+          {
+            id: "summary",
+            label: "Executive Summary",
+            type: "text",
+            required: true,
+            description: "Brief overview of player's strengths and suitability"
           }
         ]
       },
       {
-        id: 'assessment',
-        title: 'Quick Assessment',
+        id: "technical",
+        title: "Technical Skills",
         fields: [
           {
-            id: 'strengths',
-            label: 'Key Strengths',
-            type: 'text',
+            id: "ballControl",
+            label: "Ball Control",
+            type: "rating",
             required: true,
-            description: 'What stands out positively about this player?'
+            ratingSystem: DEFAULT_RATING_SYSTEMS['numeric-1-10']
           },
           {
-            id: 'weaknesses',
-            label: 'Potential Concerns',
-            type: 'text',
-            required: false,
-            description: 'Any immediate red flags or areas of concern?'
+            id: "passing",
+            label: "Passing",
+            type: "rating",
+            required: true,
+            ratingSystem: DEFAULT_RATING_SYSTEMS['numeric-1-10']
           },
           {
-            id: 'tracking-likelihood',
-            label: 'Likelihood to track further',
-            type: 'rating',
+            id: "shooting",
+            label: "Shooting",
+            type: "rating",
             required: true,
-            ratingSystem: DEFAULT_RATING_SYSTEMS['numeric-1-5'],
-            description: 'How likely are we to continue tracking this player?'
+            ratingSystem: DEFAULT_RATING_SYSTEMS['numeric-1-10']
+          },
+          {
+            id: "dribbling",
+            label: "Dribbling",
+            type: "rating",
+            required: true,
+            ratingSystem: DEFAULT_RATING_SYSTEMS['numeric-1-10']
           }
         ]
       },
       {
-        id: 'next-steps',
-        title: 'Next Steps',
+        id: "physical",
+        title: "Physical Attributes",
         fields: [
           {
-            id: 'tags',
-            label: 'Tags',
-            type: 'text',
-            required: false,
-            description: 'E.g. "raw potential", "check again in 6 months", "priority target"'
+            id: "pace",
+            label: "Pace",
+            type: "rating",
+            required: true,
+            ratingSystem: DEFAULT_RATING_SYSTEMS['numeric-1-10']
           },
           {
-            id: 'follow-up-notes',
-            label: 'Follow-up Notes',
-            type: 'text',
-            required: false,
-            description: 'Any specific actions or timeline for next review'
+            id: "strength",
+            label: "Strength",
+            type: "rating",
+            required: true,
+            ratingSystem: DEFAULT_RATING_SYSTEMS['numeric-1-10']
+          },
+          {
+            id: "stamina",
+            label: "Stamina",
+            type: "rating",
+            required: true,
+            ratingSystem: DEFAULT_RATING_SYSTEMS['numeric-1-10']
+          },
+          {
+            id: "agility",
+            label: "Agility",
+            type: "rating",
+            required: true,
+            ratingSystem: DEFAULT_RATING_SYSTEMS['numeric-1-10']
+          }
+        ]
+      },
+      {
+        id: "tactical",
+        title: "Tactical Awareness",
+        fields: [
+          {
+            id: "positioning",
+            label: "Positioning",
+            type: "rating",
+            required: true,
+            ratingSystem: DEFAULT_RATING_SYSTEMS['numeric-1-10']
+          },
+          {
+            id: "decisionMaking",
+            label: "Decision Making",
+            type: "rating",
+            required: true,
+            ratingSystem: DEFAULT_RATING_SYSTEMS['numeric-1-10']
+          },
+          {
+            id: "tacticalDiscipline",
+            label: "Tactical Discipline",
+            type: "rating",
+            required: true,
+            ratingSystem: DEFAULT_RATING_SYSTEMS['numeric-1-10']
+          }
+        ]
+      },
+      {
+        id: "mental",
+        title: "Mental Attributes",
+        fields: [
+          {
+            id: "mentality",
+            label: "Mentality",
+            type: "rating",
+            required: true,
+            ratingSystem: DEFAULT_RATING_SYSTEMS['numeric-1-10']
+          },
+          {
+            id: "workRate",
+            label: "Work Rate",
+            type: "rating",
+            required: true,
+            ratingSystem: DEFAULT_RATING_SYSTEMS['numeric-1-10']
+          },
+          {
+            id: "leadership",
+            label: "Leadership",
+            type: "rating",
+            required: true,
+            ratingSystem: DEFAULT_RATING_SYSTEMS['numeric-1-10']
           }
         ]
       }
     ]
   },
   {
-    id: 'match-report',
-    name: '📊 Match Report Template',
-    description: 'Document observations from a full match or live viewing. Used by in-person scouts and video scouts.',
+    id: "youth-development",
+    name: "Youth Development Assessment",
+    description: "Specialized template for evaluating young players with focus on potential",
     defaultTemplate: false,
-    defaultRatingSystem: DEFAULT_RATING_SYSTEMS['letter'],
+    defaultRatingSystem: DEFAULT_RATING_SYSTEMS['numeric-1-10'],
     sections: [
       {
-        id: 'match-context',
-        title: 'Match Context',
+        id: "overall",
+        title: "Overall Assessment",
         fields: [
           {
-            id: 'opposition',
-            label: 'Opposition',
-            type: 'text',
+            id: "overallRating",
+            label: "Overall Rating",
+            type: "rating",
             required: true,
-            description: 'Team played against'
+            ratingSystem: DEFAULT_RATING_SYSTEMS['numeric-1-10'],
+            description: "Overall assessment of the player (1-10 scale)"
           },
           {
-            id: 'competition',
-            label: 'Competition',
-            type: 'text',
+            id: "recommendation",
+            label: "Scout Recommendation",
+            type: "dropdown",
             required: true,
-            description: 'League, cup, friendly, etc.'
+            options: [
+              "Sign / Proceed to next stage",
+              "Monitor / Track Further", 
+              "Further Scouting Required",
+              "Concerns / With Reservations",
+              "Do Not Pursue"
+            ],
+            description: "Final recommendation based on assessment"
           },
           {
-            id: 'minutes-played',
-            label: 'Minutes Played',
-            type: 'number',
+            id: "potential",
+            label: "Potential Rating",
+            type: "rating",
             required: true,
-            description: 'Total minutes on the pitch'
-          },
-          {
-            id: 'position-played',
-            label: 'Position Played',
-            type: 'text',
-            required: true,
-            description: 'Primary position during the match'
-          },
-          {
-            id: 'team-result',
-            label: 'Team Result',
-            type: 'text',
-            required: false,
-            description: 'Win/Draw/Loss and score'
+            ratingSystem: DEFAULT_RATING_SYSTEMS['numeric-1-10'],
+            description: "Projected ceiling for development"
           }
         ]
       },
       {
-        id: 'performance-analysis',
-        title: 'Performance Analysis',
+        id: "current-ability",
+        title: "Current Ability",
         fields: [
           {
-            id: 'tactical-fit',
-            label: 'Tactical Fit & Role',
-            type: 'text',
+            id: "technicalLevel",
+            label: "Technical Level",
+            type: "rating",
             required: true,
-            description: 'How did the player fit into the team system and execute their role?'
+            ratingSystem: DEFAULT_RATING_SYSTEMS['numeric-1-10']
           },
           {
-            id: 'physical-attributes',
-            label: 'Physical Attributes',
-            type: 'rating',
+            id: "physicalDevelopment",
+            label: "Physical Development",
+            type: "rating",
             required: true,
-            ratingSystem: DEFAULT_RATING_SYSTEMS['letter'],
-            description: 'Pace, strength, agility, stamina, aerial ability'
-          },
-          {
-            id: 'technical-attributes',
-            label: 'Technical Attributes',
-            type: 'rating',
-            required: true,
-            ratingSystem: DEFAULT_RATING_SYSTEMS['letter'],
-            description: 'Ball control, passing, shooting, dribbling, crossing'
-          },
-          {
-            id: 'tactical-attributes',
-            label: 'Tactical Attributes',
-            type: 'rating',
-            required: true,
-            ratingSystem: DEFAULT_RATING_SYSTEMS['letter'],
-            description: 'Positioning, decision making, game understanding'
-          },
-          {
-            id: 'psychological-attributes',
-            label: 'Psychological Attributes',
-            type: 'rating',
-            required: true,
-            ratingSystem: DEFAULT_RATING_SYSTEMS['letter'],
-            description: 'Mentality, composure under pressure, work rate'
+            ratingSystem: DEFAULT_RATING_SYSTEMS['numeric-1-10']
           }
         ]
       },
       {
-        id: 'character-assessment',
-        title: 'Character & Leadership',
+        id: "development-areas",
+        title: "Development Areas",
         fields: [
           {
-            id: 'attitude-notes',
-            label: 'Attitude & Leadership',
-            type: 'text',
-            required: false,
-            description: 'How does the player interact with teammates, handle setbacks, show leadership?'
+            id: "strengthsToMaintain",
+            label: "Key Strengths to Maintain",
+            type: "text",
+            required: true
           },
           {
-            id: 'coachability',
-            label: 'Coachability',
-            type: 'text',
-            required: false,
-            description: 'Response to coaching, adaptability, willingness to learn'
-          }
-        ]
-      },
-      {
-        id: 'overall-rating',
-        title: 'Overall Assessment',
-        fields: [
-          {
-            id: 'match-rating',
-            label: 'Final Match Rating',
-            type: 'rating',
-            required: true,
-            ratingSystem: DEFAULT_RATING_SYSTEMS['letter'],
-            description: 'Overall performance in this specific match'
-          },
-          {
-            id: 'key-moments',
-            label: 'Key Moments',
-            type: 'text',
-            required: false,
-            description: 'Standout moments, good or bad, that defined the performance'
+            id: "areasForImprovement",
+            label: "Priority Development Areas",
+            type: "text",
+            required: true
           }
         ]
       }
     ]
   },
   {
-    id: 'final-recommendation',
-    name: '📝 Final Recommendation Template',
-    description: 'Summarise findings and recommend action. Used by Heads of Scouting and collaborative teams after multiple viewings.',
+    id: "quick-scout",
+    name: "Quick Scout Report",
+    description: "Streamlined template for rapid player evaluation",
     defaultTemplate: false,
-    defaultRatingSystem: DEFAULT_RATING_SYSTEMS['custom-tags'],
+    defaultRatingSystem: DEFAULT_RATING_SYSTEMS['numeric-1-10'],
     sections: [
       {
-        id: 'summary',
-        title: 'Summary of Findings',
+        id: "overall",
+        title: "Overall Assessment",
         fields: [
           {
-            id: 'reports-summary',
-            label: 'Summary of Key Reports',
-            type: 'text',
+            id: "overallRating",
+            label: "Overall Rating",
+            type: "rating",
             required: true,
-            description: 'Consolidate findings from 2+ reports or accumulated tracking'
+            ratingSystem: DEFAULT_RATING_SYSTEMS['numeric-1-10'],
+            description: "Overall assessment of the player (1-10 scale)"
           },
           {
-            id: 'strongest-attributes',
-            label: 'Strongest Attributes',
-            type: 'text',
+            id: "recommendation",
+            label: "Scout Recommendation",
+            type: "dropdown",
             required: true,
-            description: 'What are this player\'s best qualities across all observations?'
-          },
-          {
-            id: 'development-areas',
-            label: 'Areas for Development',
-            type: 'text',
-            required: true,
-            description: 'Key weaknesses or areas that need improvement'
+            options: [
+              "Sign / Proceed to next stage",
+              "Monitor / Track Further", 
+              "Further Scouting Required",
+              "Concerns / With Reservations",
+              "Do Not Pursue"
+            ],
+            description: "Final recommendation based on assessment"
           }
         ]
       },
       {
-        id: 'concerns-flags',
-        title: 'Concerns & Red Flags',
+        id: "key-attributes",
+        title: "Key Attributes",
         fields: [
           {
-            id: 'concerns',
-            label: 'Concerns or Flags',
-            type: 'text',
-            required: false,
-            description: 'Any significant concerns about attitude, injury history, contract situation, etc.'
+            id: "standoutQualities",
+            label: "Standout Qualities",
+            type: "text",
+            required: true
           },
           {
-            id: 'risk-assessment',
-            label: 'Risk Assessment',
-            type: 'dropdown',
-            required: true,
-            options: ['Low Risk', 'Medium Risk', 'High Risk'],
-            description: 'Overall risk level for potential recruitment'
-          }
-        ]
-      },
-      {
-        id: 'recommendation',
-        title: 'Final Recommendation',
-        fields: [
-          {
-            id: 'recommended-action',
-            label: 'Recommended Action',
-            type: 'dropdown',
-            required: true,
-            options: ['Contact agent immediately', 'Continue monitoring', 'Arrange live viewing', 'Request more data', 'Not suitable', 'Archive - revisit later'],
-            description: 'What should be the next step with this player?'
-          },
-          {
-            id: 'priority-level',
-            label: 'Priority Level',
-            type: 'dropdown',
-            required: true,
-            options: ['High Priority', 'Medium Priority', 'Low Priority'],
-            description: 'How urgent is action on this player?'
-          },
-          {
-            id: 'overall-recommendation',
-            label: 'Overall Recommendation',
-            type: 'rating',
-            required: true,
-            ratingSystem: DEFAULT_RATING_SYSTEMS['custom-tags'],
-            description: 'Final recommendation rating'
-          }
-        ]
-      },
-      {
-        id: 'supporting-info',
-        title: 'Supporting Information',
-        fields: [
-          {
-            id: 'key-stats',
-            label: 'Key Statistics',
-            type: 'text',
-            required: false,
-            description: 'Important performance metrics or data points'
-          },
-          {
-            id: 'market-value',
-            label: 'Estimated Market Value',
-            type: 'text',
-            required: false,
-            description: 'Current estimated transfer value or contract situation'
-          },
-          {
-            id: 'additional-notes',
-            label: 'Additional Notes',
-            type: 'text',
-            required: false,
-            description: 'Any other relevant information for decision makers'
+            id: "concerns",
+            label: "Main Concerns",
+            type: "text",
+            required: false
           }
         ]
       }
