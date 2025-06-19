@@ -2,16 +2,27 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import { useReports } from "@/hooks/useReports";
 import { useReportsFilter } from "@/hooks/useReportsFilter";
 import { toast } from "sonner";
+import { Users, List } from "lucide-react";
 import ReportsTabNavigation from "@/components/reports/ReportsTabNavigation";
 import ReportsTable from "@/components/reports/ReportsTable";
+import GroupedReportsTable from "@/components/reports/GroupedReportsTable";
+import PlayerReportsModal from "@/components/reports/PlayerReportsModal";
 
 const ReportsList = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("all-reports");
+  const [viewMode, setViewMode] = useState<"grouped" | "individual">("grouped");
+  const [selectedPlayerReports, setSelectedPlayerReports] = useState<{
+    playerId: string;
+    playerName: string;
+    reports: any[];
+  } | null>(null);
+  
   const { reports, loading, deleteReport } = useReports();
   const filteredReports = useReportsFilter(reports, activeTab);
 
@@ -32,6 +43,15 @@ const ReportsList = () => {
         toast.error("Failed to delete report");
       }
     }
+  };
+
+  const handleViewAllReports = (playerId: string, playerName: string) => {
+    const playerReports = filteredReports.filter(report => report.playerId === playerId);
+    setSelectedPlayerReports({
+      playerId,
+      playerName,
+      reports: playerReports
+    });
   };
 
   const getCardTitle = () => {
@@ -59,15 +79,44 @@ const ReportsList = () => {
 
       <Card>
         <CardHeader className="pb-3">
-          <CardTitle>{getCardTitle()}</CardTitle>
+          <div className="flex justify-between items-center">
+            <CardTitle>{getCardTitle()}</CardTitle>
+            <div className="flex gap-2">
+              <Button
+                variant={viewMode === "grouped" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setViewMode("grouped")}
+              >
+                <Users className="h-4 w-4 mr-1" />
+                Grouped by Player
+              </Button>
+              <Button
+                variant={viewMode === "individual" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setViewMode("individual")}
+              >
+                <List className="h-4 w-4 mr-1" />
+                Individual Reports
+              </Button>
+            </div>
+          </div>
         </CardHeader>
         <CardContent>
-          <ReportsTable 
-            reports={filteredReports}
-            onViewReport={handleViewReport}
-            onEditReport={handleEditReport}
-            onDeleteReport={handleDeleteReport}
-          />
+          {viewMode === "grouped" ? (
+            <GroupedReportsTable 
+              reports={filteredReports}
+              onViewReport={handleViewReport}
+              onEditReport={handleEditReport}
+              onViewAllReports={handleViewAllReports}
+            />
+          ) : (
+            <ReportsTable 
+              reports={filteredReports}
+              onViewReport={handleViewReport}
+              onEditReport={handleEditReport}
+              onDeleteReport={handleDeleteReport}
+            />
+          )}
 
           <Pagination className="mt-6">
             <PaginationContent>
@@ -90,6 +139,18 @@ const ReportsList = () => {
           </Pagination>
         </CardContent>
       </Card>
+
+      {selectedPlayerReports && (
+        <PlayerReportsModal
+          isOpen={!!selectedPlayerReports}
+          onClose={() => setSelectedPlayerReports(null)}
+          playerName={selectedPlayerReports.playerName}
+          reports={selectedPlayerReports.reports}
+          onViewReport={handleViewReport}
+          onEditReport={handleEditReport}
+          onDeleteReport={handleDeleteReport}
+        />
+      )}
     </div>
   );
 };
