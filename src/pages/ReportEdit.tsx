@@ -1,25 +1,24 @@
+
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft, Save } from "lucide-react";
-import { ReportWithPlayer, Report } from "@/types/report";
+import { ReportWithPlayer } from "@/types/report";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { toast } from "sonner";
 import ReportEditSection from "@/components/ReportEditSection";
-import { useReports } from "@/hooks/useReports";
+import { useReportEdit } from "@/hooks/useReportEdit";
 import { DEFAULT_TEMPLATES } from "@/data/defaultTemplates";
 
 const ReportEdit = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { saveReport } = useReports();
+  const { handleSectionUpdate, handleSave, saving } = useReportEdit();
   const [report, setReport] = useState<ReportWithPlayer | null>(null);
   const [template, setTemplate] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
   useEffect(() => {
@@ -138,44 +137,10 @@ const ReportEdit = () => {
     fetchReport();
   }, [id, user]);
 
-  const handleSectionUpdate = (updatedSection: any) => {
-    if (!report) return;
-
-    const updatedSections = report.sections.map(section =>
-      section.sectionId === updatedSection.sectionId ? updatedSection : section
-    );
-
-    setReport({
-      ...report,
-      sections: updatedSections
-    });
-  };
-
-  const handleSave = async () => {
-    if (!report) return;
-
-    try {
-      setSaving(true);
-      
-      const reportData: Partial<Report> = {
-        id: report.id,
-        playerId: report.playerId,
-        templateId: report.templateId,
-        sections: report.sections,
-        matchContext: report.matchContext,
-        tags: report.tags,
-        flaggedForReview: report.flaggedForReview,
-        status: report.status
-      };
-
-      await saveReport(reportData);
-      toast.success("Report saved successfully");
-      navigate(`/reports/${report.id}`);
-    } catch (error) {
-      console.error('Error saving report:', error);
-      toast.error("Failed to save report");
-    } finally {
-      setSaving(false);
+  const onSectionUpdate = (updatedSection: any) => {
+    const updatedReport = handleSectionUpdate(report, updatedSection);
+    if (updatedReport) {
+      setReport(updatedReport);
     }
   };
 
@@ -220,7 +185,7 @@ const ReportEdit = () => {
           <ArrowLeft size={16} />
           Back to Report
         </Button>
-        <Button onClick={handleSave} disabled={saving} className="gap-2">
+        <Button onClick={() => handleSave(report)} disabled={saving} className="gap-2">
           <Save size={16} />
           {saving ? "Saving..." : "Save Report"}
         </Button>
@@ -248,7 +213,7 @@ const ReportEdit = () => {
               section={section}
               sectionTitle={templateSection?.title || section.sectionId.charAt(0).toUpperCase() + section.sectionId.slice(1)}
               templateSection={templateSection}
-              onUpdate={handleSectionUpdate}
+              onUpdate={onSectionUpdate}
               isOverallSection={section.sectionId === "overall"}
             />
           );
