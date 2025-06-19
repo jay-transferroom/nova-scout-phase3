@@ -1,4 +1,3 @@
-
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -6,8 +5,11 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { ArrowLeft, Calendar, MapPin, Award, TrendingUp, FileText } from "lucide-react";
+import { ArrowLeft, Calendar, MapPin, Award, TrendingUp, FileText, Star, User } from "lucide-react";
 import { Player } from "@/types/player";
+import { ReportWithPlayer } from "@/types/report";
+import { getOverallRating, getRecommendation } from "@/utils/reportDataExtraction";
+import { formatDate, getRatingColor } from "@/utils/reportFormatting";
 
 interface PlayerWithForm {
   id: string;
@@ -86,6 +88,57 @@ const PlayerProfile = () => {
     enabled: !!id,
   });
 
+  const { data: playerReports, isLoading: reportsLoading } = useQuery({
+    queryKey: ['player-reports', id],
+    queryFn: async (): Promise<ReportWithPlayer[]> => {
+      if (!id) return [];
+      
+      const { data, error } = await supabase
+        .from('reports')
+        .select(`
+          *,
+          player:players(*),
+          scout_profile:profiles(*)
+        `)
+        .eq('player_id', id)
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching player reports:', error);
+        throw error;
+      }
+
+      return (data || []).map((report: any) => {
+        let sections = report.sections;
+        if (typeof sections === 'string') {
+          try {
+            sections = JSON.parse(sections);
+          } catch (e) {
+            console.log(`Failed to parse sections for report ${report.id}:`, e);
+            sections = [];
+          }
+        }
+
+        return {
+          id: report.id,
+          playerId: report.player_id,
+          templateId: report.template_id,
+          scoutId: report.scout_id,
+          createdAt: new Date(report.created_at),
+          updatedAt: new Date(report.updated_at),
+          status: report.status as 'draft' | 'submitted' | 'reviewed',
+          sections: Array.isArray(sections) ? sections : [],
+          matchContext: report.match_context,
+          tags: report.tags || [],
+          flaggedForReview: report.flagged_for_review || false,
+          player: report.player,
+          scoutProfile: report.scout_profile,
+        };
+      });
+    },
+    enabled: !!id,
+  });
+
   const getPositionColor = (position: string) => {
     const colors: Record<string, string> = {
       'GK': 'bg-yellow-500',
@@ -138,7 +191,7 @@ const PlayerProfile = () => {
     return age;
   };
 
-  const formatDate = (dateString: string) => {
+  const formatDateLocal = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'long',
@@ -256,7 +309,7 @@ const PlayerProfile = () => {
             
             <div>
               <p className="text-sm text-gray-600">Date of Birth</p>
-              <p className="font-medium">{formatDate(player.dateOfBirth)}</p>
+              <p className="font-medium">{formatDateLocal(player.dateOfBirth)}</p>
             </div>
             
             <div>
@@ -304,7 +357,7 @@ const PlayerProfile = () => {
             {player.contractExpiry && (
               <div>
                 <p className="text-sm text-gray-600">Contract Expires</p>
-                <p className="font-medium">{formatDate(player.contractExpiry)}</p>
+                <p className="font-medium">{formatDateLocal(player.contractExpiry)}</p>
               </div>
             )}
             
@@ -373,6 +426,83 @@ const PlayerProfile = () => {
           </Card>
         )}
       </div>
+
+      {/* Scouting Reports Section */}
+      {playerReports && playerReports.length > 0 && (
+        <Card className="mt-8">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <FileText className="h-5 w-5" />
+              Scouting Reports ({playerReports.length})
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {reportsLoading ? (
+                <p className="text-center py-4">Loading reports...</p>
+              ) : (
+                playerReports.map((report) => {
+                  const rating = getOverallRating(report);
+                  const recommendation = getRecommendation(report);
+                  
+                  return (
+                    <div key={report.id} className="border rounded-lg p-4 hover:bg-gray-50 transition-colors">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3 mb-2">
+                            <Badge variant="outline" className="capitalize">
+                              {report.status}
+                            </Badge>
+                            <span className="text-sm text-gray-600">
+                              {formatDate(report.createdAt)}
+                            </span>
+                            {report.scoutProfile && (
+                              <div className="flex items-center gap-1 text-sm text-gray-600">
+                                <User className="h-3 w-3" />
+                                <span>
+                                  {report.scoutProfile.first_name} {report.scoutProfile.last_name}
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                          
+                          <div className="flex items-center gap-4">
+                            {rating !== null && (
+                              <div className="flex items-center gap-2">
+                                <Star className="h-4 w-4 text-yellow-500" />
+                                <span className={`font-medium ${getRatingColor(rating)}`}>
+                                  Rating: {rating}
+                                </span>
+                              </div>
+                            )}
+                            
+                            {recommendation && (
+                              <div className="flex items-center gap-2">
+                                <Award className="h-4 w-4 text-blue-500" />
+                                <span className={`font-medium ${getRatingColor(recommendation)}`}>
+                                  {recommendation}
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                        
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => navigate(`/reports/${report.id}`)}
+                        >
+                          View Report
+                        </Button>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 };
