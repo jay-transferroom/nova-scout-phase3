@@ -54,7 +54,7 @@ const PlayerProfilePreview = ({ player, onCreateReport, onClose }: PlayerProfile
   };
   
   const handleViewFullProfile = () => {
-    navigate(`/players/${player.id}`);
+    navigate(`/player/${player.id}`); // Fixed: changed from /players/ to /player/
     onClose();
   };
   
