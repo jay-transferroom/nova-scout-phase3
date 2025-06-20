@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ReportTemplate } from "@/types/report";
@@ -7,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { mockTemplates } from "@/data/mockTemplates";
 
 interface TemplateSelectionProps {
-  player: Player;
+  player: Player | null;
   isOpen: boolean;
   onClose: () => void;
   onSelectTemplate: (player: Player, template: ReportTemplate) => void;
@@ -21,7 +22,7 @@ const TemplateSelection = ({ player, isOpen, onClose, onSelectTemplate }: Templa
 
   const handleSelectTemplate = () => {
     const template = mockTemplates.find(t => t.id === selectedTemplateId);
-    if (template) {
+    if (template && player) {
       onSelectTemplate(player, template);
       
       // Navigate to the report builder page with player and template data
@@ -33,6 +34,11 @@ const TemplateSelection = ({ player, isOpen, onClose, onSelectTemplate }: Templa
       });
     }
   };
+
+  // Don't render if player is null
+  if (!player) {
+    return null;
+  }
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
@@ -78,7 +84,7 @@ const TemplateSelection = ({ player, isOpen, onClose, onSelectTemplate }: Templa
           <Button variant="outline" onClick={onClose}>
             Cancel
           </Button>
-          <Button onClick={handleSelectTemplate} disabled={!selectedTemplateId}>
+          <Button onClick={handleSelectTemplate} disabled={!selectedTemplateId || !player}>
             Use Template
           </Button>
         </DialogFooter>
