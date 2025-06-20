@@ -84,7 +84,7 @@ const AISearch = ({ placeholder = "Describe what you're looking for...", showSug
 
   const handleResultClick = (result: SearchResult) => {
     if (result.type === 'player') {
-      navigate(`/player/${result.id}`); // Fixed: changed from /players/ to /player/
+      navigate(`/player/${result.id}`); // Fixed: using singular 'player'
     } else if (result.type === 'report') {
       navigate(`/reports/${result.id}`);
     }
