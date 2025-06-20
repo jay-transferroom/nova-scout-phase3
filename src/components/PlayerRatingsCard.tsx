@@ -44,7 +44,7 @@ const PlayerRatingsCard = ({ player, aggregatedData }: PlayerRatingsCardProps) =
           <div className="text-center p-3 bg-blue-50 rounded-lg">
             <div className="flex items-center justify-center gap-1 mb-1">
               <TrendingUp className="h-4 w-4 text-blue-600" />
-              <span className="text-sm font-medium text-blue-700">xTV Score</span>
+              <span className="text-sm font-medium text-blue-700">xTV</span>
             </div>
             <div className={`text-lg font-bold ${getRatingColor(player.xtvScore)}`}>
               {player.xtvScore ? `${player.xtvScore.toFixed(1)}` : 'N/A'}
