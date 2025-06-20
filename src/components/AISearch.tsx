@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Search, User, FileText, Loader2, Target, Bell, MessageSquare } from 'lucide-react';
 import { Input } from '@/components/ui/input';
@@ -32,14 +33,14 @@ const AISearch = ({ placeholder = "Search for players, reports, or ask for recom
   const navigate = useNavigate();
 
   const suggestions = [
-    "Recommendations for fast wingers under 23",
-    "Alert me when James Maddison's xTV changes",
-    "Show me top-rated central defenders",
-    "Generate report for Bukayo Saka",
-    "Players similar to Kevin De Bruyne",
-    "Notify me of contract expiring players",
-    "Upcoming matches for Arsenal",
-    "Best young strikers in Championship"
+    "Find fast wingers under 23",
+    "Show me James Maddison",
+    "Top-rated central defenders",
+    "Players from Tottenham",
+    "Creative midfielders",
+    "Young strikers in Premier League",
+    "Barcelona players",
+    "Manchester City squad"
   ];
 
   const handleSearch = async (searchQuery?: string) => {
@@ -55,8 +56,7 @@ const AISearch = ({ placeholder = "Search for players, reports, or ask for recom
       const { data, error } = await supabase.functions.invoke('ai-search', {
         body: { 
           query: queryToSearch,
-          limit: 10,
-          searchType: activeTab !== 'all' ? activeTab : undefined
+          limit: 20
         }
       });
 
@@ -152,15 +152,12 @@ const AISearch = ({ placeholder = "Search for players, reports, or ask for recom
       </div>
 
       {/* Search Type Tabs */}
-      {hasSearched && (
+      {hasSearched && results.length > 0 && (
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-6">
-            <TabsTrigger value="all">All</TabsTrigger>
-            <TabsTrigger value="player">Players</TabsTrigger>
-            <TabsTrigger value="recommendation">Recommendations</TabsTrigger>
-            <TabsTrigger value="summary">Reports</TabsTrigger>
-            <TabsTrigger value="notification">Alerts</TabsTrigger>
-            <TabsTrigger value="report">Documents</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="all">All ({results.length})</TabsTrigger>
+            <TabsTrigger value="player">Players ({results.filter(r => r.type === 'player').length})</TabsTrigger>
+            <TabsTrigger value="report">Reports ({results.filter(r => r.type === 'report').length})</TabsTrigger>
           </TabsList>
         </Tabs>
       )}

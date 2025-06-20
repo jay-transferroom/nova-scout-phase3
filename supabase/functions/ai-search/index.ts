@@ -36,10 +36,11 @@ serve(async (req) => {
 
     console.log('Processing search query:', query);
 
-    // Search players
+    // Search players with better filtering
     const { data: players, error: playersError } = await supabase
       .from('players')
       .select('*')
+      .or(`name.ilike.%${query}%,club.ilike.%${query}%,nationality.ilike.%${query}%`)
       .limit(50);
 
     if (playersError) {
@@ -53,7 +54,8 @@ serve(async (req) => {
         *,
         players!inner(name, club, positions)
       `)
-      .limit(50);
+      .or(`players.name.ilike.%${query}%,players.club.ilike.%${query}%`)
+      .limit(20);
 
     if (reportsError) {
       console.error('Error fetching reports:', reportsError);
@@ -92,7 +94,7 @@ serve(async (req) => {
 
 function performKeywordSearch(query: string, players: any[], reports: any[], limit: number): SearchResult[] {
   const queryLower = query.toLowerCase();
-  const searchTerms = queryLower.split(' ').filter(term => term.length > 2);
+  const searchTerms = queryLower.split(' ').filter(term => term.length > 0);
   const results: SearchResult[] = [];
 
   // Helper function to calculate relevance score
@@ -118,12 +120,12 @@ function performKeywordSearch(query: string, players: any[], reports: any[], lim
   // Search players
   players.forEach(player => {
     const searchableText = [
-      player.name,
-      player.club,
-      player.positions?.join(' ') || '',
-      player.nationality,
-      player.contract_status,
-      player.region
+      player.name || '',
+      player.club || '',
+      Array.isArray(player.positions) ? player.positions.join(' ') : '',
+      player.nationality || '',
+      player.contract_status || '',
+      player.region || ''
     ].join(' ');
     
     const relevance = calculateRelevance(searchableText, searchTerms);
@@ -133,8 +135,8 @@ function performKeywordSearch(query: string, players: any[], reports: any[], lim
       results.push({
         type: 'player',
         id: player.id,
-        title: player.name,
-        description: `${positions} at ${player.club} • Age ${player.age} • ${player.nationality}`,
+        title: player.name || 'Unknown Player',
+        description: `${positions} at ${player.club || 'Unknown Club'} • Age ${player.age || 'Unknown'} • ${player.nationality || 'Unknown'}`,
         relevanceScore: relevance,
         metadata: player
       });
@@ -145,13 +147,13 @@ function performKeywordSearch(query: string, players: any[], reports: any[], lim
   reports.forEach(report => {
     const playerName = report.players?.name || 'Unknown Player';
     const playerClub = report.players?.club || 'Unknown Club';
-    const playerPositions = report.players?.positions?.join(' ') || '';
+    const playerPositions = Array.isArray(report.players?.positions) ? report.players.positions.join(' ') : '';
     
     const searchableText = [
       playerName,
       playerClub,
       playerPositions,
-      report.status,
+      report.status || '',
       'report'
     ].join(' ');
     
@@ -162,7 +164,7 @@ function performKeywordSearch(query: string, players: any[], reports: any[], lim
         type: 'report',
         id: report.id,
         title: `Report: ${playerName}`,
-        description: `${report.status} report for ${playerClub}`,
+        description: `${report.status || 'Draft'} report for ${playerClub}`,
         relevanceScore: relevance,
         metadata: report
       });
