@@ -44,7 +44,7 @@ const Header = () => {
   };
 
   const handlePlayerSelect = (player: Player) => {
-    navigate(`/player/${player.id}`); // Fixed: using /player/ not /players/
+    navigate(`/player/${player.id}`);
     setSearchQuery("");
     setShowResults(false);
   };
@@ -68,7 +68,7 @@ const Header = () => {
     <header className="fixed top-0 left-0 right-0 z-50 bg-background border-b">
       <div className="flex h-16 items-center px-4 gap-4">
         <Link to="/" className="font-bold text-xl">
-          Scout Hub
+          Nova
         </Link>
         
         <div className="flex-1 max-w-md relative">
