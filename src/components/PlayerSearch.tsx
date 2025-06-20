@@ -107,9 +107,16 @@ const PlayerSearch = ({ onSelectPlayer }: PlayerSearchProps) => {
     setFilteredPlayers(results);
   }, [searchQuery, ageFilter, contractFilter, regionFilter, players]);
 
-  // Handle player selection
+  // Handle player selection - this is the key fix
   const handleSelectPlayer = (player: Player) => {
+    console.log('Selecting player:', player);
+    console.log('Navigating to:', `/player/${player.id}`);
+    
+    // Call the callback first
     onSelectPlayer(player);
+    
+    // Navigate to the player profile page using the correct route
+    navigate(`/player/${player.id}`);
     
     // Update recent players in localStorage
     const recentPlayerIds = JSON.parse(localStorage.getItem('recentPlayers') || '[]');
@@ -128,7 +135,7 @@ const PlayerSearch = ({ onSelectPlayer }: PlayerSearchProps) => {
     if (searchQuery.trim()) {
       params.set('q', searchQuery.trim());
     }
-    navigate(`/search-results?${params.toString()}`);
+    navigate(`/search?${params.toString()}`);
   };
 
   const PlayerItem = ({ player }: { player: Player }) => {
