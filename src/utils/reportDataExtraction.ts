@@ -1,43 +1,23 @@
-
 import { ReportWithPlayer } from "@/types/report";
+import { convertRatingToNumeric } from "./ratingConversion";
+import { convertNumericRecommendationToText, isRecommendationField, isRatingField } from "./recommendationHelpers";
 
-// Helper function to convert various rating types to numeric for recommendation logic
-const convertRatingToNumeric = (value: any): number | null => {
-  if (typeof value === 'number') {
-    return value;
-  }
-  
-  if (typeof value === 'string') {
-    // Handle letter grades
-    const letterGrade = value.trim().toUpperCase();
-    switch (letterGrade) {
-      case 'A': return 9;
-      case 'B': return 7.5;
-      case 'C': return 6;
-      case 'D': return 4;
-      case 'E': return 2;
-      default:
-        // Try to parse as number
-        const numericValue = parseFloat(value);
-        return !isNaN(numericValue) ? numericValue : null;
+// Helper function to parse sections from string if needed
+const parseSections = (sections: any): any[] => {
+  if (typeof sections === 'string') {
+    try {
+      return JSON.parse(sections);
+    } catch (e) {
+      console.log('Failed to parse sections string:', e);
+      return [];
     }
   }
   
-  return null;
-};
-
-// Helper function to convert numeric recommendation to text
-const convertNumericRecommendationToText = (value: any): string | null => {
-  const numericValue = convertRatingToNumeric(value);
-  
-  if (numericValue !== null) {
-    if (numericValue >= 9) return "Priority Sign";
-    if (numericValue >= 8) return "Monitor / Track Further";
-    if (numericValue >= 7) return "Consider";
-    if (numericValue >= 6) return "Keep Watching";
-    if (numericValue < 6) return "Pass";
+  if (!sections || !Array.isArray(sections)) {
+    return [];
   }
-  return null;
+  
+  return sections;
 };
 
 // Get overall rating from a report - improved logic with better data handling
@@ -49,20 +29,10 @@ export const getOverallRating = (report: ReportWithPlayer) => {
     rawReport: report
   });
   
-  // Handle case where sections might be a string (JSON)
-  let sections = report.sections;
-  if (typeof sections === 'string') {
-    try {
-      sections = JSON.parse(sections);
-      console.log('Parsed sections from string:', sections);
-    } catch (e) {
-      console.log('Failed to parse sections string:', e);
-      return null;
-    }
-  }
+  const sections = parseSections(report.sections);
   
-  if (!sections || !Array.isArray(sections)) {
-    console.log('No sections or sections not array:', sections);
+  if (sections.length === 0) {
+    console.log('No sections or sections not array:', report.sections);
     return null;
   }
   
@@ -79,18 +49,11 @@ export const getOverallRating = (report: ReportWithPlayer) => {
     for (const field of section.fields) {
       console.log(`Checking field:`, field);
       
-      const isRatingField = 
-        field.fieldId === "overallRating" || 
-        field.fieldId === "overall_rating" ||
-        field.fieldId === "rating" ||
-        field.fieldId === "overall" ||
-        field.fieldId?.toLowerCase().includes("overall") ||
-        field.fieldId?.toLowerCase().includes("rating") ||
-        field.fieldId?.toLowerCase().includes("score");
+      const isRating = isRatingField(field.fieldId);
       
-      console.log(`Field ${field.fieldId} is rating field:`, isRatingField);
+      console.log(`Field ${field.fieldId} is rating field:`, isRating);
       
-      if (isRatingField && field.value !== null && field.value !== undefined && field.value !== "") {
+      if (isRating && field.value !== null && field.value !== undefined && field.value !== "") {
         console.log('Found rating field:', field);
         
         // Handle different rating types
@@ -125,20 +88,10 @@ export const getRecommendation = (report: ReportWithPlayer) => {
     sectionsArray: Array.isArray(report.sections)
   });
   
-  // Handle case where sections might be a string (JSON)
-  let sections = report.sections;
-  if (typeof sections === 'string') {
-    try {
-      sections = JSON.parse(sections);
-      console.log('Parsed sections from string for recommendation:', sections);
-    } catch (e) {
-      console.log('Failed to parse sections string for recommendation:', e);
-      return null;
-    }
-  }
+  const sections = parseSections(report.sections);
   
-  if (!sections || !Array.isArray(sections)) {
-    console.log('No sections or sections not array for recommendation:', sections);
+  if (sections.length === 0) {
+    console.log('No sections or sections not array for recommendation:', report.sections);
     return null;
   }
   
@@ -155,20 +108,11 @@ export const getRecommendation = (report: ReportWithPlayer) => {
     for (const field of section.fields) {
       console.log(`Checking recommendation field:`, field);
       
-      const isRecommendationField = 
-        field.fieldId === "recommendation" || 
-        field.fieldId === "overall_recommendation" ||
-        field.fieldId === "verdict" ||
-        field.fieldId === "decision" ||
-        field.fieldId === "outcome" ||
-        field.fieldId?.toLowerCase().includes("recommendation") ||
-        field.fieldId?.toLowerCase().includes("verdict") ||
-        field.fieldId?.toLowerCase().includes("decision") ||
-        field.fieldId?.toLowerCase().includes("outcome");
+      const isRecommendation = isRecommendationField(field.fieldId);
       
-      console.log(`Field ${field.fieldId} is recommendation field:`, isRecommendationField);
+      console.log(`Field ${field.fieldId} is recommendation field:`, isRecommendation);
       
-      if (isRecommendationField && field.value !== null && field.value !== undefined && field.value !== "") {
+      if (isRecommendation && field.value !== null && field.value !== undefined && field.value !== "") {
         console.log('Found recommendation field:', field);
         
         // If it's already a text recommendation, return it
@@ -206,48 +150,5 @@ export const getRecommendation = (report: ReportWithPlayer) => {
   return null;
 };
 
-// Extract report data for display
-export const extractReportDataForDisplay = (report: ReportWithPlayer, template: any) => {
-  let sections = report.sections;
-  if (typeof sections === 'string') {
-    try {
-      sections = JSON.parse(sections);
-    } catch (e) {
-      console.error('Failed to parse sections:', e);
-      return [];
-    }
-  }
-
-  if (!sections || !Array.isArray(sections)) {
-    return [];
-  }
-
-  return sections.map((section) => {
-    const templateSection = template?.sections?.find((ts: any) => ts.id === section.sectionId);
-    
-    return {
-      sectionId: section.sectionId,
-      title: templateSection?.title || section.sectionId.charAt(0).toUpperCase() + section.sectionId.slice(1),
-      fields: section.fields.map((field) => {
-        const templateField = templateSection?.fields?.find((tf: any) => tf.id === field.fieldId);
-        
-        let displayValue = field.value;
-        if (field.value !== null && field.value !== undefined && field.value !== "") {
-          if (templateField?.type === 'rating' && typeof field.value === 'number') {
-            displayValue = `${field.value}/10`;
-          } else {
-            displayValue = field.value.toString();
-          }
-        }
-
-        return {
-          fieldId: field.fieldId,
-          label: templateField?.label || field.fieldId.charAt(0).toUpperCase() + field.fieldId.slice(1),
-          value: field.value,
-          displayValue,
-          notes: field.notes
-        };
-      })
-    };
-  });
-};
+// Re-export display function for backward compatibility
+export { extractReportDataForDisplay } from "./reportDisplay";
