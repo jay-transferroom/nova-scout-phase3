@@ -107,7 +107,7 @@ const PlayerSearch = ({ onSelectPlayer }: PlayerSearchProps) => {
     setFilteredPlayers(results);
   }, [searchQuery, ageFilter, contractFilter, regionFilter, players]);
 
-  // Handle player selection - this is the key fix
+  // Handle player selection - Fixed to use correct route
   const handleSelectPlayer = (player: Player) => {
     console.log('Selecting player:', player);
     console.log('Navigating to:', `/player/${player.id}`);
@@ -138,6 +138,7 @@ const PlayerSearch = ({ onSelectPlayer }: PlayerSearchProps) => {
     navigate(`/search?${params.toString()}`);
   };
 
+  // PlayerItem component definition
   const PlayerItem = ({ player }: { player: Player }) => {
     const teamLogo = getTeamLogo(player.club);
     
@@ -189,6 +190,7 @@ const PlayerSearch = ({ onSelectPlayer }: PlayerSearchProps) => {
     );
   };
 
+  // Loading and error states
   if (isLoading) {
     return (
       <div className="flex items-center justify-center p-8">
@@ -210,6 +212,7 @@ const PlayerSearch = ({ onSelectPlayer }: PlayerSearchProps) => {
   const displayedResults = filteredPlayers.slice(0, MAX_DISPLAY_RESULTS);
   const hasMoreResults = filteredPlayers.length > MAX_DISPLAY_RESULTS;
 
+  // Return JSX with search interface
   return (
     <div className="space-y-4">
       <div className="flex items-center space-x-2">
