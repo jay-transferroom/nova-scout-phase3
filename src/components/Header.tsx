@@ -1,270 +1,162 @@
-import { useState } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
-import { useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { SidebarTrigger } from '@/components/ui/sidebar';
-import { User, Settings, LogOut, Users, Search, Menu, Sparkles } from 'lucide-react';
-import { Link } from 'react-router-dom';
-import { usePlayersData } from '@/hooks/usePlayersData';
-import { supabase } from '@/integrations/supabase/client';
+
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { 
+  DropdownMenu, 
+  DropdownMenuContent, 
+  DropdownMenuItem, 
+  DropdownMenuTrigger 
+} from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { Search, Bell, User, LogOut, Settings, Sparkles } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { usePlayersData } from "@/hooks/usePlayersData";
+import { Player } from "@/types/player";
 
 const Header = () => {
-  const { user, profile, signOut } = useAuth();
-  const { data: players = [], isLoading, error } = usePlayersData();
+  const { user, signOut } = useAuth();
   const navigate = useNavigate();
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState<Player[]>([]);
   const [showResults, setShowResults] = useState(false);
-  const [aiSearchLoading, setAiSearchLoading] = useState(false);
+  const { data: players = [] } = usePlayersData();
 
-  console.log('Players data:', players);
-  console.log('Players loading:', isLoading);
-  console.log('Players error:', error);
-
-  const getInitials = () => {
-    if (profile?.first_name && profile?.last_name) {
-      return `${profile.first_name[0]}${profile.last_name[0]}`.toUpperCase();
-    }
-    if (profile?.first_name) {
-      return profile.first_name[0].toUpperCase();
-    }
-    if (user?.email) {
-      return user.email[0].toUpperCase();
-    }
-    return 'U';
-  };
-
-  const getDisplayName = () => {
-    if (profile?.first_name && profile?.last_name) {
-      return `${profile.first_name} ${profile.last_name}`;
-    }
-    if (profile?.first_name) {
-      return profile.first_name;
-    }
-    return user?.email || 'User';
-  };
-
-  const handleSignOut = async () => {
-    await signOut();
-  };
-
-  // Filter players based on search query
-  const filteredPlayers = searchQuery.trim() 
-    ? players.filter(player => {
-        const searchLower = searchQuery.toLowerCase();
-        const matchesName = player.name.toLowerCase().includes(searchLower);
-        const matchesClub = player.club.toLowerCase().includes(searchLower);
-        const matchesId = player.id.toLowerCase().includes(searchLower);
-        const matchesPosition = player.positions.some(pos => pos.toLowerCase().includes(searchLower));
-        
-        return matchesName || matchesClub || matchesId || matchesPosition;
-      }).slice(0, 5)
-    : [];
-
-  console.log('Search query:', searchQuery);
-  console.log('Filtered players:', filteredPlayers);
-  console.log('Show results:', showResults);
-
-  const handleSearchSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (searchQuery.trim()) {
-      navigate('/reports', { state: { searchQuery: searchQuery.trim() } });
-      setSearchQuery('');
+  const handleSearch = (query: string) => {
+    setSearchQuery(query);
+    
+    if (query.trim().length > 0) {
+      const lowercaseQuery = query.toLowerCase().trim();
+      const results = players.filter(player => 
+        player.name.toLowerCase().includes(lowercaseQuery) || 
+        player.club.toLowerCase().includes(lowercaseQuery) || 
+        player.id.toLowerCase() === lowercaseQuery ||
+        player.positions.some(pos => pos.toLowerCase().includes(lowercaseQuery))
+      ).slice(0, 5);
+      
+      setSearchResults(results);
+      setShowResults(true);
+    } else {
+      setSearchResults([]);
       setShowResults(false);
     }
   };
 
-  const handleAISearch = async () => {
-    if (!searchQuery.trim()) return;
-    
-    setAiSearchLoading(true);
-    navigate('/ai-search', { state: { initialQuery: searchQuery.trim() } });
-    setSearchQuery('');
-    setShowResults(false);
-    setAiSearchLoading(false);
-  };
-
-  const handlePlayerSelect = (playerId: string) => {
-    navigate(`/players/${playerId}`);
-    setSearchQuery('');
+  const handlePlayerSelect = (player: Player) => {
+    navigate(`/player/${player.id}`); // Fixed: using /player/ not /players/
+    setSearchQuery("");
     setShowResults(false);
   };
 
-  const canManageUsers = profile?.role === 'recruitment';
+  const handleViewAllResults = () => {
+    const params = new URLSearchParams();
+    if (searchQuery.trim()) {
+      params.set('q', searchQuery.trim());
+    }
+    navigate(`/search?${params.toString()}`);
+    setShowResults(false);
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && searchQuery.trim()) {
+      handleViewAllResults();
+    }
+  };
 
   return (
-    <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
-      <div className="container mx-auto px-6 py-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <SidebarTrigger>
-              <Menu className="h-5 w-5" />
-            </SidebarTrigger>
-            <Link to="/" className="font-bold text-xl text-brand-600">
-              Nova
-            </Link>
+    <header className="fixed top-0 left-0 right-0 z-50 bg-background border-b">
+      <div className="flex h-16 items-center px-4 gap-4">
+        <Link to="/" className="font-bold text-xl">
+          Scout Hub
+        </Link>
+        
+        <div className="flex-1 max-w-md relative">
+          <div className="relative">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search players..."
+              className="pl-8"
+              value={searchQuery}
+              onChange={(e) => handleSearch(e.target.value)}
+              onKeyPress={handleKeyPress}
+              onFocus={() => searchQuery && setShowResults(true)}
+              onBlur={() => setTimeout(() => setShowResults(false), 200)}
+            />
           </div>
-
-          <div className="flex-1 max-w-lg mx-8 relative">
-            <form onSubmit={handleSearchSubmit} className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder={isLoading ? "Loading players..." : "Search players..."}
-                className="pl-10 pr-24 bg-muted/30 border-muted-foreground/20 h-11"
-                value={searchQuery}
-                onChange={(e) => {
-                  const value = e.target.value;
-                  setSearchQuery(value);
-                  setShowResults(value.trim().length > 0);
-                  console.log('Search input changed:', value);
-                }}
-                onFocus={() => {
-                  if (searchQuery.trim().length > 0) {
-                    setShowResults(true);
-                  }
-                }}
-                onBlur={() => {
-                  // Delay hiding results to allow for clicks
-                  setTimeout(() => setShowResults(false), 200);
-                }}
-                disabled={isLoading}
-              />
-              <Button
-                type="button"
-                onClick={handleAISearch}
-                size="sm"
-                variant="ghost"
-                className="absolute right-1 top-1/2 transform -translate-y-1/2 h-9 px-2 text-purple-600 hover:text-purple-700 hover:bg-purple-50"
-                disabled={!searchQuery.trim() || aiSearchLoading}
-                title="AI Search"
-              >
-                <Sparkles className="h-4 w-4" />
-              </Button>
-            </form>
-            
-            {showResults && (
-              <div className="absolute top-full left-0 right-0 mt-1 bg-background border rounded-md shadow-lg z-50 max-h-60 overflow-y-auto">
-                {isLoading ? (
-                  <div className="px-4 py-3 text-sm text-muted-foreground">Loading players...</div>
-                ) : error ? (
-                  <div className="px-4 py-3 text-sm text-red-500">Error loading players</div>
-                ) : filteredPlayers.length > 0 ? (
-                  <>
-                    {filteredPlayers.map((player) => (
-                      <button
-                        key={player.id}
-                        className="w-full px-4 py-3 text-left hover:bg-accent flex items-center gap-3 transition-colors"
-                        onMouseDown={() => handlePlayerSelect(player.id)}
-                      >
-                        <Avatar className="h-8 w-8">
-                          <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white text-xs font-semibold">
-                            {player.name.split(' ').map(n => n[0]).join('').toUpperCase()}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div className="flex-1">
-                          <p className="font-medium text-sm">{player.name}</p>
-                          <p className="text-xs text-muted-foreground">{player.club} • {player.positions.join(", ")}</p>
-                        </div>
-                      </button>
-                    ))}
-                    <div className="border-t">
-                      <button
-                        className="w-full px-4 py-3 text-left hover:bg-accent flex items-center gap-3 transition-colors text-purple-600"
-                        onMouseDown={handleAISearch}
-                      >
-                        <Sparkles className="h-4 w-4" />
-                        <span className="text-sm font-medium">Search with AI: "{searchQuery}"</span>
-                      </button>
-                    </div>
-                  </>
-                ) : searchQuery.trim().length > 0 ? (
-                  <>
-                    <div className="px-4 py-3 text-sm text-muted-foreground">No players found for "{searchQuery}"</div>
-                    <div className="border-t">
-                      <button
-                        className="w-full px-4 py-3 text-left hover:bg-accent flex items-center gap-3 transition-colors text-purple-600"
-                        onMouseDown={handleAISearch}
-                      >
-                        <Sparkles className="h-4 w-4" />
-                        <span className="text-sm font-medium">Try AI search instead</span>
-                      </button>
-                    </div>
-                  </>
-                ) : null}
-              </div>
-            )}
-          </div>
-
-          <div className="flex items-center space-x-4">
-            {user && (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="relative h-10 w-10 rounded-full">
-                    <Avatar className="h-10 w-10">
-                      <AvatarFallback className="text-sm bg-primary text-primary-foreground">
-                        {getInitials()}
+          
+          {showResults && searchResults.length > 0 && (
+            <div className="absolute top-full left-0 right-0 mt-1 bg-background border rounded-md shadow-md z-50">
+              <div className="max-h-64 overflow-y-auto">
+                {searchResults.map((player) => (
+                  <div
+                    key={player.id}
+                    className="px-4 py-2 hover:bg-accent cursor-pointer flex items-center gap-3"
+                    onClick={() => handlePlayerSelect(player)}
+                  >
+                    <Avatar className="h-8 w-8">
+                      <AvatarImage src={player.image} alt={player.name} />
+                      <AvatarFallback>
+                        {player.name.split(' ').map(n => n[0]).join('').toUpperCase()}
                       </AvatarFallback>
                     </Avatar>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-56" align="end" forceMount>
-                  <DropdownMenuLabel className="font-normal">
-                    <div className="flex flex-col space-y-1">
-                      <p className="text-sm font-medium leading-none">
-                        {getDisplayName()}
-                      </p>
-                      <p className="text-xs leading-none text-muted-foreground">
-                        {user.email}
-                      </p>
-                      <p className="text-xs leading-none text-muted-foreground capitalize">
-                        {profile?.role || 'scout'}
-                      </p>
-                      {profile?.club && (
-                        <p className="text-xs leading-none text-muted-foreground">
-                          {profile.club.name}
-                        </p>
-                      )}
+                    <div className="flex-1">
+                      <p className="font-medium text-sm">{player.name}</p>
+                      <p className="text-xs text-muted-foreground">{player.club} • {player.positions.join(", ")}</p>
                     </div>
-                  </DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem asChild>
-                    <Link to="/profile" className="cursor-pointer">
-                      <User className="mr-2 h-4 w-4" />
-                      <span>Profile</span>
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link to="/settings" className="cursor-pointer">
-                      <Settings className="mr-2 h-4 w-4" />
-                      <span>Settings</span>
-                    </Link>
-                  </DropdownMenuItem>
-                  {canManageUsers && (
-                    <DropdownMenuItem asChild>
-                      <Link to="/admin/users" className="cursor-pointer">
-                        <Users className="mr-2 h-4 w-4" />
-                        <span>Manage Users</span>
-                      </Link>
-                    </DropdownMenuItem>
-                  )}
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer">
-                    <LogOut className="mr-2 h-4 w-4" />
-                    <span>Log out</span>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            )}
-          </div>
+                  </div>
+                ))}
+              </div>
+              
+              {searchQuery.trim() && (
+                <div className="border-t p-2">
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="w-full text-left justify-start"
+                    onClick={handleViewAllResults}
+                  >
+                    <Search className="mr-2 h-4 w-4" />
+                    View all results for "{searchQuery}"
+                  </Button>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        <div className="flex items-center gap-2">
+          <Button variant="ghost" size="icon" asChild>
+            <Link to="/ai-search">
+              <Sparkles className="h-4 w-4" />
+            </Link>
+          </Button>
+          
+          <Button variant="ghost" size="icon">
+            <Bell className="h-4 w-4" />
+          </Button>
+          
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon">
+                <User className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => navigate('/profile')}>
+                <User className="mr-2 h-4 w-4" />
+                Profile
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => navigate('/settings')}>
+                <Settings className="mr-2 h-4 w-4" />
+                Settings
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={signOut}>
+                <LogOut className="mr-2 h-4 w-4" />
+                Sign out
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
     </header>
