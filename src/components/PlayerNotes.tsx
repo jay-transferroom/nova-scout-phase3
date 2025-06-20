@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from "react";
-import { MessageSquare, Plus, Calendar, User, Edit2, Trash2 } from "lucide-react";
+import { MessageSquare, Plus, Edit2, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,7 +12,6 @@ import {
   SheetDescription,
   SheetHeader,
   SheetTitle,
-  SheetTrigger,
 } from "@/components/ui/sheet";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -21,11 +20,11 @@ import { formatDate } from "@/utils/reportFormatting";
 
 interface PlayerNote {
   id: string;
-  playerId: string;
-  authorId: string;
+  player_id: string;
+  author_id: string;
   content: string;
-  createdAt: Date;
-  updatedAt: Date;
+  created_at: string;
+  updated_at: string;
   author: {
     first_name?: string;
     last_name?: string;
@@ -41,7 +40,7 @@ interface PlayerNotesProps {
 }
 
 export const PlayerNotes = ({ playerId, playerName, open, onOpenChange }: PlayerNotesProps) => {
-  const { user, profile } = useAuth();
+  const { user } = useAuth();
   const [notes, setNotes] = useState<PlayerNote[]>([]);
   const [newNote, setNewNote] = useState("");
   const [editingNote, setEditingNote] = useState<string | null>(null);
@@ -58,7 +57,7 @@ export const PlayerNotes = ({ playerId, playerName, open, onOpenChange }: Player
         .from('player_notes')
         .select(`
           *,
-          author:profiles(first_name, last_name, email)
+          author:profiles!player_notes_author_id_fkey(first_name, last_name, email)
         `)
         .eq('player_id', playerId)
         .order('created_at', { ascending: false });
@@ -67,12 +66,12 @@ export const PlayerNotes = ({ playerId, playerName, open, onOpenChange }: Player
 
       const transformedNotes: PlayerNote[] = (data || []).map((note: any) => ({
         id: note.id,
-        playerId: note.player_id,
-        authorId: note.author_id,
+        player_id: note.player_id,
+        author_id: note.author_id,
         content: note.content,
-        createdAt: new Date(note.created_at),
-        updatedAt: new Date(note.updated_at),
-        author: note.author
+        created_at: note.created_at,
+        updated_at: note.updated_at,
+        author: note.author || { email: 'Unknown User' }
       }));
 
       setNotes(transformedNotes);
@@ -277,16 +276,16 @@ export const PlayerNotes = ({ playerId, playerName, open, onOpenChange }: Player
                               {getAuthorName(note.author)}
                             </span>
                             <span className="text-xs text-muted-foreground">
-                              {formatDate(note.createdAt)}
+                              {formatDate(new Date(note.created_at))}
                             </span>
-                            {note.updatedAt.getTime() !== note.createdAt.getTime() && (
+                            {note.updated_at !== note.created_at && (
                               <Badge variant="outline" className="text-xs">
                                 edited
                               </Badge>
                             )}
                           </div>
                           
-                          {note.authorId === user?.id && (
+                          {note.author_id === user?.id && (
                             <div className="flex gap-1">
                               <Button
                                 variant="ghost"
