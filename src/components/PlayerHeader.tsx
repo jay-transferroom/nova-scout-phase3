@@ -1,17 +1,47 @@
 
-import { Calendar, MapPin, FileText } from "lucide-react";
+import { Calendar, MapPin, FileText, MessageSquare, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Player } from "@/types/player";
 
 interface PlayerHeaderProps {
   player: Player;
   onCreateReport: () => void;
+  onOpenNotes: () => void;
   calculateAge: (dateOfBirth: string) => number;
   getPositionColor: (position: string) => string;
+  aggregatedData?: {
+    avgRating: number | null;
+    recommendation: string | null;
+    reportCount: number;
+  };
 }
 
-export const PlayerHeader = ({ player, onCreateReport, calculateAge, getPositionColor }: PlayerHeaderProps) => {
+export const PlayerHeader = ({ 
+  player, 
+  onCreateReport, 
+  onOpenNotes,
+  calculateAge, 
+  getPositionColor,
+  aggregatedData 
+}: PlayerHeaderProps) => {
+  const getRatingColor = (rating: number) => {
+    if (rating >= 8) return "text-green-600 bg-green-50";
+    if (rating >= 6) return "text-yellow-600 bg-yellow-50";
+    return "text-red-600 bg-red-50";
+  };
+
+  const getRecommendationColor = (recommendation: string) => {
+    const rec = recommendation?.toLowerCase();
+    if (rec?.includes("priority") || rec?.includes("sign")) return "bg-green-100 text-green-800";
+    if (rec?.includes("monitor") || rec?.includes("track")) return "bg-blue-100 text-blue-800";
+    if (rec?.includes("consider")) return "bg-yellow-100 text-yellow-800";
+    if (rec?.includes("watch")) return "bg-purple-100 text-purple-800";
+    if (rec?.includes("pass")) return "bg-red-100 text-red-800";
+    return "bg-gray-100 text-gray-800";
+  };
+
   return (
     <Card className="mb-8">
       <CardContent className="p-8">
@@ -45,7 +75,7 @@ export const PlayerHeader = ({ player, onCreateReport, calculateAge, getPosition
               ))}
             </div>
 
-            <div className="flex items-center gap-4 text-sm text-gray-600">
+            <div className="flex items-center gap-4 text-sm text-gray-600 mb-4">
               <div className="flex items-center gap-1">
                 <Calendar className="h-4 w-4" />
                 <span>{calculateAge(player.dateOfBirth)} years old</span>
@@ -55,12 +85,44 @@ export const PlayerHeader = ({ player, onCreateReport, calculateAge, getPosition
                 <span>{player.nationality}</span>
               </div>
             </div>
+
+            {aggregatedData && (
+              <div className="flex items-center gap-4 mb-4">
+                {aggregatedData.avgRating !== null && (
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-gray-600">Overall Rating:</span>
+                    <Badge variant="outline" className={`font-bold ${getRatingColor(aggregatedData.avgRating)}`}>
+                      {aggregatedData.avgRating}/10
+                    </Badge>
+                  </div>
+                )}
+                
+                {aggregatedData.recommendation && (
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-gray-600">Recommendation:</span>
+                    <Badge className={getRecommendationColor(aggregatedData.recommendation)}>
+                      {aggregatedData.recommendation}
+                    </Badge>
+                  </div>
+                )}
+                
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-gray-600">
+                    {aggregatedData.reportCount} {aggregatedData.reportCount === 1 ? 'Report' : 'Reports'}
+                  </span>
+                </div>
+              </div>
+            )}
           </div>
 
-          <div className="flex-shrink-0">
+          <div className="flex-shrink-0 flex flex-col gap-2">
             <Button onClick={onCreateReport} className="gap-2">
               <FileText className="h-4 w-4" />
               Create Report
+            </Button>
+            <Button onClick={onOpenNotes} variant="outline" className="gap-2">
+              <MessageSquare className="h-4 w-4" />
+              Notes
             </Button>
           </div>
         </div>
