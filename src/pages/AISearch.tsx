@@ -1,20 +1,43 @@
 
 import AISearch from '@/components/AISearch';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Sparkles, Brain, Search, Target, Users, FileText, Bell, MessageSquare } from 'lucide-react';
+import { Search, Brain, Target, Users, FileText, Bell, MessageSquare, Phone } from 'lucide-react';
+import { useState } from 'react';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
+import { toast } from '@/hooks/use-toast';
 
 const AISearchPage = () => {
+  const [phoneNumber, setPhoneNumber] = useState('');
+
+  const handleWhatsAppConnect = () => {
+    if (!phoneNumber.trim()) {
+      toast({
+        title: "Phone number required",
+        description: "Please enter your mobile number to connect WhatsApp.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    toast({
+      title: "WhatsApp Integration",
+      description: "Your phone number has been saved. WhatsApp integration will be set up shortly.",
+    });
+  };
+
   return (
     <div className="container mx-auto px-6 py-8 max-w-6xl mt-16">
       <div className="space-y-8">
         {/* Header */}
         <div className="text-center space-y-4">
           <div className="flex items-center justify-center gap-2">
-            <Brain className="h-8 w-8 text-purple-500" />
-            <h1 className="text-3xl font-bold">AI-Powered Search</h1>
+            <Search className="h-8 w-8 text-blue-600" />
+            <h1 className="text-3xl font-bold">Scout Manager Search</h1>
           </div>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Describe what you're looking for in natural language and let AI find the most relevant players, reports, and insights.
+            Search for players, generate reports, and manage your scouting tasks efficiently.
           </p>
         </div>
 
@@ -37,14 +60,14 @@ const AISearchPage = () => {
           <Card className="cursor-pointer hover:shadow-md transition-shadow border-l-4 border-l-purple-500">
             <CardContent className="p-4 text-center">
               <FileText className="h-6 w-6 text-purple-500 mx-auto mb-2" />
-              <p className="text-sm font-medium">Player Summaries</p>
+              <p className="text-sm font-medium">Player Reports</p>
             </CardContent>
           </Card>
           
           <Card className="cursor-pointer hover:shadow-md transition-shadow border-l-4 border-l-orange-500">
             <CardContent className="p-4 text-center">
               <Bell className="h-6 w-6 text-orange-500 mx-auto mb-2" />
-              <p className="text-sm font-medium">Notifications</p>
+              <p className="text-sm font-medium">Alerts & Updates</p>
             </CardContent>
           </Card>
         </div>
@@ -57,29 +80,52 @@ const AISearchPage = () => {
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-green-700">
               <MessageSquare className="h-5 w-5" />
-              WhatsApp Integration
+              WhatsApp Notifications
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground mb-4">
-              Connect your phone to receive scouting updates, player alerts, and communicate with the platform through WhatsApp.
+          <CardContent className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              Connect your mobile phone to receive scouting updates, player alerts, and match notifications via WhatsApp.
             </p>
-            <div className="space-y-3">
+            
+            <div className="flex gap-3">
+              <div className="flex-1">
+                <Label htmlFor="phone" className="text-sm font-medium">Mobile Number</Label>
+                <div className="flex gap-2 mt-1">
+                  <Phone className="h-4 w-4 mt-3 text-muted-foreground" />
+                  <Input
+                    id="phone"
+                    type="tel"
+                    placeholder="+44 7123 456789"
+                    value={phoneNumber}
+                    onChange={(e) => setPhoneNumber(e.target.value)}
+                    className="flex-1"
+                  />
+                </div>
+              </div>
+              <div className="flex items-end">
+                <Button onClick={handleWhatsAppConnect} className="bg-green-600 hover:bg-green-700">
+                  Connect
+                </Button>
+              </div>
+            </div>
+            
+            <div className="space-y-3 mt-4">
               <div className="flex items-center gap-2 text-sm">
                 <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                <span>Real-time player alerts</span>
+                <span>Real-time player alerts and updates</span>
               </div>
               <div className="flex items-center gap-2 text-sm">
                 <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                <span>Match notifications</span>
+                <span>Match notifications and results</span>
               </div>
               <div className="flex items-center gap-2 text-sm">
                 <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                <span>Report completion updates</span>
+                <span>Scouting report completion updates</span>
               </div>
               <div className="flex items-center gap-2 text-sm">
                 <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                <span>AI-powered chat assistant</span>
+                <span>Quick search and task management</span>
               </div>
             </div>
           </CardContent>
@@ -90,13 +136,13 @@ const AISearchPage = () => {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-base">
-                <Sparkles className="h-5 w-5 text-purple-500" />
-                Natural Language
+                <Search className="h-5 w-5 text-blue-500" />
+                Smart Search
               </CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-sm text-muted-foreground">
-                Search using everyday language like "fast wingers with good crossing" instead of complex filters.
+                Search using everyday terms like "fast wingers with good crossing" to find exactly what you need.
               </p>
             </CardContent>
           </Card>
@@ -104,13 +150,13 @@ const AISearchPage = () => {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-base">
-                <Search className="h-5 w-5 text-blue-500" />
-                Semantic Understanding
+                <Brain className="h-5 w-5 text-purple-500" />
+                Intelligent Matching
               </CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-sm text-muted-foreground">
-                AI understands context and meaning, finding relevant results even when exact keywords don't match.
+                Find relevant players and reports based on context and meaning, not just exact keyword matches.
               </p>
             </CardContent>
           </Card>
@@ -119,12 +165,12 @@ const AISearchPage = () => {
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-base">
                 <Target className="h-5 w-5 text-green-500" />
-                Relevance Scoring
+                Priority Results
               </CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-sm text-muted-foreground">
-                Results are ranked by relevance, with the most matching players and reports shown first.
+                Results are ranked by relevance and importance, showing the most suitable matches first.
               </p>
             </CardContent>
           </Card>

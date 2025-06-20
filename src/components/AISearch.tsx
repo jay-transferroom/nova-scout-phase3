@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { Search, Sparkles, User, FileText, Loader2, Target, Bell, MessageSquare } from 'lucide-react';
+import { Search, User, FileText, Loader2, Target, Bell, MessageSquare } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -24,7 +24,7 @@ interface AISearchProps {
   showSuggestions?: boolean;
 }
 
-const AISearch = ({ placeholder = "Describe what you're looking for...", showSuggestions = true }: AISearchProps) => {
+const AISearch = ({ placeholder = "Search for players, reports, or ask for recommendations...", showSuggestions = true }: AISearchProps) => {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<SearchResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -40,8 +40,8 @@ const AISearch = ({ placeholder = "Describe what you're looking for...", showSug
     "Experienced goalkeepers",
     "Players similar to Kevin De Bruyne",
     "Recommend players for left wing position",
-    "Summarize performance of top scorers",
-    "Notify me about contract expiring players"
+    "Show me top scorers this season",
+    "Players with contracts expiring soon"
   ];
 
   const handleSearch = async (searchQuery?: string) => {
@@ -52,7 +52,7 @@ const AISearch = ({ placeholder = "Describe what you're looking for...", showSug
     setHasSearched(true);
 
     try {
-      console.log('Starting AI search for:', queryToSearch);
+      console.log('Starting search for:', queryToSearch);
       
       const { data, error } = await supabase.functions.invoke('ai-search', {
         body: { 
@@ -73,7 +73,7 @@ const AISearch = ({ placeholder = "Describe what you're looking for...", showSug
       if (data?.results?.length === 0) {
         toast({
           title: "No results found",
-          description: "Try adjusting your search query or using different keywords.",
+          description: "Try adjusting your search terms or using different keywords.",
         });
       }
     } catch (error) {
@@ -128,7 +128,7 @@ const AISearch = ({ placeholder = "Describe what you're looking for...", showSug
       <div className="relative">
         <div className="flex gap-2">
           <div className="relative flex-1">
-            <Sparkles className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-purple-500" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
@@ -160,9 +160,9 @@ const AISearch = ({ placeholder = "Describe what you're looking for...", showSug
             <TabsTrigger value="all">All</TabsTrigger>
             <TabsTrigger value="player">Players</TabsTrigger>
             <TabsTrigger value="recommendation">Recommendations</TabsTrigger>
-            <TabsTrigger value="summary">Summaries</TabsTrigger>
-            <TabsTrigger value="notification">Notifications</TabsTrigger>
-            <TabsTrigger value="report">Reports</TabsTrigger>
+            <TabsTrigger value="summary">Reports</TabsTrigger>
+            <TabsTrigger value="notification">Alerts</TabsTrigger>
+            <TabsTrigger value="report">Documents</TabsTrigger>
           </TabsList>
         </Tabs>
       )}
@@ -193,7 +193,7 @@ const AISearch = ({ placeholder = "Describe what you're looking for...", showSug
         <div className="flex items-center justify-center py-8">
           <div className="flex items-center gap-2 text-muted-foreground">
             <Loader2 className="h-5 w-5 animate-spin" />
-            <span>Searching with AI...</span>
+            <span>Searching...</span>
           </div>
         </div>
       )}
@@ -223,7 +223,7 @@ const AISearch = ({ placeholder = "Describe what you're looking for...", showSug
                   <div className="flex items-center gap-2">
                     <div 
                       className={`w-2 h-2 rounded-full ${getRelevanceColor(result.relevanceScore)}`}
-                      title={`Relevance: ${Math.round(result.relevanceScore * 100)}%`}
+                      title={`Match: ${Math.round(result.relevanceScore * 100)}%`}
                     />
                     <Badge variant="outline" className="text-xs">
                       {result.type}
