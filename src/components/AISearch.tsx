@@ -1,15 +1,17 @@
+
 import { useState } from 'react';
-import { Search, Sparkles, User, FileText, Loader2 } from 'lucide-react';
+import { Search, Sparkles, User, FileText, Loader2, Target, Bell, MessageSquare } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 import { toast } from '@/hooks/use-toast';
 
 interface SearchResult {
-  type: 'player' | 'report';
+  type: 'player' | 'report' | 'recommendation' | 'summary' | 'notification';
   id: string;
   title: string;
   description: string;
@@ -27,6 +29,7 @@ const AISearch = ({ placeholder = "Describe what you're looking for...", showSug
   const [results, setResults] = useState<SearchResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
+  const [activeTab, setActiveTab] = useState('all');
   const navigate = useNavigate();
 
   const suggestions = [
@@ -35,7 +38,10 @@ const AISearch = ({ placeholder = "Describe what you're looking for...", showSug
     "Creative midfielders who can score goals",
     "Promising young strikers",
     "Experienced goalkeepers",
-    "Players similar to Kevin De Bruyne"
+    "Players similar to Kevin De Bruyne",
+    "Recommend players for left wing position",
+    "Summarize performance of top scorers",
+    "Notify me about contract expiring players"
   ];
 
   const handleSearch = async (searchQuery?: string) => {
@@ -51,7 +57,8 @@ const AISearch = ({ placeholder = "Describe what you're looking for...", showSug
       const { data, error } = await supabase.functions.invoke('ai-search', {
         body: { 
           query: queryToSearch,
-          limit: 10
+          limit: 10,
+          searchType: activeTab !== 'all' ? activeTab : undefined
         }
       });
 
@@ -84,7 +91,7 @@ const AISearch = ({ placeholder = "Describe what you're looking for...", showSug
 
   const handleResultClick = (result: SearchResult) => {
     if (result.type === 'player') {
-      navigate(`/player/${result.id}`); // Fixed: using singular 'player'
+      navigate(`/player/${result.id}`);
     } else if (result.type === 'report') {
       navigate(`/reports/${result.id}`);
     }
@@ -101,6 +108,19 @@ const AISearch = ({ placeholder = "Describe what you're looking for...", showSug
     if (score >= 0.4) return 'bg-yellow-500';
     return 'bg-gray-500';
   };
+
+  const getTypeIcon = (type: string) => {
+    switch (type) {
+      case 'player': return <User className="h-4 w-4 text-blue-500" />;
+      case 'report': return <FileText className="h-4 w-4 text-green-500" />;
+      case 'recommendation': return <Target className="h-4 w-4 text-purple-500" />;
+      case 'summary': return <FileText className="h-4 w-4 text-orange-500" />;
+      case 'notification': return <Bell className="h-4 w-4 text-red-500" />;
+      default: return <Search className="h-4 w-4 text-gray-500" />;
+    }
+  };
+
+  const filteredResults = activeTab === 'all' ? results : results.filter(r => r.type === activeTab);
 
   return (
     <div className="w-full max-w-4xl mx-auto space-y-6">
@@ -132,6 +152,20 @@ const AISearch = ({ placeholder = "Describe what you're looking for...", showSug
           </Button>
         </div>
       </div>
+
+      {/* Search Type Tabs */}
+      {hasSearched && (
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="grid w-full grid-cols-6">
+            <TabsTrigger value="all">All</TabsTrigger>
+            <TabsTrigger value="player">Players</TabsTrigger>
+            <TabsTrigger value="recommendation">Recommendations</TabsTrigger>
+            <TabsTrigger value="summary">Summaries</TabsTrigger>
+            <TabsTrigger value="notification">Notifications</TabsTrigger>
+            <TabsTrigger value="report">Reports</TabsTrigger>
+          </TabsList>
+        </Tabs>
+      )}
 
       {/* Suggestions */}
       {showSuggestions && !hasSearched && (
@@ -167,14 +201,14 @@ const AISearch = ({ placeholder = "Describe what you're looking for...", showSug
       {/* Results */}
       {hasSearched && !isLoading && (
         <div className="space-y-4">
-          {results.length > 0 && (
+          {filteredResults.length > 0 && (
             <div className="flex items-center gap-2">
               <h3 className="text-lg font-semibold">Search Results</h3>
-              <Badge variant="secondary">{results.length} found</Badge>
+              <Badge variant="secondary">{filteredResults.length} found</Badge>
             </div>
           )}
 
-          {results.map((result, index) => (
+          {filteredResults.map((result, index) => (
             <Card 
               key={`${result.type}-${result.id}-${index}`}
               className="cursor-pointer hover:shadow-md transition-shadow"
@@ -183,11 +217,7 @@ const AISearch = ({ placeholder = "Describe what you're looking for...", showSug
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    {result.type === 'player' ? (
-                      <User className="h-4 w-4 text-blue-500" />
-                    ) : (
-                      <FileText className="h-4 w-4 text-green-500" />
-                    )}
+                    {getTypeIcon(result.type)}
                     <CardTitle className="text-base">{result.title}</CardTitle>
                   </div>
                   <div className="flex items-center gap-2">
@@ -207,7 +237,7 @@ const AISearch = ({ placeholder = "Describe what you're looking for...", showSug
             </Card>
           ))}
 
-          {results.length === 0 && (
+          {filteredResults.length === 0 && (
             <div className="text-center py-8">
               <p className="text-muted-foreground">No results found for your search.</p>
               <p className="text-sm text-muted-foreground mt-1">

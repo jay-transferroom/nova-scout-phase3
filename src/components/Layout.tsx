@@ -14,7 +14,7 @@ const Layout = ({ children }: LayoutProps) => {
         <MainNavigation />
         <SidebarInset>
           <Header />
-          <main className="flex-1 p-6">
+          <main className="flex-1 p-6 pt-20">
             {children}
           </main>
         </SidebarInset>
