@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Search, User, FileText, Loader2, Target, Bell, MessageSquare } from 'lucide-react';
 import { Input } from '@/components/ui/input';
@@ -33,15 +32,14 @@ const AISearch = ({ placeholder = "Search for players, reports, or ask for recom
   const navigate = useNavigate();
 
   const suggestions = [
-    "Fast wingers with good crossing ability",
-    "Tall central defenders under 25",
-    "Creative midfielders who can score goals",
-    "Promising young strikers",
-    "Experienced goalkeepers",
+    "Recommendations for fast wingers under 23",
+    "Alert me when James Maddison's xTV changes",
+    "Show me top-rated central defenders",
+    "Generate report for Bukayo Saka",
     "Players similar to Kevin De Bruyne",
-    "Recommend players for left wing position",
-    "Show me top scorers this season",
-    "Players with contracts expiring soon"
+    "Notify me of contract expiring players",
+    "Upcoming matches for Arsenal",
+    "Best young strikers in Championship"
   ];
 
   const handleSearch = async (searchQuery?: string) => {

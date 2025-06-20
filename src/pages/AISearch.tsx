@@ -34,7 +34,7 @@ const AISearchPage = () => {
         <div className="text-center space-y-4">
           <div className="flex items-center justify-center gap-2">
             <Search className="h-8 w-8 text-blue-600" />
-            <h1 className="text-3xl font-bold">Scout Manager Search</h1>
+            <h1 className="text-3xl font-bold">AI Search</h1>
           </div>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
             Search for players, generate reports, and manage your scouting tasks efficiently.
@@ -130,51 +130,6 @@ const AISearchPage = () => {
             </div>
           </CardContent>
         </Card>
-
-        {/* Features */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-base">
-                <Search className="h-5 w-5 text-blue-500" />
-                Smart Search
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground">
-                Search using everyday terms like "fast wingers with good crossing" to find exactly what you need.
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-base">
-                <Brain className="h-5 w-5 text-purple-500" />
-                Intelligent Matching
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground">
-                Find relevant players and reports based on context and meaning, not just exact keyword matches.
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-base">
-                <Target className="h-5 w-5 text-green-500" />
-                Priority Results
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground">
-                Results are ranked by relevance and importance, showing the most suitable matches first.
-              </p>
-            </CardContent>
-          </Card>
-        </div>
       </div>
     </div>
   );
