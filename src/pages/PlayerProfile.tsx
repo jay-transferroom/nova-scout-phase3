@@ -9,6 +9,7 @@ import { PlayerClubInfo } from "@/components/PlayerClubInfo";
 import { PlayerRecentForm } from "@/components/PlayerRecentForm";
 import { PlayerReports } from "@/components/PlayerReports";
 import { PlayerNotes } from "@/components/PlayerNotes";
+import PlayerRatingsCard from "@/components/PlayerRatingsCard";
 import { usePlayerProfile } from "@/hooks/usePlayerProfile";
 import { groupReportsByPlayer } from "@/utils/reportGrouping";
 import { 
@@ -108,6 +109,14 @@ const PlayerProfile = () => {
         <PlayerRecentForm 
           player={player}
           getFormRatingColor={getFormRatingColor}
+        />
+      </div>
+
+      {/* Player Ratings & Scores Section */}
+      <div className="mt-8">
+        <PlayerRatingsCard 
+          player={player} 
+          aggregatedData={aggregatedData}
         />
       </div>
 

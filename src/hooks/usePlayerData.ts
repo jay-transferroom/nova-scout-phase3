@@ -43,6 +43,9 @@ export const usePlayerData = (playerId?: string) => {
         contractExpiry: data.contract_expiry,
         region: data.region,
         image: data.image_url,
+        xtvScore: data.xtv_score,
+        transferroomRating: data.transferroom_rating,
+        futureRating: data.future_rating,
         recentForm: data.player_recent_form?.[0] ? {
           matches: data.player_recent_form[0].matches,
           goals: data.player_recent_form[0].goals,

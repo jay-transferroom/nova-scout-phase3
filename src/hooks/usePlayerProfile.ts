@@ -17,6 +17,9 @@ interface PlayerWithForm {
   contract_expiry: string | null;
   region: string;
   image_url: string | null;
+  xtv_score: number | null;
+  transferroom_rating: number | null;
+  future_rating: number | null;
   player_recent_form: Array<{
     matches: number;
     goals: number;
@@ -67,6 +70,9 @@ export const usePlayerProfile = (id: string | undefined) => {
         contractExpiry: playerData.contract_expiry,
         region: playerData.region,
         image: playerData.image_url,
+        xtvScore: playerData.xtv_score,
+        transferroomRating: playerData.transferroom_rating,
+        futureRating: playerData.future_rating,
         recentForm: playerData.player_recent_form?.[0] ? {
           matches: playerData.player_recent_form[0].matches,
           goals: playerData.player_recent_form[0].goals,

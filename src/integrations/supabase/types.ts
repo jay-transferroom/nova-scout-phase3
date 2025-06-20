@@ -215,13 +215,16 @@ export type Database = {
           created_at: string
           date_of_birth: string
           dominant_foot: string
+          future_rating: number | null
           id: string
           image_url: string | null
           name: string
           nationality: string
           positions: string[]
           region: string
+          transferroom_rating: number | null
           updated_at: string
+          xtv_score: number | null
         }
         Insert: {
           age: number
@@ -231,13 +234,16 @@ export type Database = {
           created_at?: string
           date_of_birth: string
           dominant_foot: string
+          future_rating?: number | null
           id?: string
           image_url?: string | null
           name: string
           nationality: string
           positions: string[]
           region: string
+          transferroom_rating?: number | null
           updated_at?: string
+          xtv_score?: number | null
         }
         Update: {
           age?: number
@@ -247,13 +253,16 @@ export type Database = {
           created_at?: string
           date_of_birth?: string
           dominant_foot?: string
+          future_rating?: number | null
           id?: string
           image_url?: string | null
           name?: string
           nationality?: string
           positions?: string[]
           region?: string
+          transferroom_rating?: number | null
           updated_at?: string
+          xtv_score?: number | null
         }
         Relationships: []
       }

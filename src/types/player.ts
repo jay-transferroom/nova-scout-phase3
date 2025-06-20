@@ -12,6 +12,9 @@ export interface Player {
   contractExpiry?: string;
   region: string;
   image?: string;
+  xtvScore?: number;
+  transferroomRating?: number;
+  futureRating?: number;
   recentForm?: {
     matches: number;
     goals: number;
