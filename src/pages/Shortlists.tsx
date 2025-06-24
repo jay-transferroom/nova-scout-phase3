@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -14,7 +13,7 @@ import AssignScoutDialog from "@/components/AssignScoutDialog";
 
 const Shortlists = () => {
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedList, setSelectedList] = useState<string | null>("premier-league-targets");
+  const [selectedList, setSelectedList] = useState<string | null>("striker-targets");
   const [isCreateListOpen, setIsCreateListOpen] = useState(false);
   const [isAddPlayersOpen, setIsAddPlayersOpen] = useState(false);
   const [newListName, setNewListName] = useState("");
@@ -24,51 +23,64 @@ const Shortlists = () => {
 
   const { data: allPlayers = [], isLoading } = usePlayersData();
 
-  // Create 4 shortlists based on different criteria from the real player data
+  // Create 4 focused shortlists for Chelsea's specific recruitment needs
   const shortlists = [
     {
-      id: "premier-league-targets",
-      name: "Premier League Targets",
-      description: "Top prospects from Premier League clubs",
+      id: "striker-targets",
+      name: "Striker Targets",
+      description: "Center forwards to strengthen attack",
       color: "bg-blue-500",
       filter: (player: any) => 
-        player.club?.toLowerCase().includes('chelsea') || 
-        player.club?.toLowerCase().includes('arsenal') || 
-        player.club?.toLowerCase().includes('manchester') ||
-        player.club?.toLowerCase().includes('liverpool') ||
-        player.club?.toLowerCase().includes('tottenham')
+        (player.positions.some((pos: string) => 
+          pos?.toLowerCase().includes('st') || 
+          pos?.toLowerCase().includes('cf') ||
+          pos?.toLowerCase().includes('striker') ||
+          pos?.toLowerCase().includes('forward')
+        ) && 
+        player.transferroomRating && player.transferroomRating >= 75 &&
+        player.age && player.age <= 28)
     },
     {
-      id: "young-talents",
-      name: "Young Talents U23",
-      description: "Promising players under 23 years old",
-      color: "bg-green-500",
-      filter: (player: any) => player.age && player.age < 23
-    },
-    {
-      id: "midfield-options",
-      name: "Midfield Options",
-      description: "Central midfield reinforcements",
-      color: "bg-purple-500",
-      filter: (player: any) => 
-        player.positions.some((pos: string) => 
-          pos?.toLowerCase().includes('mid') || 
-          pos?.toLowerCase().includes('cm') ||
-          pos?.toLowerCase().includes('cam') ||
-          pos?.toLowerCase().includes('cdm')
-        )
-    },
-    {
-      id: "high-potential",
-      name: "High Potential Players",
-      description: "Players with high future potential ratings",
+      id: "cb-reinforcements",
+      name: "Centre-Back Options",
+      description: "Defensive reinforcements for back line",
       color: "bg-red-500",
-      filter: (player: any) => player.futureRating && player.futureRating >= 80
+      filter: (player: any) => 
+        (player.positions.some((pos: string) => 
+          pos?.toLowerCase().includes('cb') || 
+          pos?.toLowerCase().includes('centre') ||
+          pos?.toLowerCase().includes('center')
+        ) && 
+        player.transferroomRating && player.transferroomRating >= 70 &&
+        player.age && player.age >= 22 && player.age <= 30)
+    },
+    {
+      id: "loan-prospects",
+      name: "Loan Prospects",
+      description: "Young talents for loan opportunities",
+      color: "bg-green-500",
+      filter: (player: any) => 
+        (player.age && player.age <= 22 &&
+        player.futureRating && player.futureRating >= 75 &&
+        player.transferroomRating && player.transferroomRating >= 60)
+    },
+    {
+      id: "bargain-deals",
+      name: "Contract Expiry Watch",
+      description: "Players with expiring contracts",
+      color: "bg-purple-500",
+      filter: (player: any) => {
+        if (!player.contractExpiry) return false;
+        const contractYear = new Date(player.contractExpiry).getFullYear();
+        const currentYear = new Date().getFullYear();
+        return (contractYear <= currentYear + 1 && 
+                player.transferroomRating && player.transferroomRating >= 70);
+      }
     }
   ];
 
   const currentList = shortlists.find(list => list.id === selectedList);
-  const currentPlayers = currentList ? allPlayers.filter(currentList.filter) : [];
+  const currentPlayers = currentList ? allPlayers.filter(currentList.filter).slice(0, 15) : []; // Limit to 15 players per list
   
   const filteredPlayers = currentPlayers.filter(player =>
     player.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -118,9 +130,9 @@ const Shortlists = () => {
   return (
     <div className="container mx-auto py-8 max-w-7xl">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold">Shortlists</h1>
+        <h1 className="text-3xl font-bold">Chelsea FC - Recruitment Shortlists</h1>
         <p className="text-muted-foreground mt-2">
-          Manage your player shortlists and assign scouts to players
+          Targeted player lists for upcoming transfer windows
         </p>
       </div>
 
@@ -132,7 +144,7 @@ const Shortlists = () => {
               <div className="flex items-center justify-between">
                 <CardTitle className="flex items-center gap-2">
                   <Bookmark className="h-5 w-5" />
-                  My Lists
+                  Recruitment Lists
                 </CardTitle>
                 <Dialog open={isCreateListOpen} onOpenChange={setIsCreateListOpen}>
                   <DialogTrigger asChild>
@@ -166,7 +178,7 @@ const Shortlists = () => {
             <CardContent className="p-0">
               <div className="space-y-1">
                 {shortlists.map((list) => {
-                  const playerCount = allPlayers.filter(list.filter).length;
+                  const playerCount = Math.min(allPlayers.filter(list.filter).length, 15);
                   return (
                     <button
                       key={list.id}
