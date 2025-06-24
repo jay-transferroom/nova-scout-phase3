@@ -94,7 +94,9 @@ const Shortlists = () => {
 
   const getPlayerAssignment = (playerId: string) => {
     // Match assignment by player_id (string) with players_new.id (converted to string)
-    return playerAssignments.find(assignment => assignment.player_id === playerId);
+    const assignment = playerAssignments.find(assignment => assignment.player_id === playerId);
+    console.log(`Looking for assignment for player ${playerId}:`, assignment);
+    return assignment;
   };
 
   const getAssignmentBadge = (playerId: string) => {
@@ -151,6 +153,7 @@ const Shortlists = () => {
 
   const handleAssignDialogClose = async () => {
     setIsAssignDialogOpen(false);
+    setSelectedPlayer(null);
     
     // Force comprehensive refresh of all assignment-related data
     await Promise.all([
@@ -161,7 +164,10 @@ const Shortlists = () => {
       refetchAssignments()
     ]);
     
-    console.log("Assignment dialog closed, comprehensive data refresh completed");
+    // Add a small delay to ensure all data is refreshed
+    setTimeout(() => {
+      console.log("Assignment dialog closed, comprehensive data refresh completed");
+    }, 100);
   };
 
   const handleViewProfile = (playerId: string) => {
