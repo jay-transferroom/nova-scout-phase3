@@ -9,6 +9,7 @@ import { Bookmark, Plus, Search, UserPlus, FileText, Trash2, MoreHorizontal, Dow
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 import { usePlayersData } from "@/hooks/usePlayersData";
+import { usePlayerAssignments } from "@/hooks/usePlayerAssignments";
 import AssignScoutDialog from "@/components/AssignScoutDialog";
 
 const Shortlists = () => {
@@ -22,6 +23,7 @@ const Shortlists = () => {
   const [isAssignDialogOpen, setIsAssignDialogOpen] = useState(false);
 
   const { data: allPlayers = [], isLoading } = usePlayersData();
+  const { data: playerAssignments = [] } = usePlayerAssignments();
 
   // Create 4 focused shortlists for Chelsea's specific recruitment needs
   const shortlists = [
@@ -66,7 +68,7 @@ const Shortlists = () => {
     },
     {
       id: "bargain-deals",
-      name: "Contract Expiry Watch",
+      name: "Contract Expiry Watch",  
       description: "Players with expiring contracts",
       color: "bg-purple-500",
       filter: (player: any) => {
@@ -87,6 +89,38 @@ const Shortlists = () => {
     player.club.toLowerCase().includes(searchTerm.toLowerCase()) ||
     player.positions.some((pos: string) => pos?.toLowerCase().includes(searchTerm.toLowerCase()))
   );
+
+  const getPlayerAssignment = (playerId: string) => {
+    return playerAssignments.find(assignment => assignment.player_id === playerId);
+  };
+
+  const getAssignmentBadge = (playerId: string) => {
+    const assignment = getPlayerAssignment(playerId);
+    if (!assignment) {
+      return <Badge variant="secondary">Unassigned</Badge>;
+    }
+
+    const scoutName = assignment.assigned_to_scout ? 
+      `${assignment.assigned_to_scout.first_name || ''} ${assignment.assigned_to_scout.last_name || ''}`.trim() || 
+      assignment.assigned_to_scout.email : 
+      'Unknown Scout';
+
+    const statusColors = {
+      'assigned': 'bg-red-100 text-red-800',
+      'in_progress': 'bg-orange-100 text-orange-800', 
+      'completed': 'bg-green-100 text-green-800',
+      'reviewed': 'bg-blue-100 text-blue-800'
+    };
+
+    return (
+      <Badge 
+        variant="outline" 
+        className={`${statusColors[assignment.status]} border-0`}
+      >
+        {scoutName} ({assignment.status.replace('_', ' ')})
+      </Badge>
+    );
+  };
 
   const handleCreateList = () => {
     if (newListName.trim()) {
@@ -130,6 +164,7 @@ const Shortlists = () => {
 
   return (
     <div className="container mx-auto py-8 max-w-7xl">
+      {/* Header */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold">Chelsea FC - Recruitment Shortlists</h1>
         <p className="text-muted-foreground mt-2">
@@ -256,7 +291,7 @@ const Shortlists = () => {
                           <div>
                             <div className="flex items-center gap-2 mb-1">
                               <h3 className="font-semibold text-lg">{player.name}</h3>
-                              <Badge variant="secondary">Unassigned</Badge>
+                              {getAssignmentBadge(player.id.toString())}
                             </div>
                             <div className="flex items-center gap-4 text-sm text-muted-foreground mb-2">
                               <span className="flex items-center gap-1">
@@ -291,14 +326,25 @@ const Shortlists = () => {
 
                         {/* Action Buttons */}
                         <div className="flex items-center gap-2">
-                          <Button 
-                            size="sm" 
-                            variant="outline"
-                            onClick={() => handleAssignScout(player)}
-                          >
-                            <UserPlus className="h-4 w-4 mr-1" />
-                            Assign Scout
-                          </Button>
+                          {!getPlayerAssignment(player.id.toString()) ? (
+                            <Button 
+                              size="sm" 
+                              variant="outline"
+                              onClick={() => handleAssignScout(player)}
+                            >
+                              <UserPlus className="h-4 w-4 mr-1" />
+                              Assign Scout
+                            </Button>
+                          ) : (
+                            <Button 
+                              size="sm" 
+                              variant="outline"
+                              onClick={() => handleAssignScout(player)}
+                            >
+                              <UserPlus className="h-4 w-4 mr-1" />
+                              Reassign Scout
+                            </Button>
+                          )}
                           <Button 
                             size="sm" 
                             variant="outline"
