@@ -13,7 +13,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import NotificationIcon from "./NotificationIcon";
 import NotificationItem from "./NotificationItem";
 import { useNotifications, useMarkNotificationAsRead, useMarkAllNotificationsAsRead } from "@/hooks/useNotifications";
-import { CheckCheck, Settings } from "lucide-react";
+import { CheckCheck, Settings, Bell } from "lucide-react";
 import { Link } from "react-router-dom";
 
 const NotificationsDropdown = () => {
@@ -87,16 +87,20 @@ const NotificationsDropdown = () => {
           </ScrollArea>
         )}
         
-        {notifications.length > 10 && (
-          <>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem asChild>
-              <Link to="/notifications" className="w-full text-center">
-                View all notifications
-              </Link>
-            </DropdownMenuItem>
-          </>
-        )}
+        <DropdownMenuSeparator />
+        <div className="p-2">
+          <Link to="/notifications" className="w-full">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="w-full justify-center"
+              onClick={() => setOpen(false)}
+            >
+              <Bell className="h-4 w-4 mr-2" />
+              View All Notifications
+            </Button>
+          </Link>
+        </div>
       </DropdownMenuContent>
     </DropdownMenu>
   );

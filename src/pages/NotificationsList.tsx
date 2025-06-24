@@ -48,7 +48,7 @@ const NotificationsList = () => {
 
   if (isLoading) {
     return (
-      <div className="space-y-6">
+      <div className="container mx-auto py-8 max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between">
           <h1 className="text-3xl font-bold">Notifications</h1>
         </div>
@@ -58,109 +58,111 @@ const NotificationsList = () => {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">Notifications</h1>
-          <p className="text-gray-600 mt-1">
-            Stay updated with your scouting activities and player updates
-          </p>
+    <div className="container mx-auto py-8 max-w-7xl px-4 sm:px-6 lg:px-8">
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold">Notifications</h1>
+            <p className="text-gray-600 mt-1">
+              Stay updated with your scouting activities and player updates
+            </p>
+          </div>
+          
+          <div className="flex items-center gap-2">
+            {unreadCount > 0 && (
+              <Badge variant="secondary" className="mr-2">
+                {unreadCount} unread
+              </Badge>
+            )}
+            {unreadCount > 0 && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleMarkAllAsRead}
+                className="mr-2"
+              >
+                <CheckCheck className="h-4 w-4 mr-1" />
+                Mark all read
+              </Button>
+            )}
+          </div>
         </div>
-        
-        <div className="flex items-center gap-2">
-          {unreadCount > 0 && (
-            <Badge variant="secondary" className="mr-2">
-              {unreadCount} unread
-            </Badge>
-          )}
-          {unreadCount > 0 && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleMarkAllAsRead}
-              className="mr-2"
-            >
-              <CheckCheck className="h-4 w-4 mr-1" />
-              Mark all read
-            </Button>
-          )}
-        </div>
+
+        <Tabs value={filter} onValueChange={(value) => setFilter(value as any)}>
+          <TabsList className="grid w-full grid-cols-3 lg:w-auto lg:grid-cols-none lg:flex">
+            <TabsTrigger value="all">All</TabsTrigger>
+            <TabsTrigger value="unread">Unread ({unreadCount})</TabsTrigger>
+            <TabsTrigger value="scout_management" className="hidden lg:flex">
+              <Filter className="h-4 w-4 mr-1" />
+              Filter by Type
+            </TabsTrigger>
+          </TabsList>
+
+          <div className="grid gap-4 lg:grid-cols-4">
+            <div className="lg:col-span-1 space-y-2">
+              <Card className="lg:block hidden">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm">Filter by Type</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-1">
+                  <Button
+                    variant={filter === 'all' ? 'default' : 'ghost'}
+                    size="sm"
+                    onClick={() => setFilter('all')}
+                    className="w-full justify-start"
+                  >
+                    All Notifications
+                  </Button>
+                  <Button
+                    variant={filter === 'unread' ? 'default' : 'ghost'}
+                    size="sm"
+                    onClick={() => setFilter('unread')}
+                    className="w-full justify-start"
+                  >
+                    Unread ({unreadCount})
+                  </Button>
+                  {notificationTypes.map((type) => {
+                    const count = notifications.filter(n => n.type === type.value).length;
+                    return (
+                      <Button
+                        key={type.value}
+                        variant={filter === type.value ? 'default' : 'ghost'}
+                        size="sm"
+                        onClick={() => setFilter(type.value)}
+                        className="w-full justify-start"
+                      >
+                        {type.label} ({count})
+                      </Button>
+                    );
+                  })}
+                </CardContent>
+              </Card>
+            </div>
+
+            <div className="lg:col-span-3">
+              <Card>
+                <CardContent className="p-0">
+                  {filteredNotifications.length === 0 ? (
+                    <div className="p-8 text-center text-gray-500">
+                      No notifications found for the selected filter.
+                    </div>
+                  ) : (
+                    <div className="divide-y">
+                      {filteredNotifications.map((notification) => (
+                        <NotificationItem
+                          key={notification.id}
+                          notification={notification}
+                          onMarkAsRead={handleMarkAsRead}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </Tabs>
       </div>
-
-      <Tabs value={filter} onValueChange={(value) => setFilter(value as any)}>
-        <TabsList className="grid w-full grid-cols-3 lg:w-auto lg:grid-cols-none lg:flex">
-          <TabsTrigger value="all">All</TabsTrigger>
-          <TabsTrigger value="unread">Unread ({unreadCount})</TabsTrigger>
-          <TabsTrigger value="scout_management" className="hidden lg:flex">
-            <Filter className="h-4 w-4 mr-1" />
-            Filter by Type
-          </TabsTrigger>
-        </TabsList>
-
-        <div className="grid gap-4 lg:grid-cols-4">
-          <div className="lg:col-span-1 space-y-2">
-            <Card className="lg:block hidden">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm">Filter by Type</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-1">
-                <Button
-                  variant={filter === 'all' ? 'default' : 'ghost'}
-                  size="sm"
-                  onClick={() => setFilter('all')}
-                  className="w-full justify-start"
-                >
-                  All Notifications
-                </Button>
-                <Button
-                  variant={filter === 'unread' ? 'default' : 'ghost'}
-                  size="sm"
-                  onClick={() => setFilter('unread')}
-                  className="w-full justify-start"
-                >
-                  Unread ({unreadCount})
-                </Button>
-                {notificationTypes.map((type) => {
-                  const count = notifications.filter(n => n.type === type.value).length;
-                  return (
-                    <Button
-                      key={type.value}
-                      variant={filter === type.value ? 'default' : 'ghost'}
-                      size="sm"
-                      onClick={() => setFilter(type.value)}
-                      className="w-full justify-start"
-                    >
-                      {type.label} ({count})
-                    </Button>
-                  );
-                })}
-              </CardContent>
-            </Card>
-          </div>
-
-          <div className="lg:col-span-3">
-            <Card>
-              <CardContent className="p-0">
-                {filteredNotifications.length === 0 ? (
-                  <div className="p-8 text-center text-gray-500">
-                    No notifications found for the selected filter.
-                  </div>
-                ) : (
-                  <div className="divide-y">
-                    {filteredNotifications.map((notification) => (
-                      <NotificationItem
-                        key={notification.id}
-                        notification={notification}
-                        onMarkAsRead={handleMarkAsRead}
-                      />
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </Tabs>
     </div>
   );
 };
