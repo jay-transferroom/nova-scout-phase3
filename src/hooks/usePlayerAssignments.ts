@@ -37,7 +37,7 @@ export const usePlayerAssignments = () => {
 
       return (data || []).map(assignment => ({
         ...assignment,
-        player_id: assignment.player_id.toString(), // Convert to string to match players_new.id
+        player_id: assignment.player_id, // Keep as string to match players_new.id
         priority: assignment.priority as 'High' | 'Medium' | 'Low',
         status: assignment.status as 'assigned' | 'in_progress' | 'completed' | 'reviewed'
       }));

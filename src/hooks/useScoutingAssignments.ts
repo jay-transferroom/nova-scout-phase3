@@ -180,6 +180,7 @@ export const useCreateAssignment = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['scouting-assignments'] });
       queryClient.invalidateQueries({ queryKey: ['my-scouting-tasks'] });
+      queryClient.invalidateQueries({ queryKey: ['player-assignments'] });
     },
   });
 };

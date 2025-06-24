@@ -14,7 +14,6 @@ import { useScouts } from "@/hooks/useScouts";
 import { useCreateAssignment } from "@/hooks/useScoutingAssignments";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
 
 interface Player {
   id: string;
@@ -46,51 +45,9 @@ const AssignScoutDialog = ({ isOpen, onClose, player }: AssignScoutDialogProps) 
     try {
       console.log("Creating assignment with player ID:", player.id, "type:", typeof player.id);
       
-      // Create or find a UUID player record based on the players_new data
-      // First, check if a UUID player already exists for this players_new record
-      const { data: existingPlayer, error: playerCheckError } = await supabase
-        .from('players')
-        .select('id')
-        .eq('name', player.name)
-        .eq('club', player.club)
-        .maybeSingle();
-
-      console.log("Existing player check result:", existingPlayer, playerCheckError);
-
-      let playerUuid: string;
-
-      if (existingPlayer) {
-        playerUuid = existingPlayer.id;
-        console.log("Using existing player UUID:", playerUuid);
-      } else {
-        // Create a new UUID player record
-        const { data: newPlayer, error: playerCreateError } = await supabase
-          .from('players')
-          .insert({
-            name: player.name,
-            club: player.club,
-            positions: player.positions,
-            age: 25, // Default age since we don't have it from players_new consistently
-            date_of_birth: '1999-01-01', // Default date
-            dominant_foot: 'Right',
-            nationality: 'Unknown',
-            contract_status: 'Under Contract',
-            region: 'Europe'
-          })
-          .select('id')
-          .single();
-
-        if (playerCreateError) {
-          console.error('Error creating player record:', playerCreateError);
-          throw playerCreateError;
-        }
-
-        playerUuid = newPlayer.id;
-        console.log("Created new player UUID:", playerUuid);
-      }
-
+      // Use the players_new ID directly as a string in the assignment
       await createAssignment.mutateAsync({
-        player_id: playerUuid,
+        player_id: player.id, // This should be the players_new.id as string
         assigned_to_scout_id: selectedScout,
         assigned_by_manager_id: user.id,
         priority,
