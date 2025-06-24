@@ -6,31 +6,36 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Calendar, Users, FileText, Search, Filter, Plus, TrendingUp, Target, Clock, CheckCircle } from "lucide-react";
-import { useMyScoutingTasks } from "@/hooks/useMyScoutingTasks";
+import { useScoutingTasks } from "@/hooks/useScoutingTasks";
+import { useReports } from "@/hooks/useReports";
 import { Link } from "react-router-dom";
 
 const ScoutingDashboard = () => {
-  const { data: assignments = [], isLoading } = useMyScoutingTasks();
+  const { data: allAssignments = [], isLoading: assignmentsLoading } = useScoutingTasks();
+  const { reports, loading: reportsLoading } = useReports();
   const [searchTerm, setSearchTerm] = useState("");
 
   const stats = {
-    totalAssignments: assignments.length,
-    pendingReports: assignments.filter(a => a.status === 'assigned').length,
-    completedReports: assignments.filter(a => a.status === 'completed').length,
-    upcomingMatches: 12,
+    totalAssignments: allAssignments.length,
+    pendingReports: allAssignments.filter(a => a.status === 'assigned').length,
+    completedReports: allAssignments.filter(a => a.status === 'completed').length,
+    activeScouts: new Set(allAssignments.map(a => a.assigned_to_scout_id)).size,
   };
 
+  // Recent activity from all scouts
   const recentActivity = [
-    { type: 'report', player: 'Marcus Johnson', club: 'Arsenal', time: '2 hours ago' },
-    { type: 'assignment', player: 'David Silva', club: 'Chelsea', time: '5 hours ago' },
-    { type: 'match', event: 'Liverpool vs Manchester City', time: '1 day ago' },
+    { type: 'report', player: 'Marcus Johnson', club: 'Arsenal', scout: 'John Smith', time: '2 hours ago' },
+    { type: 'assignment', player: 'David Silva', club: 'Chelsea', scout: 'Sarah Jones', time: '5 hours ago' },
+    { type: 'match', event: 'Liverpool vs Manchester City', scout: 'Mike Wilson', time: '1 day ago' },
+    { type: 'report', player: 'Kevin De Bruyne', club: 'Manchester City', scout: 'Emma Davis', time: '1 day ago' },
+    { type: 'assignment', player: 'Bruno Fernandes', club: 'Manchester United', scout: 'Tom Brown', time: '2 days ago' },
   ];
 
-  const upcomingTasks = assignments.slice(0, 3);
+  const upcomingTasks = allAssignments.slice(0, 5);
 
-  if (isLoading) {
+  if (assignmentsLoading) {
     return (
-      <div className="container mx-auto py-8">
+      <div className="container mx-auto py-8 max-w-7xl">
         <div className="flex items-center justify-center py-12">
           <div className="text-center">Loading dashboard...</div>
         </div>
@@ -43,9 +48,9 @@ const ScoutingDashboard = () => {
       {/* Header */}
       <div className="flex justify-between items-start mb-8">
         <div>
-          <h1 className="text-3xl font-bold">Scout Dashboard</h1>
+          <h1 className="text-3xl font-bold">Scout Management Dashboard</h1>
           <p className="text-muted-foreground mt-2">
-            Welcome back! Here's your scouting overview.
+            Monitor and manage all scouting activities across your team.
           </p>
         </div>
         <div className="flex gap-3">
@@ -53,10 +58,10 @@ const ScoutingDashboard = () => {
             <Calendar className="h-4 w-4" />
             Schedule
           </Button>
-          <Link to="/reports/new">
+          <Link to="/report-builder">
             <Button className="flex items-center gap-2">
               <Plus className="h-4 w-4" />
-              New Report
+              New Assignment
             </Button>
           </Link>
         </div>
@@ -71,7 +76,7 @@ const ScoutingDashboard = () => {
           </CardHeader>
           <CardContent className="pt-0">
             <div className="text-3xl font-bold">{stats.totalAssignments}</div>
-            <p className="text-xs text-muted-foreground">Active scouting tasks</p>
+            <p className="text-xs text-muted-foreground">All active tasks</p>
           </CardContent>
         </Card>
         
@@ -82,7 +87,7 @@ const ScoutingDashboard = () => {
           </CardHeader>
           <CardContent className="pt-0">
             <div className="text-3xl font-bold text-warning-600">{stats.pendingReports}</div>
-            <p className="text-xs text-muted-foreground">Reports to submit</p>
+            <p className="text-xs text-muted-foreground">Awaiting completion</p>
           </CardContent>
         </Card>
         
@@ -99,24 +104,24 @@ const ScoutingDashboard = () => {
         
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Upcoming Matches</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Active Scouts</CardTitle>
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent className="pt-0">
-            <div className="text-3xl font-bold">{stats.upcomingMatches}</div>
-            <p className="text-xs text-muted-foreground">Next 7 days</p>
+            <div className="text-3xl font-bold">{stats.activeScouts}</div>
+            <p className="text-xs text-muted-foreground">Currently assigned</p>
           </CardContent>
         </Card>
       </div>
 
       {/* Main Content Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Recent Activity */}
+        {/* Recent Activity - All Scouts */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <FileText className="h-5 w-5" />
-              Recent Activity
+              Recent Activity - All Scouts
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -130,9 +135,11 @@ const ScoutingDashboard = () => {
                       {activity.type === 'assignment' && `New assignment: ${activity.player}`}
                       {activity.type === 'match' && `Match watched: ${activity.event}`}
                     </p>
-                    {activity.club && (
-                      <p className="text-xs text-muted-foreground">{activity.club}</p>
-                    )}
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      {activity.club && <span>{activity.club}</span>}
+                      <span>•</span>
+                      <span>Scout: {activity.scout}</span>
+                    </div>
                   </div>
                   <span className="text-xs text-muted-foreground">{activity.time}</span>
                 </div>
@@ -141,12 +148,12 @@ const ScoutingDashboard = () => {
           </CardContent>
         </Card>
 
-        {/* Upcoming Tasks */}
+        {/* All Assignments */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Users className="h-5 w-5" />
-              Upcoming Tasks
+              Recent Assignments
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -157,6 +164,9 @@ const ScoutingDashboard = () => {
                     <div className="flex-1">
                       <p className="text-sm font-medium">{task.players?.name}</p>
                       <p className="text-xs text-muted-foreground">{task.players?.club}</p>
+                      <p className="text-xs text-muted-foreground">
+                        Scout: {task.assigned_to_scout?.first_name} {task.assigned_to_scout?.last_name}
+                      </p>
                     </div>
                     <Badge 
                       variant={task.status === 'assigned' ? 'destructive' : 'secondary'}
@@ -167,11 +177,11 @@ const ScoutingDashboard = () => {
                   </div>
                 ))
               ) : (
-                <p className="text-muted-foreground text-center py-4">No upcoming tasks</p>
+                <p className="text-muted-foreground text-center py-4">No assignments found</p>
               )}
             </div>
             <div className="mt-4">
-              <Link to="/assigned-players">
+              <Link to="/scout-management">
                 <Button variant="outline" className="w-full">
                   View All Assignments
                 </Button>
@@ -185,20 +195,20 @@ const ScoutingDashboard = () => {
       <div className="mt-8">
         <Card>
           <CardHeader>
-            <CardTitle>Quick Actions</CardTitle>
+            <CardTitle>Management Actions</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <Link to="/reports/new">
-                <Button variant="outline" className="w-full h-20 flex flex-col gap-2">
-                  <FileText className="h-6 w-6" />
-                  Create Report
-                </Button>
-              </Link>
-              <Link to="/assigned-players">
+              <Link to="/scout-management">
                 <Button variant="outline" className="w-full h-20 flex flex-col gap-2">
                   <Users className="h-6 w-6" />
-                  View Assignments
+                  Manage Scouts
+                </Button>
+              </Link>
+              <Link to="/reports">
+                <Button variant="outline" className="w-full h-20 flex flex-col gap-2">
+                  <FileText className="h-6 w-6" />
+                  All Reports
                 </Button>
               </Link>
               <Link to="/calendar">

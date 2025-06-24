@@ -79,127 +79,129 @@ const Index = () => {
   ];
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold">Scout Dashboard</h1>
-          <p className="text-muted-foreground">
-            Welcome back, {user?.email}. Here's your scouting overview.
-          </p>
-        </div>
-      </div>
-
-      {/* Stats Grid */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {stats.map((stat, index) => {
-          const Icon = stat.icon;
-          return (
-            <Card key={index}>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  {stat.title}
-                </CardTitle>
-                <Icon className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{stat.value}</div>
-                <p className="text-xs text-muted-foreground">
-                  {stat.description}
-                </p>
-                <p className="text-xs text-muted-foreground mt-1">
-                  {stat.trend}
-                </p>
-              </CardContent>
-            </Card>
-          );
-        })}
-      </div>
-
-      {/* Quick Actions */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Quick Actions</CardTitle>
-          <CardDescription>
-            Common tasks to get you started
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            {quickActions.map((action, index) => {
-              const Icon = action.icon;
-              return (
-                <Button
-                  key={index}
-                  variant={action.variant}
-                  className="h-auto p-4 flex flex-col items-center gap-2"
-                  onClick={action.action}
-                >
-                  <Icon className="h-6 w-6" />
-                  <div className="text-center">
-                    <div className="font-medium">{action.title}</div>
-                    <div className="text-xs text-muted-foreground">
-                      {action.description}
-                    </div>
-                  </div>
-                </Button>
-              );
-            })}
+    <div className="container mx-auto py-8 max-w-7xl">
+      <div className="space-y-6">
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-3xl font-bold">Scout Dashboard</h1>
+            <p className="text-muted-foreground">
+              Welcome back, {user?.email}. Here's your scouting overview.
+            </p>
           </div>
-        </CardContent>
-      </Card>
+        </div>
 
-      {/* Recent Activity */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Recent Reports</CardTitle>
-          <CardDescription>
-            Your most recent scouting activity
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {loading ? (
-            <p className="text-center text-muted-foreground">Loading reports...</p>
-          ) : myReports.length > 0 ? (
-            <div className="space-y-4">
-              {myReports.slice(0, 5).map((report) => (
-                <div
-                  key={report.id}
-                  className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent transition-colors cursor-pointer"
-                  onClick={() => navigate(`/report/${report.id}`)}
-                >
-                  <div className="flex items-center gap-3">
-                    <FileText className="h-4 w-4 text-muted-foreground" />
-                    <div>
-                      <p className="font-medium">{report.player?.name}</p>
-                      <p className="text-sm text-muted-foreground">
-                        {report.player?.club} • {new Date(report.createdAt).toLocaleDateString()}
-                      </p>
+        {/* Stats Grid */}
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          {stats.map((stat, index) => {
+            const Icon = stat.icon;
+            return (
+              <Card key={index}>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">
+                    {stat.title}
+                  </CardTitle>
+                  <Icon className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{stat.value}</div>
+                  <p className="text-xs text-muted-foreground">
+                    {stat.description}
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {stat.trend}
+                  </p>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+
+        {/* Quick Actions */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Quick Actions</CardTitle>
+            <CardDescription>
+              Common tasks to get you started
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+              {quickActions.map((action, index) => {
+                const Icon = action.icon;
+                return (
+                  <Button
+                    key={index}
+                    variant={action.variant}
+                    className="h-auto p-4 flex flex-col items-center gap-2"
+                    onClick={action.action}
+                  >
+                    <Icon className="h-6 w-6" />
+                    <div className="text-center">
+                      <div className="font-medium">{action.title}</div>
+                      <div className="text-xs text-muted-foreground">
+                        {action.description}
+                      </div>
                     </div>
+                  </Button>
+                );
+              })}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Recent Activity */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Recent Reports</CardTitle>
+            <CardDescription>
+              Your most recent scouting activity
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {loading ? (
+              <p className="text-center text-muted-foreground">Loading reports...</p>
+            ) : myReports.length > 0 ? (
+              <div className="space-y-4">
+                {myReports.slice(0, 5).map((report) => (
+                  <div
+                    key={report.id}
+                    className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent transition-colors cursor-pointer"
+                    onClick={() => navigate(`/report/${report.id}`)}
+                  >
+                    <div className="flex items-center gap-3">
+                      <FileText className="h-4 w-4 text-muted-foreground" />
+                      <div>
+                        <p className="font-medium">{report.player?.name}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {report.player?.club} • {new Date(report.createdAt).toLocaleDateString()}
+                        </p>
+                      </div>
+                    </div>
+                    <Badge variant={report.status === 'submitted' ? 'default' : 'secondary'}>
+                      {report.status}
+                    </Badge>
                   </div>
-                  <Badge variant={report.status === 'submitted' ? 'default' : 'secondary'}>
-                    {report.status}
-                  </Badge>
-                </div>
-              ))}
-              <Button
-                variant="outline"
-                className="w-full"
-                onClick={() => navigate("/reports")}
-              >
-                View All Reports
-              </Button>
-            </div>
-          ) : (
-            <div className="text-center py-6">
-              <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <p className="text-muted-foreground mb-4">No reports yet</p>
-              <Button onClick={() => navigate("/report-builder")}>
-                Create Your First Report
-              </Button>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+                ))}
+                <Button
+                  variant="outline"
+                  className="w-full"
+                  onClick={() => navigate("/reports")}
+                >
+                  View All Reports
+                </Button>
+              </div>
+            ) : (
+              <div className="text-center py-6">
+                <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <p className="text-muted-foreground mb-4">No reports yet</p>
+                <Button onClick={() => navigate("/report-builder")}>
+                  Create Your First Report
+                </Button>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 };
