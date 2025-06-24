@@ -230,16 +230,64 @@ export const useCreateAssignment = () => {
       deadline?: string;
       report_type: string;
     }) => {
-      const { error } = await supabase
-        .from('scouting_assignments')
-        .insert(assignment);
+      console.log('Creating/updating assignment for player:', assignment.player_id);
       
-      if (error) throw error;
+      // First check if an assignment already exists for this player
+      const { data: existingAssignment, error: checkError } = await supabase
+        .from('scouting_assignments')
+        .select('id')
+        .eq('player_id', assignment.player_id)
+        .maybeSingle();
+
+      if (checkError) {
+        console.error('Error checking existing assignment:', checkError);
+        throw checkError;
+      }
+
+      if (existingAssignment) {
+        console.log('Updating existing assignment:', existingAssignment.id);
+        // Update the existing assignment
+        const { error: updateError } = await supabase
+          .from('scouting_assignments')
+          .update({
+            assigned_to_scout_id: assignment.assigned_to_scout_id,
+            assigned_by_manager_id: assignment.assigned_by_manager_id,
+            priority: assignment.priority,
+            status: assignment.status,
+            assignment_notes: assignment.assignment_notes,
+            deadline: assignment.deadline,
+            report_type: assignment.report_type,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', existingAssignment.id);
+        
+        if (updateError) {
+          console.error('Error updating assignment:', updateError);
+          throw updateError;
+        }
+        console.log('Assignment updated successfully');
+      } else {
+        console.log('Creating new assignment');
+        // Create a new assignment
+        const { error: insertError } = await supabase
+          .from('scouting_assignments')
+          .insert(assignment);
+        
+        if (insertError) {
+          console.error('Error creating assignment:', insertError);
+          throw insertError;
+        }
+        console.log('New assignment created successfully');
+      }
     },
     onSuccess: () => {
+      console.log('Assignment mutation successful, invalidating queries');
       queryClient.invalidateQueries({ queryKey: ['scouting-assignments'] });
       queryClient.invalidateQueries({ queryKey: ['my-scouting-tasks'] });
       queryClient.invalidateQueries({ queryKey: ['player-assignments'] });
     },
+    onError: (error) => {
+      console.error('Assignment mutation failed:', error);
+    }
   });
 };
