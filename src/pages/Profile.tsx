@@ -8,12 +8,14 @@ import { Label } from '@/components/ui/label';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { RefreshCw } from 'lucide-react';
 
 const Profile = () => {
-  const { user, profile } = useAuth();
+  const { user, profile, refreshProfile } = useAuth();
   const [firstName, setFirstName] = useState(profile?.first_name || '');
   const [lastName, setLastName] = useState(profile?.last_name || '');
   const [loading, setLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
   const getInitials = () => {
     if (firstName && lastName) {
@@ -53,11 +55,35 @@ const Profile = () => {
     }
   };
 
+  const handleRefreshProfile = async () => {
+    setRefreshing(true);
+    try {
+      await refreshProfile();
+      toast.success('Profile refreshed successfully');
+    } catch (error) {
+      console.error('Error refreshing profile:', error);
+      toast.error('Failed to refresh profile');
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
   return (
     <div className="container mx-auto pt-8 pb-16 max-w-7xl">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">Profile</h1>
-        <p className="text-muted-foreground">Manage your account settings and preferences</p>
+      <div className="flex justify-between items-center mb-8">
+        <div>
+          <h1 className="text-3xl font-bold mb-2">Profile</h1>
+          <p className="text-muted-foreground">Manage your account settings and preferences</p>
+        </div>
+        <Button
+          variant="outline"
+          onClick={handleRefreshProfile}
+          disabled={refreshing}
+          className="flex items-center gap-2"
+        >
+          <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
+          Refresh Profile
+        </Button>
       </div>
 
       <div className="space-y-6">
@@ -81,6 +107,9 @@ const Profile = () => {
                 </h3>
                 <p className="text-sm text-muted-foreground capitalize">
                   {profile?.role || 'scout'}
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  Email: {profile?.email || user?.email}
                 </p>
               </div>
             </div>
@@ -111,9 +140,19 @@ const Profile = () => {
                 <Label htmlFor="email">Email</Label>
                 <Input
                   id="email"
-                  value={user?.email || ''}
+                  value={profile?.email || user?.email || ''}
                   disabled
                   className="bg-muted"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="role">Role</Label>
+                <Input
+                  id="role"
+                  value={profile?.role || 'scout'}
+                  disabled
+                  className="bg-muted capitalize"
                 />
               </div>
 
