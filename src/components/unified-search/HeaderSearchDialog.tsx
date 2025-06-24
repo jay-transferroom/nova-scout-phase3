@@ -38,6 +38,12 @@ const HeaderSearchDialog = ({
   onSelectPlayer,
   onViewMore
 }: HeaderSearchDialogProps) => {
+  console.log('HeaderSearchDialog - Rendering with:', {
+    searchQuery,
+    filteredPlayersCount: filteredPlayers.length,
+    recentPlayersCount: recentPlayers.length
+  });
+
   return (
     <CommandDialog open={open} onOpenChange={onOpenChange}>
       <CommandInput
@@ -49,7 +55,7 @@ const HeaderSearchDialog = ({
         {searchQuery.trim() ? (
           filteredPlayers.length > 0 ? (
             <CommandGroup heading={`Players (${filteredPlayers.length})`}>
-              {filteredPlayers.slice(0, maxDisplayResults).map((player) => (
+              {filteredPlayers.map((player) => (
                 <PlayerCommandItem
                   key={player.id}
                   player={player}
@@ -58,10 +64,10 @@ const HeaderSearchDialog = ({
                 />
               ))}
               
-              {filteredPlayers.length > maxDisplayResults && (
+              {filteredPlayers.length === maxDisplayResults && (
                 <CommandItem onSelect={onViewMore} className="flex items-center justify-center gap-2 p-3 text-sm">
                   <ArrowRight className="h-4 w-4" />
-                  View all {filteredPlayers.length} results
+                  View all results
                 </CommandItem>
               )}
             </CommandGroup>
