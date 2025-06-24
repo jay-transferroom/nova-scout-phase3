@@ -6,12 +6,12 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Calendar, Users, FileText, Search, Filter, Plus, TrendingUp, Target, Clock, CheckCircle } from "lucide-react";
-import { useScoutingTasks } from "@/hooks/useScoutingTasks";
+import { useMyScoutingTasks } from "@/hooks/useMyScoutingTasks";
 import { useReports } from "@/hooks/useReports";
 import { Link } from "react-router-dom";
 
 const ScoutingDashboard = () => {
-  const { data: allAssignments = [], isLoading: assignmentsLoading } = useScoutingTasks();
+  const { data: allAssignments = [], isLoading: assignmentsLoading } = useMyScoutingTasks();
   const { reports, loading: reportsLoading } = useReports();
   const [searchTerm, setSearchTerm] = useState("");
 
@@ -35,7 +35,7 @@ const ScoutingDashboard = () => {
 
   if (assignmentsLoading) {
     return (
-      <div className="container mx-auto py-8 max-w-7xl">
+      <div className="container mx-auto py-8 max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-center py-12">
           <div className="text-center">Loading dashboard...</div>
         </div>
@@ -44,7 +44,7 @@ const ScoutingDashboard = () => {
   }
 
   return (
-    <div className="container mx-auto py-8 max-w-7xl">
+    <div className="container mx-auto py-8 max-w-7xl px-4 sm:px-6 lg:px-8">
       {/* Header */}
       <div className="flex justify-between items-start mb-8">
         <div>
