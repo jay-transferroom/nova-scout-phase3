@@ -2,7 +2,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft } from "lucide-react";
-import PlayerSearch from "@/components/PlayerSearch";
+import UnifiedPlayerSearch from "@/components/UnifiedPlayerSearch";
 import { Player } from "@/types/player";
 
 interface PlayerSelectionScreenProps {
@@ -26,7 +26,11 @@ const PlayerSelectionScreen = ({ onSelectPlayer, onBack }: PlayerSelectionScreen
           <p className="text-muted-foreground">First, select a player to create a report for.</p>
         </CardHeader>
         <CardContent>
-          <PlayerSearch onSelectPlayer={onSelectPlayer} />
+          <UnifiedPlayerSearch 
+            onSelectPlayer={onSelectPlayer}
+            variant="full"
+            placeholder="Search player name, club, position or ID"
+          />
         </CardContent>
       </Card>
     </div>

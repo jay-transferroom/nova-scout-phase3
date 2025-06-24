@@ -12,7 +12,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Link, useNavigate } from "react-router-dom";
 import NotificationsDropdown from "./NotificationsDropdown";
-import HeaderSearch from "./HeaderSearch";
+import UnifiedPlayerSearch from "./UnifiedPlayerSearch";
 
 const Header = () => {
   const { profile, signOut } = useAuth();
@@ -39,7 +39,10 @@ const Header = () => {
         
         {/* Search Bar */}
         <div className="flex-1 max-w-md mx-8">
-          <HeaderSearch />
+          <UnifiedPlayerSearch 
+            variant="header"
+            placeholder="Search players, reports..."
+          />
         </div>
         
         <div className="flex items-center gap-2">
