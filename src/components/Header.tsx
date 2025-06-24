@@ -1,7 +1,7 @@
 
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
-import { LogOut, User, Search, Sparkles } from "lucide-react";
+import { LogOut, User, Sparkles } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,24 +12,15 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Link, useNavigate } from "react-router-dom";
 import NotificationsDropdown from "./NotificationsDropdown";
-import { Input } from "@/components/ui/input";
-import { useState } from "react";
+import HeaderSearch from "./HeaderSearch";
 
 const Header = () => {
   const { profile, signOut } = useAuth();
   const navigate = useNavigate();
-  const [searchQuery, setSearchQuery] = useState("");
 
   const getInitials = (firstName?: string, lastName?: string) => {
     if (!firstName && !lastName) return "U";
     return `${firstName?.[0] || ""}${lastName?.[0] || ""}`.toUpperCase();
-  };
-
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (searchQuery.trim()) {
-      navigate(`/search?q=${encodeURIComponent(searchQuery)}`);
-    }
   };
 
   const handleAISearch = () => {
@@ -48,16 +39,7 @@ const Header = () => {
         
         {/* Search Bar */}
         <div className="flex-1 max-w-md mx-8">
-          <form onSubmit={handleSearch} className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-            <Input
-              type="text"
-              placeholder="Search players, reports..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 pr-4"
-            />
-          </form>
+          <HeaderSearch />
         </div>
         
         <div className="flex items-center gap-2">
