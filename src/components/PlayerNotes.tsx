@@ -1,11 +1,6 @@
 
 import { useState, useEffect } from "react";
-import { MessageSquare, Plus, Edit2, Trash2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { MessageSquare } from "lucide-react";
 import {
   Sheet,
   SheetContent,
@@ -16,7 +11,8 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
-import { formatDate } from "@/utils/reportFormatting";
+import { NoteForm } from "./player-notes/NoteForm";
+import { NotesList } from "./player-notes/NotesList";
 
 interface PlayerNote {
   id: string;
@@ -42,9 +38,6 @@ interface PlayerNotesProps {
 export const PlayerNotes = ({ playerId, playerName, open, onOpenChange }: PlayerNotesProps) => {
   const { user } = useAuth();
   const [notes, setNotes] = useState<PlayerNote[]>([]);
-  const [newNote, setNewNote] = useState("");
-  const [editingNote, setEditingNote] = useState<string | null>(null);
-  const [editContent, setEditContent] = useState("");
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
@@ -95,9 +88,9 @@ export const PlayerNotes = ({ playerId, playerName, open, onOpenChange }: Player
     }
   };
 
-  const addNote = async () => {
-    if (!newNote.trim() || !user) {
-      console.log('PlayerNotes - Cannot add note: missing content or user');
+  const addNote = async (content: string) => {
+    if (!user) {
+      console.log('PlayerNotes - Cannot add note: missing user');
       return;
     }
 
@@ -110,7 +103,7 @@ export const PlayerNotes = ({ playerId, playerName, open, onOpenChange }: Player
         .insert({
           player_id: playerId,
           author_id: user.id,
-          content: newNote.trim()
+          content: content
         });
 
       if (error) {
@@ -119,7 +112,6 @@ export const PlayerNotes = ({ playerId, playerName, open, onOpenChange }: Player
       }
 
       console.log('PlayerNotes - Note added successfully');
-      setNewNote("");
       await fetchNotes();
       toast({
         title: "Success",
@@ -137,9 +129,7 @@ export const PlayerNotes = ({ playerId, playerName, open, onOpenChange }: Player
     }
   };
 
-  const updateNote = async (noteId: string) => {
-    if (!editContent.trim()) return;
-
+  const updateNote = async (noteId: string, content: string) => {
     setSubmitting(true);
     try {
       console.log('PlayerNotes - Updating note:', noteId);
@@ -147,7 +137,7 @@ export const PlayerNotes = ({ playerId, playerName, open, onOpenChange }: Player
       const { error } = await supabase
         .from('player_notes')
         .update({
-          content: editContent.trim(),
+          content: content,
           updated_at: new Date().toISOString()
         })
         .eq('id', noteId);
@@ -157,8 +147,6 @@ export const PlayerNotes = ({ playerId, playerName, open, onOpenChange }: Player
         throw error;
       }
 
-      setEditingNote(null);
-      setEditContent("");
       await fetchNotes();
       toast({
         title: "Success",
@@ -208,30 +196,6 @@ export const PlayerNotes = ({ playerId, playerName, open, onOpenChange }: Player
     }
   };
 
-  const startEdit = (note: PlayerNote) => {
-    setEditingNote(note.id);
-    setEditContent(note.content);
-  };
-
-  const cancelEdit = () => {
-    setEditingNote(null);
-    setEditContent("");
-  };
-
-  const getAuthorName = (author: PlayerNote['author']) => {
-    if (author.first_name && author.last_name) {
-      return `${author.first_name} ${author.last_name}`;
-    }
-    return author.email;
-  };
-
-  const getAuthorInitials = (author: PlayerNote['author']) => {
-    if (author.first_name && author.last_name) {
-      return `${author.first_name[0]}${author.last_name[0]}`.toUpperCase();
-    }
-    return author.email[0].toUpperCase();
-  };
-
   useEffect(() => {
     if (open && playerId) {
       console.log('PlayerNotes - Sheet opened, fetching notes for:', playerId);
@@ -253,125 +217,16 @@ export const PlayerNotes = ({ playerId, playerName, open, onOpenChange }: Player
         </SheetHeader>
 
         <div className="mt-6 space-y-4">
-          {/* Add new note */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-sm font-medium">Add a Note</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <Textarea
-                placeholder="Share your thoughts about this player..."
-                value={newNote}
-                onChange={(e) => setNewNote(e.target.value)}
-                className="min-h-[100px]"
-              />
-              <Button 
-                onClick={addNote} 
-                disabled={!newNote.trim() || submitting}
-                className="w-full"
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                Add Note
-              </Button>
-            </CardContent>
-          </Card>
-
-          {/* Notes list */}
-          <div className="space-y-4 max-h-[calc(100vh-400px)] overflow-y-auto">
-            {loading ? (
-              <div className="text-center py-8 text-muted-foreground">
-                Loading notes...
-              </div>
-            ) : notes.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">
-                No notes yet. Be the first to add a note about this player!
-              </div>
-            ) : (
-              notes.map((note) => (
-                <Card key={note.id}>
-                  <CardContent className="p-4">
-                    <div className="flex items-start gap-3">
-                      <Avatar className="h-8 w-8">
-                        <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white text-xs font-semibold">
-                          {getAuthorInitials(note.author)}
-                        </AvatarFallback>
-                      </Avatar>
-                      
-                      <div className="flex-1">
-                        <div className="flex items-center justify-between mb-2">
-                          <div className="flex items-center gap-2">
-                            <span className="font-medium text-sm">
-                              {getAuthorName(note.author)}
-                            </span>
-                            <span className="text-xs text-muted-foreground">
-                              {formatDate(new Date(note.created_at))}
-                            </span>
-                            {note.updated_at !== note.created_at && (
-                              <Badge variant="outline" className="text-xs">
-                                edited
-                              </Badge>
-                            )}
-                          </div>
-                          
-                          {note.author_id === user?.id && (
-                            <div className="flex gap-1">
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => startEdit(note)}
-                                className="h-6 w-6 p-0"
-                              >
-                                <Edit2 className="h-3 w-3" />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => deleteNote(note.id)}
-                                disabled={submitting}
-                                className="h-6 w-6 p-0 text-red-500 hover:text-red-700"
-                              >
-                                <Trash2 className="h-3 w-3" />
-                              </Button>
-                            </div>
-                          )}
-                        </div>
-                        
-                        {editingNote === note.id ? (
-                          <div className="space-y-2">
-                            <Textarea
-                              value={editContent}
-                              onChange={(e) => setEditContent(e.target.value)}
-                              className="min-h-[80px]"
-                            />
-                            <div className="flex gap-2">
-                              <Button
-                                size="sm"
-                                onClick={() => updateNote(note.id)}
-                                disabled={!editContent.trim() || submitting}
-                              >
-                                Save
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={cancelEdit}
-                              >
-                                Cancel
-                              </Button>
-                            </div>
-                          </div>
-                        ) : (
-                          <p className="text-sm text-gray-700 whitespace-pre-wrap">
-                            {note.content}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))
-            )}
-          </div>
+          <NoteForm onAddNote={addNote} submitting={submitting} />
+          
+          <NotesList
+            notes={notes}
+            loading={loading}
+            currentUserId={user?.id}
+            onUpdateNote={updateNote}
+            onDeleteNote={deleteNote}
+            submitting={submitting}
+          />
         </div>
       </SheetContent>
     </Sheet>
