@@ -189,68 +189,127 @@ const UnifiedPlayerSearch = ({
             onValueChange={setSearchQuery}
           />
           <CommandList>
-            <CommandEmpty>No results found.</CommandEmpty>
-            {filteredPlayers.length > 0 && (
-              <CommandGroup heading="Players">
-                {filteredPlayers.slice(0, MAX_DISPLAY_RESULTS).map((player) => {
-                  const teamLogo = getTeamLogo(player.club);
-                  
-                  return (
-                    <CommandItem
-                      key={player.id}
-                      onSelect={() => handleSelectPlayer(player)}
-                      className="flex items-center gap-3 p-3"
-                    >
-                      <Avatar className="h-10 w-10">
-                        <AvatarImage 
-                          src={player.image} 
-                          alt={player.name}
-                          onError={(e) => {
-                            (e.target as HTMLImageElement).style.display = 'none';
-                          }}
-                        />
-                        <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white font-semibold text-xs">
-                          {player.name.split(' ').map(n => n[0]).join('').toUpperCase()}
-                        </AvatarFallback>
-                      </Avatar>
-                      
-                      <div className="flex-1">
-                        <p className="font-medium">{player.name}</p>
-                        <p className="text-sm text-muted-foreground">{player.club} • {player.positions.join(", ")}</p>
-                      </div>
-                      
-                      <div className="flex items-center gap-3">
-                        <div className="text-sm text-right">
-                          <p>{player.age} yrs</p>
-                          <p className="text-muted-foreground">{player.nationality}</p>
+            {searchQuery.trim() ? (
+              filteredPlayers.length > 0 ? (
+                <CommandGroup heading="Players">
+                  {filteredPlayers.slice(0, MAX_DISPLAY_RESULTS).map((player) => {
+                    const teamLogo = getTeamLogo(player.club);
+                    
+                    return (
+                      <CommandItem
+                        key={player.id}
+                        onSelect={() => handleSelectPlayer(player)}
+                        className="flex items-center gap-3 p-3"
+                      >
+                        <Avatar className="h-10 w-10">
+                          <AvatarImage 
+                            src={player.image} 
+                            alt={player.name}
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).style.display = 'none';
+                            }}
+                          />
+                          <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white font-semibold text-xs">
+                            {player.name.split(' ').map(n => n[0]).join('').toUpperCase()}
+                          </AvatarFallback>
+                        </Avatar>
+                        
+                        <div className="flex-1">
+                          <p className="font-medium">{player.name}</p>
+                          <p className="text-sm text-muted-foreground">{player.club} • {player.positions.join(", ")}</p>
                         </div>
                         
-                        {teamLogo && (
-                          <Avatar className="h-6 w-6">
-                            <AvatarImage 
-                              src={teamLogo} 
-                              alt={`${player.club} logo`}
-                              onError={(e) => {
-                                (e.target as HTMLImageElement).style.display = 'none';
-                              }}
-                            />
-                            <AvatarFallback className="bg-gradient-to-br from-green-500 to-blue-600 text-white text-xs font-semibold">
-                              {player.club.substring(0, 2).toUpperCase()}
-                            </AvatarFallback>
-                          </Avatar>
-                        )}
-                      </div>
+                        <div className="flex items-center gap-3">
+                          <div className="text-sm text-right">
+                            <p>{player.age} yrs</p>
+                            <p className="text-muted-foreground">{player.nationality}</p>
+                          </div>
+                          
+                          {teamLogo && (
+                            <Avatar className="h-6 w-6">
+                              <AvatarImage 
+                                src={teamLogo} 
+                                alt={`${player.club} logo`}
+                                onError={(e) => {
+                                  (e.target as HTMLImageElement).style.display = 'none';
+                                }}
+                              />
+                              <AvatarFallback className="bg-gradient-to-br from-green-500 to-blue-600 text-white text-xs font-semibold">
+                                {player.club.substring(0, 2).toUpperCase()}
+                              </AvatarFallback>
+                            </Avatar>
+                          )}
+                        </div>
+                      </CommandItem>
+                    );
+                  })}
+                  
+                  {filteredPlayers.length > MAX_DISPLAY_RESULTS && (
+                    <CommandItem onSelect={handleViewMore} className="flex items-center justify-center gap-2 p-3 text-sm">
+                      <ArrowRight className="h-4 w-4" />
+                      View all {filteredPlayers.length} results
                     </CommandItem>
-                  );
-                })}
-                
-                {filteredPlayers.length > MAX_DISPLAY_RESULTS && (
-                  <CommandItem onSelect={handleViewMore} className="flex items-center justify-center gap-2 p-3 text-sm">
-                    <ArrowRight className="h-4 w-4" />
-                    View all results
-                  </CommandItem>
-                )}
-              </CommandGroup>
+                  )}
+                </CommandGroup>
+              ) : (
+                <CommandEmpty>No players found.</CommandEmpty>
+              )
+            ) : (
+              recentPlayers.length > 0 && (
+                <CommandGroup heading="Recently Viewed">
+                  {recentPlayers.map((player) => {
+                    const teamLogo = getTeamLogo(player.club);
+                    
+                    return (
+                      <CommandItem
+                        key={player.id}
+                        onSelect={() => handleSelectPlayer(player)}
+                        className="flex items-center gap-3 p-3"
+                      >
+                        <Avatar className="h-10 w-10">
+                          <AvatarImage 
+                            src={player.image} 
+                            alt={player.name}
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).style.display = 'none';
+                            }}
+                          />
+                          <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white font-semibold text-xs">
+                            {player.name.split(' ').map(n => n[0]).join('').toUpperCase()}
+                          </AvatarFallback>
+                        </Avatar>
+                        
+                        <div className="flex-1">
+                          <p className="font-medium">{player.name}</p>
+                          <p className="text-sm text-muted-foreground">{player.club} • {player.positions.join(", ")}</p>
+                        </div>
+                        
+                        <div className="flex items-center gap-3">
+                          <div className="text-sm text-right">
+                            <p>{player.age} yrs</p>
+                            <p className="text-muted-foreground">{player.nationality}</p>
+                          </div>
+                          
+                          {teamLogo && (
+                            <Avatar className="h-6 w-6">
+                              <AvatarImage 
+                                src={teamLogo} 
+                                alt={`${player.club} logo`}
+                                onError={(e) => {
+                                  (e.target as HTMLImageElement).style.display = 'none';
+                                }}
+                              />
+                              <AvatarFallback className="bg-gradient-to-br from-green-500 to-blue-600 text-white text-xs font-semibold">
+                                {player.club.substring(0, 2).toUpperCase()}
+                              </AvatarFallback>
+                            </Avatar>
+                          )}
+                        </div>
+                      </CommandItem>
+                    );
+                  })}
+                </CommandGroup>
+              )
             )}
           </CommandList>
         </CommandDialog>
