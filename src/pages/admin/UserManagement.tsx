@@ -17,10 +17,6 @@ interface Profile {
   role: string;
   club_id: string | null;
   created_at: string;
-  clubs?: {
-    id: string;
-    name: string;
-  };
 }
 
 const UserManagement = () => {
@@ -44,13 +40,7 @@ const UserManagement = () => {
       
       const { data, error } = await supabase
         .from('profiles')
-        .select(`
-          *,
-          clubs (
-            id,
-            name
-          )
-        `)
+        .select('*')
         .order('created_at', { ascending: false });
 
       console.log('Users query result:', { data, error });

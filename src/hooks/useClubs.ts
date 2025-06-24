@@ -16,13 +16,16 @@ export const useClubs = () => {
   return useQuery({
     queryKey: ['clubs'],
     queryFn: async (): Promise<Club[]> => {
-      const { data, error } = await supabase
-        .from('clubs')
-        .select('*')
-        .order('name');
-
-      if (error) throw error;
-      return data || [];
+      // Since clubs table doesn't exist, return hardcoded Chelsea data
+      return [{
+        id: 'chelsea',
+        name: 'Chelsea F.C.',
+        league: 'Premier League',
+        country: 'England',
+        logo_url: 'https://logos-world.net/wp-content/uploads/2020/06/Chelsea-Logo.png',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      }];
     },
   });
 };

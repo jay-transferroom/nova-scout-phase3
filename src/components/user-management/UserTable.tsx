@@ -39,10 +39,6 @@ interface Profile {
   role: string;
   club_id: string | null;
   created_at: string;
-  clubs?: {
-    id: string;
-    name: string;
-  };
 }
 
 interface UserTableProps {
