@@ -48,12 +48,12 @@ const ReportBuilder = () => {
       console.log('Player provided, showing template selection');
       setPlayer(state.player);
       setShowTemplateSelection(true);
-    } else if (fetchedPlayer) {
-      // Player fetched from database
-      console.log('Player fetched from database');
+    } else if (state?.selectedPlayerId && fetchedPlayer) {
+      // Player ID provided and player fetched - go directly to template selection
+      console.log('Player fetched from ID, going to template selection');
       setPlayer(fetchedPlayer);
       setShowTemplateSelection(true);
-    } else if (state?.selectedPlayerId) {
+    } else if (state?.selectedPlayerId && !fetchedPlayer) {
       // Wait for player to be fetched
       console.log('Waiting for player to be fetched');
       return;
@@ -112,7 +112,7 @@ const ReportBuilder = () => {
     });
   };
 
-  // Show player search if no player selected
+  // Show player search if no player selected and no selectedPlayerId
   if (showPlayerSearch || (!player && !state?.selectedPlayerId)) {
     return (
       <PlayerSelectionScreen
@@ -122,14 +122,23 @@ const ReportBuilder = () => {
     );
   }
 
-  // Show template selection if no template selected
-  if (showTemplateSelection || !template) {
+  // Show template selection if we have a player but no template
+  if ((showTemplateSelection && player) || (player && !template)) {
     return (
       <TemplateSelectionScreen
-        player={player!}
+        player={player}
         onSelectTemplate={handleTemplateSelect}
         onBack={() => navigate(-1)}
       />
+    );
+  }
+
+  // Loading state while fetching player
+  if (state?.selectedPlayerId && !player && !fetchedPlayer) {
+    return (
+      <div className="container mx-auto py-8 flex items-center justify-center">
+        <p>Loading player information...</p>
+      </div>
     );
   }
 
