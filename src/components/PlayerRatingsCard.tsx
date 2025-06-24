@@ -30,6 +30,18 @@ const PlayerRatingsCard = ({ player, aggregatedData }: PlayerRatingsCardProps) =
     return 'bg-red-100 text-red-700';
   };
 
+  // Format xTV score with currency symbol
+  const formatXTVScore = (score: number | null | undefined) => {
+    if (!score) return 'N/A';
+    
+    // Determine currency based on player's region or nationality
+    const isEuropean = player.region === 'Europe' || 
+                      ['Spain', 'France', 'Germany', 'Italy', 'Portugal', 'Netherlands', 'Belgium'].includes(player.nationality);
+    const currency = isEuropean ? '€' : '£';
+    
+    return `${currency}${score.toFixed(1)}M`;
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -47,7 +59,7 @@ const PlayerRatingsCard = ({ player, aggregatedData }: PlayerRatingsCardProps) =
               <span className="text-sm font-medium text-blue-700">xTV</span>
             </div>
             <div className={`text-lg font-bold ${getRatingColor(player.xtvScore)}`}>
-              {player.xtvScore ? `${player.xtvScore.toFixed(1)}` : 'N/A'}
+              {formatXTVScore(player.xtvScore)}
             </div>
             <div className="text-xs text-blue-600">Expected Transfer Value</div>
           </div>

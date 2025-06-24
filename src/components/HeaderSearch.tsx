@@ -24,6 +24,7 @@ const HeaderSearch = () => {
   const [open, setOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [filteredPlayers, setFilteredPlayers] = useState<Player[]>([]);
+  const [recentPlayers, setRecentPlayers] = useState<Player[]>([]);
 
   const MAX_DISPLAY_RESULTS = 5;
 
@@ -39,21 +40,44 @@ const HeaderSearch = () => {
     return team?.logo_url;
   };
 
-  // Filter players based on search query
+  // Initialize recent players from localStorage
   useEffect(() => {
-    if (!players.length || !searchQuery.trim()) {
+    const recentPlayerIds = JSON.parse(localStorage.getItem('recentPlayers') || '[]');
+    if (players.length > 0) {
+      const recent = recentPlayerIds
+        .map((id: string) => players.find(p => p.id === id))
+        .filter((player: Player | undefined): player is Player => player !== undefined)
+        .slice(0, 3);
+      setRecentPlayers(recent);
+    }
+  }, [players]);
+
+  // Filter players based on search query - IMPROVED SEARCH LOGIC
+  useEffect(() => {
+    if (!players.length) {
+      setFilteredPlayers([]);
+      return;
+    }
+    
+    if (!searchQuery.trim()) {
       setFilteredPlayers([]);
       return;
     }
     
     const lowercaseQuery = searchQuery.toLowerCase().trim();
-    const results = players.filter(player => 
-      player.name.toLowerCase().includes(lowercaseQuery) || 
-      player.club.toLowerCase().includes(lowercaseQuery) || 
-      player.id.toLowerCase() === lowercaseQuery ||
-      player.positions.some(pos => pos.toLowerCase().includes(lowercaseQuery))
-    );
+    console.log('HeaderSearch - Filtering players for query:', lowercaseQuery);
     
+    const results = players.filter(player => {
+      const nameMatch = player.name.toLowerCase().includes(lowercaseQuery);
+      const clubMatch = player.club.toLowerCase().includes(lowercaseQuery);
+      const idMatch = player.id.toLowerCase() === lowercaseQuery;
+      const positionMatch = player.positions.some(pos => pos.toLowerCase().includes(lowercaseQuery));
+      const nationalityMatch = player.nationality?.toLowerCase().includes(lowercaseQuery);
+      
+      return nameMatch || clubMatch || idMatch || positionMatch || nationalityMatch;
+    });
+    
+    console.log('HeaderSearch - Filtered results count:', results.length);
     setFilteredPlayers(results.slice(0, MAX_DISPLAY_RESULTS));
   }, [searchQuery, players]);
 
@@ -67,6 +91,12 @@ const HeaderSearch = () => {
     const recentPlayerIds = JSON.parse(localStorage.getItem('recentPlayers') || '[]');
     const updatedRecent = [player.id, ...recentPlayerIds.filter((id: string) => id !== player.id)].slice(0, 3);
     localStorage.setItem('recentPlayers', JSON.stringify(updatedRecent));
+    
+    // Update local state
+    const isAlreadyRecent = recentPlayers.some(p => p.id === player.id);
+    if (!isAlreadyRecent) {
+      setRecentPlayers(prev => [player, ...prev.slice(0, 2)]);
+    }
   };
 
   const handleViewMore = () => {
@@ -111,74 +141,133 @@ const HeaderSearch = () => {
           onValueChange={setSearchQuery}
         />
         <CommandList>
-          <CommandEmpty>No results found.</CommandEmpty>
-          {filteredPlayers.length > 0 && (
-            <CommandGroup heading="Players">
-              {filteredPlayers.map((player) => {
-                const teamLogo = getTeamLogo(player.club);
-                
-                return (
-                  <CommandItem
-                    key={player.id}
-                    onSelect={() => handleSelectPlayer(player)}
-                    className="flex items-center gap-3 p-3"
-                  >
-                    <Avatar className="h-10 w-10">
-                      <AvatarImage 
-                        src={player.image} 
-                        alt={player.name}
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).style.display = 'none';
-                        }}
-                      />
-                      <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white font-semibold text-xs">
-                        {player.name.split(' ').map(n => n[0]).join('').toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
-                    
-                    <div className="flex-1">
-                      <p className="font-medium">{player.name}</p>
-                      <p className="text-sm text-muted-foreground">{player.club} • {player.positions.join(", ")}</p>
-                    </div>
-                    
-                    <div className="flex items-center gap-3">
-                      <div className="text-sm text-right">
-                        <p>{player.age} yrs</p>
-                        <p className="text-muted-foreground">{player.nationality}</p>
+          {searchQuery.trim() ? (
+            filteredPlayers.length > 0 ? (
+              <CommandGroup heading={`Players (${filteredPlayers.length})`}>
+                {filteredPlayers.map((player) => {
+                  const teamLogo = getTeamLogo(player.club);
+                  
+                  return (
+                    <CommandItem
+                      key={player.id}
+                      onSelect={() => handleSelectPlayer(player)}
+                      className="flex items-center gap-3 p-3"
+                    >
+                      <Avatar className="h-10 w-10">
+                        <AvatarImage 
+                          src={player.image} 
+                          alt={player.name}
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).style.display = 'none';
+                          }}
+                        />
+                        <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white font-semibold text-xs">
+                          {player.name.split(' ').map(n => n[0]).join('').toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                      
+                      <div className="flex-1">
+                        <p className="font-medium">{player.name}</p>
+                        <p className="text-sm text-muted-foreground">{player.club} • {player.positions.join(", ")}</p>
                       </div>
                       
-                      {teamLogo && (
-                        <Avatar className="h-6 w-6">
-                          <AvatarImage 
-                            src={teamLogo} 
-                            alt={`${player.club} logo`}
-                            onError={(e) => {
-                              (e.target as HTMLImageElement).style.display = 'none';
-                            }}
-                          />
-                          <AvatarFallback className="bg-gradient-to-br from-green-500 to-blue-600 text-white text-xs font-semibold">
-                            {player.club.substring(0, 2).toUpperCase()}
-                          </AvatarFallback>
-                        </Avatar>
-                      )}
-                    </div>
+                      <div className="flex items-center gap-3">
+                        <div className="text-sm text-right">
+                          <p>{player.age} yrs</p>
+                          <p className="text-muted-foreground">{player.nationality}</p>
+                        </div>
+                        
+                        {teamLogo && (
+                          <Avatar className="h-6 w-6">
+                            <AvatarImage 
+                              src={teamLogo} 
+                              alt={`${player.club} logo`}
+                              onError={(e) => {
+                                (e.target as HTMLImageElement).style.display = 'none';
+                              }}
+                            />
+                            <AvatarFallback className="bg-gradient-to-br from-green-500 to-blue-600 text-white text-xs font-semibold">
+                              {player.club.substring(0, 2).toUpperCase()}
+                            </AvatarFallback>
+                          </Avatar>
+                        )}
+                      </div>
+                    </CommandItem>
+                  );
+                })}
+                
+                {players.filter(player => {
+                  const lowercaseQuery = searchQuery.toLowerCase().trim();
+                  return player.name.toLowerCase().includes(lowercaseQuery) || 
+                         player.club.toLowerCase().includes(lowercaseQuery) || 
+                         player.id.toLowerCase() === lowercaseQuery ||
+                         player.positions.some(pos => pos.toLowerCase().includes(lowercaseQuery));
+                }).length > MAX_DISPLAY_RESULTS && (
+                  <CommandItem onSelect={handleViewMore} className="flex items-center justify-center gap-2 p-3 text-sm">
+                    <ArrowRight className="h-4 w-4" />
+                    View all results
                   </CommandItem>
-                );
-              })}
-              
-              {players.filter(player => {
-                const lowercaseQuery = searchQuery.toLowerCase().trim();
-                return player.name.toLowerCase().includes(lowercaseQuery) || 
-                       player.club.toLowerCase().includes(lowercaseQuery) || 
-                       player.id.toLowerCase() === lowercaseQuery ||
-                       player.positions.some(pos => pos.toLowerCase().includes(lowercaseQuery));
-              }).length > MAX_DISPLAY_RESULTS && (
-                <CommandItem onSelect={handleViewMore} className="flex items-center justify-center gap-2 p-3 text-sm">
-                  <ArrowRight className="h-4 w-4" />
-                  View all results
-                </CommandItem>
-              )}
-            </CommandGroup>
+                )}
+              </CommandGroup>
+            ) : (
+              <CommandEmpty>No players found for "{searchQuery}"</CommandEmpty>
+            )
+          ) : (
+            recentPlayers.length > 0 && (
+              <CommandGroup heading="Recently Viewed">
+                {recentPlayers.map((player) => {
+                  const teamLogo = getTeamLogo(player.club);
+                  
+                  return (
+                    <CommandItem
+                      key={player.id}
+                      onSelect={() => handleSelectPlayer(player)}
+                      className="flex items-center gap-3 p-3"
+                    >
+                      <Avatar className="h-10 w-10">
+                        <AvatarImage 
+                          src={player.image} 
+                          alt={player.name}
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).style.display = 'none';
+                          }}
+                        />
+                        <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white font-semibold text-xs">
+                          {player.name.split(' ').map(n => n[0]).join('').toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                      
+                      <div className="flex-1">
+                        <p className="font-medium">{player.name}</p>
+                        <p className="text-sm text-muted-foreground">{player.club} • {player.positions.join(", ")}</p>
+                      </div>
+                      
+                      <div className="flex items-center gap-3">
+                        <div className="text-sm text-right">
+                          <p>{player.age} yrs</p>
+                          <p className="text-muted-foreground">{player.nationality}</p>
+                        </div>
+                        
+                        {teamLogo && (
+                          <Avatar className="h-6 w-6">
+                            <AvatarImage 
+                              src={teamLogo} 
+                              alt={`${player.club} logo`}
+                              onError={(e) => {
+                                (e.target as HTMLImageElement).style.display = 'none';
+                              }}
+                            />
+                            <AvatarFallback className="bg-gradient-to-br from-green-500 to-blue-600 text-white text-xs font-semibold">
+                              {player.club.substring(0, 2).toUpperCase()}
+                            </AvatarFallback>
+                          </Avatar>
+                        )}
+                      </div>
+                    </CommandItem>
+                  );
+                })}
+              </CommandGroup>
+            )
           )}
         </CommandList>
       </CommandDialog>
