@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -40,11 +39,11 @@ const PlayerProfile = () => {
   })() : undefined;
 
   const handleCreateReport = () => {
-    navigate('/reports/new', { state: { selectedPlayerId: id } });
+    navigate('/report-builder', { state: { selectedPlayerId: id } });
   };
 
   const handleViewReport = (reportId: string) => {
-    navigate(`/reports/${reportId}`);
+    navigate(`/report/${reportId}`);
   };
 
   const handleOpenNotes = () => {
