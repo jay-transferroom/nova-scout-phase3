@@ -23,16 +23,6 @@ const AssignedPlayers = () => {
     return matchesSearch && matchesStatus;
   });
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'assigned': return 'text-red-600';
-      case 'in_progress': return 'text-orange-600';
-      case 'completed': return 'text-green-600';
-      case 'reviewed': return 'text-blue-600';
-      default: return 'text-gray-600';
-    }
-  };
-
   const getStatusBadgeVariant = (status: string) => {
     switch (status) {
       case 'assigned': return 'destructive';
@@ -43,9 +33,10 @@ const AssignedPlayers = () => {
     }
   };
 
-  const getPlayerRating = () => {
-    // Mock rating - in real app this would come from player data
-    return (Math.random() * 20 + 70).toFixed(1);
+  const getPlayerRating = (playerId: string) => {
+    // Generate consistent rating based on player ID for mock data
+    const hash = playerId.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+    return ((hash % 20) + 70).toFixed(1);
   };
 
   const getUpdatedTime = (status: string) => {
@@ -182,7 +173,7 @@ const AssignedPlayers = () => {
                   </p>
                 </div>
                 <div className="text-right">
-                  <div className="text-2xl font-bold text-success-600">{getPlayerRating()}</div>
+                  <div className="text-2xl font-bold text-green-600">{getPlayerRating(assignment.player_id)}</div>
                   <div className="text-xs text-muted-foreground">Rating</div>
                 </div>
               </div>

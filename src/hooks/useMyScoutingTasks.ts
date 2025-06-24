@@ -56,12 +56,12 @@ export const useMyScoutingTasks = () => {
         }));
       }
 
-      console.log('No real assignments found, creating mock assignments...');
+      console.log('No real assignments found, creating mock assignments with real players...');
 
-      // If no assignments found, create mock assignments with real players from database
+      // If no assignments found, create mock assignments with real players from players_new
       const { data: players, error: playersError } = await supabase
-        .from('players')
-        .select('id, name, club, positions, age')
+        .from('players_new')
+        .select('id, name, currentteam, parentteam, firstposition, secondposition, age')
         .limit(8);
 
       console.log('Players fetched for mock assignments:', players?.length || 0);
@@ -71,14 +71,14 @@ export const useMyScoutingTasks = () => {
         return [];
       }
 
-      // Create mock assignments with real player data
+      // Create mock assignments with real player data from players_new
       const mockStatuses: ('assigned' | 'in_progress' | 'completed' | 'reviewed')[] = 
         ['assigned', 'in_progress', 'completed', 'reviewed'];
       const mockPriorities: ('High' | 'Medium' | 'Low')[] = ['High', 'Medium', 'Low'];
       
       const mockAssignments = players.slice(0, 6).map((player, index) => ({
         id: `mock-assignment-${player.id}`,
-        player_id: player.id,
+        player_id: player.id.toString(),
         assigned_to_scout_id: user?.id || '',
         assigned_by_manager_id: 'mock-manager-id',
         priority: mockPriorities[index % 3],
@@ -90,9 +90,9 @@ export const useMyScoutingTasks = () => {
         updated_at: new Date().toISOString(),
         players: {
           name: player.name,
-          club: player.club,
-          positions: player.positions,
-          age: player.age
+          club: player.currentteam || player.parentteam || 'Unknown',
+          positions: [player.firstposition, player.secondposition].filter(Boolean) as string[],
+          age: player.age || 25
         }
       }));
 
