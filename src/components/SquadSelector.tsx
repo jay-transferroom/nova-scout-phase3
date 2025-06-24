@@ -19,18 +19,18 @@ const SQUAD_TYPES = [
 
 const SquadSelector = ({ selectedSquad, onSquadSelect, club, players }: SquadSelectorProps) => {
   const getSquadPlayerCount = (squadType: string) => {
-    const firstTeamIds = players
-      .filter(p => !p.id.includes('23_') && !p.id.includes('21_') && !p.id.includes('18_'))
-      .slice(0, 25)
-      .map(p => p.id);
-
-    const shadowSquadIds = firstTeamIds.slice(0, 11);
+    // Sort players by rating to get the best ones first
+    const sortedPlayers = [...players].sort((a, b) => {
+      const ratingA = a.transferroomRating || a.xtvScore || 0;
+      const ratingB = b.transferroomRating || b.xtvScore || 0;
+      return ratingB - ratingA;
+    });
 
     switch (squadType) {
       case 'first-xi':
-        return Math.min(players.filter(p => firstTeamIds.includes(p.id)).length, 25);
+        return Math.min(sortedPlayers.length, 11);
       case 'shadow-squad':
-        return Math.min(players.filter(p => shadowSquadIds.includes(p.id)).length, 11);
+        return Math.min(Math.max(0, sortedPlayers.length - 11), 17);
       default:
         return 0;
     }
@@ -78,10 +78,15 @@ const SquadSelector = ({ selectedSquad, onSquadSelect, club, players }: SquadSel
         </div>
         <p className="text-sm text-muted-foreground mt-2">
           {selectedSquad === 'shadow-squad' 
-            ? 'View core starting XI players with tactical depth'
+            ? 'Reserve players and squad depth (up to 17 players)'
+            : selectedSquad === 'first-xi'
+            ? 'Starting eleven - best rated players (11 players)'
             : 'Select squad to analyze formation and player assignments'
           }
         </p>
+        <div className="mt-2 text-xs text-muted-foreground">
+          Total squad size: {players.length} players
+        </div>
       </CardContent>
     </Card>
   );
