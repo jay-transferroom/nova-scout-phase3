@@ -5,12 +5,13 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Settings as SettingsIcon, Users, FileText } from 'lucide-react';
+import { Settings as SettingsIcon, Users, FileText, Upload } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 
 // Import existing admin components
 import UserManagement from './admin/UserManagement';
 import TemplateAdmin from './TemplateAdmin';
+import ReportDataImport from '@/components/ReportDataImport';
 
 const Settings = () => {
   const { profile } = useAuth();
@@ -26,10 +27,14 @@ const Settings = () => {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="preferences" className="flex items-center gap-2">
             <SettingsIcon className="h-4 w-4" />
             Preferences
+          </TabsTrigger>
+          <TabsTrigger value="import" className="flex items-center gap-2">
+            <Upload className="h-4 w-4" />
+            Import Data
           </TabsTrigger>
           {isAdmin && (
             <>
@@ -99,6 +104,10 @@ const Settings = () => {
               </CardContent>
             </Card>
           </div>
+        </TabsContent>
+
+        <TabsContent value="import" className="mt-6">
+          <ReportDataImport />
         </TabsContent>
 
         {isAdmin && (
