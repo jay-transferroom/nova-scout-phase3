@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -39,7 +38,7 @@ const ScoutManagement = () => {
       completed: [] as any[]
     };
 
-    // Add real assignments to appropriate columns
+    // Only add real assignments to appropriate columns
     assignments.forEach((assignment) => {
       const scoutName = assignment.assigned_to_scout?.first_name 
         ? `${assignment.assigned_to_scout.first_name} ${assignment.assigned_to_scout.last_name || ''}`.trim()
@@ -66,9 +65,7 @@ const ScoutManagement = () => {
         assignedTo: scoutName,
         updatedAt: getUpdatedTime(assignment.status),
         lastStatusChange: getLastStatusChange(assignment.status),
-        avatar: assignment.players?.name 
-          ? `https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=48&h=48&fit=crop&crop=face&auto=format`
-          : "/placeholder.svg",
+        avatar: `https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=48&h=48&fit=crop&crop=face&auto=format`,
         priority: assignment.priority,
         deadline: assignment.deadline,
         scoutId: assignment.assigned_to_scout_id,

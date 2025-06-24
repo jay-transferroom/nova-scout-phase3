@@ -82,7 +82,7 @@ const Shortlists = () => {
   ];
 
   const currentList = shortlists.find(list => list.id === selectedList);
-  const currentPlayers = currentList ? allPlayers.filter(currentList.filter).slice(0, 15) : []; // Limit to 15 players per list
+  const currentPlayers = currentList ? allPlayers.filter(currentList.filter).slice(0, 15) : [];
   
   const filteredPlayers = currentPlayers.filter(player =>
     player.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -91,6 +91,7 @@ const Shortlists = () => {
   );
 
   const getPlayerAssignment = (playerId: string) => {
+    // Match assignment by player_id (string) with players_new.id (converted to string)
     return playerAssignments.find(assignment => assignment.player_id === playerId);
   };
 

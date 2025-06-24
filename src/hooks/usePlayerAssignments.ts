@@ -33,8 +33,11 @@ export const usePlayerAssignments = () => {
         return [];
       }
 
+      console.log('Player assignments fetched:', data?.length || 0);
+
       return (data || []).map(assignment => ({
         ...assignment,
+        player_id: assignment.player_id.toString(), // Convert to string to match players_new.id
         priority: assignment.priority as 'High' | 'Medium' | 'Low',
         status: assignment.status as 'assigned' | 'in_progress' | 'completed' | 'reviewed'
       }));
