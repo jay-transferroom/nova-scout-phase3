@@ -10,6 +10,8 @@ import SquadRecommendations from "@/components/SquadRecommendations";
 import ProspectComparison from "@/components/ProspectComparison";
 import SquadValueOverview from "@/components/SquadValueOverview";
 import SquadFormationCard from "@/components/SquadFormationCard";
+import SquadListView from "@/components/SquadListView";
+import ViewToggle from "@/components/ViewToggle";
 import { useSquadData } from "@/hooks/useSquadData";
 import { useSquadMetrics } from "@/hooks/useSquadMetrics";
 import { getSquadDisplayName } from "@/utils/squadUtils";
@@ -19,6 +21,7 @@ const SquadView = () => {
   const { profile } = useAuth();
   const [selectedSquad, setSelectedSquad] = useState<string>('first-xi');
   const [selectedPosition, setSelectedPosition] = useState<string | null>(null);
+  const [currentView, setCurrentView] = useState<'pitch' | 'list'>('pitch');
 
   // Redirect if not recruitment role
   if (profile?.role !== 'recruitment') {
@@ -52,6 +55,7 @@ const SquadView = () => {
             </p>
           </div>
         </div>
+        <ViewToggle currentView={currentView} onViewChange={setCurrentView} />
       </div>
 
       {/* Squad Selector */}
@@ -69,32 +73,40 @@ const SquadView = () => {
         squadPlayersLength={squadPlayers.length}
       />
 
-      {/* Enhanced Football Pitch Visualization */}
-      <SquadFormationCard
-        squadPlayers={squadPlayers}
-        selectedSquad={selectedSquad}
-        onPositionClick={setSelectedPosition}
-        selectedPosition={selectedPosition}
-      />
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Squad Recommendations */}
-        <SquadRecommendations 
-          players={squadPlayers}
-          selectedPosition={selectedPosition}
-          onPositionSelect={setSelectedPosition}
-        />
-
-        {/* Prospect Comparison */}
-        {selectedPosition && (
-          <ProspectComparison 
-            position={selectedPosition}
-            currentPlayers={squadPlayers.filter(p => 
-              p.positions.some(pos => pos.toLowerCase().includes(selectedPosition.toLowerCase()))
-            )}
+      {/* Conditional View Rendering */}
+      {currentView === 'pitch' ? (
+        <>
+          {/* Enhanced Football Pitch Visualization */}
+          <SquadFormationCard
+            squadPlayers={squadPlayers}
+            selectedSquad={selectedSquad}
+            onPositionClick={setSelectedPosition}
+            selectedPosition={selectedPosition}
           />
-        )}
-      </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {/* Squad Recommendations */}
+            <SquadRecommendations 
+              players={squadPlayers}
+              selectedPosition={selectedPosition}
+              onPositionSelect={setSelectedPosition}
+            />
+
+            {/* Prospect Comparison */}
+            {selectedPosition && (
+              <ProspectComparison 
+                position={selectedPosition}
+                currentPlayers={squadPlayers.filter(p => 
+                  p.positions.some(pos => pos.toLowerCase().includes(selectedPosition.toLowerCase()))
+                )}
+              />
+            )}
+          </div>
+        </>
+      ) : (
+        /* List View */
+        <SquadListView players={squadPlayers} />
+      )}
     </div>
   );
 };
