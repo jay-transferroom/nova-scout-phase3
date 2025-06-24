@@ -30,24 +30,59 @@ const FORMATION_POSITIONS = {
 
 const EnhancedFootballPitch = ({ players, squadType, onPositionClick, selectedPosition }: EnhancedFootballPitchProps) => {
   const getPlayersForPosition = (position: string) => {
-    const positionPlayers = players.filter(player => 
-      player.positions.some(pos => {
-        switch (position) {
-          case 'GK': return pos === 'GK';
-          case 'LB': return pos === 'LB' || pos === 'LWB';
-          case 'CB1': case 'CB2': return pos === 'CB';
-          case 'RB': return pos === 'RB' || pos === 'RWB';
-          case 'CDM': return pos === 'CDM';
-          case 'CM1': case 'CM2': return pos === 'CM' || pos === 'CAM';
-          case 'LW': return pos === 'LW';
-          case 'ST': return pos === 'ST' || pos === 'CF';
-          case 'RW': return pos === 'RW';
-          default: return false;
-        }
-      })
-    );
+    // Create a more comprehensive position mapping
+    const getPositionPriorities = (pos: string) => {
+      switch (pos) {
+        case 'GK': 
+          return [['GK']];
+        case 'LB': 
+          return [['LB', 'LWB'], ['CB'], ['LM']];
+        case 'CB1': 
+        case 'CB2': 
+          return [['CB'], ['CDM']];
+        case 'RB': 
+          return [['RB', 'RWB'], ['CB'], ['RM']];
+        case 'CDM': 
+          return [['CDM'], ['CM'], ['CB']];
+        case 'CM1': 
+        case 'CM2': 
+          return [['CM'], ['CAM', 'CDM'], ['LM', 'RM']];
+        case 'LW': 
+          return [['LW'], ['LM'], ['ST', 'CF']];
+        case 'ST': 
+          return [['ST', 'CF'], ['CAM']];
+        case 'RW': 
+          return [['RW'], ['RM'], ['ST', 'CF']];
+        default: 
+          return [[]];
+      }
+    };
 
-    return positionPlayers;
+    const priorities = getPositionPriorities(position);
+    const usedPlayerIds = new Set();
+    
+    // Try each priority level until we find available players
+    for (const priorityGroup of priorities) {
+      const availablePlayers = players.filter(player => 
+        !usedPlayerIds.has(player.id) &&
+        player.positions.some(playerPos => priorityGroup.includes(playerPos))
+      );
+      
+      if (availablePlayers.length > 0) {
+        // Sort by rating and take the best available
+        const sortedPlayers = availablePlayers.sort((a, b) => {
+          const ratingA = a.transferroomRating || a.xtvScore || 0;
+          const ratingB = b.transferroomRating || b.xtvScore || 0;
+          return ratingB - ratingA;
+        });
+        
+        // Mark players as used to avoid duplicates across positions
+        sortedPlayers.forEach(p => usedPlayerIds.add(p.id));
+        return sortedPlayers;
+      }
+    }
+
+    return [];
   };
 
   const handlePositionClick = (position: string, label: string) => {
@@ -165,7 +200,7 @@ const EnhancedFootballPitch = ({ players, squadType, onPositionClick, selectedPo
                   </div>
                   
                   <div className="text-xs font-bold text-center text-green-600 mb-1">
-                    €{Math.floor(Math.random() * 80) + 5}M
+                    {primaryPlayer.transferroomRating || primaryPlayer.xtvScore || 'N/A'}
                   </div>
                   
                   {positionPlayers.length > 1 && (
