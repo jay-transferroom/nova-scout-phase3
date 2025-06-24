@@ -36,11 +36,11 @@ export const useScoutingAssignments = () => {
   return useQuery({
     queryKey: ['scouting-assignments'],
     queryFn: async (): Promise<ScoutingAssignmentWithDetails[]> => {
-      const { data, error } = await supabase
+      // First get the assignments without player data
+      const { data: assignments, error } = await supabase
         .from('scouting_assignments')
         .select(`
           *,
-          players!inner(name, club, positions, age),
           assigned_to_scout:profiles!scouting_assignments_assigned_to_scout_id_fkey(first_name, last_name, email),
           assigned_by_manager:profiles!scouting_assignments_assigned_by_manager_id_fkey(first_name, last_name, email)
         `)
@@ -51,11 +51,42 @@ export const useScoutingAssignments = () => {
         throw error;
       }
 
-      return (data || []).map(assignment => ({
-        ...assignment,
-        priority: assignment.priority as 'High' | 'Medium' | 'Low',
-        status: assignment.status as 'assigned' | 'in_progress' | 'completed' | 'reviewed'
-      }));
+      if (!assignments || assignments.length === 0) {
+        return [];
+      }
+
+      // Now fetch player data from players_new for each assignment
+      const assignmentsWithPlayers = await Promise.all(
+        assignments.map(async (assignment) => {
+          // Convert player_id string to number for players_new table query
+          const playerIdNumber = parseInt(assignment.player_id, 10);
+          
+          const { data: playerData, error: playerError } = await supabase
+            .from('players_new')
+            .select('name, currentteam, parentteam, firstposition, secondposition, age')
+            .eq('id', playerIdNumber)
+            .single();
+
+          return {
+            ...assignment,
+            priority: assignment.priority as 'High' | 'Medium' | 'Low',
+            status: assignment.status as 'assigned' | 'in_progress' | 'completed' | 'reviewed',
+            players: playerError ? {
+              name: 'Unknown Player',
+              club: 'Unknown Club',
+              positions: ['Unknown'],
+              age: 0
+            } : {
+              name: playerData.name,
+              club: playerData.currentteam || playerData.parentteam || 'Unknown Club',
+              positions: [playerData.firstposition, playerData.secondposition].filter(Boolean) as string[],
+              age: playerData.age || 0
+            }
+          };
+        })
+      );
+
+      return assignmentsWithPlayers;
     },
   });
 };
