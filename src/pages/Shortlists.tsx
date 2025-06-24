@@ -11,6 +11,7 @@ import { cn } from "@/lib/utils";
 import { usePlayersData } from "@/hooks/usePlayersData";
 import { usePlayerAssignments } from "@/hooks/usePlayerAssignments";
 import AssignScoutDialog from "@/components/AssignScoutDialog";
+import { useQueryClient } from "@tanstack/react-query";
 
 const Shortlists = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -23,7 +24,8 @@ const Shortlists = () => {
   const [isAssignDialogOpen, setIsAssignDialogOpen] = useState(false);
 
   const { data: allPlayers = [], isLoading } = usePlayersData();
-  const { data: playerAssignments = [] } = usePlayerAssignments();
+  const { data: playerAssignments = [], refetch: refetchAssignments } = usePlayerAssignments();
+  const queryClient = useQueryClient();
 
   // Create 4 focused shortlists for Chelsea's specific recruitment needs
   const shortlists = [
@@ -145,6 +147,16 @@ const Shortlists = () => {
       positions: player.positions
     });
     setIsAssignDialogOpen(true);
+  };
+
+  const handleAssignDialogClose = async () => {
+    setIsAssignDialogOpen(false);
+    
+    // Force refresh of player assignments to update the UI
+    await queryClient.invalidateQueries({ queryKey: ['player-assignments'] });
+    await refetchAssignments();
+    
+    console.log("Assignment dialog closed, data refreshed");
   };
 
   const handleViewProfile = (playerId: string) => {
@@ -403,7 +415,7 @@ const Shortlists = () => {
       {/* Assign Scout Dialog */}
       <AssignScoutDialog
         isOpen={isAssignDialogOpen}
-        onClose={() => setIsAssignDialogOpen(false)}
+        onClose={handleAssignDialogClose}
         player={selectedPlayer}
       />
     </div>
