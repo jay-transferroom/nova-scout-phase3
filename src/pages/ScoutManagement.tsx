@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -6,8 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Users, Search, Filter, MoreHorizontal, Clock, TrendingUp } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { usePlayersData } from "@/hooks/usePlayersData";
-import { useMyScoutingTasks } from "@/hooks/useMyScoutingTasks";
+import { useScoutingAssignments } from "@/hooks/useScoutingAssignments";
 import { useScoutUsers } from "@/hooks/useScoutUsers";
 import { AssignPlayerDialog } from "@/components/AssignPlayerDialog";
 
@@ -21,13 +21,11 @@ const ScoutManagement = () => {
     completed: [] as any[]
   });
 
-  const { data: players = [] } = usePlayersData();
-  const { data: assignments = [], refetch: refetchAssignments } = useMyScoutingTasks();
+  const { data: assignments = [], refetch: refetchAssignments } = useScoutingAssignments();
   const { data: scouts = [] } = useScoutUsers();
 
-  // Transform assignments and players into kanban format
+  // Transform assignments into kanban format
   useEffect(() => {
-    console.log('Scout Management - Players:', players.length);
     console.log('Scout Management - Assignments:', assignments.length);  
     console.log('Scout Management - Scouts:', scouts.length);
 
@@ -38,7 +36,7 @@ const ScoutManagement = () => {
       completed: [] as any[]
     };
 
-    // Only add real assignments to appropriate columns
+    // Process real assignments
     assignments.forEach((assignment) => {
       const scoutName = assignment.assigned_to_scout?.first_name 
         ? `${assignment.assigned_to_scout.first_name} ${assignment.assigned_to_scout.last_name || ''}`.trim()
@@ -64,7 +62,7 @@ const ScoutManagement = () => {
         rating: (Math.random() * 20 + 70).toFixed(1), // Mock rating for now
         assignedTo: scoutName,
         updatedAt: getUpdatedTime(assignment.status),
-        lastStatusChange: getLastStatusChange(assignment.status),
+        lastStatusChange: getLastStatusChange(assignment.status, assignment.updated_at),
         avatar: `https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=48&h=48&fit=crop&crop=face&auto=format`,
         priority: assignment.priority,
         deadline: assignment.deadline,
@@ -84,7 +82,7 @@ const ScoutManagement = () => {
     });
 
     setKanbanData(newKanbanData);
-  }, [players, assignments, scouts, selectedScout, searchTerm]);
+  }, [assignments, scouts, selectedScout, searchTerm]);
 
   const getUpdatedTime = (status: string) => {
     const times = {
@@ -96,14 +94,28 @@ const ScoutManagement = () => {
     return times[status as keyof typeof times] || '1 day ago';
   };
 
-  const getLastStatusChange = (status: string) => {
-    const changes = {
-      'assigned': 'Just assigned',
-      'in_progress': 'Started 5 hours ago', 
-      'completed': 'Completed 1 week ago',
-      'reviewed': 'Under review for 3 days'
+  const getLastStatusChange = (status: string, updatedAt: string) => {
+    const timeDiff = new Date().getTime() - new Date(updatedAt).getTime();
+    const daysDiff = Math.floor(timeDiff / (1000 * 3600 * 24));
+    const hoursDiff = Math.floor(timeDiff / (1000 * 3600));
+    
+    let timeAgo = '';
+    if (daysDiff > 0) {
+      timeAgo = `${daysDiff} day${daysDiff > 1 ? 's' : ''} ago`;
+    } else if (hoursDiff > 0) {
+      timeAgo = `${hoursDiff} hour${hoursDiff > 1 ? 's' : ''} ago`;
+    } else {
+      timeAgo = 'Just now';
+    }
+
+    const statusLabels = {
+      'assigned': 'Assigned',
+      'in_progress': 'Started', 
+      'completed': 'Completed',
+      'reviewed': 'Under review'
     };
-    return changes[status as keyof typeof changes] || 'Status unchanged';
+    
+    return `${statusLabels[status as keyof typeof statusLabels] || 'Updated'} ${timeAgo}`;
   };
 
   const getStatusColor = (status: string) => {
