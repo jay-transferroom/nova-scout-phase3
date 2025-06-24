@@ -1,37 +1,11 @@
+
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
-
-interface Club {
-  id: string;
-  name: string;
-  league: string | null;
-  country: string | null;
-  logo_url: string | null;
-}
-
-interface Profile {
-  id: string;
-  email: string;
-  first_name?: string;
-  last_name?: string;
-  role: 'scout' | 'recruitment';
-  club_id?: string;
-  club?: Club;
-  created_at: string;
-  updated_at: string;
-}
-
-interface AuthContextType {
-  user: User | null;
-  profile: Profile | null;
-  session: Session | null;
-  loading: boolean;
-  signUp: (email: string, password: string, firstName?: string, lastName?: string) => Promise<{ error: any }>;
-  signIn: (email: string, password: string) => Promise<{ error: any }>;
-  signOut: () => Promise<void>;
-  refreshProfile: () => Promise<void>;
-}
+import { AuthContextType, Profile } from '@/types/auth';
+import { fetchUserProfile } from '@/services/profileService';
+import { ensureDefaultPermissions } from '@/services/permissionService';
+import { signUpUser, signInUser, signOutUser } from '@/services/authService';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -42,97 +16,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   const fetchProfile = async (userId: string) => {
-    try {
-      console.log('Fetching profile for user:', userId);
-      const { data: profile, error } = await supabase
-        .from('profiles')
-        .select(`
-          *,
-          clubs (
-            id,
-            name,
-            league,
-            country,
-            logo_url
-          )
-        `)
-        .eq('id', userId)
-        .single();
+    const profileData = await fetchUserProfile(userId);
+    
+    if (profileData) {
+      setProfile(profileData);
       
-      if (error) {
-        console.error('Error fetching profile:', error);
-        return null;
+      // Initialize default permissions for recruitment role if they don't exist
+      if (profileData.role === 'recruitment') {
+        await ensureDefaultPermissions(userId);
       }
       
-      console.log('Profile data:', profile);
-      
-      if (profile) {
-        const profileData = {
-          ...profile,
-          role: profile.role as 'scout' | 'recruitment',
-          club: profile.clubs || { 
-            id: 'chelsea', 
-            name: 'Chelsea F.C.', 
-            league: 'Premier League', 
-            country: 'England', 
-            logo_url: 'https://logos-world.net/wp-content/uploads/2020/06/Chelsea-Logo.png' 
-          }
-        };
-        
-        setProfile(profileData);
-        
-        // Initialize default permissions for recruitment role if they don't exist
-        if (profile.role === 'recruitment') {
-          await ensureDefaultPermissions(userId);
-        }
-        
-        return profileData;
-      }
-    } catch (error) {
-      console.error('Profile fetch error:', error);
+      return profileData;
     }
     return null;
-  };
-
-  const ensureDefaultPermissions = async (userId: string) => {
-    try {
-      // Check if user already has permissions
-      const { data: existingPermissions } = await supabase
-        .from('user_permissions')
-        .select('permission')
-        .eq('user_id', userId);
-
-      const defaultPermissions = [
-        'dashboard', 'reports', 'requirements', 'pitches', 
-        'scouting_tasks', 'upcoming_matches', 'data_import',
-        'templates', 'user_management'
-      ];
-
-      const existingPermissionNames = existingPermissions?.map(p => p.permission) || [];
-      const missingPermissions = defaultPermissions.filter(p => !existingPermissionNames.includes(p));
-
-      if (missingPermissions.length > 0) {
-        console.log('Creating missing permissions for recruitment user:', missingPermissions);
-        
-        const permissionsToInsert = missingPermissions.map(permission => ({
-          user_id: userId,
-          permission,
-          enabled: true
-        }));
-
-        const { error } = await supabase
-          .from('user_permissions')
-          .insert(permissionsToInsert);
-
-        if (error) {
-          console.error('Error creating default permissions:', error);
-        } else {
-          console.log('Default permissions created successfully');
-        }
-      }
-    } catch (error) {
-      console.error('Error ensuring default permissions:', error);
-    }
   };
 
   const refreshProfile = async () => {
@@ -175,44 +71,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => subscription.unsubscribe();
   }, []);
 
-  const signUp = async (email: string, password: string, firstName?: string, lastName?: string) => {
-    // Use the correct published Lovable URL for email confirmations
-    const redirectUrl = 'https://transferroom-scout.lovable.app/';
-    
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        emailRedirectTo: redirectUrl,
-        data: {
-          first_name: firstName,
-          last_name: lastName,
-        }
-      }
-    });
-    return { error };
-  };
-
-  const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-    return { error };
-  };
-
-  const signOut = async () => {
-    await supabase.auth.signOut();
-  };
-
   const value = {
     user,
     profile,
     session,
     loading,
-    signUp,
-    signIn,
-    signOut,
+    signUp: signUpUser,
+    signIn: signInUser,
+    signOut: signOutUser,
     refreshProfile,
   };
 
