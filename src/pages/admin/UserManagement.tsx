@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -52,7 +53,6 @@ import { MoreHorizontal, UserPlus, Settings as SettingsIcon, Trash2 } from 'luci
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Navigate } from 'react-router-dom';
-import { useClubs, useUpdateUserClub } from '@/hooks/useClubs';
 import { useUserPermissions, useUpdateUserPermission } from '@/hooks/useUserPermissions';
 
 interface Profile {
@@ -82,9 +82,7 @@ const UserManagement = () => {
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [isDeletingUser, setIsDeletingUser] = useState(false);
   
-  const { data: clubs } = useClubs();
   const { data: userPermissions } = useUserPermissions(selectedUserId || undefined);
-  const updateUserClub = useUpdateUserClub();
   const updateUserPermission = useUpdateUserPermission();
 
   if (profile?.role !== 'recruitment') {
@@ -172,17 +170,6 @@ const UserManagement = () => {
       toast.error(error.message || 'Failed to delete user');
     } finally {
       setIsDeletingUser(false);
-    }
-  };
-
-  const handleClubChange = async (userId: string, clubId: string | null) => {
-    try {
-      await updateUserClub.mutateAsync({ userId, clubId });
-      await fetchUsers();
-      toast.success('User club updated successfully');
-    } catch (error) {
-      console.error('Error updating user club:', error);
-      toast.error('Failed to update user club');
     }
   };
 
@@ -311,7 +298,7 @@ const UserManagement = () => {
       <div className="mb-8 flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold mb-2">User Management</h1>
-          <p className="text-muted-foreground">Manage users, roles, clubs, and permissions</p>
+          <p className="text-muted-foreground">Manage users, roles, and permissions</p>
         </div>
         
         <Dialog>
@@ -420,7 +407,6 @@ const UserManagement = () => {
                   <TableHead>User</TableHead>
                   <TableHead>Email</TableHead>
                   <TableHead>Role</TableHead>
-                  <TableHead>Club</TableHead>
                   <TableHead>Joined</TableHead>
                   <TableHead className="w-[50px]"></TableHead>
                 </TableRow>
@@ -445,24 +431,6 @@ const UserManagement = () => {
                       <Badge variant={user.role === 'recruitment' ? 'default' : 'secondary'}>
                         {user.role}
                       </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <Select 
-                        value={user.club_id || 'none'} 
-                        onValueChange={(value) => handleClubChange(user.id, value === 'none' ? null : value)}
-                      >
-                        <SelectTrigger className="w-[200px]">
-                          <SelectValue placeholder="Select club" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="none">No Club</SelectItem>
-                          {clubs?.map((club) => (
-                            <SelectItem key={club.id} value={club.id}>
-                              {club.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
                     </TableCell>
                     <TableCell>
                       {new Date(user.created_at).toLocaleDateString()}
