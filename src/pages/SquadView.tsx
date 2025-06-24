@@ -105,7 +105,14 @@ const SquadView = () => {
         </>
       ) : (
         /* List View */
-        <SquadListView players={squadPlayers} />
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <SquadListView players={squadPlayers} />
+          <SquadRecommendations 
+            players={squadPlayers}
+            selectedPosition={selectedPosition}
+            onPositionSelect={setSelectedPosition}
+          />
+        </div>
       )}
     </div>
   );

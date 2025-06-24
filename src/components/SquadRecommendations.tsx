@@ -16,6 +16,15 @@ const SquadRecommendations = ({ players, selectedPosition, onPositionSelect }: S
   const { getPositionAnalysis } = usePositionAnalysis(players);
   const positionAnalysis = getPositionAnalysis();
 
+  // Filter out positions that don't need recommendations (adequate depth and no risks)
+  const positionsWithRecommendations = positionAnalysis.filter(analysis => {
+    // Show if priority is not 'Low' OR if there are any risks
+    return analysis.priority !== 'Low' || 
+           analysis.risks.contractExpiring > 0 || 
+           analysis.risks.agingPlayers > 0 || 
+           analysis.risks.injuredPlayers > 0;
+  });
+
   return (
     <Card>
       <CardHeader>
@@ -25,16 +34,26 @@ const SquadRecommendations = ({ players, selectedPosition, onPositionSelect }: S
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        {positionAnalysis.map((analysis) => (
-          <PositionAnalysisCard
-            key={analysis.name}
-            analysis={analysis}
-            isSelected={selectedPosition === analysis.name}
-            onPositionSelect={onPositionSelect}
-          />
-        ))}
-        
-        <PriorityRecruitmentTargets positionAnalysis={positionAnalysis} />
+        {positionsWithRecommendations.length > 0 ? (
+          <>
+            {positionsWithRecommendations.map((analysis) => (
+              <PositionAnalysisCard
+                key={analysis.name}
+                analysis={analysis}
+                isSelected={selectedPosition === analysis.name}
+                onPositionSelect={onPositionSelect}
+              />
+            ))}
+            
+            <PriorityRecruitmentTargets positionAnalysis={positionsWithRecommendations} />
+          </>
+        ) : (
+          <div className="text-center py-8 text-muted-foreground">
+            <Target className="h-12 w-12 mx-auto mb-4 opacity-50" />
+            <p>All positions have adequate depth</p>
+            <p className="text-sm">No immediate recruitment recommendations</p>
+          </div>
+        )}
       </CardContent>
     </Card>
   );
