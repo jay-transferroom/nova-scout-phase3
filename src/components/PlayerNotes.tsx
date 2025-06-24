@@ -48,31 +48,52 @@ export const PlayerNotes = ({ playerId, playerName, open, onOpenChange }: Player
     try {
       console.log('PlayerNotes - Fetching notes for player:', playerId);
       
-      const { data, error } = await supabase
+      // First get the notes
+      const { data: notesData, error: notesError } = await supabase
         .from('player_notes')
-        .select(`
-          *,
-          author:profiles!player_notes_author_id_fkey(first_name, last_name, email)
-        `)
+        .select('*')
         .eq('player_id', playerId)
         .order('created_at', { ascending: false });
 
-      if (error) {
-        console.error('PlayerNotes - Error fetching notes:', error);
-        throw error;
+      if (notesError) {
+        console.error('PlayerNotes - Error fetching notes:', notesError);
+        throw notesError;
       }
 
-      console.log('PlayerNotes - Raw notes data:', data);
+      console.log('PlayerNotes - Raw notes data:', notesData);
 
-      const transformedNotes: PlayerNote[] = (data || []).map((note: any) => ({
-        id: note.id,
-        player_id: note.player_id,
-        author_id: note.author_id,
-        content: note.content,
-        created_at: note.created_at,
-        updated_at: note.updated_at,
-        author: note.author || { email: 'Unknown User' }
-      }));
+      if (!notesData || notesData.length === 0) {
+        setNotes([]);
+        return;
+      }
+
+      // Get unique author IDs
+      const authorIds = [...new Set(notesData.map(note => note.author_id))];
+      
+      // Fetch author profiles
+      const { data: profilesData, error: profilesError } = await supabase
+        .from('profiles')
+        .select('id, first_name, last_name, email')
+        .in('id', authorIds);
+
+      if (profilesError) {
+        console.error('PlayerNotes - Error fetching profiles:', profilesError);
+        // Continue with notes but without author info
+      }
+
+      // Map notes with author information
+      const transformedNotes: PlayerNote[] = notesData.map((note: any) => {
+        const author = profilesData?.find(profile => profile.id === note.author_id);
+        return {
+          id: note.id,
+          player_id: note.player_id,
+          author_id: note.author_id,
+          content: note.content,
+          created_at: note.created_at,
+          updated_at: note.updated_at,
+          author: author || { email: 'Unknown User' }
+        };
+      });
 
       console.log('PlayerNotes - Transformed notes:', transformedNotes);
       setNotes(transformedNotes);
@@ -91,6 +112,11 @@ export const PlayerNotes = ({ playerId, playerName, open, onOpenChange }: Player
   const addNote = async (content: string) => {
     if (!user) {
       console.log('PlayerNotes - Cannot add note: missing user');
+      toast({
+        title: "Error",
+        description: "You must be logged in to add notes",
+        variant: "destructive",
+      });
       return;
     }
 
