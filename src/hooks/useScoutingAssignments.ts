@@ -74,23 +74,29 @@ export const useScoutingAssignments = () => {
           // Convert player_id string to number for players_new table query
           const playerIdNumber = parseInt(assignment.player_id, 10);
           
+          // Skip if player_id is not a valid number
+          if (isNaN(playerIdNumber)) {
+            console.warn(`Invalid player_id: ${assignment.player_id}, skipping assignment`);
+            return null;
+          }
+          
           const { data: playerData, error: playerError } = await supabase
             .from('players_new')
             .select('name, currentteam, parentteam, firstposition, secondposition, age, imageurl')
             .eq('id', playerIdNumber)
             .single();
 
+          // Skip assignments where player data is not found
+          if (playerError || !playerData) {
+            console.warn(`Player not found for ID: ${playerIdNumber}, skipping assignment`);
+            return null;
+          }
+
           return {
             ...assignment,
             priority: assignment.priority as 'High' | 'Medium' | 'Low',
             status: assignment.status as 'assigned' | 'in_progress' | 'completed' | 'reviewed',
-            players: playerError ? {
-              name: 'Unknown Player',
-              club: 'Unknown Club',
-              positions: ['Unknown'],
-              age: 0,
-              imageUrl: undefined
-            } : {
+            players: {
               name: playerData.name,
               club: playerData.currentteam || playerData.parentteam || 'Unknown Club',
               positions: [playerData.firstposition, playerData.secondposition].filter(Boolean) as string[],
@@ -101,7 +107,11 @@ export const useScoutingAssignments = () => {
         })
       );
 
-      return assignmentsWithPlayers;
+      // Filter out null entries (assignments with invalid/missing player data)
+      const validAssignments = assignmentsWithPlayers.filter(assignment => assignment !== null);
+
+      console.log(`Valid assignments after filtering: ${validAssignments.length}`);
+      return validAssignments;
     },
   });
 };
