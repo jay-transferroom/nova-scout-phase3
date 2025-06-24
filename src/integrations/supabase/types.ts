@@ -326,6 +326,63 @@ export type Database = {
         }
         Relationships: []
       }
+      players_new: {
+        Row: {
+          age: number | null
+          basevalue: number | null
+          birthdate: string | null
+          contractexpiration: string | null
+          currentteam: string | null
+          firstnationality: string | null
+          firstposition: string | null
+          id: number
+          imageurl: string | null
+          name: string
+          parentteam: string | null
+          potential: number | null
+          rating: number | null
+          secondnationality: string | null
+          secondposition: string | null
+          xtv: number | null
+        }
+        Insert: {
+          age?: number | null
+          basevalue?: number | null
+          birthdate?: string | null
+          contractexpiration?: string | null
+          currentteam?: string | null
+          firstnationality?: string | null
+          firstposition?: string | null
+          id?: never
+          imageurl?: string | null
+          name: string
+          parentteam?: string | null
+          potential?: number | null
+          rating?: number | null
+          secondnationality?: string | null
+          secondposition?: string | null
+          xtv?: number | null
+        }
+        Update: {
+          age?: number | null
+          basevalue?: number | null
+          birthdate?: string | null
+          contractexpiration?: string | null
+          currentteam?: string | null
+          firstnationality?: string | null
+          firstposition?: string | null
+          id?: never
+          imageurl?: string | null
+          name?: string
+          parentteam?: string | null
+          potential?: number | null
+          rating?: number | null
+          secondnationality?: string | null
+          secondposition?: string | null
+          xtv?: number | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           club_id: string | null
