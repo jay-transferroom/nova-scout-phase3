@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Users, Search, Filter, MoreHorizontal } from "lucide-react";
+import { Users, Search, Filter, MoreHorizontal, Clock, TrendingUp } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { usePlayersData } from "@/hooks/usePlayersData";
 import { useMyScoutingTasks } from "@/hooks/useMyScoutingTasks";
@@ -21,8 +21,6 @@ const ScoutManagement = () => {
     under_review: [] as any[],
     completed: [] as any[]
   });
-  const [draggedPlayer, setDraggedPlayer] = useState<string | null>(null);
-  const [dragOverColumn, setDragOverColumn] = useState<string | null>(null);
 
   const { data: players = [] } = usePlayersData();
   const { data: assignments = [], refetch: refetchAssignments } = useMyScoutingTasks();
@@ -31,7 +29,7 @@ const ScoutManagement = () => {
   // Transform assignments and players into kanban format
   useEffect(() => {
     console.log('Scout Management - Players:', players.length);
-    console.log('Scout Management - Assignments:', assignments.length);
+    console.log('Scout Management - Assignments:', assignments.length);  
     console.log('Scout Management - Scouts:', scouts.length);
 
     const newKanbanData = {
@@ -67,12 +65,14 @@ const ScoutManagement = () => {
         rating: (Math.random() * 20 + 70).toFixed(1), // Mock rating for now
         assignedTo: scoutName,
         updatedAt: getUpdatedTime(assignment.status),
+        lastStatusChange: getLastStatusChange(assignment.status),
         avatar: assignment.players?.name 
           ? `https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=48&h=48&fit=crop&crop=face&auto=format`
           : "/placeholder.svg",
         priority: assignment.priority,
         deadline: assignment.deadline,
-        scoutId: assignment.assigned_to_scout_id
+        scoutId: assignment.assigned_to_scout_id,
+        status: assignment.status
       };
 
       if (assignment.status === 'assigned') {
@@ -99,6 +99,26 @@ const ScoutManagement = () => {
     return times[status as keyof typeof times] || '1 day ago';
   };
 
+  const getLastStatusChange = (status: string) => {
+    const changes = {
+      'assigned': 'Just assigned',
+      'in_progress': 'Started 5 hours ago', 
+      'completed': 'Completed 1 week ago',
+      'reviewed': 'Under review for 3 days'
+    };
+    return changes[status as keyof typeof changes] || 'Status unchanged';
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'assigned': return 'bg-red-100 border-red-200';
+      case 'in_progress': return 'bg-orange-100 border-orange-200';
+      case 'completed': return 'bg-green-100 border-green-200';
+      case 'reviewed': return 'bg-blue-100 border-blue-200';
+      default: return 'bg-gray-100 border-gray-200';
+    }
+  };
+
   const columns = [
     { id: 'assigned', title: 'Assigned', color: 'bg-red-500', count: kanbanData.assigned.length },
     { id: 'in_progress', title: 'In Progress', color: 'bg-orange-500', count: kanbanData.in_progress.length },
@@ -106,69 +126,12 @@ const ScoutManagement = () => {
     { id: 'completed', title: 'Completed', color: 'bg-green-500', count: kanbanData.completed.length },
   ];
 
-  const movePlayer = (playerId: string, fromColumn: string, toColumn: string) => {
-    setKanbanData(prev => {
-      const newData = { ...prev };
-      const playerIndex = newData[fromColumn as keyof typeof newData].findIndex(p => p.id === playerId);
-      const player = newData[fromColumn as keyof typeof newData][playerIndex];
-      
-      // Remove from current column
-      newData[fromColumn as keyof typeof newData] = newData[fromColumn as keyof typeof newData].filter(p => p.id !== playerId);
-      
-      // Add to new column
-      newData[toColumn as keyof typeof newData] = [...newData[toColumn as keyof typeof newData], player];
-      
-      return newData;
-    });
-  };
-
-  const handleDragStart = (e: React.DragEvent, playerId: string, columnId: string) => {
-    setDraggedPlayer(playerId);
-    e.dataTransfer.setData('text/plain', JSON.stringify({ playerId, sourceColumn: columnId }));
-    e.dataTransfer.effectAllowed = 'move';
-  };
-
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.dataTransfer.dropEffect = 'move';
-  };
-
-  const handleDragEnter = (e: React.DragEvent, columnId: string) => {
-    e.preventDefault();
-    setDragOverColumn(columnId);
-  };
-
-  const handleDragLeave = (e: React.DragEvent) => {
-    e.preventDefault();
-    setDragOverColumn(null);
-  };
-
-  const handleDrop = (e: React.DragEvent, targetColumn: string) => {
-    e.preventDefault();
-    const data = JSON.parse(e.dataTransfer.getData('text/plain'));
-    const { playerId, sourceColumn } = data;
-    
-    if (sourceColumn !== targetColumn) {
-      movePlayer(playerId, sourceColumn, targetColumn);
-    }
-    setDraggedPlayer(null);
-    setDragOverColumn(null);
-  };
-
   const handleAssignmentCreated = () => {
     refetchAssignments();
   };
 
-  const PlayerCard = ({ player, columnId }: { player: any, columnId: string }) => (
-    <Card 
-      className={`mb-3 hover:shadow-md transition-all duration-200 cursor-grab active:cursor-grabbing border-2 ${
-        draggedPlayer === player.id 
-          ? 'opacity-50 border-primary scale-105' 
-          : 'border-transparent hover:border-primary/20'
-      }`}
-      draggable
-      onDragStart={(e) => handleDragStart(e, player.id, columnId)}
-    >
+  const PlayerCard = ({ player }: { player: any }) => (
+    <Card className={`mb-3 hover:shadow-md transition-all duration-200 border-2 ${getStatusColor(player.status)}`}>
       <CardContent className="p-4">
         <div className="flex items-start gap-3">
           <Avatar className="h-10 w-10">
@@ -189,7 +152,10 @@ const ScoutManagement = () => {
             
             <div className="mt-3 space-y-1">
               <p className="text-xs text-muted-foreground">Assigned to {player.assignedTo}</p>
-              <p className="text-xs text-muted-foreground">Updated {player.updatedAt}</p>
+              <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                <Clock className="h-3 w-3" />
+                <span>{player.lastStatusChange}</span>
+              </div>
               {player.priority && (
                 <Badge 
                   variant={player.priority === 'High' ? 'destructive' : player.priority === 'Medium' ? 'default' : 'secondary'}
@@ -212,7 +178,7 @@ const ScoutManagement = () => {
           <div>
             <h1 className="text-3xl font-bold">Scout Management</h1>
             <p className="text-muted-foreground mt-2">
-              Manage player assignments and track scouting progress. Drag cards between columns to update status.
+              Monitor player assignments and track scouting progress across your team.
             </p>
           </div>
           <AssignPlayerDialog onAssignmentCreated={handleAssignmentCreated} />
@@ -252,25 +218,43 @@ const ScoutManagement = () => {
       {/* Scout Stats */}
       {scouts.length > 0 && (
         <div className="mb-6">
-          <h3 className="text-lg font-semibold mb-3">Scout Overview</h3>
+          <h3 className="text-lg font-semibold mb-3">Scout Performance Overview</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             {scouts.slice(0, 4).map((scout) => {
               const scoutAssignments = assignments.filter(a => a.assigned_to_scout_id === scout.id);
+              const completedCount = scoutAssignments.filter(a => a.status === 'completed').length;
+              const completionRate = scoutAssignments.length > 0 ? Math.round((completedCount / scoutAssignments.length) * 100) : 0;
+              
               return (
-                <Card key={scout.id}>
+                <Card key={scout.id} className="hover:shadow-md transition-shadow">
                   <CardHeader className="pb-3">
-                    <CardTitle className="text-sm flex items-center gap-2">
-                      <Avatar className="h-8 w-8">
-                        <AvatarFallback className="text-xs">
-                          {scout.first_name?.[0]}{scout.last_name?.[0]}
-                        </AvatarFallback>
-                      </Avatar>
-                      {scout.first_name} {scout.last_name}
+                    <CardTitle className="text-sm flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Avatar className="h-8 w-8">
+                          <AvatarFallback className="text-xs">
+                            {scout.first_name?.[0]}{scout.last_name?.[0]}
+                          </AvatarFallback>
+                        </Avatar>
+                        {scout.first_name} {scout.last_name}
+                      </div>
+                      <TrendingUp className="h-4 w-4 text-green-600" />
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="pt-0">
-                    <div className="text-2xl font-bold">{scoutAssignments.length}</div>
-                    <p className="text-xs text-muted-foreground">Active assignments</p>
+                    <div className="space-y-2">
+                      <div className="flex justify-between">
+                        <span className="text-sm text-muted-foreground">Active tasks:</span>
+                        <span className="font-semibold">{scoutAssignments.length}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-sm text-muted-foreground">Completed:</span>
+                        <span className="font-semibold text-green-600">{completedCount}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-sm text-muted-foreground">Success rate:</span>
+                        <span className="font-semibold">{completionRate}%</span>
+                      </div>
+                    </div>
                   </CardContent>
                 </Card>
               );
@@ -279,7 +263,7 @@ const ScoutManagement = () => {
         </div>
       )}
 
-      {/* Kanban Board */}
+      {/* Status Board - Read Only */}
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         {columns.map((column) => (
           <div key={column.id} className="flex flex-col">
@@ -297,25 +281,15 @@ const ScoutManagement = () => {
               </Button>
             </div>
 
-            {/* Column Content */}
-            <div 
-              className={`flex-1 min-h-[400px] rounded-lg p-3 transition-all duration-200 ${
-                dragOverColumn === column.id 
-                  ? 'bg-primary/10 border-2 border-primary border-dashed' 
-                  : 'bg-muted/20 border-2 border-transparent'
-              }`}
-              onDragOver={handleDragOver}
-              onDragEnter={(e) => handleDragEnter(e, column.id)}
-              onDragLeave={handleDragLeave}
-              onDrop={(e) => handleDrop(e, column.id)}
-            >
+            {/* Column Content - Read Only */}
+            <div className="flex-1 min-h-[400px] rounded-lg p-3 bg-muted/20 border-2 border-transparent">
               {kanbanData[column.id as keyof typeof kanbanData].length > 0 ? (
                 kanbanData[column.id as keyof typeof kanbanData].map((player) => (
-                  <PlayerCard key={player.id} player={player} columnId={column.id} />
+                  <PlayerCard key={player.id} player={player} />
                 ))
               ) : (
                 <div className="flex items-center justify-center h-32 text-muted-foreground text-sm border-2 border-dashed border-muted-foreground/20 rounded-lg">
-                  {searchTerm || selectedScout !== "all" ? "No matching assignments" : "Drag players here"}
+                  {searchTerm || selectedScout !== "all" ? "No matching assignments" : "No assignments in this status"}
                 </div>
               )}
             </div>
