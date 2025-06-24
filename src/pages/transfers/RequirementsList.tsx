@@ -53,59 +53,6 @@ const mockRequirementProfiles: RequirementProfile[] = [
     squad: "first-team",
     priority: "medium",
   },
-  {
-    id: "req-3",
-    name: "Promising Goalkeeper",
-    description: "Young goalkeeper with good reflexes and distribution",
-    requiredPositions: ["GK"],
-    ageRange: {
-      min: 18,
-      max: 23,
-    },
-    preferredRegions: ["Europe", "South America", "North America"],
-    requiredAttributes: [
-      { attributeName: "Reflexes", minRating: 7 },
-      { attributeName: "Distribution", minRating: 7 },
-    ],
-    squad: "under-21",
-    priority: "low",
-  },
-  {
-    id: "req-4",
-    name: "Versatile Fullback",
-    description: "Young fullback who can play both sides with pace",
-    requiredPositions: ["LB", "RB"],
-    ageRange: {
-      min: 19,
-      max: 24,
-    },
-    preferredRegions: ["Europe", "South America"],
-    requiredAttributes: [
-      { attributeName: "Pace", minRating: 7 },
-      { attributeName: "Crossing", minRating: 6 },
-      { attributeName: "Stamina", minRating: 7 },
-    ],
-    squad: "under-21",
-    priority: "medium",
-  },
-  {
-    id: "req-5",
-    name: "Academy Striker",
-    description: "Talented young striker for development",
-    requiredPositions: ["ST", "CF"],
-    ageRange: {
-      min: 16,
-      max: 19,
-    },
-    preferredRegions: ["Europe", "South America", "Africa"],
-    requiredAttributes: [
-      { attributeName: "Finishing", minRating: 6 },
-      { attributeName: "Movement", minRating: 6 },
-      { attributeName: "Potential", minRating: 8 },
-    ],
-    squad: "academy",
-    priority: "low",
-  },
 ];
 
 const getPriorityColor = (priority: string) => {
@@ -120,9 +67,6 @@ const getPriorityColor = (priority: string) => {
 const getSquadColor = (squad: string) => {
   switch (squad) {
     case 'first-team': return 'bg-blue-100 text-blue-800';
-    case 'under-21': return 'bg-purple-100 text-purple-800';
-    case 'under-18': return 'bg-orange-100 text-orange-800';
-    case 'academy': return 'bg-pink-100 text-pink-800';
     case 'reserves': return 'bg-gray-100 text-gray-800';
     default: return 'bg-gray-100 text-gray-800';
   }
@@ -241,19 +185,10 @@ const RequirementsList = () => {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-6">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="all">All ({requirements.length})</TabsTrigger>
           <TabsTrigger value="first-team">
             First Team ({filterRequirementsBySquad("first-team").length})
-          </TabsTrigger>
-          <TabsTrigger value="under-21">
-            Under 21 ({filterRequirementsBySquad("under-21").length})
-          </TabsTrigger>
-          <TabsTrigger value="under-18">
-            Under 18 ({filterRequirementsBySquad("under-18").length})
-          </TabsTrigger>
-          <TabsTrigger value="academy">
-            Academy ({filterRequirementsBySquad("academy").length})
           </TabsTrigger>
           <TabsTrigger value="reserves">
             Reserves ({filterRequirementsBySquad("reserves").length})
@@ -268,7 +203,7 @@ const RequirementsList = () => {
           </div>
         </TabsContent>
 
-        {["first-team", "under-21", "under-18", "academy", "reserves"].map((squad) => (
+        {["first-team", "reserves"].map((squad) => (
           <TabsContent key={squad} value={squad} className="mt-6">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filterRequirementsBySquad(squad).map((req) => (

@@ -17,15 +17,6 @@ export const useSquadMetrics = (squadPlayers: Player[], selectedSquad: string) =
       case 'shadow-squad':
         baseValueMultiplier = 2.0; // High value subset
         break;
-      case 'u23':
-        baseValueMultiplier = 0.8; // Developing players
-        break;
-      case 'u21':
-        baseValueMultiplier = 0.4; // Youth prospects
-        break;
-      case 'u18':
-        baseValueMultiplier = 0.2; // Academy players
-        break;
     }
 
     // Calculate total value based on player ages and positions

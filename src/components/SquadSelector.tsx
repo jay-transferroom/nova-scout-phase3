@@ -15,9 +15,6 @@ interface SquadSelectorProps {
 const SQUAD_TYPES = [
   { id: 'first-xi', label: 'First XI', icon: Trophy, color: 'bg-yellow-600' },
   { id: 'shadow-squad', label: 'Shadow Squad', icon: Shield, color: 'bg-gray-600' },
-  { id: 'u23', label: 'Under 23s', icon: Users, color: 'bg-blue-600' },
-  { id: 'u21', label: 'Under 21s', icon: Users, color: 'bg-green-600' },
-  { id: 'u18', label: 'Under 18s', icon: Users, color: 'bg-purple-600' },
 ];
 
 const SquadSelector = ({ selectedSquad, onSquadSelect, club, players }: SquadSelectorProps) => {
@@ -29,34 +26,11 @@ const SquadSelector = ({ selectedSquad, onSquadSelect, club, players }: SquadSel
 
     const shadowSquadIds = firstTeamIds.slice(0, 11);
 
-    const u23Players = players.filter(p => 
-      p.age <= 23 && !firstTeamIds.includes(p.id)
-    ).slice(0, 20);
-
-    const u21Players = players.filter(p => 
-      p.age <= 21 && 
-      !firstTeamIds.includes(p.id) && 
-      !u23Players.find(u23 => u23.id === p.id)
-    ).slice(0, 20);
-
-    const u18Players = players.filter(p => 
-      p.age <= 18 && 
-      !firstTeamIds.includes(p.id) && 
-      !u23Players.find(u23 => u23.id === p.id) &&
-      !u21Players.find(u21 => u21.id === p.id)
-    ).slice(0, 20);
-
     switch (squadType) {
       case 'first-xi':
         return Math.min(players.filter(p => firstTeamIds.includes(p.id)).length, 25);
       case 'shadow-squad':
         return Math.min(players.filter(p => shadowSquadIds.includes(p.id)).length, 11);
-      case 'u23':
-        return u23Players.length;
-      case 'u21':
-        return u21Players.length;
-      case 'u18':
-        return u18Players.length;
       default:
         return 0;
     }
