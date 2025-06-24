@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -13,6 +13,7 @@ import { useScouts } from "@/hooks/useScouts";
 import { useCreateAssignment } from "@/hooks/useScoutingAssignments";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
+import { usePlayerAssignments } from "@/hooks/usePlayerAssignments";
 
 interface Player {
   id: string;
@@ -30,6 +31,7 @@ interface AssignScoutDialogProps {
 const AssignScoutDialog = ({ isOpen, onClose, player }: AssignScoutDialogProps) => {
   const { user, profile } = useAuth();
   const { data: scouts = [] } = useScouts();
+  const { data: playerAssignments = [] } = usePlayerAssignments();
   const createAssignment = useCreateAssignment();
 
   const [selectedScout, setSelectedScout] = useState<string>("");
@@ -37,6 +39,11 @@ const AssignScoutDialog = ({ isOpen, onClose, player }: AssignScoutDialogProps) 
   const [reportType, setReportType] = useState("Standard");
   const [deadline, setDeadline] = useState<Date>();
   const [notes, setNotes] = useState("");
+
+  // Find existing assignment for this player
+  const existingAssignment = player ? 
+    playerAssignments.find(assignment => assignment.player_id === player.id) : 
+    null;
 
   // Combine current user with other scouts for the dropdown
   const allScoutOptions = [
@@ -50,6 +57,25 @@ const AssignScoutDialog = ({ isOpen, onClose, player }: AssignScoutDialogProps) 
     // Add other scouts
     ...scouts.filter(scout => scout.id !== user?.id)
   ];
+
+  // Pre-populate form with existing assignment data when dialog opens
+  useEffect(() => {
+    if (isOpen && existingAssignment) {
+      setSelectedScout(existingAssignment.assigned_to_scout_id);
+      setPriority(existingAssignment.priority);
+      // Reset other fields for reassignment
+      setReportType("Standard");
+      setDeadline(undefined);
+      setNotes("");
+    } else if (isOpen && !existingAssignment) {
+      // Reset form for new assignment
+      setSelectedScout("");
+      setPriority("Medium");
+      setReportType("Standard");
+      setDeadline(undefined);
+      setNotes("");
+    }
+  }, [isOpen, existingAssignment]);
 
   const handleSubmit = async () => {
     if (!player || !selectedScout || !user) return;
@@ -75,9 +101,10 @@ const AssignScoutDialog = ({ isOpen, onClose, player }: AssignScoutDialogProps) 
         `${selectedScoutInfo.first_name} ${selectedScoutInfo.last_name}`.trim() || selectedScoutInfo.email :
         'Unknown Scout';
 
+      const actionType = existingAssignment ? "reassigned to" : "assigned to";
       toast({
-        title: "Assignment Created",
-        description: `${player.name} has been assigned to ${scoutName} for scouting.`,
+        title: existingAssignment ? "Assignment Updated" : "Assignment Created",
+        description: `${player.name} has been ${actionType} ${scoutName} for scouting.`,
       });
 
       onClose();
@@ -91,7 +118,7 @@ const AssignScoutDialog = ({ isOpen, onClose, player }: AssignScoutDialogProps) 
       console.error('Error creating assignment:', error);
       toast({
         title: "Error",
-        description: "Failed to create assignment. Please try again.",
+        description: `Failed to ${existingAssignment ? 'update' : 'create'} assignment. Please try again.`,
         variant: "destructive",
       });
     }
@@ -101,7 +128,9 @@ const AssignScoutDialog = ({ isOpen, onClose, player }: AssignScoutDialogProps) 
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Assign Scout</DialogTitle>
+          <DialogTitle>
+            {existingAssignment ? 'Reassign Scout' : 'Assign Scout'}
+          </DialogTitle>
         </DialogHeader>
         
         {player && (
@@ -109,10 +138,17 @@ const AssignScoutDialog = ({ isOpen, onClose, player }: AssignScoutDialogProps) 
             <div className="p-3 bg-gray-50 rounded-lg">
               <h4 className="font-medium">{player.name}</h4>
               <p className="text-sm text-gray-600">{player.club} • {player.positions.join(', ')}</p>
+              {existingAssignment && (
+                <p className="text-sm text-orange-600 mt-1">
+                  Currently assigned to: {existingAssignment.assigned_to_scout?.first_name} {existingAssignment.assigned_to_scout?.last_name}
+                </p>
+              )}
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="scout">Assign to Scout</Label>
+              <Label htmlFor="scout">
+                {existingAssignment ? 'Reassign to Scout' : 'Assign to Scout'}
+              </Label>
               <Select value={selectedScout} onValueChange={setSelectedScout}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select a scout" />
@@ -197,7 +233,10 @@ const AssignScoutDialog = ({ isOpen, onClose, player }: AssignScoutDialogProps) 
                 className="flex-1"
                 disabled={!selectedScout || createAssignment.isPending}
               >
-                {createAssignment.isPending ? "Assigning..." : "Assign Scout"}
+                {createAssignment.isPending ? 
+                  (existingAssignment ? "Reassigning..." : "Assigning...") : 
+                  (existingAssignment ? "Reassign Scout" : "Assign Scout")
+                }
               </Button>
             </div>
           </div>
