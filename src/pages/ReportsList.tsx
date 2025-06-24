@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -27,11 +26,11 @@ const ReportsList = () => {
   const filteredReports = useReportsFilter(reports, activeTab);
 
   const handleViewReport = (reportId: string) => {
-    navigate(`/reports/${reportId}`);
+    navigate(`/report/${reportId}`);
   };
 
   const handleEditReport = (reportId: string) => {
-    navigate(`/reports/${reportId}/edit`);
+    navigate(`/report/${reportId}/edit`);
   };
 
   const handleDeleteReport = async (reportId: string, playerName: string) => {
