@@ -16,7 +16,7 @@ const PlayerItem = ({ player, teamLogo, onSelect }: PlayerItemProps) => {
     >
       <Avatar className="h-12 w-12">
         <AvatarImage 
-          src={player.image} 
+          src={player.image || undefined} 
           alt={player.name}
           onError={(e) => {
             (e.target as HTMLImageElement).style.display = 'none';
