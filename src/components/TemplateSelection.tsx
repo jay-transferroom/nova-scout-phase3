@@ -26,7 +26,7 @@ const TemplateSelection = ({ player, isOpen, onClose, onSelectTemplate }: Templa
       onSelectTemplate(player, template);
       
       // Navigate to the report builder page with player and template data
-      navigate("/reports/new", {
+      navigate("/report-builder", {
         state: {
           player,
           template
