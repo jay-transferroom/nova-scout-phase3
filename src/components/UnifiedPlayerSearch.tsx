@@ -39,7 +39,7 @@ const UnifiedPlayerSearch = ({
   placeholder = "Search players, reports...",
   showFilters = true 
 }: UnifiedPlayerSearchProps) => {
-  const { data: players = [] } = usePlayersData();
+  const { data: players = [], isLoading, error } = usePlayersData();
   const { data: teams = [] } = useTeamsData();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
@@ -51,6 +51,21 @@ const UnifiedPlayerSearch = ({
   const [regionFilter, setRegionFilter] = useState<string>("all");
 
   const MAX_DISPLAY_RESULTS = 5;
+
+  // Debug logging for search issues
+  useEffect(() => {
+    console.log('UnifiedPlayerSearch - Players loaded:', players?.length || 0);
+    console.log('UnifiedPlayerSearch - Search query:', searchQuery);
+    console.log('UnifiedPlayerSearch - Filtered results:', filteredPlayers?.length || 0);
+    if (searchQuery.toLowerCase().includes('james') || searchQuery.toLowerCase().includes('maddison')) {
+      console.log('UnifiedPlayerSearch - Searching for James/Maddison');
+      const matches = players.filter(p => 
+        p.name.toLowerCase().includes('james') || 
+        p.name.toLowerCase().includes('maddison')
+      );
+      console.log('UnifiedPlayerSearch - Found matches:', matches);
+    }
+  }, [players, searchQuery, filteredPlayers]);
 
   // Create a map of team names to team data for quick lookup
   const teamMap = teams.reduce((acc, team) => {
@@ -76,7 +91,7 @@ const UnifiedPlayerSearch = ({
     }
   }, [players]);
 
-  // Filter players based on search query and filters
+  // Filter players based on search query and filters - IMPROVED SEARCH LOGIC
   useEffect(() => {
     if (!players.length) {
       setFilteredPlayers([]);
@@ -87,12 +102,25 @@ const UnifiedPlayerSearch = ({
     
     if (searchQuery.trim()) {
       const lowercaseQuery = searchQuery.toLowerCase().trim();
-      results = results.filter(player => 
-        player.name.toLowerCase().includes(lowercaseQuery) || 
-        player.club.toLowerCase().includes(lowercaseQuery) || 
-        player.id.toLowerCase() === lowercaseQuery ||
-        player.positions.some(pos => pos.toLowerCase().includes(lowercaseQuery))
-      );
+      console.log('Filtering players for query:', lowercaseQuery);
+      
+      results = results.filter(player => {
+        const nameMatch = player.name.toLowerCase().includes(lowercaseQuery);
+        const clubMatch = player.club.toLowerCase().includes(lowercaseQuery);
+        const idMatch = player.id.toLowerCase() === lowercaseQuery;
+        const positionMatch = player.positions.some(pos => pos.toLowerCase().includes(lowercaseQuery));
+        const nationalityMatch = player.nationality?.toLowerCase().includes(lowercaseQuery);
+        
+        const matches = nameMatch || clubMatch || idMatch || positionMatch || nationalityMatch;
+        
+        if (lowercaseQuery.includes('james') || lowercaseQuery.includes('maddison')) {
+          console.log(`Player ${player.name}: name=${nameMatch}, club=${clubMatch}, matches=${matches}`);
+        }
+        
+        return matches;
+      });
+      
+      console.log('Filtered results count:', results.length);
     }
     
     if (ageFilter !== "all") {
@@ -167,6 +195,16 @@ const UnifiedPlayerSearch = ({
     }
   }, [variant]);
 
+  // Loading state
+  if (isLoading) {
+    console.log('UnifiedPlayerSearch - Loading players...');
+  }
+
+  // Error state
+  if (error) {
+    console.error('UnifiedPlayerSearch - Error loading players:', error);
+  }
+
   // Header variant
   if (variant === "header") {
     return (
@@ -191,7 +229,7 @@ const UnifiedPlayerSearch = ({
           <CommandList>
             {searchQuery.trim() ? (
               filteredPlayers.length > 0 ? (
-                <CommandGroup heading="Players">
+                <CommandGroup heading={`Players (${filteredPlayers.length})`}>
                   {filteredPlayers.slice(0, MAX_DISPLAY_RESULTS).map((player) => {
                     const teamLogo = getTeamLogo(player.club);
                     
@@ -252,7 +290,7 @@ const UnifiedPlayerSearch = ({
                   )}
                 </CommandGroup>
               ) : (
-                <CommandEmpty>No players found.</CommandEmpty>
+                <CommandEmpty>No players found for "{searchQuery}"</CommandEmpty>
               )
             ) : (
               recentPlayers.length > 0 && (

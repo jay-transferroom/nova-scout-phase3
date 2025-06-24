@@ -53,6 +53,8 @@ export const PlayerNotes = ({ playerId, playerName, open, onOpenChange }: Player
     
     setLoading(true);
     try {
+      console.log('PlayerNotes - Fetching notes for player:', playerId);
+      
       const { data, error } = await supabase
         .from('player_notes')
         .select(`
@@ -62,7 +64,12 @@ export const PlayerNotes = ({ playerId, playerName, open, onOpenChange }: Player
         .eq('player_id', playerId)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('PlayerNotes - Error fetching notes:', error);
+        throw error;
+      }
+
+      console.log('PlayerNotes - Raw notes data:', data);
 
       const transformedNotes: PlayerNote[] = (data || []).map((note: any) => ({
         id: note.id,
@@ -74,9 +81,10 @@ export const PlayerNotes = ({ playerId, playerName, open, onOpenChange }: Player
         author: note.author || { email: 'Unknown User' }
       }));
 
+      console.log('PlayerNotes - Transformed notes:', transformedNotes);
       setNotes(transformedNotes);
     } catch (error) {
-      console.error('Error fetching notes:', error);
+      console.error('PlayerNotes - Error in fetchNotes:', error);
       toast({
         title: "Error",
         description: "Failed to load notes",
@@ -88,10 +96,15 @@ export const PlayerNotes = ({ playerId, playerName, open, onOpenChange }: Player
   };
 
   const addNote = async () => {
-    if (!newNote.trim() || !user) return;
+    if (!newNote.trim() || !user) {
+      console.log('PlayerNotes - Cannot add note: missing content or user');
+      return;
+    }
 
     setSubmitting(true);
     try {
+      console.log('PlayerNotes - Adding note for player:', playerId, 'by user:', user.id);
+      
       const { error } = await supabase
         .from('player_notes')
         .insert({
@@ -100,8 +113,12 @@ export const PlayerNotes = ({ playerId, playerName, open, onOpenChange }: Player
           content: newNote.trim()
         });
 
-      if (error) throw error;
+      if (error) {
+        console.error('PlayerNotes - Error adding note:', error);
+        throw error;
+      }
 
+      console.log('PlayerNotes - Note added successfully');
       setNewNote("");
       await fetchNotes();
       toast({
@@ -109,7 +126,7 @@ export const PlayerNotes = ({ playerId, playerName, open, onOpenChange }: Player
         description: "Note added successfully",
       });
     } catch (error) {
-      console.error('Error adding note:', error);
+      console.error('PlayerNotes - Error in addNote:', error);
       toast({
         title: "Error",
         description: "Failed to add note",
@@ -125,6 +142,8 @@ export const PlayerNotes = ({ playerId, playerName, open, onOpenChange }: Player
 
     setSubmitting(true);
     try {
+      console.log('PlayerNotes - Updating note:', noteId);
+      
       const { error } = await supabase
         .from('player_notes')
         .update({
@@ -133,7 +152,10 @@ export const PlayerNotes = ({ playerId, playerName, open, onOpenChange }: Player
         })
         .eq('id', noteId);
 
-      if (error) throw error;
+      if (error) {
+        console.error('PlayerNotes - Error updating note:', error);
+        throw error;
+      }
 
       setEditingNote(null);
       setEditContent("");
@@ -143,7 +165,7 @@ export const PlayerNotes = ({ playerId, playerName, open, onOpenChange }: Player
         description: "Note updated successfully",
       });
     } catch (error) {
-      console.error('Error updating note:', error);
+      console.error('PlayerNotes - Error in updateNote:', error);
       toast({
         title: "Error",
         description: "Failed to update note",
@@ -157,12 +179,17 @@ export const PlayerNotes = ({ playerId, playerName, open, onOpenChange }: Player
   const deleteNote = async (noteId: string) => {
     setSubmitting(true);
     try {
+      console.log('PlayerNotes - Deleting note:', noteId);
+      
       const { error } = await supabase
         .from('player_notes')
         .delete()
         .eq('id', noteId);
 
-      if (error) throw error;
+      if (error) {
+        console.error('PlayerNotes - Error deleting note:', error);
+        throw error;
+      }
 
       await fetchNotes();
       toast({
@@ -170,7 +197,7 @@ export const PlayerNotes = ({ playerId, playerName, open, onOpenChange }: Player
         description: "Note deleted successfully",
       });
     } catch (error) {
-      console.error('Error deleting note:', error);
+      console.error('PlayerNotes - Error in deleteNote:', error);
       toast({
         title: "Error",
         description: "Failed to delete note",
@@ -206,7 +233,8 @@ export const PlayerNotes = ({ playerId, playerName, open, onOpenChange }: Player
   };
 
   useEffect(() => {
-    if (open) {
+    if (open && playerId) {
+      console.log('PlayerNotes - Sheet opened, fetching notes for:', playerId);
       fetchNotes();
     }
   }, [open, playerId]);
