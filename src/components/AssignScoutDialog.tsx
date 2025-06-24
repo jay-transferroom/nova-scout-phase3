@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -29,7 +28,7 @@ interface AssignScoutDialogProps {
 }
 
 const AssignScoutDialog = ({ isOpen, onClose, player }: AssignScoutDialogProps) => {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const { data: scouts = [] } = useScouts();
   const createAssignment = useCreateAssignment();
 
@@ -38,6 +37,19 @@ const AssignScoutDialog = ({ isOpen, onClose, player }: AssignScoutDialogProps) 
   const [reportType, setReportType] = useState("Standard");
   const [deadline, setDeadline] = useState<Date>();
   const [notes, setNotes] = useState("");
+
+  // Combine current user with other scouts for the dropdown
+  const allScoutOptions = [
+    // Add current user if they have scout role
+    ...(profile?.role === 'scout' ? [{
+      id: user?.id || '',
+      first_name: profile?.first_name || 'Me',
+      last_name: profile?.last_name ? `(${profile.last_name})` : '',
+      email: profile?.email || ''
+    }] : []),
+    // Add other scouts
+    ...scouts.filter(scout => scout.id !== user?.id)
+  ];
 
   const handleSubmit = async () => {
     if (!player || !selectedScout || !user) return;
@@ -57,9 +69,15 @@ const AssignScoutDialog = ({ isOpen, onClose, player }: AssignScoutDialogProps) 
         report_type: reportType,
       });
 
+      // Find the selected scout's name for the notification
+      const selectedScoutInfo = allScoutOptions.find(scout => scout.id === selectedScout);
+      const scoutName = selectedScoutInfo ? 
+        `${selectedScoutInfo.first_name} ${selectedScoutInfo.last_name}`.trim() || selectedScoutInfo.email :
+        'Unknown Scout';
+
       toast({
         title: "Assignment Created",
-        description: `${player.name} has been assigned to scout for scouting.`,
+        description: `${player.name} has been assigned to ${scoutName} for scouting.`,
       });
 
       onClose();
@@ -100,7 +118,7 @@ const AssignScoutDialog = ({ isOpen, onClose, player }: AssignScoutDialogProps) 
                   <SelectValue placeholder="Select a scout" />
                 </SelectTrigger>
                 <SelectContent>
-                  {scouts.map((scout) => (
+                  {allScoutOptions.map((scout) => (
                     <SelectItem key={scout.id} value={scout.id}>
                       {scout.first_name} {scout.last_name} ({scout.email})
                     </SelectItem>
