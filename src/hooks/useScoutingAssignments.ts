@@ -232,21 +232,24 @@ export const useCreateAssignment = () => {
     }) => {
       console.log('Creating/updating assignment for player:', assignment.player_id);
       
-      // First check if an assignment already exists for this player
-      const { data: existingAssignment, error: checkError } = await supabase
+      // First check if assignments already exist for this player
+      const { data: existingAssignments, error: checkError } = await supabase
         .from('scouting_assignments')
-        .select('id')
+        .select('id, created_at')
         .eq('player_id', assignment.player_id)
-        .maybeSingle();
+        .order('created_at', { ascending: false });
 
       if (checkError) {
-        console.error('Error checking existing assignment:', checkError);
+        console.error('Error checking existing assignments:', checkError);
         throw checkError;
       }
 
-      if (existingAssignment) {
-        console.log('Updating existing assignment:', existingAssignment.id);
-        // Update the existing assignment
+      if (existingAssignments && existingAssignments.length > 0) {
+        // If multiple assignments exist, update the most recent one and delete the others
+        const mostRecentAssignment = existingAssignments[0];
+        console.log('Updating most recent assignment:', mostRecentAssignment.id);
+        
+        // Update the most recent assignment
         const { error: updateError } = await supabase
           .from('scouting_assignments')
           .update({
@@ -259,12 +262,28 @@ export const useCreateAssignment = () => {
             report_type: assignment.report_type,
             updated_at: new Date().toISOString()
           })
-          .eq('id', existingAssignment.id);
+          .eq('id', mostRecentAssignment.id);
         
         if (updateError) {
           console.error('Error updating assignment:', updateError);
           throw updateError;
         }
+
+        // Clean up duplicate assignments if there are more than one
+        if (existingAssignments.length > 1) {
+          const duplicateIds = existingAssignments.slice(1).map(a => a.id);
+          console.log('Cleaning up duplicate assignments:', duplicateIds);
+          
+          const { error: deleteError } = await supabase
+            .from('scouting_assignments')
+            .delete()
+            .in('id', duplicateIds);
+            
+          if (deleteError) {
+            console.warn('Error cleaning up duplicates (non-critical):', deleteError);
+          }
+        }
+        
         console.log('Assignment updated successfully');
       } else {
         console.log('Creating new assignment');
