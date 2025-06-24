@@ -48,7 +48,7 @@ export const PlayerNotes = ({ playerId, playerName, open, onOpenChange }: Player
     try {
       console.log('PlayerNotes - Fetching notes for player:', playerId);
       
-      // First get the notes
+      // First get the notes for this specific player
       const { data: notesData, error: notesError } = await supabase
         .from('player_notes')
         .select('*')
@@ -60,15 +60,17 @@ export const PlayerNotes = ({ playerId, playerName, open, onOpenChange }: Player
         throw notesError;
       }
 
-      console.log('PlayerNotes - Raw notes data:', notesData);
+      console.log('PlayerNotes - Raw notes data for player', playerId, ':', notesData);
 
       if (!notesData || notesData.length === 0) {
+        console.log('PlayerNotes - No notes found for player:', playerId);
         setNotes([]);
         return;
       }
 
       // Get unique author IDs
       const authorIds = [...new Set(notesData.map(note => note.author_id))];
+      console.log('PlayerNotes - Author IDs to fetch:', authorIds);
       
       // Fetch author profiles
       const { data: profilesData, error: profilesError } = await supabase
@@ -81,21 +83,28 @@ export const PlayerNotes = ({ playerId, playerName, open, onOpenChange }: Player
         // Continue with notes but without author info
       }
 
+      console.log('PlayerNotes - Profiles data:', profilesData);
+
       // Map notes with author information
       const transformedNotes: PlayerNote[] = notesData.map((note: any) => {
         const author = profilesData?.find(profile => profile.id === note.author_id);
-        return {
+        const noteWithAuthor = {
           id: note.id,
           player_id: note.player_id,
           author_id: note.author_id,
           content: note.content,
           created_at: note.created_at,
           updated_at: note.updated_at,
-          author: author || { email: 'Unknown User' }
+          author: author ? {
+            first_name: author.first_name,
+            last_name: author.last_name,
+            email: author.email
+          } : { email: 'Unknown User' }
         };
+        return noteWithAuthor;
       });
 
-      console.log('PlayerNotes - Transformed notes:', transformedNotes);
+      console.log('PlayerNotes - Transformed notes for player', playerId, ':', transformedNotes);
       setNotes(transformedNotes);
     } catch (error) {
       console.error('PlayerNotes - Error in fetchNotes:', error);
@@ -137,7 +146,7 @@ export const PlayerNotes = ({ playerId, playerName, open, onOpenChange }: Player
         throw error;
       }
 
-      console.log('PlayerNotes - Note added successfully');
+      console.log('PlayerNotes - Note added successfully for player:', playerId);
       await fetchNotes();
       toast({
         title: "Success",
@@ -224,7 +233,7 @@ export const PlayerNotes = ({ playerId, playerName, open, onOpenChange }: Player
 
   useEffect(() => {
     if (open && playerId) {
-      console.log('PlayerNotes - Sheet opened, fetching notes for:', playerId);
+      console.log('PlayerNotes - Sheet opened, fetching notes for player:', playerId);
       fetchNotes();
     }
   }, [open, playerId]);
