@@ -152,11 +152,16 @@ const Shortlists = () => {
   const handleAssignDialogClose = async () => {
     setIsAssignDialogOpen(false);
     
-    // Force refresh of player assignments to update the UI
-    await queryClient.invalidateQueries({ queryKey: ['player-assignments'] });
-    await refetchAssignments();
+    // Force comprehensive refresh of all assignment-related data
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: ['player-assignments'] }),
+      queryClient.invalidateQueries({ queryKey: ['scouting-assignments'] }),
+      queryClient.invalidateQueries({ queryKey: ['my-scouting-tasks'] }),
+      queryClient.refetchQueries({ queryKey: ['player-assignments'] }),
+      refetchAssignments()
+    ]);
     
-    console.log("Assignment dialog closed, data refreshed");
+    console.log("Assignment dialog closed, comprehensive data refresh completed");
   };
 
   const handleViewProfile = (playerId: string) => {

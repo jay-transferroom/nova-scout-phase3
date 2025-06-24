@@ -25,7 +25,7 @@ interface AssignScoutDialogProps {
 const AssignScoutDialog = ({ isOpen, onClose, player }: AssignScoutDialogProps) => {
   const { user, profile } = useAuth();
   const { data: scouts = [] } = useScouts();
-  const { data: playerAssignments = [] } = usePlayerAssignments();
+  const { data: playerAssignments = [], refetch: refetchAssignments } = usePlayerAssignments();
   const createAssignment = useCreateAssignment();
   const queryClient = useQueryClient();
 
@@ -71,9 +71,14 @@ const AssignScoutDialog = ({ isOpen, onClose, player }: AssignScoutDialogProps) 
         report_type: formData.reportType,
       });
 
-      // Force refresh of player assignments data
-      await queryClient.invalidateQueries({ queryKey: ['player-assignments'] });
-      await queryClient.refetchQueries({ queryKey: ['player-assignments'] });
+      // More aggressive cache invalidation and refetching
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['player-assignments'] }),
+        queryClient.invalidateQueries({ queryKey: ['scouting-assignments'] }),
+        queryClient.invalidateQueries({ queryKey: ['my-scouting-tasks'] }),
+        queryClient.refetchQueries({ queryKey: ['player-assignments'] }),
+        refetchAssignments()
+      ]);
 
       // Find the selected scout's name for the notification
       const selectedScoutInfo = allScoutOptions.find(scout => scout.id === formData.selectedScout);
@@ -87,6 +92,7 @@ const AssignScoutDialog = ({ isOpen, onClose, player }: AssignScoutDialogProps) 
         description: `${player.name} has been ${actionType} ${scoutName} for scouting.`,
       });
 
+      // Close dialog after successful assignment and data refresh
       onClose();
     } catch (error) {
       console.error('Error creating assignment:', error);
@@ -98,9 +104,12 @@ const AssignScoutDialog = ({ isOpen, onClose, player }: AssignScoutDialogProps) 
     }
   };
 
-  const handleClose = () => {
-    // Force refresh when dialog closes to ensure UI is updated
-    queryClient.invalidateQueries({ queryKey: ['player-assignments'] });
+  const handleClose = async () => {
+    // Additional cache refresh when dialog closes to ensure UI updates
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: ['player-assignments'] }),
+      refetchAssignments()
+    ]);
     onClose();
   };
 
