@@ -57,7 +57,10 @@ const AssignScoutDialog = ({ isOpen, onClose, player }: AssignScoutDialogProps) 
     if (!player || !user) return;
 
     try {
-      console.log("Creating assignment with player ID:", player.id, "type:", typeof player.id);
+      console.log("=== ASSIGNMENT SUBMISSION START ===");
+      console.log("Player ID:", player.id, "type:", typeof player.id);
+      console.log("Selected Scout ID:", formData.selectedScout);
+      console.log("Existing assignment:", existingAssignment);
       
       // Use the players_new ID directly as a string in the assignment
       await createAssignment.mutateAsync({
@@ -71,14 +74,21 @@ const AssignScoutDialog = ({ isOpen, onClose, player }: AssignScoutDialogProps) 
         report_type: formData.reportType,
       });
 
-      // More aggressive cache invalidation and refetching
+      console.log("=== ASSIGNMENT MUTATION COMPLETED ===");
+
+      // Wait a moment for the mutation to complete, then refresh all data
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      console.log("=== STARTING DATA REFRESH ===");
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ['player-assignments'] }),
         queryClient.invalidateQueries({ queryKey: ['scouting-assignments'] }),
         queryClient.invalidateQueries({ queryKey: ['my-scouting-tasks'] }),
-        queryClient.refetchQueries({ queryKey: ['player-assignments'] }),
+        queryClient.refetchQueries({ queryKey: ['player-assignments'], staleTime: 0 }),
         refetchAssignments()
       ]);
+
+      console.log("=== DATA REFRESH COMPLETED ===");
 
       // Find the selected scout's name for the notification
       const selectedScoutInfo = allScoutOptions.find(scout => scout.id === formData.selectedScout);
@@ -92,6 +102,7 @@ const AssignScoutDialog = ({ isOpen, onClose, player }: AssignScoutDialogProps) 
         description: `${player.name} has been ${actionType} ${scoutName} for scouting.`,
       });
 
+      console.log("=== ASSIGNMENT PROCESS COMPLETED ===");
       // Close dialog after successful assignment and data refresh
       onClose();
     } catch (error) {

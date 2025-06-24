@@ -231,11 +231,12 @@ export const useCreateAssignment = () => {
       report_type: string;
     }) => {
       console.log('Creating/updating assignment for player:', assignment.player_id);
+      console.log('Assigning to scout:', assignment.assigned_to_scout_id);
       
-      // First check if assignments already exist for this player
+      // Check if assignments already exist for this player
       const { data: existingAssignments, error: checkError } = await supabase
         .from('scouting_assignments')
-        .select('id, created_at')
+        .select('id, created_at, assigned_to_scout_id')
         .eq('player_id', assignment.player_id)
         .order('created_at', { ascending: false });
 
@@ -244,13 +245,14 @@ export const useCreateAssignment = () => {
         throw checkError;
       }
 
+      console.log('Existing assignments found:', existingAssignments?.length || 0);
+
       if (existingAssignments && existingAssignments.length > 0) {
-        // If multiple assignments exist, update the most recent one and delete the others
-        const mostRecentAssignment = existingAssignments[0];
-        console.log('Updating most recent assignment:', mostRecentAssignment.id);
-        
         // Update the most recent assignment
-        const { error: updateError } = await supabase
+        const mostRecentAssignment = existingAssignments[0];
+        console.log('Updating assignment:', mostRecentAssignment.id, 'from scout:', mostRecentAssignment.assigned_to_scout_id, 'to scout:', assignment.assigned_to_scout_id);
+        
+        const { data: updateResult, error: updateError } = await supabase
           .from('scouting_assignments')
           .update({
             assigned_to_scout_id: assignment.assigned_to_scout_id,
@@ -262,12 +264,15 @@ export const useCreateAssignment = () => {
             report_type: assignment.report_type,
             updated_at: new Date().toISOString()
           })
-          .eq('id', mostRecentAssignment.id);
+          .eq('id', mostRecentAssignment.id)
+          .select();
         
         if (updateError) {
           console.error('Error updating assignment:', updateError);
           throw updateError;
         }
+
+        console.log('Assignment update result:', updateResult);
 
         // Clean up duplicate assignments if there are more than one
         if (existingAssignments.length > 1) {
@@ -288,22 +293,29 @@ export const useCreateAssignment = () => {
       } else {
         console.log('Creating new assignment');
         // Create a new assignment
-        const { error: insertError } = await supabase
+        const { data: insertResult, error: insertError } = await supabase
           .from('scouting_assignments')
-          .insert(assignment);
+          .insert(assignment)
+          .select();
         
         if (insertError) {
           console.error('Error creating assignment:', insertError);
           throw insertError;
         }
-        console.log('New assignment created successfully');
+        console.log('New assignment created successfully:', insertResult);
       }
     },
     onSuccess: () => {
-      console.log('Assignment mutation successful, invalidating queries');
+      console.log('Assignment mutation successful, invalidating all related queries');
+      // Invalidate all related queries
       queryClient.invalidateQueries({ queryKey: ['scouting-assignments'] });
       queryClient.invalidateQueries({ queryKey: ['my-scouting-tasks'] });
       queryClient.invalidateQueries({ queryKey: ['player-assignments'] });
+      
+      // Force refetch of all queries
+      queryClient.refetchQueries({ queryKey: ['scouting-assignments'] });
+      queryClient.refetchQueries({ queryKey: ['my-scouting-tasks'] });  
+      queryClient.refetchQueries({ queryKey: ['player-assignments'] });
     },
     onError: (error) => {
       console.error('Assignment mutation failed:', error);
