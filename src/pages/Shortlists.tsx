@@ -102,8 +102,9 @@ const Shortlists = () => {
   };
 
   const handleAssignScout = (player: any) => {
+    console.log("Assigning scout to player:", player);
     setSelectedPlayer({
-      id: player.id,
+      id: player.id.toString(), // Convert bigint to string
       name: player.name,
       club: player.club,
       positions: player.positions
@@ -301,7 +302,7 @@ const Shortlists = () => {
                           <Button 
                             size="sm" 
                             variant="outline"
-                            onClick={() => handleViewProfile(player.id)}
+                            onClick={() => handleViewProfile(player.id.toString())}
                           >
                             <Eye className="h-4 w-4 mr-1" />
                             View Profile
@@ -323,7 +324,7 @@ const Shortlists = () => {
                               </DropdownMenuItem>
                               <DropdownMenuItem 
                                 className="text-destructive"
-                                onClick={() => handleRemovePlayer(player.id)}
+                                onClick={() => handleRemovePlayer(player.id.toString())}
                               >
                                 <Trash2 className="h-4 w-4 mr-2" />
                                 Remove from list
