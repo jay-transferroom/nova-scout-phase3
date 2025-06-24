@@ -47,6 +47,7 @@ const Profile = () => {
       if (error) throw error;
 
       toast.success('Profile updated successfully');
+      await refreshProfile();
     } catch (error) {
       console.error('Error updating profile:', error);
       toast.error('Failed to update profile');
@@ -68,6 +69,28 @@ const Profile = () => {
     }
   };
 
+  const handleFixRole = async () => {
+    if (user?.email !== 'hello@jayhughes.co.uk') return;
+    
+    setLoading(true);
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ role: 'recruitment' })
+        .eq('email', 'hello@jayhughes.co.uk');
+
+      if (error) throw error;
+
+      toast.success('Role updated to recruitment');
+      await refreshProfile();
+    } catch (error) {
+      console.error('Error updating role:', error);
+      toast.error('Failed to update role');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="container mx-auto pt-8 pb-16 max-w-7xl">
       <div className="flex justify-between items-center mb-8">
@@ -75,15 +98,27 @@ const Profile = () => {
           <h1 className="text-3xl font-bold mb-2">Profile</h1>
           <p className="text-muted-foreground">Manage your account settings and preferences</p>
         </div>
-        <Button
-          variant="outline"
-          onClick={handleRefreshProfile}
-          disabled={refreshing}
-          className="flex items-center gap-2"
-        >
-          <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
-          Refresh Profile
-        </Button>
+        <div className="flex gap-2">
+          {user?.email === 'hello@jayhughes.co.uk' && profile?.role === 'scout' && (
+            <Button
+              variant="outline"
+              onClick={handleFixRole}
+              disabled={loading}
+              className="flex items-center gap-2 bg-orange-50 border-orange-200 text-orange-700 hover:bg-orange-100"
+            >
+              Fix Role to Recruitment
+            </Button>
+          )}
+          <Button
+            variant="outline"
+            onClick={handleRefreshProfile}
+            disabled={refreshing}
+            className="flex items-center gap-2"
+          >
+            <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
+            Refresh Profile
+          </Button>
+        </div>
       </div>
 
       <div className="space-y-6">
@@ -107,6 +142,9 @@ const Profile = () => {
                 </h3>
                 <p className="text-sm text-muted-foreground capitalize">
                   {profile?.role === 'recruitment' ? 'Scout Manager' : 'Scout'}
+                  {user?.email === 'hello@jayhughes.co.uk' && profile?.role === 'scout' && (
+                    <span className="ml-2 text-orange-600 font-medium">(Role needs fixing)</span>
+                  )}
                 </p>
                 <p className="text-sm text-muted-foreground">
                   Email: {profile?.email || user?.email}
