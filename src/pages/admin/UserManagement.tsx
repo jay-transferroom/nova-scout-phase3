@@ -97,6 +97,8 @@ const UserManagement = () => {
 
   const fetchUsers = async () => {
     try {
+      console.log('Fetching users from profiles table...');
+      
       const { data, error } = await supabase
         .from('profiles')
         .select(`
@@ -108,7 +110,14 @@ const UserManagement = () => {
         `)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      console.log('Users query result:', { data, error });
+
+      if (error) {
+        console.error('Error fetching users:', error);
+        throw error;
+      }
+      
+      console.log('Successfully fetched users:', data?.length || 0);
       setUsers(data || []);
     } catch (error) {
       console.error('Error fetching users:', error);
@@ -378,161 +387,184 @@ const UserManagement = () => {
         </Dialog>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>All Users ({users.length})</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>User</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead>Role</TableHead>
-                <TableHead>Club</TableHead>
-                <TableHead>Joined</TableHead>
-                <TableHead className="w-[50px]"></TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {users.map((user) => (
-                <TableRow key={user.id}>
-                  <TableCell>
-                    <div className="flex items-center space-x-3">
-                      <Avatar className="h-8 w-8">
-                        <AvatarFallback className="text-xs">
-                          {getInitials(user)}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <div className="font-medium">{getDisplayName(user)}</div>
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>{user.email}</TableCell>
-                  <TableCell>
-                    <Badge variant={user.role === 'recruitment' ? 'default' : 'secondary'}>
-                      {user.role}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <Select 
-                      value={user.club_id || 'none'} 
-                      onValueChange={(value) => handleClubChange(user.id, value === 'none' ? null : value)}
-                    >
-                      <SelectTrigger className="w-[200px]">
-                        <SelectValue placeholder="Select club" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="none">No Club</SelectItem>
-                        {clubs?.map((club) => (
-                          <SelectItem key={club.id} value={club.id}>
-                            {club.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </TableCell>
-                  <TableCell>
-                    {new Date(user.created_at).toLocaleDateString()}
-                  </TableCell>
-                  <TableCell>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" className="h-8 w-8 p-0">
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem
-                          onClick={() => updateUserRole(user.id, 'scout')}
-                          disabled={user.role === 'scout'}
-                        >
-                          Make Scout
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() => updateUserRole(user.id, 'recruitment')}
-                          disabled={user.role === 'recruitment'}
-                        >
-                          Make Recruitment
-                        </DropdownMenuItem>
-                        <Dialog>
-                          <DialogTrigger asChild>
-                            <DropdownMenuItem 
-                              onSelect={(e) => {
-                                e.preventDefault();
-                                setSelectedUserId(user.id);
-                              }}
-                            >
-                              <SettingsIcon className="mr-2 h-4 w-4" />
-                              Manage Permissions
-                            </DropdownMenuItem>
-                          </DialogTrigger>
-                          <DialogContent className="max-w-md">
-                            <DialogHeader>
-                              <DialogTitle>Manage Permissions</DialogTitle>
-                              <DialogDescription>
-                                Configure which features {getDisplayName(user)} can access.
-                              </DialogDescription>
-                            </DialogHeader>
-                            <div className="space-y-4">
-                              {availablePermissions.map((perm) => {
-                                const userPerm = userPermissions?.find(up => up.permission === perm.key);
-                                const isEnabled = userPerm?.enabled !== false;
-                                
-                                return (
-                                  <div key={perm.key} className="flex items-center justify-between">
-                                    <Label htmlFor={perm.key}>{perm.label}</Label>
-                                    <Switch
-                                      id={perm.key}
-                                      checked={isEnabled}
-                                      onCheckedChange={(checked) => handlePermissionChange(perm.key, checked)}
-                                    />
-                                  </div>
-                                );
-                              })}
-                            </div>
-                          </DialogContent>
-                        </Dialog>
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <DropdownMenuItem 
-                              onSelect={(e) => e.preventDefault()}
-                              className="text-destructive focus:text-destructive"
-                              disabled={user.id === profile?.id}
-                            >
-                              <Trash2 className="mr-2 h-4 w-4" />
-                              Delete User
-                            </DropdownMenuItem>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>Delete User</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                Are you sure you want to delete {getDisplayName(user)}? This will permanently remove their account and all associated data.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Cancel</AlertDialogCancel>
-                              <AlertDialogAction
-                                onClick={() => deleteUser(user.id)}
-                                disabled={isDeletingUser}
-                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                              >
-                                {isDeletingUser ? 'Deleting...' : 'Delete User'}
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
+      {users.length === 0 ? (
+        <Card>
+          <CardHeader>
+            <CardTitle>No Users Found</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-center py-8">
+              <p className="text-muted-foreground mb-4">
+                No users found in the system. This might be due to:
+              </p>
+              <ul className="text-left text-sm text-muted-foreground mb-4 max-w-md mx-auto">
+                <li>• Database cleanup removed user profiles</li>
+                <li>• User profiles need to be recreated</li>
+                <li>• Authentication trigger not working</li>
+              </ul>
+              <Button onClick={fetchUsers} variant="outline">
+                Refresh Users
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      ) : (
+        <Card>
+          <CardHeader>
+            <CardTitle>All Users ({users.length})</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>User</TableHead>
+                  <TableHead>Email</TableHead>
+                  <TableHead>Role</TableHead>
+                  <TableHead>Club</TableHead>
+                  <TableHead>Joined</TableHead>
+                  <TableHead className="w-[50px]"></TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+              </TableHeader>
+              <TableBody>
+                {users.map((user) => (
+                  <TableRow key={user.id}>
+                    <TableCell>
+                      <div className="flex items-center space-x-3">
+                        <Avatar className="h-8 w-8">
+                          <AvatarFallback className="text-xs">
+                            {getInitials(user)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <div className="font-medium">{getDisplayName(user)}</div>
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell>{user.email}</TableCell>
+                    <TableCell>
+                      <Badge variant={user.role === 'recruitment' ? 'default' : 'secondary'}>
+                        {user.role}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <Select 
+                        value={user.club_id || 'none'} 
+                        onValueChange={(value) => handleClubChange(user.id, value === 'none' ? null : value)}
+                      >
+                        <SelectTrigger className="w-[200px]">
+                          <SelectValue placeholder="Select club" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none">No Club</SelectItem>
+                          {clubs?.map((club) => (
+                            <SelectItem key={club.id} value={club.id}>
+                              {club.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </TableCell>
+                    <TableCell>
+                      {new Date(user.created_at).toLocaleDateString()}
+                    </TableCell>
+                    <TableCell>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" className="h-8 w-8 p-0">
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem
+                            onClick={() => updateUserRole(user.id, 'scout')}
+                            disabled={user.role === 'scout'}
+                          >
+                            Make Scout
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => updateUserRole(user.id, 'recruitment')}
+                            disabled={user.role === 'recruitment'}
+                          >
+                            Make Recruitment
+                          </DropdownMenuItem>
+                          <Dialog>
+                            <DialogTrigger asChild>
+                              <DropdownMenuItem 
+                                onSelect={(e) => {
+                                  e.preventDefault();
+                                  setSelectedUserId(user.id);
+                                }}
+                              >
+                                <SettingsIcon className="mr-2 h-4 w-4" />
+                                Manage Permissions
+                              </DropdownMenuItem>
+                            </DialogTrigger>
+                            <DialogContent className="max-w-md">
+                              <DialogHeader>
+                                <DialogTitle>Manage Permissions</DialogTitle>
+                                <DialogDescription>
+                                  Configure which features {getDisplayName(user)} can access.
+                                </DialogDescription>
+                              </DialogHeader>
+                              <div className="space-y-4">
+                                {availablePermissions.map((perm) => {
+                                  const userPerm = userPermissions?.find(up => up.permission === perm.key);
+                                  const isEnabled = userPerm?.enabled !== false;
+                                  
+                                  return (
+                                    <div key={perm.key} className="flex items-center justify-between">
+                                      <Label htmlFor={perm.key}>{perm.label}</Label>
+                                      <Switch
+                                        id={perm.key}
+                                        checked={isEnabled}
+                                        onCheckedChange={(checked) => handlePermissionChange(perm.key, checked)}
+                                      />
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            </DialogContent>
+                          </Dialog>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <DropdownMenuItem 
+                                onSelect={(e) => e.preventDefault()}
+                                className="text-destructive focus:text-destructive"
+                                disabled={user.id === profile?.id}
+                              >
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                Delete User
+                              </DropdownMenuItem>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Delete User</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  Are you sure you want to delete {getDisplayName(user)}? This will permanently remove their account and all associated data.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction
+                                  onClick={() => deleteUser(user.id)}
+                                  disabled={isDeletingUser}
+                                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                >
+                                  {isDeletingUser ? 'Deleting...' : 'Delete User'}
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 };
