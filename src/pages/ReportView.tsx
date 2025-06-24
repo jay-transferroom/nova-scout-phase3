@@ -24,7 +24,7 @@ const ReportView = () => {
   useEffect(() => {
     // If the ID is "new", redirect to report builder
     if (id === "new") {
-      navigate("/reports/new");
+      navigate("/report-builder");
       return;
     }
 
@@ -186,7 +186,7 @@ const ReportView = () => {
         
         <div className="space-x-2">
           {canEdit && (
-            <Button onClick={() => navigate(`/reports/${report.id}/edit`)} className="gap-2">
+            <Button onClick={() => navigate(`/report/${report.id}/edit`)} className="gap-2">
               <Edit size={16} />
               Edit Report
             </Button>

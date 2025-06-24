@@ -181,7 +181,7 @@ const ReportEdit = () => {
   return (
     <div className="container mx-auto py-8 max-w-4xl">
       <div className="flex justify-between items-center mb-6">
-        <Button variant="ghost" onClick={() => navigate(`/reports/${id}`)} className="gap-2">
+        <Button variant="ghost" onClick={() => navigate(`/report/${id}`)} className="gap-2">
           <ArrowLeft size={16} />
           Back to Report
         </Button>
