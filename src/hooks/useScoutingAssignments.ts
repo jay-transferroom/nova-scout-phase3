@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -20,6 +19,7 @@ export interface ScoutingAssignmentWithDetails {
     club: string;
     positions: string[];
     age: number;
+    imageUrl?: string;
   };
   assigned_to_scout?: {
     first_name?: string;
@@ -56,15 +56,27 @@ export const useScoutingAssignments = () => {
         return [];
       }
 
-      // Now fetch player data from players_new for each assignment
+      // Group by player_id and only keep the most recent assignment for each player
+      const latestAssignments = new Map();
+      assignments.forEach(assignment => {
+        const playerId = assignment.player_id;
+        if (!latestAssignments.has(playerId) || 
+            new Date(assignment.created_at) > new Date(latestAssignments.get(playerId).created_at)) {
+          latestAssignments.set(playerId, assignment);
+        }
+      });
+
+      console.log(`Total assignments: ${assignments.length}, Unique players: ${latestAssignments.size}`);
+
+      // Now fetch player data from players_new for each unique assignment
       const assignmentsWithPlayers = await Promise.all(
-        assignments.map(async (assignment) => {
+        Array.from(latestAssignments.values()).map(async (assignment) => {
           // Convert player_id string to number for players_new table query
           const playerIdNumber = parseInt(assignment.player_id, 10);
           
           const { data: playerData, error: playerError } = await supabase
             .from('players_new')
-            .select('name, currentteam, parentteam, firstposition, secondposition, age')
+            .select('name, currentteam, parentteam, firstposition, secondposition, age, imageurl')
             .eq('id', playerIdNumber)
             .single();
 
@@ -76,12 +88,14 @@ export const useScoutingAssignments = () => {
               name: 'Unknown Player',
               club: 'Unknown Club',
               positions: ['Unknown'],
-              age: 0
+              age: 0,
+              imageUrl: undefined
             } : {
               name: playerData.name,
               club: playerData.currentteam || playerData.parentteam || 'Unknown Club',
               positions: [playerData.firstposition, playerData.secondposition].filter(Boolean) as string[],
-              age: playerData.age || 0
+              age: playerData.age || 0,
+              imageUrl: playerData.imageurl
             }
           };
         })
@@ -250,9 +264,9 @@ export const useCreateAssignment = () => {
       if (existingAssignments && existingAssignments.length > 0) {
         // Update the most recent assignment
         const mostRecentAssignment = existingAssignments[0];
-        console.log('Updating assignment:', mostRecentAssignment.id, 'from scout:', mostRecentAssignment.assigned_to_scout_id, 'to scout:', assignment.assigned_to_scout_id);
+        console.log('Updating assignment:', mostRecentAssignment.id);
         
-        const { data: updateResult, error: updateError } = await supabase
+        const { error: updateError } = await supabase
           .from('scouting_assignments')
           .update({
             assigned_to_scout_id: assignment.assigned_to_scout_id,
@@ -264,17 +278,14 @@ export const useCreateAssignment = () => {
             report_type: assignment.report_type,
             updated_at: new Date().toISOString()
           })
-          .eq('id', mostRecentAssignment.id)
-          .select();
+          .eq('id', mostRecentAssignment.id);
         
         if (updateError) {
           console.error('Error updating assignment:', updateError);
           throw updateError;
         }
 
-        console.log('Assignment update result:', updateResult);
-
-        // Clean up duplicate assignments if there are more than one
+        // Clean up any duplicate assignments for this player
         if (existingAssignments.length > 1) {
           const duplicateIds = existingAssignments.slice(1).map(a => a.id);
           console.log('Cleaning up duplicate assignments:', duplicateIds);
@@ -285,7 +296,7 @@ export const useCreateAssignment = () => {
             .in('id', duplicateIds);
             
           if (deleteError) {
-            console.warn('Error cleaning up duplicates (non-critical):', deleteError);
+            console.warn('Error cleaning up duplicates:', deleteError);
           }
         }
         
@@ -293,29 +304,22 @@ export const useCreateAssignment = () => {
       } else {
         console.log('Creating new assignment');
         // Create a new assignment
-        const { data: insertResult, error: insertError } = await supabase
+        const { error: insertError } = await supabase
           .from('scouting_assignments')
-          .insert(assignment)
-          .select();
+          .insert(assignment);
         
         if (insertError) {
           console.error('Error creating assignment:', insertError);
           throw insertError;
         }
-        console.log('New assignment created successfully:', insertResult);
+        console.log('New assignment created successfully');
       }
     },
     onSuccess: () => {
-      console.log('Assignment mutation successful, invalidating all related queries');
-      // Invalidate all related queries
+      console.log('Assignment mutation successful, invalidating queries');
       queryClient.invalidateQueries({ queryKey: ['scouting-assignments'] });
       queryClient.invalidateQueries({ queryKey: ['my-scouting-tasks'] });
       queryClient.invalidateQueries({ queryKey: ['player-assignments'] });
-      
-      // Force refetch of all queries
-      queryClient.refetchQueries({ queryKey: ['scouting-assignments'] });
-      queryClient.refetchQueries({ queryKey: ['my-scouting-tasks'] });  
-      queryClient.refetchQueries({ queryKey: ['player-assignments'] });
     },
     onError: (error) => {
       console.error('Assignment mutation failed:', error);

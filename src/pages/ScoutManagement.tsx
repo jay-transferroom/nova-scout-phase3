@@ -63,7 +63,7 @@ const ScoutManagement = () => {
         assignedTo: scoutName,
         updatedAt: getUpdatedTime(assignment.status),
         lastStatusChange: getLastStatusChange(assignment.status, assignment.updated_at),
-        avatar: `https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=48&h=48&fit=crop&crop=face&auto=format`,
+        avatar: assignment.players?.imageUrl || `https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=48&h=48&fit=crop&crop=face&auto=format`,
         priority: assignment.priority,
         deadline: assignment.deadline,
         scoutId: assignment.assigned_to_scout_id,
