@@ -79,7 +79,7 @@ const HeaderSearch = () => {
     setSearchQuery("");
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
+  const handleKeyDown = (e: KeyboardEvent) => {
     if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
       e.preventDefault();
       setOpen((open) => !open);
