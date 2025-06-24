@@ -43,7 +43,7 @@ const mockProspects = {
       nationality: 'Portugal'
     }
   ],
-  'Right Back': [
+  'Full Back': [
     {
       id: '3',
       name: 'Carlos Mendoza',
@@ -63,6 +63,11 @@ const mockProspects = {
 const ProspectComparison = ({ position, currentPlayers }: ProspectComparisonProps) => {
   const prospects = mockProspects[position as keyof typeof mockProspects] || [];
   
+  // Don't render the component if there are no prospects
+  if (prospects.length === 0) {
+    return null;
+  }
+
   // Find the best current player for this position based on recent form rating
   const currentBest = currentPlayers.length > 0 
     ? currentPlayers.reduce((best, player) => {
@@ -71,24 +76,6 @@ const ProspectComparison = ({ position, currentPlayers }: ProspectComparisonProp
         return playerRating > bestRating ? player : best;
       }, currentPlayers[0])
     : null;
-
-  if (prospects.length === 0) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Users className="h-5 w-5 text-green-600" />
-            Prospect Analysis - {position}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-muted-foreground text-center py-8">
-            No prospects available for this position
-          </p>
-        </CardContent>
-      </Card>
-    );
-  }
 
   const prospect = prospects[0];
 
