@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Player } from "@/types/player";
+import TrackPlayerButton from "./TrackPlayerButton";
 
 interface PlayerHeaderProps {
   player: Player;
@@ -124,6 +125,7 @@ export const PlayerHeader = ({
               <MessageSquare className="h-4 w-4" />
               Notes
             </Button>
+            <TrackPlayerButton playerId={player.id} playerName={player.name} />
           </div>
         </div>
       </CardContent>

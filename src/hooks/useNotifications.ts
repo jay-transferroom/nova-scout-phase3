@@ -93,6 +93,29 @@ const mockNotifications: Notification[] = [
     createdAt: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000), // 4 days ago
     updatedAt: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000),
   },
+  // New player tracking notifications
+  {
+    id: 'mock-tracking-1',
+    userId: 'current-user',
+    type: 'player_tracking',
+    title: 'Tracked Player Update',
+    message: 'Marcus Johnson scored 2 goals in last night\'s match vs Liverpool',
+    read: false,
+    data: { player_id: '123', match: 'vs Liverpool', goals: 2, performance: 'excellent' },
+    createdAt: new Date(Date.now() - 12 * 60 * 60 * 1000), // 12 hours ago
+    updatedAt: new Date(Date.now() - 12 * 60 * 60 * 1000),
+  },
+  {
+    id: 'mock-tracking-2',
+    userId: 'current-user',
+    type: 'player_tracking',
+    title: 'Contract Update',
+    message: 'David Martinez\'s contract with Real Madrid expires in 6 months',
+    read: false,
+    data: { player_id: '789', contract_status: 'expiring', months_remaining: 6 },
+    createdAt: new Date(Date.now() - 18 * 60 * 60 * 1000), // 18 hours ago
+    updatedAt: new Date(Date.now() - 18 * 60 * 60 * 1000),
+  },
 ];
 
 export const useNotifications = () => {
