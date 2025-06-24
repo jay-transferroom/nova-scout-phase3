@@ -10,10 +10,11 @@ interface SquadRecommendationsProps {
   players: Player[];
   selectedPosition: string | null;
   onPositionSelect: (position: string) => void;
+  allPlayers?: Player[];
 }
 
-const SquadRecommendations = ({ players, selectedPosition, onPositionSelect }: SquadRecommendationsProps) => {
-  const { getPositionAnalysis } = usePositionAnalysis(players);
+const SquadRecommendations = ({ players, selectedPosition, onPositionSelect, allPlayers = [] }: SquadRecommendationsProps) => {
+  const { getPositionAnalysis } = usePositionAnalysis(players, allPlayers);
   const positionAnalysis = getPositionAnalysis();
 
   // Filter out positions that don't need recommendations (adequate depth and no risks)

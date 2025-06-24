@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { mockPlayers } from "@/data/mockPlayers";
+import { usePlayersData } from "@/hooks/usePlayersData";
 import SquadSelector from "@/components/SquadSelector";
 import SquadRecommendations from "@/components/SquadRecommendations";
 import ProspectComparison from "@/components/ProspectComparison";
@@ -29,19 +29,46 @@ const SquadView = () => {
     return null;
   }
 
+  // Fetch real players data
+  const { data: allPlayers = [], isLoading, error } = usePlayersData();
+
   // All users work for Chelsea F.C.
   const userClub = "Chelsea F.C.";
 
   // Filter players based on Chelsea F.C.
   const clubPlayers = useMemo(() => {
-    return mockPlayers.filter(player => player.club === userClub);
-  }, [userClub]);
+    return allPlayers.filter(player => 
+      player.club === userClub || 
+      player.club === "Chelsea" ||
+      player.club?.toLowerCase().includes('chelsea')
+    );
+  }, [allPlayers, userClub]);
 
   // Use custom hooks for data management
   const { squadPlayers } = useSquadData(clubPlayers, selectedSquad);
   const squadMetrics = useSquadMetrics(squadPlayers, selectedSquad);
 
   const displayTitle = `${userClub} ${getSquadDisplayName(selectedSquad)} Analysis`;
+
+  if (isLoading) {
+    return (
+      <div className="container mx-auto py-8">
+        <div className="flex items-center justify-center h-64">
+          <div className="text-lg">Loading squad data...</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="container mx-auto py-8">
+        <div className="flex items-center justify-center h-64">
+          <div className="text-lg text-red-600">Error loading squad data. Please try again.</div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto py-8 space-y-8">
@@ -93,6 +120,7 @@ const SquadView = () => {
               players={squadPlayers}
               selectedPosition={selectedPosition}
               onPositionSelect={setSelectedPosition}
+              allPlayers={allPlayers}
             />
 
             {/* Prospect Comparison */}
@@ -102,6 +130,7 @@ const SquadView = () => {
                 currentPlayers={squadPlayers.filter(p => 
                   p.positions.some(pos => pos.toLowerCase().includes(selectedPosition.toLowerCase()))
                 )}
+                allPlayers={allPlayers}
               />
             )}
           </div>
@@ -114,6 +143,7 @@ const SquadView = () => {
             players={squadPlayers}
             selectedPosition={selectedPosition}
             onPositionSelect={setSelectedPosition}
+            allPlayers={allPlayers}
           />
         </div>
       )}
