@@ -61,10 +61,13 @@ export const useMyScoutingTasks = () => {
       // For each assignment, fetch the corresponding player data from players_new
       const assignmentsWithPlayers = await Promise.all(
         assignments.map(async (assignment) => {
+          // Convert player_id string to number for players_new table query
+          const playerIdNumber = parseInt(assignment.player_id, 10);
+          
           const { data: playerData, error: playerError } = await supabase
             .from('players_new')
             .select('name, currentteam, parentteam, firstposition, secondposition, age')
-            .eq('id', assignment.player_id)
+            .eq('id', playerIdNumber)
             .single();
 
           if (playerError) {
