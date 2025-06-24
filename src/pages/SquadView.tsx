@@ -29,10 +29,10 @@ const SquadView = () => {
     return null;
   }
 
-  // For now, we'll use a mock club affiliation - in a real app this would come from the user profile
-  const userClub = "Manchester United"; // This should come from profile.club or similar
+  // All users work for Chelsea F.C.
+  const userClub = "Chelsea F.C.";
 
-  // Filter players based on user's club affiliation
+  // Filter players based on Chelsea F.C.
   const clubPlayers = useMemo(() => {
     return mockPlayers.filter(player => player.club === userClub);
   }, [userClub]);
@@ -48,6 +48,9 @@ const SquadView = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
+          <div className="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center">
+            <span className="text-white text-lg font-bold">CFC</span>
+          </div>
           <div>
             <h1 className="text-3xl font-bold">{displayTitle}</h1>
             <p className="text-muted-foreground mt-2">

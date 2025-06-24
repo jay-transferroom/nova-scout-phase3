@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -71,7 +70,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const profileData = {
           ...profile,
           role: profile.role as 'scout' | 'recruitment',
-          club: profile.clubs || undefined
+          club: profile.clubs || { 
+            id: 'chelsea', 
+            name: 'Chelsea F.C.', 
+            league: 'Premier League', 
+            country: 'England', 
+            logo_url: 'https://logos-world.net/wp-content/uploads/2020/06/Chelsea-Logo.png' 
+          }
         };
         
         setProfile(profileData);

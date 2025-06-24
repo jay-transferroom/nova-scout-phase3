@@ -91,13 +91,13 @@ const Profile = () => {
           <CardHeader>
             <CardTitle>Personal Information</CardTitle>
             <CardDescription>
-              Update your personal details and contact information
+              Update your personal details - All Chelsea F.C. staff
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="flex items-center space-x-4">
               <Avatar className="h-20 w-20">
-                <AvatarFallback className="text-lg">
+                <AvatarFallback className="text-lg bg-blue-600 text-white">
                   {getInitials()}
                 </AvatarFallback>
               </Avatar>
@@ -106,11 +106,17 @@ const Profile = () => {
                   {firstName && lastName ? `${firstName} ${lastName}` : user?.email}
                 </h3>
                 <p className="text-sm text-muted-foreground capitalize">
-                  {profile?.role || 'scout'}
+                  {profile?.role === 'recruitment' ? 'Scout Manager' : 'Scout'}
                 </p>
                 <p className="text-sm text-muted-foreground">
                   Email: {profile?.email || user?.email}
                 </p>
+                <div className="flex items-center gap-2 mt-1">
+                  <div className="w-6 h-6 bg-blue-600 rounded flex items-center justify-center">
+                    <span className="text-white text-xs font-bold">CFC</span>
+                  </div>
+                  <span className="text-sm font-medium text-blue-600">Chelsea F.C.</span>
+                </div>
               </div>
             </div>
 
@@ -150,10 +156,23 @@ const Profile = () => {
                 <Label htmlFor="role">Role</Label>
                 <Input
                   id="role"
-                  value={profile?.role || 'scout'}
+                  value={profile?.role === 'recruitment' ? 'Scout Manager' : 'Scout'}
                   disabled
                   className="bg-muted capitalize"
                 />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="club">Club</Label>
+                <div className="flex items-center gap-3 p-3 bg-blue-50 border border-blue-200 rounded-md">
+                  <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center flex-shrink-0">
+                    <span className="text-white text-xs font-bold">CFC</span>
+                  </div>
+                  <div>
+                    <p className="font-medium text-blue-900">Chelsea F.C.</p>
+                    <p className="text-sm text-blue-600">Premier League • England</p>
+                  </div>
+                </div>
               </div>
 
               <Button type="submit" disabled={loading}>
