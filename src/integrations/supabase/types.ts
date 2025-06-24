@@ -9,36 +9,6 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      clubs: {
-        Row: {
-          country: string | null
-          created_at: string
-          id: string
-          league: string | null
-          logo_url: string | null
-          name: string
-          updated_at: string
-        }
-        Insert: {
-          country?: string | null
-          created_at?: string
-          id?: string
-          league?: string | null
-          logo_url?: string | null
-          name: string
-          updated_at?: string
-        }
-        Update: {
-          country?: string | null
-          created_at?: string
-          id?: string
-          league?: string | null
-          logo_url?: string | null
-          name?: string
-          updated_at?: string
-        }
-        Relationships: []
-      }
       fixtures: {
         Row: {
           away_score: number | null
@@ -414,15 +384,7 @@ export type Database = {
           role?: string
           updated_at?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "profiles_club_id_fkey"
-            columns: ["club_id"]
-            isOneToOne: false
-            referencedRelation: "clubs"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       report_templates: {
         Row: {
