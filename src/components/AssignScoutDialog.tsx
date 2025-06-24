@@ -7,6 +7,7 @@ import { toast } from "@/hooks/use-toast";
 import { usePlayerAssignments } from "@/hooks/usePlayerAssignments";
 import PlayerInfoCard from "@/components/assignment/PlayerInfoCard";
 import ScoutSelectionForm from "@/components/assignment/ScoutSelectionForm";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface Player {
   id: string;
@@ -26,6 +27,7 @@ const AssignScoutDialog = ({ isOpen, onClose, player }: AssignScoutDialogProps) 
   const { data: scouts = [] } = useScouts();
   const { data: playerAssignments = [] } = usePlayerAssignments();
   const createAssignment = useCreateAssignment();
+  const queryClient = useQueryClient();
 
   // Find existing assignment for this player
   const existingAssignment = player ? 
@@ -69,6 +71,10 @@ const AssignScoutDialog = ({ isOpen, onClose, player }: AssignScoutDialogProps) 
         report_type: formData.reportType,
       });
 
+      // Force refresh of player assignments data
+      await queryClient.invalidateQueries({ queryKey: ['player-assignments'] });
+      await queryClient.refetchQueries({ queryKey: ['player-assignments'] });
+
       // Find the selected scout's name for the notification
       const selectedScoutInfo = allScoutOptions.find(scout => scout.id === formData.selectedScout);
       const scoutName = selectedScoutInfo ? 
@@ -92,8 +98,14 @@ const AssignScoutDialog = ({ isOpen, onClose, player }: AssignScoutDialogProps) 
     }
   };
 
+  const handleClose = () => {
+    // Force refresh when dialog closes to ensure UI is updated
+    queryClient.invalidateQueries({ queryKey: ['player-assignments'] });
+    onClose();
+  };
+
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>
@@ -113,7 +125,7 @@ const AssignScoutDialog = ({ isOpen, onClose, player }: AssignScoutDialogProps) 
               existingAssignment={existingAssignment}
               isOpen={isOpen}
               onSubmit={handleSubmit}
-              onCancel={onClose}
+              onCancel={handleClose}
               isSubmitting={createAssignment.isPending}
             />
           </div>
