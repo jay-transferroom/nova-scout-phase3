@@ -77,14 +77,14 @@ const AssignScoutDialog = ({ isOpen, onClose, player }: AssignScoutDialogProps) 
       console.log("=== ASSIGNMENT MUTATION COMPLETED ===");
 
       // Wait a moment for the mutation to complete, then refresh all data
-      await new Promise(resolve => setTimeout(resolve, 500));
+      await new Promise(resolve => setTimeout(resolve, 1000));
       
       console.log("=== STARTING DATA REFRESH ===");
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ['player-assignments'] }),
         queryClient.invalidateQueries({ queryKey: ['scouting-assignments'] }),
         queryClient.invalidateQueries({ queryKey: ['my-scouting-tasks'] }),
-        queryClient.refetchQueries({ queryKey: ['player-assignments'], staleTime: 0 }),
+        queryClient.refetchQueries({ queryKey: ['player-assignments'] }),
         refetchAssignments()
       ]);
 
