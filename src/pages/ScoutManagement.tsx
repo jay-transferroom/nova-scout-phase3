@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -47,13 +46,13 @@ const ScoutManagement = () => {
       .map(player => ({
         id: `unassigned-${player.id}`,
         playerName: player.name,
-        club: player.currentteam || player.parentteam || 'Unknown Club',
-        position: player.firstposition || 'Unknown',
-        rating: player.rating?.toFixed(1) || 'N/A',
+        club: player.club, // Use the transformed 'club' property from usePlayersData
+        position: player.positions?.[0] || 'Unknown', // Use the transformed 'positions' array
+        rating: player.transferroomRating?.toFixed(1) || 'N/A', // Use transferroomRating from Player interface
         assignedTo: 'Unassigned',
         updatedAt: 'Available for assignment',
         lastStatusChange: 'Available for assignment',
-        avatar: player.imageurl || `https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=48&h=48&fit=crop&crop=face&auto=format`,
+        avatar: player.image || `https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=48&h=48&fit=crop&crop=face&auto=format`, // Use 'image' from Player interface
         priority: null,
         deadline: null,
         scoutId: null,
@@ -212,8 +211,6 @@ const ScoutManagement = () => {
             {player.status === 'unassigned' && (
               <div className="mt-3">
                 <AssignPlayerDialog 
-                  playerId={player.playerId}
-                  playerName={player.playerName}
                   onAssignmentCreated={handleAssignmentCreated}
                   trigger={
                     <Button size="sm" className="w-full">
