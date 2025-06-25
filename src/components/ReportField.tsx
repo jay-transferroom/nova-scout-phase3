@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ReportField as ReportFieldType } from "@/types/report";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -23,20 +23,24 @@ interface ReportFieldProps {
 }
 
 const ReportField = ({ field, value, notes, onChange }: ReportFieldProps) => {
-  const [fieldNotes, setFieldNotes] = useState<string>(notes || "");
+  const [localNotes, setLocalNotes] = useState<string>(notes || "");
   
+  // Sync local notes with prop changes
+  useEffect(() => {
+    setLocalNotes(notes || "");
+  }, [notes]);
+
   const handleNotesChange = (newNotes: string) => {
-    setFieldNotes(newNotes);
-    // Don't call onChange here, just update local state
+    setLocalNotes(newNotes);
   };
 
   const handleValueChange = (newValue: any) => {
-    onChange(newValue, fieldNotes);
+    onChange(newValue, localNotes);
   };
 
   const handleNotesBlur = () => {
     // Only update notes when user finishes editing
-    onChange(value, fieldNotes);
+    onChange(value, localNotes);
   };
 
   console.log(`ReportField for ${field.id}:`, { 
@@ -149,7 +153,7 @@ const ReportField = ({ field, value, notes, onChange }: ReportFieldProps) => {
           </Label>
           <Textarea
             id={`${field.id}-notes`}
-            value={fieldNotes}
+            value={localNotes}
             onChange={(e) => handleNotesChange(e.target.value)}
             onBlur={handleNotesBlur}
             placeholder="Add any additional notes here..."
