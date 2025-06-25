@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { ReportWithPlayer, Report } from '@/types/report';
@@ -19,7 +18,6 @@ export const useReports = () => {
         .from('reports')
         .select(`
           *,
-          player:players(*),
           scout_profile:profiles(*)
         `)
         .order('created_at', { ascending: false });
@@ -72,7 +70,7 @@ export const useReports = () => {
           matchContext: report.match_context,
           tags: report.tags || [],
           flaggedForReview: report.flagged_for_review || false,
-          player: report.player,
+          player: null, // Player data will be fetched separately
           scoutProfile: report.scout_profile,
         };
       });

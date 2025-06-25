@@ -47,9 +47,11 @@ const ReportsTable = ({ reports, onViewReport, onEditReport, onDeleteReport }: R
 
             return (
               <TableRow key={report.id}>
-                <TableCell className="font-medium">{report.player?.name}</TableCell>
-                <TableCell>{report.player?.club}</TableCell>
-                <TableCell>{report.player?.positions?.join(", ")}</TableCell>
+                <TableCell className="font-medium">
+                  {report.player?.name || `Player ID: ${report.playerId}`}
+                </TableCell>
+                <TableCell>{report.player?.club || 'Loading...'}</TableCell>
+                <TableCell>{report.player?.positions?.join(", ") || 'Loading...'}</TableCell>
                 <TableCell>{formatDate(report.createdAt)}</TableCell>
                 <TableCell>
                   <Badge variant={report.status === "submitted" ? "secondary" : "outline"}>
