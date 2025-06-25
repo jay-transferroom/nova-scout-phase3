@@ -37,21 +37,6 @@ const ReportField = ({ field, value, notes, onChange }: ReportFieldProps) => {
     label: field.label 
   });
 
-  // Ensure we have a valid rating system for rating fields
-  const getRatingSystem = () => {
-    if (field.type === 'rating') {
-      if (field.ratingSystem) {
-        return field.ratingSystem;
-      }
-      // Fallback to default 1-10 rating system
-      console.log('Using fallback rating system for field:', field.id);
-      return DEFAULT_RATING_SYSTEMS['numeric-1-10'];
-    }
-    return null;
-  };
-
-  const ratingSystem = getRatingSystem();
-
   return (
     <div className="space-y-2">
       <div className="flex justify-between items-baseline">
@@ -123,19 +108,28 @@ const ReportField = ({ field, value, notes, onChange }: ReportFieldProps) => {
           </div>
         )}
 
-        {field.type === "rating" && ratingSystem && (
-          <RatingInput
-            id={field.id}
-            ratingSystem={ratingSystem}
-            value={value}
-            onChange={(newValue) => onChange(newValue, fieldNotes)}
-          />
-        )}
+        {field.type === "rating" && (
+          (() => {
+            // Only process rating system for actual rating fields
+            const ratingSystem = field.ratingSystem || DEFAULT_RATING_SYSTEMS['numeric-1-10'];
+            
+            if (!ratingSystem) {
+              return (
+                <div className="text-red-500 text-sm">
+                  Rating system not configured for this field
+                </div>
+              );
+            }
 
-        {field.type === "rating" && !ratingSystem && (
-          <div className="text-red-500 text-sm">
-            Rating system not configured for this field
-          </div>
+            return (
+              <RatingInput
+                id={field.id}
+                ratingSystem={ratingSystem}
+                value={value}
+                onChange={(newValue) => onChange(newValue, fieldNotes)}
+              />
+            );
+          })()
         )}
       </div>
 
