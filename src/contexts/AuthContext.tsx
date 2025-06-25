@@ -5,7 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { AuthContextType, Profile } from '@/types/auth';
 import { fetchUserProfile } from '@/services/profileService';
 import { ensureDefaultPermissions } from '@/services/permissionService';
-import { signUpUser, signInUser, signOutUser } from '@/services/authService';
+import { signUpUser, signInUser, signOutUser, resetPassword } from '@/services/authService';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -79,6 +79,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     signUp: signUpUser,
     signIn: signInUser,
     signOut: signOutUser,
+    resetPassword,
     refreshProfile,
   };
 

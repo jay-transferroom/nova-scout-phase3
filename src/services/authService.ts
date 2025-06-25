@@ -35,3 +35,12 @@ export const signInUser = async (email: string, password: string) => {
 export const signOutUser = async () => {
   await supabase.auth.signOut();
 };
+
+export const resetPassword = async (email: string) => {
+  const redirectUrl = 'https://transferroom-scout.lovable.app/auth';
+  
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: redirectUrl,
+  });
+  return { error };
+};

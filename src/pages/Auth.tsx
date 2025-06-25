@@ -9,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
+import PasswordResetDialog from '@/components/PasswordResetDialog';
 
 const Auth = () => {
   const [loading, setLoading] = useState(false);
@@ -16,6 +17,7 @@ const Auth = () => {
   const [password, setPassword] = useState('');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
+  const [resetDialogOpen, setResetDialogOpen] = useState(false);
   const { signIn, signUp } = useAuth();
   const navigate = useNavigate();
 
@@ -115,6 +117,16 @@ const Auth = () => {
                     'Sign In'
                   )}
                 </Button>
+                <div className="text-center">
+                  <Button
+                    type="button"
+                    variant="link"
+                    onClick={() => setResetDialogOpen(true)}
+                    className="text-sm text-muted-foreground hover:text-foreground"
+                  >
+                    Forgot your password?
+                  </Button>
+                </div>
               </form>
             </TabsContent>
             
@@ -177,6 +189,11 @@ const Auth = () => {
           </Tabs>
         </CardContent>
       </Card>
+
+      <PasswordResetDialog 
+        open={resetDialogOpen} 
+        onOpenChange={setResetDialogOpen} 
+      />
     </div>
   );
 };
