@@ -1,4 +1,3 @@
-
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useScouts } from "@/hooks/useScouts";
 import { useCreateAssignment } from "@/hooks/useScoutingAssignments";
@@ -36,8 +35,8 @@ const AssignScoutDialog = ({ isOpen, onClose, player }: AssignScoutDialogProps) 
 
   // Combine current user with other scouts for the dropdown
   const allScoutOptions = [
-    // Add current user if they have scout role
-    ...(profile?.role === 'scout' ? [{
+    // Add current user if they have scout or recruitment role
+    ...(profile?.role === 'scout' || profile?.role === 'recruitment' ? [{
       id: user?.id || '',
       first_name: profile?.first_name || 'Me',
       last_name: profile?.last_name ? `(${profile.last_name})` : '',
