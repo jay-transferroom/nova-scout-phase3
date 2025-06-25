@@ -5,38 +5,73 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Users, Search, Filter, MoreHorizontal, Clock, TrendingUp } from "lucide-react";
+import { Users, Search, Filter, MoreHorizontal, Clock, TrendingUp, UserPlus } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useScoutingAssignments } from "@/hooks/useScoutingAssignments";
 import { useScoutUsers } from "@/hooks/useScoutUsers";
+import { usePlayersData } from "@/hooks/usePlayersData";
 import { AssignPlayerDialog } from "@/components/AssignPlayerDialog";
 
 const ScoutManagement = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedScout, setSelectedScout] = useState("all");
   const [kanbanData, setKanbanData] = useState({
+    unassigned: [] as any[],
     assigned: [] as any[],
-    in_progress: [] as any[],
-    under_review: [] as any[],
     completed: [] as any[]
   });
 
   const { data: assignments = [], refetch: refetchAssignments } = useScoutingAssignments();
   const { data: scouts = [] } = useScoutUsers();
+  const { data: allPlayers = [] } = usePlayersData();
 
-  // Transform assignments into kanban format
+  // Transform assignments and unassigned players into kanban format
   useEffect(() => {
     console.log('Scout Management - Assignments:', assignments.length);  
     console.log('Scout Management - Scouts:', scouts.length);
+    console.log('Scout Management - All Players:', allPlayers.length);
 
     const newKanbanData = {
+      unassigned: [] as any[],
       assigned: [] as any[],
-      in_progress: [] as any[],
-      under_review: [] as any[],
       completed: [] as any[]
     };
 
-    // Process real assignments
+    // Get assigned player IDs
+    const assignedPlayerIds = new Set(assignments.map(a => a.player_id));
+
+    // Add unassigned players from shortlists (using first 20 players as mock shortlist)
+    const unassignedPlayers = allPlayers
+      .filter(player => !assignedPlayerIds.has(player.id.toString()))
+      .slice(0, 20)
+      .map(player => ({
+        id: `unassigned-${player.id}`,
+        playerName: player.name,
+        club: player.currentteam || player.parentteam || 'Unknown Club',
+        position: player.firstposition || 'Unknown',
+        rating: player.rating?.toFixed(1) || 'N/A',
+        assignedTo: 'Unassigned',
+        updatedAt: 'Available for assignment',
+        lastStatusChange: 'Available for assignment',
+        avatar: player.imageurl || `https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=48&h=48&fit=crop&crop=face&auto=format`,
+        priority: null,
+        deadline: null,
+        scoutId: null,
+        status: 'unassigned',
+        playerId: player.id.toString()
+      }));
+
+    // Apply search filter to unassigned players
+    const filteredUnassigned = searchTerm 
+      ? unassignedPlayers.filter(player => 
+          player.playerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          player.club.toLowerCase().includes(searchTerm.toLowerCase())
+        )
+      : unassignedPlayers;
+
+    newKanbanData.unassigned = filteredUnassigned;
+
+    // Process assigned players
     assignments.forEach((assignment) => {
       const scoutName = assignment.assigned_to_scout?.first_name 
         ? `${assignment.assigned_to_scout.first_name} ${assignment.assigned_to_scout.last_name || ''}`.trim()
@@ -67,22 +102,20 @@ const ScoutManagement = () => {
         priority: assignment.priority,
         deadline: assignment.deadline,
         scoutId: assignment.assigned_to_scout_id,
-        status: assignment.status
+        status: assignment.status,
+        playerId: assignment.player_id
       };
 
-      if (assignment.status === 'assigned') {
-        newKanbanData.assigned.push(playerData);
-      } else if (assignment.status === 'in_progress') {
-        newKanbanData.in_progress.push(playerData);
-      } else if (assignment.status === 'reviewed') {
-        newKanbanData.under_review.push(playerData);
-      } else if (assignment.status === 'completed') {
+      if (assignment.status === 'completed') {
         newKanbanData.completed.push(playerData);
+      } else {
+        // All non-completed assignments go to 'assigned'
+        newKanbanData.assigned.push(playerData);
       }
     });
 
     setKanbanData(newKanbanData);
-  }, [assignments, scouts, selectedScout, searchTerm]);
+  }, [assignments, scouts, allPlayers, selectedScout, searchTerm]);
 
   const getUpdatedTime = (status: string) => {
     const times = {
@@ -110,7 +143,7 @@ const ScoutManagement = () => {
 
     const statusLabels = {
       'assigned': 'Assigned',
-      'in_progress': 'Started', 
+      'in_progress': 'In Progress', 
       'completed': 'Completed',
       'reviewed': 'Under review'
     };
@@ -120,18 +153,17 @@ const ScoutManagement = () => {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'assigned': return 'bg-red-100 border-red-200';
+      case 'unassigned': return 'bg-gray-100 border-gray-200';
+      case 'assigned': return 'bg-orange-100 border-orange-200';
       case 'in_progress': return 'bg-orange-100 border-orange-200';
       case 'completed': return 'bg-green-100 border-green-200';
-      case 'reviewed': return 'bg-blue-100 border-blue-200';
       default: return 'bg-gray-100 border-gray-200';
     }
   };
 
   const columns = [
-    { id: 'assigned', title: 'Assigned', color: 'bg-red-500', count: kanbanData.assigned.length },
-    { id: 'in_progress', title: 'In Progress', color: 'bg-orange-500', count: kanbanData.in_progress.length },
-    { id: 'under_review', title: 'Under Review', color: 'bg-blue-500', count: kanbanData.under_review.length },
+    { id: 'unassigned', title: 'Unassigned Players', color: 'bg-gray-500', count: kanbanData.unassigned.length },
+    { id: 'assigned', title: 'Assigned', color: 'bg-orange-500', count: kanbanData.assigned.length },
     { id: 'completed', title: 'Completed', color: 'bg-green-500', count: kanbanData.completed.length },
   ];
 
@@ -153,14 +185,16 @@ const ScoutManagement = () => {
             <p className="text-xs text-muted-foreground truncate">{player.club}</p>
             <p className="text-xs text-muted-foreground mt-1">{player.position}</p>
             
-            {player.rating && (
+            {player.rating && player.rating !== 'N/A' && (
               <div className="flex items-center justify-end mt-2">
                 <span className="text-lg font-bold text-primary">{player.rating}</span>
               </div>
             )}
             
             <div className="mt-3 space-y-1">
-              <p className="text-xs text-muted-foreground">Assigned to {player.assignedTo}</p>
+              <p className="text-xs text-muted-foreground">
+                {player.status === 'unassigned' ? 'Available for assignment' : `Assigned to ${player.assignedTo}`}
+              </p>
               <div className="flex items-center gap-1 text-xs text-muted-foreground">
                 <Clock className="h-3 w-3" />
                 <span>{player.lastStatusChange}</span>
@@ -174,6 +208,22 @@ const ScoutManagement = () => {
                 </Badge>
               )}
             </div>
+
+            {player.status === 'unassigned' && (
+              <div className="mt-3">
+                <AssignPlayerDialog 
+                  playerId={player.playerId}
+                  playerName={player.playerName}
+                  onAssignmentCreated={handleAssignmentCreated}
+                  trigger={
+                    <Button size="sm" className="w-full">
+                      <UserPlus className="h-3 w-3 mr-1" />
+                      Assign Scout
+                    </Button>
+                  }
+                />
+              </div>
+            )}
           </div>
         </div>
       </CardContent>
@@ -187,10 +237,9 @@ const ScoutManagement = () => {
           <div>
             <h1 className="text-3xl font-bold">Scout Management</h1>
             <p className="text-muted-foreground mt-2">
-              Monitor player assignments and track scouting progress across your team.
+              Assign scouts to players and track scouting progress across your team.
             </p>
           </div>
-          <AssignPlayerDialog onAssignmentCreated={handleAssignmentCreated} />
         </div>
       </div>
 
@@ -272,8 +321,8 @@ const ScoutManagement = () => {
         </div>
       )}
 
-      {/* Status Board - Read Only */}
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+      {/* Status Board */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {columns.map((column) => (
           <div key={column.id} className="flex flex-col">
             {/* Column Header */}
@@ -290,7 +339,7 @@ const ScoutManagement = () => {
               </Button>
             </div>
 
-            {/* Column Content - Read Only */}
+            {/* Column Content */}
             <div className="flex-1 min-h-[400px] rounded-lg p-3 bg-muted/20 border-2 border-transparent">
               {kanbanData[column.id as keyof typeof kanbanData].length > 0 ? (
                 kanbanData[column.id as keyof typeof kanbanData].map((player) => (
@@ -298,7 +347,9 @@ const ScoutManagement = () => {
                 ))
               ) : (
                 <div className="flex items-center justify-center h-32 text-muted-foreground text-sm border-2 border-dashed border-muted-foreground/20 rounded-lg">
-                  {searchTerm || selectedScout !== "all" ? "No matching assignments" : "No assignments in this status"}
+                  {searchTerm || selectedScout !== "all" ? "No matching assignments" : 
+                   column.id === 'unassigned' ? "No unassigned players in shortlist" :
+                   column.id === 'assigned' ? "No assigned players" : "No completed assignments"}
                 </div>
               )}
             </div>
