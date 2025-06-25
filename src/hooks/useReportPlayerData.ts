@@ -26,10 +26,16 @@ export const useReportPlayerData = (playerId?: string) => {
   return useQuery({
     queryKey: ['report-player', playerId],
     queryFn: async (): Promise<Player | null> => {
-      if (!playerId) return null;
+      if (!playerId) {
+        console.log('useReportPlayerData: playerId is undefined or null');
+        return null;
+      }
+
+      console.log('useReportPlayerData: Fetching player data for ID:', playerId);
 
       // Check if the ID is numeric (from players_new table)
       if (/^\d+$/.test(playerId)) {
+        console.log('useReportPlayerData: Fetching from players_new table');
         const { data, error } = await supabase
           .from('players_new')
           .select('*')
@@ -41,9 +47,13 @@ export const useReportPlayerData = (playerId?: string) => {
           return null;
         }
 
-        if (!data) return null;
+        if (!data) {
+          console.log('useReportPlayerData: No player found in players_new table');
+          return null;
+        }
 
         const player = data as PlayerNewRecord;
+        console.log('useReportPlayerData: Found player in players_new:', player);
 
         // Transform the data to match our Player interface
         return {
@@ -66,6 +76,7 @@ export const useReportPlayerData = (playerId?: string) => {
         };
       } else {
         // UUID format - check players table
+        console.log('useReportPlayerData: Fetching from players table');
         const { data, error } = await supabase
           .from('players')
           .select('*')
@@ -77,7 +88,12 @@ export const useReportPlayerData = (playerId?: string) => {
           return null;
         }
 
-        if (!data) return null;
+        if (!data) {
+          console.log('useReportPlayerData: No player found in players table');
+          return null;
+        }
+
+        console.log('useReportPlayerData: Found player in players:', data);
 
         return {
           id: data.id,

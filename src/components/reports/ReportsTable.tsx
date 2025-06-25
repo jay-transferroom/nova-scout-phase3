@@ -23,17 +23,32 @@ const ReportRow = ({ report, onViewReport, onEditReport, onDeleteReport, canEdit
   onDeleteReport: (reportId: string, playerName: string) => void;
   canEdit: boolean;
 }) => {
-  const { data: playerData } = useReportPlayerData(report.playerId);
+  const { data: playerData, isLoading: playerLoading, error: playerError } = useReportPlayerData(report.playerId);
   const overallRating = getOverallRating(report);
   const recommendation = getRecommendation(report);
+
+  console.log(`Report ${report.id} - Player ID: ${report.playerId}, Player Data:`, playerData, 'Loading:', playerLoading, 'Error:', playerError);
+
+  // Display loading state while fetching player data
+  const playerName = playerLoading ? 'Loading...' : 
+                     playerError ? `Error loading player` :
+                     playerData?.name || `Player ID: ${report.playerId}`;
+                     
+  const playerClub = playerLoading ? 'Loading...' : 
+                     playerError ? 'Unknown' :
+                     playerData?.club || 'Unknown';
+                     
+  const playerPositions = playerLoading ? 'Loading...' : 
+                          playerError ? 'Unknown' :
+                          playerData?.positions?.join(", ") || 'Unknown';
 
   return (
     <TableRow key={report.id}>
       <TableCell className="font-medium">
-        {playerData?.name || `Player ID: ${report.playerId}`}
+        {playerName}
       </TableCell>
-      <TableCell>{playerData?.club || 'Loading...'}</TableCell>
-      <TableCell>{playerData?.positions?.join(", ") || 'Loading...'}</TableCell>
+      <TableCell>{playerClub}</TableCell>
+      <TableCell>{playerPositions}</TableCell>
       <TableCell>{formatDate(report.createdAt)}</TableCell>
       <TableCell>
         <Badge variant={report.status === "submitted" ? "secondary" : "outline"}>
@@ -85,7 +100,7 @@ const ReportRow = ({ report, onViewReport, onEditReport, onDeleteReport, canEdit
             <Button 
               variant="outline" 
               size="sm"
-              onClick={() => onDeleteReport(report.id, playerData?.name || "Unknown")}
+              onClick={() => onDeleteReport(report.id, playerName)}
               title="Delete report"
             >
               <Trash2 className="h-4 w-4" />
