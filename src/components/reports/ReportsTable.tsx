@@ -7,6 +7,7 @@ import { getRatingColor, formatDate } from "@/utils/reportFormatting";
 import { getOverallRating, getRecommendation } from "@/utils/reportDataExtraction";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/contexts/AuthContext";
+import { useReportPlayerData } from "@/hooks/useReportPlayerData";
 
 interface ReportsTableProps {
   reports: ReportWithPlayer[];
@@ -14,6 +15,87 @@ interface ReportsTableProps {
   onEditReport?: (reportId: string) => void;
   onDeleteReport: (reportId: string, playerName: string) => void;
 }
+
+const ReportRow = ({ report, onViewReport, onEditReport, onDeleteReport, canEdit }: {
+  report: ReportWithPlayer;
+  onViewReport: (reportId: string) => void;
+  onEditReport?: (reportId: string) => void;
+  onDeleteReport: (reportId: string, playerName: string) => void;
+  canEdit: boolean;
+}) => {
+  const { data: playerData } = useReportPlayerData(report.playerId);
+  const overallRating = getOverallRating(report);
+  const recommendation = getRecommendation(report);
+
+  return (
+    <TableRow key={report.id}>
+      <TableCell className="font-medium">
+        {playerData?.name || `Player ID: ${report.playerId}`}
+      </TableCell>
+      <TableCell>{playerData?.club || 'Loading...'}</TableCell>
+      <TableCell>{playerData?.positions?.join(", ") || 'Loading...'}</TableCell>
+      <TableCell>{formatDate(report.createdAt)}</TableCell>
+      <TableCell>
+        <Badge variant={report.status === "submitted" ? "secondary" : "outline"}>
+          {report.status === "draft" ? "Draft" : "Submitted"}
+        </Badge>
+      </TableCell>
+      <TableCell>
+        {overallRating !== null && overallRating !== undefined ? (
+          <span className={`font-semibold text-base ${getRatingColor(overallRating)}`}>
+            {overallRating}
+          </span>
+        ) : (
+          <span className="text-muted-foreground text-sm">-</span>
+        )}
+      </TableCell>
+      <TableCell>
+        {recommendation ? (
+          <span className="text-slate-600 font-medium">
+            {recommendation}
+          </span>
+        ) : (
+          <span className="text-muted-foreground text-sm">-</span>
+        )}
+      </TableCell>
+      <TableCell>
+        {report.scoutProfile?.first_name || "Scout"}
+      </TableCell>
+      <TableCell className="text-right">
+        <div className="flex gap-2 justify-end">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => onViewReport(report.id)}
+            title="View report"
+          >
+            <Eye className="h-4 w-4" />
+          </Button>
+          {canEdit && onEditReport && (
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => onEditReport(report.id)}
+              title="Edit report"
+            >
+              <Edit className="h-4 w-4" />
+            </Button>
+          )}
+          {canEdit && (
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => onDeleteReport(report.id, playerData?.name || "Unknown")}
+              title="Delete report"
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          )}
+        </div>
+      </TableCell>
+    </TableRow>
+  );
+};
 
 const ReportsTable = ({ reports, onViewReport, onEditReport, onDeleteReport }: ReportsTableProps) => {
   const { user } = useAuth();
@@ -42,76 +124,16 @@ const ReportsTable = ({ reports, onViewReport, onEditReport, onDeleteReport }: R
         {reports.length > 0 ? (
           reports.map((report) => {
             const canEdit = user && report.scoutId === user.id;
-            const overallRating = getOverallRating(report);
-            const recommendation = getRecommendation(report);
 
             return (
-              <TableRow key={report.id}>
-                <TableCell className="font-medium">
-                  {report.player?.name || `Player ID: ${report.playerId}`}
-                </TableCell>
-                <TableCell>{report.player?.club || 'Loading...'}</TableCell>
-                <TableCell>{report.player?.positions?.join(", ") || 'Loading...'}</TableCell>
-                <TableCell>{formatDate(report.createdAt)}</TableCell>
-                <TableCell>
-                  <Badge variant={report.status === "submitted" ? "secondary" : "outline"}>
-                    {report.status === "draft" ? "Draft" : "Submitted"}
-                  </Badge>
-                </TableCell>
-                <TableCell>
-                  {overallRating !== null && overallRating !== undefined ? (
-                    <span className={`font-semibold text-base ${getRatingColor(overallRating)}`}>
-                      {overallRating}
-                    </span>
-                  ) : (
-                    <span className="text-muted-foreground text-sm">-</span>
-                  )}
-                </TableCell>
-                <TableCell>
-                  {recommendation ? (
-                    <span className="text-slate-600 font-medium">
-                      {recommendation}
-                    </span>
-                  ) : (
-                    <span className="text-muted-foreground text-sm">-</span>
-                  )}
-                </TableCell>
-                <TableCell>
-                  {report.scoutProfile?.first_name || "Scout"}
-                </TableCell>
-                <TableCell className="text-right">
-                  <div className="flex gap-2 justify-end">
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      onClick={() => onViewReport(report.id)}
-                      title="View report"
-                    >
-                      <Eye className="h-4 w-4" />
-                    </Button>
-                    {canEdit && onEditReport && (
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => onEditReport(report.id)}
-                        title="Edit report"
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                    )}
-                    {canEdit && (
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => onDeleteReport(report.id, report.player?.name || "Unknown")}
-                        title="Delete report"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    )}
-                  </div>
-                </TableCell>
-              </TableRow>
+              <ReportRow
+                key={report.id}
+                report={report}
+                onViewReport={onViewReport}
+                onEditReport={onEditReport}
+                onDeleteReport={onDeleteReport}
+                canEdit={canEdit}
+              />
             );
           })
         ) : (
