@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { Player } from "@/types/player";
 import { ReportTemplate, Report } from "@/types/report";
 import { useAuth } from "@/contexts/AuthContext";
@@ -19,6 +19,7 @@ interface LocationState {
 const ReportBuilder = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [player, setPlayer] = useState<Player | null>(null);
   const [template, setTemplate] = useState<ReportTemplate | null>(null);
   const [report, setReport] = useState<Report | null>(null);
@@ -29,40 +30,58 @@ const ReportBuilder = () => {
 
   const state = location.state as LocationState;
   
-  // Fetch player data if we have a selectedPlayerId but no player object
-  const { data: fetchedPlayer } = usePlayerData(state?.selectedPlayerId);
+  // Get playerId from URL parameters or state
+  const playerIdFromUrl = searchParams.get('playerId');
+  const assignmentId = searchParams.get('assignmentId');
+  const playerIdToFetch = playerIdFromUrl || state?.selectedPlayerId;
+  
+  // Fetch player data if we have a playerId
+  const { data: fetchedPlayer, isLoading: playerLoading } = usePlayerData(playerIdToFetch || undefined);
 
   useEffect(() => {
-    console.log('ReportBuilder useEffect - state:', state);
+    console.log('ReportBuilder useEffect - playerIdFromUrl:', playerIdFromUrl);
+    console.log('ReportBuilder useEffect - assignmentId:', assignmentId);
     console.log('ReportBuilder useEffect - fetchedPlayer:', fetchedPlayer);
+    console.log('ReportBuilder useEffect - state:', state);
     
-    // Get player and template from location state
+    // If both player and template are provided via state, initialize report immediately
     if (state?.player && state?.template) {
-      console.log('Both player and template provided');
+      console.log('Both player and template provided via state');
       setPlayer(state.player);
       setTemplate(state.template);
       const newReport = initializeReport(state.player, state.template);
       setReport(newReport);
-    } else if (state?.player) {
-      // Player provided, show template selection
-      console.log('Player provided, showing template selection');
+      return;
+    }
+
+    // If player is provided via state, show template selection
+    if (state?.player) {
+      console.log('Player provided via state, showing template selection');
       setPlayer(state.player);
       setShowTemplateSelection(true);
-    } else if (state?.selectedPlayerId && fetchedPlayer) {
-      // Player ID provided and player fetched - go directly to template selection
+      return;
+    }
+
+    // If we have a playerId (from URL or state) and player data is fetched
+    if (playerIdToFetch && fetchedPlayer) {
       console.log('Player fetched from ID, going to template selection');
       setPlayer(fetchedPlayer);
       setShowTemplateSelection(true);
-    } else if (state?.selectedPlayerId && !fetchedPlayer) {
-      // Wait for player to be fetched
+      return;
+    }
+
+    // If we have a playerId but player is still loading, wait
+    if (playerIdToFetch && playerLoading) {
       console.log('Waiting for player to be fetched');
       return;
-    } else {
-      // No data provided, show player selection
-      console.log('No data provided, showing player selection');
+    }
+
+    // If no player data is available, show player selection
+    if (!playerIdToFetch && !state?.player) {
+      console.log('No player data provided, showing player selection');
       setShowPlayerSearch(true);
     }
-  }, [state, fetchedPlayer, user, initializeReport]);
+  }, [state, fetchedPlayer, playerLoading, playerIdToFetch, initializeReport]);
 
   const handlePlayerSelect = (selectedPlayer: Player) => {
     setPlayer(selectedPlayer);
@@ -112,8 +131,17 @@ const ReportBuilder = () => {
     });
   };
 
-  // Show player search if no player selected and no selectedPlayerId
-  if (showPlayerSearch || (!player && !state?.selectedPlayerId)) {
+  // Show loading state while fetching player
+  if (playerIdToFetch && playerLoading) {
+    return (
+      <div className="container mx-auto py-8 flex items-center justify-center">
+        <p>Loading player information...</p>
+      </div>
+    );
+  }
+
+  // Show player search if no player is available and we're not loading
+  if (showPlayerSearch || (!player && !playerIdToFetch && !playerLoading)) {
     return (
       <PlayerSelectionScreen
         onSelectPlayer={handlePlayerSelect}
@@ -130,15 +158,6 @@ const ReportBuilder = () => {
         onSelectTemplate={handleTemplateSelect}
         onBack={() => navigate(-1)}
       />
-    );
-  }
-
-  // Loading state while fetching player
-  if (state?.selectedPlayerId && !player && !fetchedPlayer) {
-    return (
-      <div className="container mx-auto py-8 flex items-center justify-center">
-        <p>Loading player information...</p>
-      </div>
     );
   }
 
