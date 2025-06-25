@@ -62,25 +62,9 @@ export const useReportBuilder = () => {
     setIsSubmitting(true);
 
     try {
-      // Convert player ID to UUID format if it's a numeric ID from players_new table
-      let playerUUID = player.id;
-      
-      // If the player ID is numeric (from players_new table), we need to generate a UUID
-      // and potentially create a record in the players table
-      if (/^\d+$/.test(player.id)) {
-        console.log('Player ID is numeric, generating UUID for reports table');
-        playerUUID = generateUUID();
-        
-        // Note: In a real application, you'd want to either:
-        // 1. Create a mapping table between players_new.id and players.id
-        // 2. Or modify the reports table to accept the same ID type as players_new
-        // For now, we'll use a generated UUID but this means the report won't be properly linked
-        console.warn('Using generated UUID for player - this report will not be properly linked to the player');
-      }
-
       const reportData = {
         id: report.id,
-        playerId: playerUUID,
+        playerId: player.id, // Use player ID directly - reports table now accepts both UUID and numeric IDs
         templateId: template?.id || "",
         status,
         sections: report.sections,
