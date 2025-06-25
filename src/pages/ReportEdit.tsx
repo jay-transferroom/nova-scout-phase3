@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import ReportEditSection from "@/components/ReportEditSection";
 import { useReportEdit } from "@/hooks/useReportEdit";
+import { useReportPlayerData } from "@/hooks/useReportPlayerData";
 import { DEFAULT_TEMPLATES } from "@/data/defaultTemplates";
 
 const ReportEdit = () => {
@@ -20,6 +21,10 @@ const ReportEdit = () => {
   const [template, setTemplate] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [playerId, setPlayerId] = useState<string>("");
+  
+  // Fetch player data separately
+  const { data: playerData, isLoading: playerLoading } = useReportPlayerData(playerId);
   
   useEffect(() => {
     if (!id || !user) return;
@@ -33,7 +38,6 @@ const ReportEdit = () => {
           .from('reports')
           .select(`
             *,
-            player:players(*),
             scout_profile:profiles(*)
           `)
           .eq('id', id)
@@ -55,6 +59,9 @@ const ReportEdit = () => {
           setError('You can only edit your own reports');
           return;
         }
+
+        // Set the player ID to fetch player data
+        setPlayerId(data.player_id);
 
         // Try to fetch template from database first
         const { data: templateData, error: templateError } = await supabase
@@ -89,8 +96,8 @@ const ReportEdit = () => {
 
         setTemplate(templateToUse);
 
-        // Transform the data to match our ReportWithPlayer interface
-        const transformedReport: ReportWithPlayer = {
+        // Store the report data without player info for now
+        const reportWithoutPlayer = {
           id: data.id,
           playerId: data.player_id,
           templateId: data.template_id,
@@ -102,20 +109,6 @@ const ReportEdit = () => {
           matchContext: typeof data.match_context === 'string' ? JSON.parse(data.match_context) : data.match_context,
           tags: data.tags || [],
           flaggedForReview: data.flagged_for_review || false,
-          player: {
-            id: data.player.id,
-            name: data.player.name,
-            club: data.player.club,
-            age: data.player.age,
-            dateOfBirth: data.player.date_of_birth,
-            positions: data.player.positions,
-            dominantFoot: data.player.dominant_foot as 'Left' | 'Right' | 'Both',
-            nationality: data.player.nationality,
-            contractStatus: data.player.contract_status as 'Free Agent' | 'Under Contract' | 'Loan' | 'Youth Contract',
-            contractExpiry: data.player.contract_expiry,
-            region: data.player.region,
-            image: data.player.image_url,
-          },
           scoutProfile: data.scout_profile ? {
             id: data.scout_profile.id,
             first_name: data.scout_profile.first_name,
@@ -125,7 +118,8 @@ const ReportEdit = () => {
           } : undefined,
         };
 
-        setReport(transformedReport);
+        // We'll set the full report once player data is loaded
+        setReport({ ...reportWithoutPlayer, player: null } as any);
       } catch (err) {
         console.error('Error in fetchReport:', err);
         setError('An error occurred while loading the report');
@@ -137,6 +131,13 @@ const ReportEdit = () => {
     fetchReport();
   }, [id, user]);
 
+  // Update report with player data when it's available
+  useEffect(() => {
+    if (report && playerData && !report.player) {
+      setReport(prev => prev ? { ...prev, player: playerData } : null);
+    }
+  }, [report, playerData]);
+
   const onSectionUpdate = (updatedSection: any) => {
     const updatedReport = handleSectionUpdate(report, updatedSection);
     if (updatedReport) {
@@ -144,7 +145,7 @@ const ReportEdit = () => {
     }
   };
 
-  if (loading) {
+  if (loading || playerLoading) {
     return (
       <div className="container mx-auto py-8 flex items-center justify-center">
         <p>Loading report...</p>
@@ -165,7 +166,7 @@ const ReportEdit = () => {
     );
   }
   
-  if (!report) {
+  if (!report || !report.player) {
     return (
       <div className="container mx-auto py-8 flex items-center justify-center">
         <div className="text-center">

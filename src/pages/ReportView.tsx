@@ -8,6 +8,7 @@ import { ArrowLeft, Edit, Download, Flag, Calendar, MapPin } from "lucide-react"
 import { ReportWithPlayer } from "@/types/report";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useReportPlayerData } from "@/hooks/useReportPlayerData";
 import { extractReportDataForDisplay } from "@/utils/reportDataExtraction";
 import { formatReportDate, formatReportTime } from "@/utils/reportFormatting";
 import { DEFAULT_TEMPLATES } from "@/data/defaultTemplates";
@@ -20,6 +21,10 @@ const ReportView = () => {
   const [template, setTemplate] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [playerId, setPlayerId] = useState<string>("");
+
+  // Fetch player data separately
+  const { data: playerData, isLoading: playerLoading } = useReportPlayerData(playerId);
 
   useEffect(() => {
     // If the ID is "new", redirect to report builder
@@ -41,7 +46,6 @@ const ReportView = () => {
           .from('reports')
           .select(`
             *,
-            player:players(*),
             scout_profile:profiles(*)
           `)
           .eq('id', id)
@@ -57,6 +61,9 @@ const ReportView = () => {
           setError('Report not found');
           return;
         }
+
+        // Set the player ID to fetch player data
+        setPlayerId(data.player_id);
 
         // Try to fetch template from database first
         const { data: templateData, error: templateError } = await supabase
@@ -91,8 +98,8 @@ const ReportView = () => {
 
         setTemplate(templateToUse);
 
-        // Transform the data to match our ReportWithPlayer interface
-        const transformedReport: ReportWithPlayer = {
+        // Store the report data without player info for now
+        const reportWithoutPlayer = {
           id: data.id,
           playerId: data.player_id,
           templateId: data.template_id,
@@ -104,20 +111,6 @@ const ReportView = () => {
           matchContext: typeof data.match_context === 'string' ? JSON.parse(data.match_context) : data.match_context,
           tags: data.tags || [],
           flaggedForReview: data.flagged_for_review || false,
-          player: {
-            id: data.player.id,
-            name: data.player.name,
-            club: data.player.club,
-            age: data.player.age,
-            dateOfBirth: data.player.date_of_birth,
-            positions: data.player.positions,
-            dominantFoot: data.player.dominant_foot as 'Left' | 'Right' | 'Both',
-            nationality: data.player.nationality,
-            contractStatus: data.player.contract_status as 'Free Agent' | 'Under Contract' | 'Loan' | 'Youth Contract',
-            contractExpiry: data.player.contract_expiry,
-            region: data.player.region,
-            image: data.player.image_url,
-          },
           scoutProfile: data.scout_profile ? {
             id: data.scout_profile.id,
             first_name: data.scout_profile.first_name,
@@ -127,7 +120,8 @@ const ReportView = () => {
           } : undefined,
         };
 
-        setReport(transformedReport);
+        // We'll set the full report once player data is loaded
+        setReport({ ...reportWithoutPlayer, player: null } as any);
       } catch (err) {
         console.error('Error in fetchReport:', err);
         setError('An error occurred while loading the report');
@@ -139,7 +133,14 @@ const ReportView = () => {
     fetchReport();
   }, [id, user, navigate]);
 
-  if (loading) {
+  // Update report with player data when it's available
+  useEffect(() => {
+    if (report && playerData && !report.player) {
+      setReport(prev => prev ? { ...prev, player: playerData } : null);
+    }
+  }, [report, playerData]);
+
+  if (loading || playerLoading) {
     return (
       <div className="container mx-auto py-8 flex items-center justify-center">
         <p>Loading report...</p>
@@ -160,7 +161,7 @@ const ReportView = () => {
     );
   }
   
-  if (!report) {
+  if (!report || !report.player) {
     return (
       <div className="container mx-auto py-8 flex items-center justify-center">
         <div className="text-center">
