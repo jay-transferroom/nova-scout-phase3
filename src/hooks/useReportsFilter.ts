@@ -1,19 +1,25 @@
 
 import { useMemo } from 'react';
 import { ReportWithPlayer } from '@/types/report';
+import { useAuth } from '@/contexts/AuthContext';
 
 export const useReportsFilter = (reports: ReportWithPlayer[], activeTab: string) => {
+  const { user } = useAuth();
+  
   const filteredReports = useMemo(() => {
     return reports.filter(report => {
       if (activeTab === "my-reports") {
-        return report.status === "submitted";
+        // Show submitted reports by the current user
+        return report.status === "submitted" && report.scoutId === user?.id;
       } else if (activeTab === "my-drafts") {
-        return report.status === "draft";
+        // Show draft reports by the current user
+        return report.status === "draft" && report.scoutId === user?.id;
       } else {
-        return true; // "all-reports" tab
+        // "all-reports" tab - show all reports the user has access to
+        return true;
       }
     });
-  }, [reports, activeTab]);
+  }, [reports, activeTab, user?.id]);
 
   return filteredReports;
 };
