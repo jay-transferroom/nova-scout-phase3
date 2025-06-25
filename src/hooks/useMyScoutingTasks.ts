@@ -20,6 +20,7 @@ export interface ScoutingAssignment {
     club: string;
     positions: string[];
     age: number;
+    imageUrl?: string;
   };
   assigned_to_scout?: {
     first_name?: string;
@@ -66,7 +67,7 @@ export const useMyScoutingTasks = () => {
           
           const { data: playerData, error: playerError } = await supabase
             .from('players_new')
-            .select('name, currentteam, parentteam, firstposition, secondposition, age')
+            .select('name, currentteam, parentteam, firstposition, secondposition, age, imageurl')
             .eq('id', playerIdNumber)
             .single();
 
@@ -80,7 +81,8 @@ export const useMyScoutingTasks = () => {
                 name: 'Unknown Player',
                 club: 'Unknown Club',
                 positions: ['Unknown'],
-                age: 0
+                age: 0,
+                imageUrl: undefined
               }
             };
           }
@@ -93,7 +95,8 @@ export const useMyScoutingTasks = () => {
               name: playerData.name,
               club: playerData.currentteam || playerData.parentteam || 'Unknown Club',
               positions: [playerData.firstposition, playerData.secondposition].filter(Boolean) as string[],
-              age: playerData.age || 0
+              age: playerData.age || 0,
+              imageUrl: playerData.imageurl || undefined
             }
           };
         })

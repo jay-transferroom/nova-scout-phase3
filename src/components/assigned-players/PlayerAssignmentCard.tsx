@@ -20,6 +20,7 @@ interface Assignment {
     club: string;
     positions: string[];
     age: number;
+    imageUrl?: string;
   };
 }
 
@@ -76,7 +77,7 @@ const PlayerAssignmentCard = ({ assignment }: PlayerAssignmentCardProps) => {
     <Card className="p-6">
       <div className="flex items-start gap-4 mb-4">
         <Avatar className="h-12 w-12">
-          <AvatarImage src={`https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=48&h=48&fit=crop&crop=face`} />
+          <AvatarImage src={assignment.players?.imageUrl || undefined} />
           <AvatarFallback>
             {assignment.players?.name.split(' ').map(n => n[0]).join('')}
           </AvatarFallback>
