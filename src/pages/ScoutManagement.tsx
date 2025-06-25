@@ -210,15 +210,7 @@ const ScoutManagement = () => {
 
             {player.status === 'unassigned' && (
               <div className="mt-3">
-                <AssignPlayerDialog 
-                  onAssignmentCreated={handleAssignmentCreated}
-                  trigger={
-                    <Button size="sm" className="w-full">
-                      <UserPlus className="h-3 w-3 mr-1" />
-                      Assign Scout
-                    </Button>
-                  }
-                />
+                <AssignPlayerDialog onAssignmentCreated={handleAssignmentCreated} />
               </div>
             )}
           </div>
