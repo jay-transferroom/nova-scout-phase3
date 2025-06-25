@@ -30,13 +30,6 @@ const ReportField = ({ field, value, notes, onChange }: ReportFieldProps) => {
     onChange(value, newNotes);
   };
 
-  console.log(`ReportField for ${field.id}:`, { 
-    fieldType: field.type, 
-    ratingSystem: field.ratingSystem,
-    value: value,
-    label: field.label 
-  });
-
   return (
     <div className="space-y-2">
       <div className="flex justify-between items-baseline">
@@ -110,7 +103,6 @@ const ReportField = ({ field, value, notes, onChange }: ReportFieldProps) => {
 
         {field.type === "rating" && (
           (() => {
-            // Only process rating system for actual rating fields
             const ratingSystem = field.ratingSystem || DEFAULT_RATING_SYSTEMS['numeric-1-10'];
             
             if (!ratingSystem) {

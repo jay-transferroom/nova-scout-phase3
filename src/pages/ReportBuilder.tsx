@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from "react";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { Player } from "@/types/player";
@@ -96,14 +97,13 @@ const ReportBuilder = () => {
     setReport(newReport);
   };
 
+  // Fixed: Remove report dependency to prevent infinite loop
   const handleFieldChange = useCallback((
     sectionId: string,
     fieldId: string,
     value: any,
     notes?: string
   ) => {
-    if (!report) return;
-
     setReport((prevReport) => {
       if (!prevReport) return null;
 
@@ -132,7 +132,7 @@ const ReportBuilder = () => {
         sections: updatedSections,
       };
     });
-  }, [report]);
+  }, []); // Empty dependency array to prevent infinite loop
 
   // Show loading state while fetching player
   if (playerIdToFetch && playerLoading) {
