@@ -27,7 +27,16 @@ const ReportField = ({ field, value, notes, onChange }: ReportFieldProps) => {
   
   const handleNotesChange = (newNotes: string) => {
     setFieldNotes(newNotes);
-    onChange(value, newNotes);
+    // Don't call onChange here, just update local state
+  };
+
+  const handleValueChange = (newValue: any) => {
+    onChange(newValue, fieldNotes);
+  };
+
+  const handleNotesBlur = () => {
+    // Only update notes when user finishes editing
+    onChange(value, fieldNotes);
   };
 
   console.log(`ReportField for ${field.id}:`, { 
@@ -54,7 +63,7 @@ const ReportField = ({ field, value, notes, onChange }: ReportFieldProps) => {
           <Textarea
             id={field.id}
             value={value || ""}
-            onChange={(e) => onChange(e.target.value, fieldNotes)}
+            onChange={(e) => handleValueChange(e.target.value)}
             placeholder={`Enter ${field.label.toLowerCase()}`}
             className="resize-none"
           />
@@ -65,7 +74,7 @@ const ReportField = ({ field, value, notes, onChange }: ReportFieldProps) => {
             id={field.id}
             type="number"
             value={value || ""}
-            onChange={(e) => onChange(Number(e.target.value), fieldNotes)}
+            onChange={(e) => handleValueChange(Number(e.target.value))}
             placeholder={`Enter ${field.label.toLowerCase()}`}
           />
         )}
@@ -73,7 +82,7 @@ const ReportField = ({ field, value, notes, onChange }: ReportFieldProps) => {
         {field.type === "dropdown" && field.options && (
           <Select
             value={value || ""}
-            onValueChange={(newValue) => onChange(newValue, fieldNotes)}
+            onValueChange={(newValue) => handleValueChange(newValue)}
           >
             <SelectTrigger className="bg-background">
               <SelectValue placeholder={`Select ${field.label.toLowerCase()}`} />
@@ -97,7 +106,7 @@ const ReportField = ({ field, value, notes, onChange }: ReportFieldProps) => {
             <Checkbox
               id={field.id}
               checked={value || false}
-              onCheckedChange={(checked) => onChange(checked, fieldNotes)}
+              onCheckedChange={(checked) => handleValueChange(checked)}
             />
             <label
               htmlFor={field.id}
@@ -126,7 +135,7 @@ const ReportField = ({ field, value, notes, onChange }: ReportFieldProps) => {
                 id={field.id}
                 ratingSystem={ratingSystem}
                 value={value}
-                onChange={(newValue) => onChange(newValue, fieldNotes)}
+                onChange={(newValue) => handleValueChange(newValue)}
               />
             );
           })()
@@ -142,6 +151,7 @@ const ReportField = ({ field, value, notes, onChange }: ReportFieldProps) => {
             id={`${field.id}-notes`}
             value={fieldNotes}
             onChange={(e) => handleNotesChange(e.target.value)}
+            onBlur={handleNotesBlur}
             placeholder="Add any additional notes here..."
             className="resize-none text-sm h-20"
           />
