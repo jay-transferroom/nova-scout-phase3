@@ -18,7 +18,7 @@ export const useScoutUsers = () => {
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
-        .eq('role', 'scout')
+        .in('role', ['scout', 'recruitment'])
         .order('first_name');
 
       if (error) {

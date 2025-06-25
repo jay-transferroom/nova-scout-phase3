@@ -17,7 +17,7 @@ export const useScouts = () => {
       const { data, error } = await supabase
         .from('profiles')
         .select('id, first_name, last_name, email, role')
-        .eq('role', 'scout');
+        .in('role', ['scout', 'recruitment']);
 
       if (error) {
         console.error('Error fetching scouts:', error);
