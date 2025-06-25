@@ -34,10 +34,15 @@ export const useReports = () => {
       if (error) throw error;
 
       console.log('Raw reports data from database:', data);
+      console.log('Current user ID:', user.id);
+      console.log('User profile role:', profile?.role);
 
       // Transform the data to match our ReportWithPlayer interface
       const transformedReports: ReportWithPlayer[] = (data || []).map((report: any) => {
         console.log(`Processing report ${report.id}:`, {
+          scoutId: report.scout_id,
+          status: report.status,
+          playerId: report.player_id,
           sections: report.sections,
           sectionsType: typeof report.sections,
           isArray: Array.isArray(report.sections)
@@ -73,6 +78,12 @@ export const useReports = () => {
       });
 
       console.log('Final transformed reports:', transformedReports);
+      console.log('Reports by status:', {
+        submitted: transformedReports.filter(r => r.status === 'submitted').length,
+        draft: transformedReports.filter(r => r.status === 'draft').length,
+        total: transformedReports.length
+      });
+      
       setReports(transformedReports);
     } catch (error) {
       console.error('Error fetching reports:', error);
