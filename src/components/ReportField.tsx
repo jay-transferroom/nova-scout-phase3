@@ -13,6 +13,7 @@ import {
   SelectValue
 } from "@/components/ui/select";
 import RatingInput from "@/components/RatingInput";
+import { DEFAULT_RATING_SYSTEMS } from "@/types/report";
 
 interface ReportFieldProps {
   field: ReportFieldType;
@@ -31,10 +32,25 @@ const ReportField = ({ field, value, notes, onChange }: ReportFieldProps) => {
 
   console.log(`ReportField for ${field.id}:`, { 
     fieldType: field.type, 
-    options: field.options, 
+    ratingSystem: field.ratingSystem,
     value: value,
     label: field.label 
   });
+
+  // Ensure we have a valid rating system for rating fields
+  const getRatingSystem = () => {
+    if (field.type === 'rating') {
+      if (field.ratingSystem) {
+        return field.ratingSystem;
+      }
+      // Fallback to default 1-10 rating system
+      console.log('Using fallback rating system for field:', field.id);
+      return DEFAULT_RATING_SYSTEMS['numeric-1-10'];
+    }
+    return null;
+  };
+
+  const ratingSystem = getRatingSystem();
 
   return (
     <div className="space-y-2">
@@ -107,13 +123,19 @@ const ReportField = ({ field, value, notes, onChange }: ReportFieldProps) => {
           </div>
         )}
 
-        {field.type === "rating" && field.ratingSystem && (
+        {field.type === "rating" && ratingSystem && (
           <RatingInput
             id={field.id}
-            ratingSystem={field.ratingSystem}
+            ratingSystem={ratingSystem}
             value={value}
             onChange={(newValue) => onChange(newValue, fieldNotes)}
           />
+        )}
+
+        {field.type === "rating" && !ratingSystem && (
+          <div className="text-red-500 text-sm">
+            Rating system not configured for this field
+          </div>
         )}
       </div>
 

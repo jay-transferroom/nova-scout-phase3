@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Player } from "@/types/player";
-import { ReportTemplate, Report } from "@/types/report";
+import { ReportTemplate, Report, DEFAULT_RATING_SYSTEMS } from "@/types/report";
 import { useAuth } from "@/contexts/AuthContext";
 import { useReports } from "@/hooks/useReports";
 import { toast } from "sonner";
@@ -25,6 +25,25 @@ export const useReportBuilder = () => {
   const initializeReport = (selectedPlayer: Player, selectedTemplate: ReportTemplate): Report => {
     console.log('Initializing report with template:', selectedTemplate);
     
+    // Ensure all rating fields have proper rating systems
+    const processedSections = selectedTemplate.sections.map((section) => ({
+      sectionId: section.id,
+      fields: section.fields.map((field) => {
+        let initialValue = null;
+        
+        // For rating fields, ensure they have a rating system
+        if (field.type === 'rating' && !field.ratingSystem) {
+          console.log(`Adding default rating system to field: ${field.id}`);
+          // This will be handled in the ReportField component with fallback
+        }
+        
+        return {
+          fieldId: field.id,
+          value: initialValue,
+        };
+      }),
+    }));
+    
     return {
       id: generateUUID(),
       playerId: selectedPlayer.id,
@@ -33,13 +52,7 @@ export const useReportBuilder = () => {
       createdAt: new Date(),
       updatedAt: new Date(),
       status: "draft",
-      sections: selectedTemplate.sections.map((section) => ({
-        sectionId: section.id,
-        fields: section.fields.map((field) => ({
-          fieldId: field.id,
-          value: null,
-        })),
-      })),
+      sections: processedSections,
     };
   };
 
