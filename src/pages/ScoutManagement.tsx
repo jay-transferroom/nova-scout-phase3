@@ -39,33 +39,34 @@ const ScoutManagement = () => {
     // Get assigned player IDs
     const assignedPlayerIds = new Set(assignments.map(a => a.player_id));
 
-    // Show ALL shortlisted players (using first 25 players as shortlist)
-    const shortlistedPlayers = allPlayers
+    // Show ONLY unassigned shortlisted players (using first 25 players as shortlist, filtered to unassigned only)
+    const unassignedShortlistedPlayers = allPlayers
       .slice(0, 25)
+      .filter(player => !assignedPlayerIds.has(player.id.toString())) // Only unassigned players
       .map(player => ({
         id: `shortlisted-${player.id}`,
         playerName: player.name,
         club: player.club,
         position: player.positions?.[0] || 'Unknown',
         rating: player.transferroomRating?.toFixed(1) || 'N/A',
-        assignedTo: assignedPlayerIds.has(player.id.toString()) ? 'Assigned' : 'Unassigned',
-        updatedAt: assignedPlayerIds.has(player.id.toString()) ? 'Assigned to scout' : 'Available for assignment',
-        lastStatusChange: assignedPlayerIds.has(player.id.toString()) ? 'Assigned to scout' : 'Available for assignment',
+        assignedTo: 'Unassigned',
+        updatedAt: 'Available for assignment',
+        lastStatusChange: 'Available for assignment',
         avatar: player.image || `https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=48&h=48&fit=crop&crop=face&auto=format`,
         priority: null,
         deadline: null,
         scoutId: null,
-        status: assignedPlayerIds.has(player.id.toString()) ? 'assigned' : 'shortlisted',
+        status: 'shortlisted',
         playerId: player.id.toString()
       }));
 
     // Apply search filter to shortlisted players
     const filteredShortlisted = searchTerm 
-      ? shortlistedPlayers.filter(player => 
+      ? unassignedShortlistedPlayers.filter(player => 
           player.playerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
           player.club.toLowerCase().includes(searchTerm.toLowerCase())
         )
-      : shortlistedPlayers;
+      : unassignedShortlistedPlayers;
 
     newKanbanData.shortlisted = filteredShortlisted;
 
