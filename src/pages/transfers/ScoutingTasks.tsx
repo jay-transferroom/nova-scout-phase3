@@ -199,7 +199,7 @@ const ScoutingTasks = () => {
                         </Button>
                       )}
                       
-                      <Link to={`/reports/new?playerId=${task.player_id}&assignmentId=${task.id}`}>
+                      <Link to={`/report-builder?playerId=${task.player_id}&assignmentId=${task.id}`}>
                         <Button variant="outline" size="sm" className="flex items-center gap-1">
                           <FileText className="h-3 w-3" />
                           <span>Scout</span>

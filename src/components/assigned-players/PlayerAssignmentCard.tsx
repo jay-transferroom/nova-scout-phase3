@@ -139,7 +139,7 @@ const PlayerAssignmentCard = ({ assignment }: PlayerAssignmentCardProps) => {
 
       <div className="flex gap-2">
         {assignment.status !== 'completed' && assignment.status !== 'reviewed' ? (
-          <Link to={`/reports/new?playerId=${assignment.player_id}&assignmentId=${assignment.id}`} className="flex-1">
+          <Link to={`/report-builder?playerId=${assignment.player_id}&assignmentId=${assignment.id}`} className="flex-1">
             <Button className="w-full">
               <FileText className="h-4 w-4 mr-2" />
               Write Report
