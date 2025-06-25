@@ -23,6 +23,7 @@ const ReportBuilder = () => {
   const [player, setPlayer] = useState<Player | null>(null);
   const [template, setTemplate] = useState<ReportTemplate | null>(null);
   const [report, setReport] = useState<Report | null>(null);
+  const [initialized, setInitialized] = useState(false);
   const [showPlayerSearch, setShowPlayerSearch] = useState(false);
   const [showTemplateSelection, setShowTemplateSelection] = useState(false);
   const { user } = useAuth();
@@ -38,66 +39,71 @@ const ReportBuilder = () => {
   // Fetch player data if we have a playerId
   const { data: fetchedPlayer, isLoading: playerLoading } = usePlayerData(playerIdToFetch || undefined);
 
+  // Initialize the component state only once
   useEffect(() => {
-    console.log('ReportBuilder useEffect - playerIdFromUrl:', playerIdFromUrl);
-    console.log('ReportBuilder useEffect - assignmentId:', assignmentId);
-    console.log('ReportBuilder useEffect - fetchedPlayer:', fetchedPlayer);
-    console.log('ReportBuilder useEffect - state:', state);
+    if (initialized) return;
+
+    console.log('ReportBuilder initializing once...');
     
-    // If both player and template are provided via state, initialize report immediately
+    // Case 1: Both player and template provided via state
     if (state?.player && state?.template) {
       console.log('Both player and template provided via state');
       setPlayer(state.player);
       setTemplate(state.template);
       const newReport = initializeReport(state.player, state.template);
       setReport(newReport);
+      setInitialized(true);
       return;
     }
 
-    // If player is provided via state, show template selection
+    // Case 2: Only player provided via state
     if (state?.player) {
       console.log('Player provided via state, showing template selection');
       setPlayer(state.player);
       setShowTemplateSelection(true);
+      setInitialized(true);
       return;
     }
 
-    // If we have a playerId (from URL or state) and player data is fetched
+    // Case 3: Player fetched from URL/state ID
     if (playerIdToFetch && fetchedPlayer) {
       console.log('Player fetched from ID, going to template selection');
       setPlayer(fetchedPlayer);
       setShowTemplateSelection(true);
+      setInitialized(true);
       return;
     }
 
-    // If we have a playerId but player is still loading, wait
+    // Case 4: No player data available
+    if (!playerIdToFetch && !state?.player && !playerLoading) {
+      console.log('No player data provided, showing player selection');
+      setShowPlayerSearch(true);
+      setInitialized(true);
+      return;
+    }
+
+    // Case 5: Still loading player data
     if (playerIdToFetch && playerLoading) {
       console.log('Waiting for player to be fetched');
       return;
     }
 
-    // If no player data is available, show player selection
-    if (!playerIdToFetch && !state?.player) {
-      console.log('No player data provided, showing player selection');
-      setShowPlayerSearch(true);
-    }
-  }, [state, fetchedPlayer, playerLoading, playerIdToFetch, initializeReport]);
+  }, [state, fetchedPlayer, playerLoading, playerIdToFetch, initializeReport, initialized]);
 
-  const handlePlayerSelect = (selectedPlayer: Player) => {
+  const handlePlayerSelect = useCallback((selectedPlayer: Player) => {
     setPlayer(selectedPlayer);
     setShowPlayerSearch(false);
     setShowTemplateSelection(true);
-  };
+  }, []);
 
-  const handleTemplateSelect = (selectedPlayer: Player, selectedTemplate: ReportTemplate) => {
+  const handleTemplateSelect = useCallback((selectedPlayer: Player, selectedTemplate: ReportTemplate) => {
     console.log('Template selected:', selectedTemplate);
     setTemplate(selectedTemplate);
     setShowTemplateSelection(false);
     const newReport = initializeReport(selectedPlayer, selectedTemplate);
     setReport(newReport);
-  };
+  }, [initializeReport]);
 
-  // Fixed: Remove report dependency to prevent infinite loop
   const handleFieldChange = useCallback((
     sectionId: string,
     fieldId: string,
@@ -132,7 +138,7 @@ const ReportBuilder = () => {
         sections: updatedSections,
       };
     });
-  }, []); // Empty dependency array to prevent infinite loop
+  }, []);
 
   // Show loading state while fetching player
   if (playerIdToFetch && playerLoading) {
@@ -143,8 +149,8 @@ const ReportBuilder = () => {
     );
   }
 
-  // Show player search if no player is available and we're not loading
-  if (showPlayerSearch || (!player && !playerIdToFetch && !playerLoading)) {
+  // Show player search if no player is available
+  if (showPlayerSearch) {
     return (
       <PlayerSelectionScreen
         onSelectPlayer={handlePlayerSelect}
@@ -154,7 +160,7 @@ const ReportBuilder = () => {
   }
 
   // Show template selection if we have a player but no template
-  if ((showTemplateSelection && player) || (player && !template)) {
+  if (showTemplateSelection && player) {
     return (
       <TemplateSelectionScreen
         player={player}
@@ -164,7 +170,8 @@ const ReportBuilder = () => {
     );
   }
 
-  if (!report) {
+  // Show loading while initializing
+  if (!initialized || !report || !player) {
     return (
       <div className="container mx-auto py-8 flex items-center justify-center">
         <p>Loading report builder...</p>
@@ -174,13 +181,13 @@ const ReportBuilder = () => {
 
   return (
     <ReportForm
-      player={player!}
+      player={player}
       template={template}
       report={report}
       isSubmitting={isSubmitting}
       onFieldChange={handleFieldChange}
-      onSaveDraft={() => handleSaveReport(report, player!, template, "draft")}
-      onSubmitReport={() => handleSaveReport(report, player!, template, "submitted")}
+      onSaveDraft={() => handleSaveReport(report, player, template, "draft")}
+      onSubmitReport={() => handleSaveReport(report, player, template, "submitted")}
       onBack={() => navigate("/")}
       onManageTemplates={() => navigate("/admin/templates")}
     />
