@@ -1,0 +1,81 @@
+
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { Clock, UserPlus } from "lucide-react";
+
+interface PlayerCardProps {
+  player: any;
+  onAssignScout?: (player: any) => void;
+}
+
+const PlayerCard = ({ player, onAssignScout }: PlayerCardProps) => {
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'shortlisted': return 'bg-gray-100 border-gray-200';
+      case 'assigned': return 'bg-orange-100 border-orange-200';
+      case 'in_progress': return 'bg-orange-100 border-orange-200';
+      case 'completed': return 'bg-green-100 border-green-200';
+      default: return 'bg-gray-100 border-gray-200';
+    }
+  };
+
+  return (
+    <Card className={`mb-3 hover:shadow-md transition-all duration-200 border-2 ${getStatusColor(player.status)}`}>
+      <CardContent className="p-4">
+        <div className="flex items-start gap-3">
+          <Avatar className="h-10 w-10">
+            <AvatarImage src={player.avatar} alt={player.playerName} />
+            <AvatarFallback>{player.playerName.split(' ').map((n: string) => n[0]).join('')}</AvatarFallback>
+          </Avatar>
+          
+          <div className="flex-1 min-w-0">
+            <h4 className="font-medium text-sm truncate">{player.playerName}</h4>
+            <p className="text-xs text-muted-foreground truncate">{player.club}</p>
+            <p className="text-xs text-muted-foreground mt-1">{player.position}</p>
+            
+            {player.rating && player.rating !== 'N/A' && (
+              <div className="flex items-center justify-end mt-2">
+                <span className="text-lg font-bold text-primary">{player.rating}</span>
+              </div>
+            )}
+            
+            <div className="mt-3 space-y-1">
+              <p className="text-xs text-muted-foreground">
+                {player.status === 'shortlisted' ? 'Available for assignment' : `Assigned to ${player.assignedTo}`}
+              </p>
+              <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                <Clock className="h-3 w-3" />
+                <span>{player.lastStatusChange}</span>
+              </div>
+              {player.priority && (
+                <Badge 
+                  variant={player.priority === 'High' ? 'destructive' : player.priority === 'Medium' ? 'default' : 'secondary'}
+                  className="text-xs"
+                >
+                  {player.priority}
+                </Badge>
+              )}
+            </div>
+
+            {player.status === 'shortlisted' && onAssignScout && (
+              <div className="mt-3">
+                <Button 
+                  size="sm" 
+                  className="w-full"
+                  onClick={() => onAssignScout(player)}
+                >
+                  <UserPlus className="h-3 w-3 mr-1" />
+                  Assign Scout
+                </Button>
+              </div>
+            )}
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
+
+export default PlayerCard;
