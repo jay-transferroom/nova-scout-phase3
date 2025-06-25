@@ -1,5 +1,4 @@
 
-import { useState, useEffect } from "react";
 import { ReportField as ReportFieldType } from "@/types/report";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -23,24 +22,12 @@ interface ReportFieldProps {
 }
 
 const ReportField = ({ field, value, notes, onChange }: ReportFieldProps) => {
-  const [localNotes, setLocalNotes] = useState<string>(notes || "");
-  
-  // Sync local notes with prop changes
-  useEffect(() => {
-    setLocalNotes(notes || "");
-  }, [notes]);
+  const handleValueChange = (newValue: any) => {
+    onChange(newValue, notes);
+  };
 
   const handleNotesChange = (newNotes: string) => {
-    setLocalNotes(newNotes);
-  };
-
-  const handleValueChange = (newValue: any) => {
-    onChange(newValue, localNotes);
-  };
-
-  const handleNotesBlur = () => {
-    // Only update notes when user finishes editing
-    onChange(value, localNotes);
+    onChange(value, newNotes);
   };
 
   console.log(`ReportField for ${field.id}:`, { 
@@ -153,9 +140,8 @@ const ReportField = ({ field, value, notes, onChange }: ReportFieldProps) => {
           </Label>
           <Textarea
             id={`${field.id}-notes`}
-            value={localNotes}
+            value={notes || ""}
             onChange={(e) => handleNotesChange(e.target.value)}
-            onBlur={handleNotesBlur}
             placeholder="Add any additional notes here..."
             className="resize-none text-sm h-20"
           />

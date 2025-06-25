@@ -1,5 +1,4 @@
-
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { Player } from "@/types/player";
 import { ReportTemplate, Report } from "@/types/report";
@@ -97,7 +96,7 @@ const ReportBuilder = () => {
     setReport(newReport);
   };
 
-  const handleFieldChange = (
+  const handleFieldChange = useCallback((
     sectionId: string,
     fieldId: string,
     value: any,
@@ -108,28 +107,32 @@ const ReportBuilder = () => {
     setReport((prevReport) => {
       if (!prevReport) return null;
 
+      const updatedSections = prevReport.sections.map((section) => {
+        if (section.sectionId !== sectionId) return section;
+
+        const updatedFields = section.fields.map((field) => {
+          if (field.fieldId !== fieldId) return field;
+
+          return {
+            ...field,
+            value,
+            notes,
+          };
+        });
+
+        return {
+          ...section,
+          fields: updatedFields,
+        };
+      });
+
       return {
         ...prevReport,
         updatedAt: new Date(),
-        sections: prevReport.sections.map((section) => {
-          if (section.sectionId !== sectionId) return section;
-
-          return {
-            ...section,
-            fields: section.fields.map((field) => {
-              if (field.fieldId !== fieldId) return field;
-
-              return {
-                ...field,
-                value,
-                notes,
-              };
-            }),
-          };
-        }),
+        sections: updatedSections,
       };
     });
-  };
+  }, [report]);
 
   // Show loading state while fetching player
   if (playerIdToFetch && playerLoading) {
