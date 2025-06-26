@@ -1,4 +1,3 @@
-
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -151,10 +150,12 @@ const PlayerAssignmentCard = ({ assignment }: PlayerAssignmentCardProps) => {
             View Report
           </Button>
         )}
-        <Button variant="outline">
-          <User className="h-4 w-4 mr-2" />
-          Profile
-        </Button>
+        <Link to={`/player/${assignment.player_id}`}>
+          <Button variant="outline">
+            <User className="h-4 w-4 mr-2" />
+            Profile
+          </Button>
+        </Link>
       </div>
     </Card>
   );
