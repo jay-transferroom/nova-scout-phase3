@@ -13,6 +13,8 @@ export const usePlayerTracking = (playerId?: string) => {
     queryFn: async () => {
       if (!playerId || !user?.id) return false;
       
+      console.log('Checking tracking for player ID:', playerId, 'user ID:', user.id);
+      
       const { data, error } = await supabase
         .from('player_tracking')
         .select('id')
@@ -35,6 +37,8 @@ export const usePlayerTracking = (playerId?: string) => {
     mutationFn: async (playerIdToTrack: string) => {
       if (!user?.id) throw new Error('User not authenticated');
 
+      console.log('Tracking player:', playerIdToTrack, 'for user:', user.id);
+
       const { error } = await supabase
         .from('player_tracking')
         .insert({
@@ -42,7 +46,10 @@ export const usePlayerTracking = (playerId?: string) => {
           player_id: playerIdToTrack,
         });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error tracking player:', error);
+        throw error;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['player-tracking'] });
@@ -54,13 +61,18 @@ export const usePlayerTracking = (playerId?: string) => {
     mutationFn: async (playerIdToUntrack: string) => {
       if (!user?.id) throw new Error('User not authenticated');
 
+      console.log('Untracking player:', playerIdToUntrack, 'for user:', user.id);
+
       const { error } = await supabase
         .from('player_tracking')
         .delete()
         .eq('user_id', user.id)
         .eq('player_id', playerIdToUntrack);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error untracking player:', error);
+        throw error;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['player-tracking'] });

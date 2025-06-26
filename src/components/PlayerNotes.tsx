@@ -57,6 +57,13 @@ export const PlayerNotes = ({ playerId, playerName, open, onOpenChange }: Player
 
       if (notesError) {
         console.error('PlayerNotes - Error fetching notes:', notesError);
+        // If it's a UUID error, the notes table might not have data for this integer ID
+        // For now, we'll show empty state
+        if (notesError.code === '22P02') {
+          console.log('PlayerNotes - UUID format error, showing empty state for integer player ID:', playerId);
+          setNotes([]);
+          return;
+        }
         throw notesError;
       }
 
@@ -133,6 +140,17 @@ export const PlayerNotes = ({ playerId, playerName, open, onOpenChange }: Player
     try {
       console.log('PlayerNotes - Adding note for player:', playerId, 'by user:', user.id);
       
+      // For now, we'll show a message that notes are not available for this player type
+      // since the player_notes table expects UUID but we have integer IDs
+      toast({
+        title: "Feature Not Available",
+        description: "Notes are not available for this player profile type yet",
+        variant: "destructive",
+      });
+      return;
+
+      /* 
+      // This would be the code if we had proper UUID mapping:
       const { error } = await supabase
         .from('player_notes')
         .insert({
@@ -152,6 +170,7 @@ export const PlayerNotes = ({ playerId, playerName, open, onOpenChange }: Player
         title: "Success",
         description: "Note added successfully",
       });
+      */
     } catch (error) {
       console.error('PlayerNotes - Error in addNote:', error);
       toast({
