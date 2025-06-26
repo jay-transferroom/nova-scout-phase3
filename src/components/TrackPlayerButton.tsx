@@ -22,25 +22,9 @@ const TrackPlayerButton = ({ playerId, playerName }: TrackPlayerButtonProps) => 
     }
 
     if (isTracking) {
-      untrackPlayer(playerId, {
-        onSuccess: () => {
-          toast.success(`Stopped notifications for ${playerName}`);
-        },
-        onError: (error) => {
-          console.error('Error untracking player:', error);
-          toast.error("Failed to stop notifications");
-        },
-      });
+      untrackPlayer(playerId);
     } else {
-      trackPlayer(playerId, {
-        onSuccess: () => {
-          toast.success(`Now getting notifications for ${playerName} - you'll receive updates`);
-        },
-        onError: (error) => {
-          console.error('Error tracking player:', error);
-          toast.error("Failed to enable notifications");
-        },
-      });
+      trackPlayer(playerId);
     }
   };
 

@@ -2,6 +2,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "sonner";
 
 export const usePlayerTracking = (playerId?: string) => {
   const { user } = useAuth();
@@ -51,8 +52,14 @@ export const usePlayerTracking = (playerId?: string) => {
         throw error;
       }
     },
-    onSuccess: () => {
+    onSuccess: (_, playerIdToTrack) => {
       queryClient.invalidateQueries({ queryKey: ['player-tracking'] });
+      // Get player name from the context or pass it as a parameter
+      toast.success(`Now getting notifications for this player - you'll receive updates`);
+    },
+    onError: (error) => {
+      console.error('Error tracking player:', error);
+      toast.error("Failed to enable notifications");
     },
   });
 
@@ -74,8 +81,13 @@ export const usePlayerTracking = (playerId?: string) => {
         throw error;
       }
     },
-    onSuccess: () => {
+    onSuccess: (_, playerIdToUntrack) => {
       queryClient.invalidateQueries({ queryKey: ['player-tracking'] });
+      toast.success(`Stopped notifications for this player`);
+    },
+    onError: (error) => {
+      console.error('Error untracking player:', error);
+      toast.error("Failed to stop notifications");
     },
   });
 
