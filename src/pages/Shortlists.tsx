@@ -12,6 +12,7 @@ import { usePlayersData } from "@/hooks/usePlayersData";
 import { usePlayerAssignments } from "@/hooks/usePlayerAssignments";
 import AssignScoutDialog from "@/components/AssignScoutDialog";
 import { useQueryClient } from "@tanstack/react-query";
+import { Link } from "react-router-dom";
 
 const Shortlists = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -369,14 +370,15 @@ const Shortlists = () => {
                               Reassign Scout
                             </Button>
                           )}
-                          <Button 
-                            size="sm" 
-                            variant="outline"
-                            onClick={() => handleViewProfile(player.id.toString())}
-                          >
-                            <Eye className="h-4 w-4 mr-1" />
-                            View Profile
-                          </Button>
+                          <Link to={`/player/${player.id}`}>
+                            <Button 
+                              size="sm" 
+                              variant="outline"
+                            >
+                              <Eye className="h-4 w-4 mr-1" />
+                              View Profile
+                            </Button>
+                          </Link>
                           <Button size="sm" variant="outline">
                             <FileText className="h-4 w-4 mr-1" />
                             Report
