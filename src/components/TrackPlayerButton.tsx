@@ -30,9 +30,9 @@ const TrackPlayerButton = ({ playerId, playerName }: TrackPlayerButtonProps) => 
 
   if (isLoading) {
     return (
-      <Button variant="outline" disabled className="gap-2">
-        <Bell className="h-4 w-4" />
-        Notify Me
+      <Button variant="outline" disabled size="sm" className="gap-1">
+        <Bell className="h-3 w-3" />
+        Notify
       </Button>
     );
   }
@@ -42,17 +42,18 @@ const TrackPlayerButton = ({ playerId, playerName }: TrackPlayerButtonProps) => 
       variant={isTracking ? "default" : "outline"}
       onClick={handleToggleTracking}
       disabled={isTrackingPlayer || isUntrackingPlayer}
-      className="gap-2"
+      size="sm"
+      className="gap-1"
     >
       {isTracking ? (
         <>
-          <Bell className="h-4 w-4 fill-current" />
-          Notifications On
+          <Bell className="h-3 w-3 fill-current" />
+          On
         </>
       ) : (
         <>
-          <BellOff className="h-4 w-4" />
-          Notify Me
+          <BellOff className="h-3 w-3" />
+          Notify
         </>
       )}
     </Button>

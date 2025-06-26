@@ -44,85 +44,75 @@ export const PlayerHeader = ({
   };
 
   return (
-    <Card className="mb-8">
-      <CardContent className="p-8">
-        <div className="flex items-start gap-8">
+    <Card className="mb-4">
+      <CardContent className="p-4">
+        <div className="flex items-start gap-4">
           <div className="flex-shrink-0">
             {player.image ? (
               <img 
                 src={player.image} 
                 alt={player.name} 
-                className="w-32 h-32 rounded-full object-cover border-4 border-white shadow-lg" 
+                className="w-20 h-20 rounded-full object-cover border-2 border-white shadow-md" 
               />
             ) : (
-              <div className="w-32 h-32 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-4xl font-bold shadow-lg">
+              <div className="w-20 h-20 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-2xl font-bold shadow-md">
                 {player.name.split(' ').map(n => n[0]).join('').toUpperCase()}
               </div>
             )}
           </div>
           
-          <div className="flex-1">
-            <h1 className="text-4xl font-bold text-gray-900 mb-2">{player.name}</h1>
-            <p className="text-xl text-gray-600 mb-4">{player.club}</p>
+          <div className="flex-1 min-w-0">
+            <h1 className="text-2xl font-bold text-gray-900 mb-1">{player.name}</h1>
+            <p className="text-lg text-gray-600 mb-2">{player.club}</p>
             
-            <div className="flex flex-wrap gap-2 mb-4">
+            <div className="flex flex-wrap items-center gap-2 mb-2">
               {player.positions.map((position) => (
                 <span
                   key={position}
-                  className={`inline-flex items-center justify-center text-sm font-bold rounded-md px-3 py-1 text-white ${getPositionColor(position)}`}
+                  className={`inline-flex items-center justify-center text-xs font-bold rounded px-2 py-1 text-white ${getPositionColor(position)}`}
                 >
                   {position}
                 </span>
               ))}
-            </div>
-
-            <div className="flex items-center gap-4 text-sm text-gray-600 mb-4">
-              <div className="flex items-center gap-1">
-                <Calendar className="h-4 w-4" />
-                <span>{calculateAge(player.dateOfBirth)} years old</span>
+              
+              <div className="flex items-center gap-1 text-sm text-gray-600">
+                <Calendar className="h-3 w-3" />
+                <span>{calculateAge(player.dateOfBirth)} years</span>
               </div>
-              <div className="flex items-center gap-1">
-                <MapPin className="h-4 w-4" />
+              <div className="flex items-center gap-1 text-sm text-gray-600">
+                <MapPin className="h-3 w-3" />
                 <span>{player.nationality}</span>
               </div>
             </div>
 
             {aggregatedData && (
-              <div className="flex items-center gap-4 mb-4">
+              <div className="flex flex-wrap items-center gap-3">
                 {aggregatedData.avgRating !== null && (
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm text-gray-600">Overall Rating:</span>
-                    <Badge variant="outline" className={`font-bold ${getRatingColor(aggregatedData.avgRating)}`}>
-                      {aggregatedData.avgRating}/10
-                    </Badge>
-                  </div>
+                  <Badge variant="outline" className={`text-xs font-bold ${getRatingColor(aggregatedData.avgRating)}`}>
+                    {aggregatedData.avgRating}/10
+                  </Badge>
                 )}
                 
                 {aggregatedData.recommendation && (
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm text-gray-600">Recommendation:</span>
-                    <Badge className={getRecommendationColor(aggregatedData.recommendation)}>
-                      {aggregatedData.recommendation}
-                    </Badge>
-                  </div>
+                  <Badge className={`text-xs ${getRecommendationColor(aggregatedData.recommendation)}`}>
+                    {aggregatedData.recommendation}
+                  </Badge>
                 )}
                 
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-gray-600">
-                    {aggregatedData.reportCount} {aggregatedData.reportCount === 1 ? 'Report' : 'Reports'}
-                  </span>
-                </div>
+                <span className="text-xs text-gray-600">
+                  {aggregatedData.reportCount} {aggregatedData.reportCount === 1 ? 'Report' : 'Reports'}
+                </span>
               </div>
             )}
           </div>
 
-          <div className="flex-shrink-0 flex flex-col gap-2">
-            <Button onClick={onCreateReport} className="gap-2">
-              <FileText className="h-4 w-4" />
-              Create Report
+          <div className="flex-shrink-0 flex gap-2">
+            <Button onClick={onCreateReport} size="sm" className="gap-1">
+              <FileText className="h-3 w-3" />
+              Report
             </Button>
-            <Button onClick={onOpenNotes} variant="outline" className="gap-2">
-              <MessageSquare className="h-4 w-4" />
+            <Button onClick={onOpenNotes} variant="outline" size="sm" className="gap-1">
+              <MessageSquare className="h-3 w-3" />
               Notes
             </Button>
             <TrackPlayerButton playerId={player.id} playerName={player.name} />

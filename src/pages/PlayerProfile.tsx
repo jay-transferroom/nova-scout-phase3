@@ -54,7 +54,7 @@ const PlayerProfile = () => {
 
   if (isLoading) {
     return (
-      <div className="container mx-auto py-8 flex items-center justify-center">
+      <div className="container mx-auto py-4 flex items-center justify-center">
         <p>Loading player profile...</p>
       </div>
     );
@@ -62,7 +62,7 @@ const PlayerProfile = () => {
 
   if (error || !player) {
     return (
-      <div className="container mx-auto py-8 flex items-center justify-center">
+      <div className="container mx-auto py-4 flex items-center justify-center">
         <div className="text-center">
           <p className="text-lg font-medium text-gray-900 mb-2">Player not found</p>
           <p className="text-gray-600 mb-4">The player you're looking for doesn't exist or may have been removed.</p>
@@ -76,8 +76,8 @@ const PlayerProfile = () => {
   }
 
   return (
-    <div className="container mx-auto py-8 max-w-6xl">
-      <div className="mb-6">
+    <div className="container mx-auto py-4 max-w-7xl">
+      <div className="mb-4">
         <Button variant="ghost" onClick={() => navigate(-1)} className="gap-2">
           <ArrowLeft size={16} />
           Back
@@ -93,7 +93,7 @@ const PlayerProfile = () => {
         aggregatedData={aggregatedData}
       />
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 mb-4">
         <PlayerBasicInfo 
           player={player}
           calculateAge={calculateAge}
@@ -111,18 +111,18 @@ const PlayerProfile = () => {
           player={player}
           getFormRatingColor={getFormRatingColor}
         />
-      </div>
 
-      {/* Player Ratings & Scores Section */}
-      <div className="mt-8">
-        <PlayerRatingsCard 
-          player={player} 
-          aggregatedData={aggregatedData}
-        />
+        <div className="lg:col-span-1">
+          {/* Player Ratings & Scores Section */}
+          <PlayerRatingsCard 
+            player={player} 
+            aggregatedData={aggregatedData}
+          />
+        </div>
       </div>
 
       {/* Detailed Player Statistics */}
-      <div className="mt-8">
+      <div className="mb-4">
         <PlayerDetailedStats player={player} />
       </div>
 

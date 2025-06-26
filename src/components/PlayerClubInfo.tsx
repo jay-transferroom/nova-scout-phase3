@@ -14,33 +14,31 @@ interface PlayerClubInfoProps {
 export const PlayerClubInfo = ({ player, getContractStatusColor, getPositionColor, formatDateLocal }: PlayerClubInfoProps) => {
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>Club & Contract</CardTitle>
+      <CardHeader className="pb-2">
+        <CardTitle className="text-sm">Club & Contract</CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-2 text-sm">
         <div>
-          <p className="text-sm text-gray-600">Current Club</p>
-          <p className="font-medium text-lg">{player.club}</p>
+          <p className="text-xs text-gray-600">Current Club</p>
+          <p className="font-medium">{player.club}</p>
         </div>
         
-        <Separator />
-        
         <div>
-          <p className="text-sm text-gray-600">Contract Status</p>
-          <Badge className={getContractStatusColor(player.contractStatus)}>
+          <p className="text-xs text-gray-600">Contract Status</p>
+          <Badge className={`text-xs ${getContractStatusColor(player.contractStatus)}`}>
             {player.contractStatus}
           </Badge>
         </div>
         
         {player.contractExpiry && (
           <div>
-            <p className="text-sm text-gray-600">Contract Expires</p>
-            <p className="font-medium">{formatDateLocal(player.contractExpiry)}</p>
+            <p className="text-xs text-gray-600">Contract Expires</p>
+            <p className="text-xs font-medium">{formatDateLocal(player.contractExpiry)}</p>
           </div>
         )}
         
         <div>
-          <p className="text-sm text-gray-600">Positions</p>
+          <p className="text-xs text-gray-600">Positions</p>
           <div className="flex flex-wrap gap-1 mt-1">
             {player.positions.map((position) => (
               <span

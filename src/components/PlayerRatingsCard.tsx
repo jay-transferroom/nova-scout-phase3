@@ -46,82 +46,67 @@ const PlayerRatingsCard = ({ player, aggregatedData }: PlayerRatingsCardProps) =
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <BarChart3 className="h-5 w-5" />
-          Player Ratings & Scores
+    <Card className="h-full">
+      <CardHeader className="pb-2">
+        <CardTitle className="flex items-center gap-2 text-sm">
+          <BarChart3 className="h-4 w-4" />
+          Ratings & Scores
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-3">
         {/* Market Value & Analysis Scores */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div className="text-center p-3 bg-blue-50 rounded-lg">
+        <div className="space-y-2">
+          <div className="text-center p-2 bg-blue-50 rounded">
             <div className="flex items-center justify-center gap-1 mb-1">
-              <TrendingUp className="h-4 w-4 text-blue-600" />
-              <span className="text-sm font-medium text-blue-700">xTV</span>
+              <TrendingUp className="h-3 w-3 text-blue-600" />
+              <span className="text-xs font-medium text-blue-700">xTV</span>
             </div>
-            <div className={`text-lg font-bold ${getRatingColor(player.xtvScore)}`}>
+            <div className={`text-sm font-bold ${getRatingColor(player.xtvScore)}`}>
               {formatXTVScore(player.xtvScore)}
             </div>
-            <div className="text-xs text-blue-600">Expected Transfer Value</div>
           </div>
 
-          <div className="text-center p-3 bg-purple-50 rounded-lg">
-            <div className="flex items-center justify-center gap-1 mb-1">
-              <Star className="h-4 w-4 text-purple-600" />
-              <span className="text-sm font-medium text-purple-700">TransferRoom</span>
+          <div className="grid grid-cols-2 gap-2">
+            <div className="text-center p-2 bg-purple-50 rounded">
+              <div className="flex items-center justify-center gap-1 mb-1">
+                <Star className="h-3 w-3 text-purple-600" />
+                <span className="text-xs font-medium text-purple-700">TR</span>
+              </div>
+              <div className={`text-sm font-bold ${getRatingColor(player.transferroomRating)}`}>
+                {player.transferroomRating ? `${player.transferroomRating.toFixed(1)}` : 'N/A'}
+              </div>
             </div>
-            <div className={`text-lg font-bold ${getRatingColor(player.transferroomRating)}`}>
-              {player.transferroomRating ? `${player.transferroomRating.toFixed(1)}` : 'N/A'}
-            </div>
-            <div className="text-xs text-purple-600">Platform Rating</div>
-          </div>
 
-          <div className="text-center p-3 bg-green-50 rounded-lg">
-            <div className="flex items-center justify-center gap-1 mb-1">
-              <Target className="h-4 w-4 text-green-600" />
-              <span className="text-sm font-medium text-green-700">Future Rating</span>
+            <div className="text-center p-2 bg-green-50 rounded">
+              <div className="flex items-center justify-center gap-1 mb-1">
+                <Target className="h-3 w-3 text-green-600" />
+                <span className="text-xs font-medium text-green-700">Future</span>
+              </div>
+              <div className={`text-sm font-bold ${getRatingColor(player.futureRating)}`}>
+                {player.futureRating ? `${player.futureRating.toFixed(1)}` : 'N/A'}
+              </div>
             </div>
-            <div className={`text-lg font-bold ${getRatingColor(player.futureRating)}`}>
-              {player.futureRating ? `${player.futureRating.toFixed(1)}` : 'N/A'}
-            </div>
-            <div className="text-xs text-green-600">Potential Score</div>
           </div>
         </div>
 
         {/* Scouting Analysis */}
         {aggregatedData && (
-          <div className="border-t pt-4 mt-4">
-            <h4 className="text-sm font-medium text-gray-700 mb-3">Scouting Analysis</h4>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">Average Scout Rating:</span>
-                <Badge className={getRatingBadgeColor(aggregatedData.avgRating)}>
-                  {aggregatedData.avgRating ? `${aggregatedData.avgRating.toFixed(1)}/10` : 'No ratings'}
+          <div className="border-t pt-2">
+            <h4 className="text-xs font-medium text-gray-700 mb-2">Scout Analysis</h4>
+            <div className="space-y-1">
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-gray-600">Avg Rating:</span>
+                <Badge className={`text-xs ${getRatingBadgeColor(aggregatedData.avgRating)}`}>
+                  {aggregatedData.avgRating ? `${aggregatedData.avgRating.toFixed(1)}` : 'None'}
                 </Badge>
               </div>
 
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">Reports Count:</span>
-                <Badge variant="outline">
-                  {aggregatedData.reportCount} report{aggregatedData.reportCount !== 1 ? 's' : ''}
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-gray-600">Reports:</span>
+                <Badge variant="outline" className="text-xs">
+                  {aggregatedData.reportCount}
                 </Badge>
               </div>
-
-              {aggregatedData.recommendation && (
-                <div className="col-span-full">
-                  <span className="text-sm text-gray-600">Scout Recommendation:</span>
-                  <div className="mt-1">
-                    <Badge 
-                      variant={aggregatedData.recommendation.toLowerCase().includes('recommend') ? 'default' : 'secondary'}
-                      className="text-xs"
-                    >
-                      {aggregatedData.recommendation}
-                    </Badge>
-                  </div>
-                </div>
-              )}
             </div>
           </div>
         )}

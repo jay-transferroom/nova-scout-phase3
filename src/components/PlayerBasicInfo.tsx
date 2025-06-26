@@ -13,42 +13,30 @@ interface PlayerBasicInfoProps {
 export const PlayerBasicInfo = ({ player, calculateAge, formatDateLocal }: PlayerBasicInfoProps) => {
   return (
     <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Award className="h-5 w-5" />
-          Basic Information
+      <CardHeader className="pb-2">
+        <CardTitle className="flex items-center gap-2 text-sm">
+          <Award className="h-4 w-4" />
+          Basic Info
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-2 text-sm">
         <div>
-          <p className="text-sm text-gray-600">Full Name</p>
-          <p className="font-medium">{player.name}</p>
-        </div>
-        
-        <Separator />
-        
-        <div>
-          <p className="text-sm text-gray-600">Date of Birth</p>
+          <p className="text-xs text-gray-600">Date of Birth</p>
           <p className="font-medium">{formatDateLocal(player.dateOfBirth)}</p>
         </div>
         
         <div>
-          <p className="text-sm text-gray-600">Age</p>
-          <p className="font-medium">{calculateAge(player.dateOfBirth)} years old</p>
+          <p className="text-xs text-gray-600">Age</p>
+          <p className="font-medium">{calculateAge(player.dateOfBirth)} years</p>
         </div>
         
         <div>
-          <p className="text-sm text-gray-600">Nationality</p>
+          <p className="text-xs text-gray-600">Nationality</p>
           <p className="font-medium">{player.nationality}</p>
         </div>
         
         <div>
-          <p className="text-sm text-gray-600">Region</p>
-          <p className="font-medium">{player.region}</p>
-        </div>
-        
-        <div>
-          <p className="text-sm text-gray-600">Dominant Foot</p>
+          <p className="text-xs text-gray-600">Dominant Foot</p>
           <p className="font-medium">{player.dominantFoot}</p>
         </div>
       </CardContent>
