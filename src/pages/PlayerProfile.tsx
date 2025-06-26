@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -9,6 +10,7 @@ import { PlayerRecentForm } from "@/components/PlayerRecentForm";
 import { PlayerReports } from "@/components/PlayerReports";
 import { PlayerNotes } from "@/components/PlayerNotes";
 import PlayerRatingsCard from "@/components/PlayerRatingsCard";
+import PlayerDetailedStats from "@/components/PlayerDetailedStats";
 import { usePlayerProfile } from "@/hooks/usePlayerProfile";
 import { groupReportsByPlayer } from "@/utils/reportGrouping";
 import { 
@@ -117,6 +119,11 @@ const PlayerProfile = () => {
           player={player} 
           aggregatedData={aggregatedData}
         />
+      </div>
+
+      {/* Detailed Player Statistics */}
+      <div className="mt-8">
+        <PlayerDetailedStats player={player} />
       </div>
 
       <PlayerReports 

@@ -30,16 +30,19 @@ const PlayerRatingsCard = ({ player, aggregatedData }: PlayerRatingsCardProps) =
     return 'bg-red-100 text-red-700';
   };
 
-  // Format xTV score with currency symbol
+  // Format xTV score with currency symbol - convert from raw value to millions
   const formatXTVScore = (score: number | null | undefined) => {
     if (!score) return 'N/A';
+    
+    // Convert the raw value to millions (assuming it's in basic currency units)
+    const valueInMillions = score / 1000000;
     
     // Determine currency based on player's region or nationality
     const isEuropean = player.region === 'Europe' || 
                       ['Spain', 'France', 'Germany', 'Italy', 'Portugal', 'Netherlands', 'Belgium'].includes(player.nationality);
     const currency = isEuropean ? '€' : '£';
     
-    return `${currency}${score.toFixed(1)}M`;
+    return `${currency}${valueInMillions.toFixed(1)}M`;
   };
 
   return (

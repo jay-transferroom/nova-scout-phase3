@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Star, StarOff } from "lucide-react";
+import { Bell, BellOff } from "lucide-react";
 import { usePlayerTracking } from "@/hooks/usePlayerTracking";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -17,28 +17,28 @@ const TrackPlayerButton = ({ playerId, playerName }: TrackPlayerButtonProps) => 
 
   const handleToggleTracking = () => {
     if (!user) {
-      toast.error("Please sign in to track players");
+      toast.error("Please sign in to get notifications");
       return;
     }
 
     if (isTracking) {
       untrackPlayer(playerId, {
         onSuccess: () => {
-          toast.success(`Stopped tracking ${playerName}`);
+          toast.success(`Stopped notifications for ${playerName}`);
         },
         onError: (error) => {
           console.error('Error untracking player:', error);
-          toast.error("Failed to untrack player");
+          toast.error("Failed to stop notifications");
         },
       });
     } else {
       trackPlayer(playerId, {
         onSuccess: () => {
-          toast.success(`Now tracking ${playerName} - you'll receive notifications about updates`);
+          toast.success(`Now getting notifications for ${playerName} - you'll receive updates`);
         },
         onError: (error) => {
           console.error('Error tracking player:', error);
-          toast.error("Failed to track player");
+          toast.error("Failed to enable notifications");
         },
       });
     }
@@ -47,8 +47,8 @@ const TrackPlayerButton = ({ playerId, playerName }: TrackPlayerButtonProps) => 
   if (isLoading) {
     return (
       <Button variant="outline" disabled className="gap-2">
-        <Star className="h-4 w-4" />
-        Track Player
+        <Bell className="h-4 w-4" />
+        Notify Me
       </Button>
     );
   }
@@ -62,13 +62,13 @@ const TrackPlayerButton = ({ playerId, playerName }: TrackPlayerButtonProps) => 
     >
       {isTracking ? (
         <>
-          <Star className="h-4 w-4 fill-current" />
-          Tracking
+          <Bell className="h-4 w-4 fill-current" />
+          Notifications On
         </>
       ) : (
         <>
-          <StarOff className="h-4 w-4" />
-          Track Player
+          <BellOff className="h-4 w-4" />
+          Notify Me
         </>
       )}
     </Button>
