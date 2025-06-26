@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
@@ -9,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 
 const Index = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const { reports, loading } = useReports();
 
   const myReports = reports.filter(report => report.scoutId === user?.id);
@@ -78,6 +77,16 @@ const Index = () => {
     },
   ];
 
+  const getUserDisplayName = () => {
+    if (profile?.first_name && profile?.last_name) {
+      return `${profile.first_name} ${profile.last_name}`;
+    }
+    if (profile?.first_name) {
+      return profile.first_name;
+    }
+    return user?.email || 'Scout';
+  };
+
   return (
     <div className="container mx-auto py-8 max-w-7xl">
       <div className="space-y-6">
@@ -85,7 +94,7 @@ const Index = () => {
           <div>
             <h1 className="text-3xl font-bold">Scout Dashboard</h1>
             <p className="text-muted-foreground">
-              Welcome back, {user?.email}. Here's your scouting overview.
+              Welcome back, {getUserDisplayName()}. Here's your scouting overview.
             </p>
           </div>
         </div>
