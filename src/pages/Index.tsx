@@ -2,11 +2,12 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import { FileText, Users, Calendar, Target, Plus, TrendingUp, AlertCircle, UserPlus } from "lucide-react";
+import { FileText, Users, Calendar, Target, Plus, TrendingUp, AlertCircle, UserPlus, Search, List } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useReports } from "@/hooks/useReports";
 import { Badge } from "@/components/ui/badge";
 import AddPrivatePlayerDialog from "@/components/AddPrivatePlayerDialog";
+import { TrackedPlayersSection } from "@/components/TrackedPlayersSection";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -19,37 +20,45 @@ const Index = () => {
 
   const quickActions = [
     {
-      title: "Create New Report",
-      description: "Start a new scouting report",
+      title: "Create Report",
+      description: "New scouting report",
       icon: Plus,
       action: () => navigate("/report-builder"),
       variant: "default" as const,
+      primary: true,
     },
     {
       title: "Add Private Player",
-      description: "Add a player not in database",
+      description: "Player not in database",
       icon: UserPlus,
-      action: null, // Will be handled by the dialog component
+      action: null,
       variant: "outline" as const,
       isDialog: true,
     },
     {
-      title: "View All Reports",
-      description: "Browse existing reports",
+      title: "Player Search",
+      description: "Find players to scout",
+      icon: Search,
+      action: () => navigate("/search"),
+      variant: "outline" as const,
+    },
+    {
+      title: "View Reports",
+      description: "Browse all reports",
       icon: FileText,
       action: () => navigate("/reports"),
       variant: "outline" as const,
     },
     {
-      title: "Player Search",
-      description: "Find players to scout",
-      icon: Users,
-      action: () => navigate("/search"),
+      title: "Shortlists",
+      description: "Recruitment targets",
+      icon: List,
+      action: () => navigate("/shortlists"),
       variant: "outline" as const,
     },
     {
       title: "Calendar",
-      description: "View upcoming matches",
+      description: "Upcoming matches",
       icon: Calendar,
       action: () => navigate("/calendar"),
       variant: "outline" as const,
@@ -144,7 +153,7 @@ const Index = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
+            <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
               {quickActions.map((action, index) => {
                 const Icon = action.icon;
                 
@@ -155,12 +164,14 @@ const Index = () => {
                       trigger={
                         <Button
                           variant={action.variant}
-                          className="h-auto p-4 flex flex-col items-center gap-2"
+                          className={`h-20 flex flex-col items-center gap-2 p-4 ${
+                            action.primary ? 'bg-primary text-primary-foreground hover:bg-primary/90' : ''
+                          }`}
                         >
-                          <Icon className="h-6 w-6" />
+                          <Icon className="h-5 w-5" />
                           <div className="text-center">
-                            <div className="font-medium">{action.title}</div>
-                            <div className="text-xs text-muted-foreground">
+                            <div className="font-medium text-sm">{action.title}</div>
+                            <div className="text-xs opacity-80">
                               {action.description}
                             </div>
                           </div>
@@ -174,13 +185,15 @@ const Index = () => {
                   <Button
                     key={index}
                     variant={action.variant}
-                    className="h-auto p-4 flex flex-col items-center gap-2"
+                    className={`h-20 flex flex-col items-center gap-2 p-4 ${
+                      action.primary ? 'bg-primary text-primary-foreground hover:bg-primary/90' : ''
+                    }`}
                     onClick={action.action}
                   >
-                    <Icon className="h-6 w-6" />
+                    <Icon className="h-5 w-5" />
                     <div className="text-center">
-                      <div className="font-medium">{action.title}</div>
-                      <div className="text-xs text-muted-foreground">
+                      <div className="font-medium text-sm">{action.title}</div>
+                      <div className="text-xs opacity-80">
                         {action.description}
                       </div>
                     </div>
@@ -191,58 +204,63 @@ const Index = () => {
           </CardContent>
         </Card>
 
-        {/* Recent Activity */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Recent Reports</CardTitle>
-            <CardDescription>
-              Your most recent scouting activity
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {loading ? (
-              <p className="text-center text-muted-foreground">Loading reports...</p>
-            ) : myReports.length > 0 ? (
-              <div className="space-y-4">
-                {myReports.slice(0, 5).map((report) => (
-                  <div
-                    key={report.id}
-                    className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent transition-colors cursor-pointer"
-                    onClick={() => navigate(`/report/${report.id}`)}
-                  >
-                    <div className="flex items-center gap-3">
-                      <FileText className="h-4 w-4 text-muted-foreground" />
-                      <div>
-                        <p className="font-medium">{report.player?.name}</p>
-                        <p className="text-sm text-muted-foreground">
-                          {report.player?.club} • {new Date(report.createdAt).toLocaleDateString()}
-                        </p>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Tracked Players Section */}
+          <TrackedPlayersSection />
+
+          {/* Recent Activity */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Recent Reports</CardTitle>
+              <CardDescription>
+                Your most recent scouting activity
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {loading ? (
+                <p className="text-center text-muted-foreground">Loading reports...</p>
+              ) : myReports.length > 0 ? (
+                <div className="space-y-4">
+                  {myReports.slice(0, 5).map((report) => (
+                    <div
+                      key={report.id}
+                      className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent transition-colors cursor-pointer"
+                      onClick={() => navigate(`/report/${report.id}`)}
+                    >
+                      <div className="flex items-center gap-3">
+                        <FileText className="h-4 w-4 text-muted-foreground" />
+                        <div>
+                          <p className="font-medium">{report.player?.name}</p>
+                          <p className="text-sm text-muted-foreground">
+                            {report.player?.club} • {new Date(report.createdAt).toLocaleDateString()}
+                          </p>
+                        </div>
                       </div>
+                      <Badge variant={report.status === 'submitted' ? 'default' : 'secondary'}>
+                        {report.status}
+                      </Badge>
                     </div>
-                    <Badge variant={report.status === 'submitted' ? 'default' : 'secondary'}>
-                      {report.status}
-                    </Badge>
-                  </div>
-                ))}
-                <Button
-                  variant="outline"
-                  className="w-full"
-                  onClick={() => navigate("/reports")}
-                >
-                  View All Reports
-                </Button>
-              </div>
-            ) : (
-              <div className="text-center py-6">
-                <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <p className="text-muted-foreground mb-4">No reports yet</p>
-                <Button onClick={() => navigate("/report-builder")}>
-                  Create Your First Report
-                </Button>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+                  ))}
+                  <Button
+                    variant="outline"
+                    className="w-full"
+                    onClick={() => navigate("/reports")}
+                  >
+                    View All Reports
+                  </Button>
+                </div>
+              ) : (
+                <div className="text-center py-6">
+                  <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                  <p className="text-muted-foreground mb-4">No reports yet</p>
+                  <Button onClick={() => navigate("/report-builder")}>
+                    Create Your First Report
+                  </Button>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   );

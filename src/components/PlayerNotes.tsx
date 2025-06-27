@@ -19,6 +19,7 @@ interface PlayerNote {
   player_id: string;
   author_id: string;
   content: string;
+  tags: string[];
   created_at: string;
   updated_at: string;
   author: {
@@ -93,6 +94,7 @@ export const PlayerNotes = ({ playerId, playerName, open, onOpenChange }: Player
           player_id: note.player_id,
           author_id: note.author_id,
           content: note.content,
+          tags: note.tags || [],
           created_at: note.created_at,
           updated_at: note.updated_at,
           author: author ? {
@@ -118,7 +120,7 @@ export const PlayerNotes = ({ playerId, playerName, open, onOpenChange }: Player
     }
   };
 
-  const addNote = async (content: string) => {
+  const addNote = async (content: string, tags: string[] = []) => {
     if (!user) {
       console.log('PlayerNotes - Cannot add note: missing user');
       toast({
@@ -131,14 +133,15 @@ export const PlayerNotes = ({ playerId, playerName, open, onOpenChange }: Player
 
     setSubmitting(true);
     try {
-      console.log('PlayerNotes - Adding note for player:', playerId, 'by user:', user.id);
+      console.log('PlayerNotes - Adding note for player:', playerId, 'by user:', user.id, 'with tags:', tags);
       
       const { error } = await supabase
         .from('player_notes')
         .insert({
           player_id: playerId,
           author_id: user.id,
-          content: content
+          content: content,
+          tags: tags
         });
 
       if (error) {
@@ -164,15 +167,16 @@ export const PlayerNotes = ({ playerId, playerName, open, onOpenChange }: Player
     }
   };
 
-  const updateNote = async (noteId: string, content: string) => {
+  const updateNote = async (noteId: string, content: string, tags: string[] = []) => {
     setSubmitting(true);
     try {
-      console.log('PlayerNotes - Updating note:', noteId);
+      console.log('PlayerNotes - Updating note:', noteId, 'with tags:', tags);
       
       const { error } = await supabase
         .from('player_notes')
         .update({
           content: content,
+          tags: tags,
           updated_at: new Date().toISOString()
         })
         .eq('id', noteId);
