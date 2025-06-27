@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -11,6 +10,7 @@ import { PlayerReports } from "@/components/PlayerReports";
 import { PlayerNotes } from "@/components/PlayerNotes";
 import PlayerRatingsCard from "@/components/PlayerRatingsCard";
 import PlayerDetailedStats from "@/components/PlayerDetailedStats";
+import PlayerInjuryHistory from "@/components/PlayerInjuryHistory";
 import { usePlayerProfile } from "@/hooks/usePlayerProfile";
 import { groupReportsByPlayer } from "@/utils/reportGrouping";
 import { 
@@ -126,11 +126,19 @@ const PlayerProfile = () => {
         <PlayerDetailedStats player={player} />
       </div>
 
-      <PlayerReports 
-        playerReports={playerReports || []}
-        reportsLoading={reportsLoading}
-        onViewReport={handleViewReport}
-      />
+      {/* Player Injury History */}
+      <div className="mb-4">
+        <PlayerInjuryHistory playerId={id || ""} />
+      </div>
+
+      {/* Player Reports Section - Enhanced */}
+      <div className="mb-4">
+        <PlayerReports 
+          playerReports={playerReports || []}
+          reportsLoading={reportsLoading}
+          onViewReport={handleViewReport}
+        />
+      </div>
 
       <PlayerNotes
         playerId={id || ""}
