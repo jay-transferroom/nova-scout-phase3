@@ -54,28 +54,28 @@ function App() {
           <Router>
             <Routes>
               <Route path="/auth" element={<Auth />} />
-              <Route path="/" element={<Layout />}>
-                <Route index element={<ProtectedRoute><Index /></ProtectedRoute>} />
-                <Route path="player/:id" element={<ProtectedRoute><PlayerProfile /></ProtectedRoute>} />
-                <Route path="private-player/:id" element={<ProtectedRoute><PrivatePlayerProfile /></ProtectedRoute>} />
-                <Route path="report-builder" element={<ProtectedRoute><ReportBuilder /></ProtectedRoute>} />
-                <Route path="report/:id" element={<ProtectedRoute><ReportView /></ProtectedRoute>} />
-                <Route path="report/:id/edit" element={<ProtectedRoute><ReportEdit /></ProtectedRoute>} />
-                <Route path="reports" element={<ProtectedRoute><ReportsList /></ProtectedRoute>} />
-                <Route path="search" element={<ProtectedRoute><SearchResults /></ProtectedRoute>} />
-                <Route path="calendar" element={<ProtectedRoute><Calendar /></ProtectedRoute>} />
-                <Route path="settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
-                <Route path="profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-                <Route path="template-admin" element={<ProtectedRoute><TemplateAdmin /></ProtectedRoute>} />
-                <Route path="scout-management" element={<ProtectedRoute><ScoutManagement /></ProtectedRoute>} />
-                <Route path="scouting-dashboard" element={<ProtectedRoute><ScoutingDashboard /></ProtectedRoute>} />
-                <Route path="assigned-players" element={<ProtectedRoute><AssignedPlayers /></ProtectedRoute>} />
-                <Route path="admin/users" element={<ProtectedRoute><UserManagement /></ProtectedRoute>} />
-                <Route path="notifications" element={<ProtectedRoute><NotificationsList /></ProtectedRoute>} />
-                <Route path="ai-search" element={<ProtectedRoute><AISearch /></ProtectedRoute>} />
-                <Route path="shortlists" element={<ProtectedRoute><Shortlists /></ProtectedRoute>} />
-                <Route path="squad-view" element={<ProtectedRoute><SquadView /></ProtectedRoute>} />
-                <Route path="transfers" element={<ProtectedRoute><TransfersLayout /></ProtectedRoute>}>
+              <Route element={<Layout />}>
+                <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
+                <Route path="/player/:id" element={<ProtectedRoute><PlayerProfile /></ProtectedRoute>} />
+                <Route path="/private-player/:id" element={<ProtectedRoute><PrivatePlayerProfile /></ProtectedRoute>} />
+                <Route path="/report-builder" element={<ProtectedRoute><ReportBuilder /></ProtectedRoute>} />
+                <Route path="/report/:id" element={<ProtectedRoute><ReportView /></ProtectedRoute>} />
+                <Route path="/report/:id/edit" element={<ProtectedRoute><ReportEdit /></ProtectedRoute>} />
+                <Route path="/reports" element={<ProtectedRoute><ReportsList /></ProtectedRoute>} />
+                <Route path="/search" element={<ProtectedRoute><SearchResults /></ProtectedRoute>} />
+                <Route path="/calendar" element={<ProtectedRoute><Calendar /></ProtectedRoute>} />
+                <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+                <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+                <Route path="/template-admin" element={<ProtectedRoute><TemplateAdmin /></ProtectedRoute>} />
+                <Route path="/scout-management" element={<ProtectedRoute><ScoutManagement /></ProtectedRoute>} />
+                <Route path="/scouting-dashboard" element={<ProtectedRoute><ScoutingDashboard /></ProtectedRoute>} />
+                <Route path="/assigned-players" element={<ProtectedRoute><AssignedPlayers /></ProtectedRoute>} />
+                <Route path="/admin/users" element={<ProtectedRoute><UserManagement /></ProtectedRoute>} />
+                <Route path="/notifications" element={<ProtectedRoute><NotificationsList /></ProtectedRoute>} />
+                <Route path="/ai-search" element={<ProtectedRoute><AISearch /></ProtectedRoute>} />
+                <Route path="/shortlists" element={<ProtectedRoute><Shortlists /></ProtectedRoute>} />
+                <Route path="/squad-view" element={<ProtectedRoute><SquadView /></ProtectedRoute>} />
+                <Route path="/transfers" element={<ProtectedRoute><TransfersLayout /></ProtectedRoute>}>
                   <Route index element={<RequirementsList />} />
                   <Route path="requirements/:id" element={<RequirementDetails />} />  
                   <Route path="scouting-tasks" element={<ScoutingTasks />} />

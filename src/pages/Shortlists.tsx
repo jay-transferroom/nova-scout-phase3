@@ -1,5 +1,6 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { usePlayersData } from "@/hooks/usePlayersData";
 import { usePlayerAssignments } from "@/hooks/usePlayerAssignments";
@@ -11,8 +12,9 @@ import { ShortlistsSidebar } from "@/components/shortlists/ShortlistsSidebar";
 import { ShortlistsContent } from "@/components/shortlists/ShortlistsContent";
 
 const Shortlists = () => {
+  const [searchParams] = useSearchParams();
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedList, setSelectedList] = useState<string | null>("striker-targets");
+  const [selectedList, setSelectedList] = useState<string | null>(null);
   const [selectedPlayer, setSelectedPlayer] = useState<any>(null);
   const [isAssignDialogOpen, setIsAssignDialogOpen] = useState(false);
   
@@ -26,6 +28,16 @@ const Shortlists = () => {
   const { privatePlayers } = usePrivatePlayers();
   const { shortlists, createShortlist, getPlayerShortlists } = useShortlists();
   const queryClient = useQueryClient();
+
+  // Handle URL parameters for selected shortlist
+  useEffect(() => {
+    const selectedParam = searchParams.get('selected');
+    if (selectedParam && shortlists.find(list => list.id === selectedParam)) {
+      setSelectedList(selectedParam);
+    } else if (!selectedList && shortlists.length > 0) {
+      setSelectedList("striker-targets");
+    }
+  }, [searchParams, shortlists, selectedList]);
 
   // Mock private players on shortlists - including Herbie Hughes
   const getPrivatePlayersForShortlist = (shortlistId: string) => {

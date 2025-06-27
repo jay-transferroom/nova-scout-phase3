@@ -101,7 +101,7 @@ export const PlayerHeader = ({
               </div>
             </div>
 
-            {/* Shortlist badges */}
+            {/* Shortlist badges - show all shortlists player is on */}
             {playerShortlists.length > 0 && (
               <div className="flex flex-wrap items-center gap-2 mb-2">
                 <div className="flex items-center gap-1 text-sm text-gray-600">

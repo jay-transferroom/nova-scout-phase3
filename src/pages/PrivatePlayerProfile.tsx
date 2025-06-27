@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -73,9 +74,9 @@ const PrivatePlayerProfile = () => {
             {player.nationality}
           </p>
           
-          {/* Shortlist information */}
+          {/* Shortlist information - show all shortlists */}
           {playerShortlists.length > 0 && (
-            <div className="flex items-center gap-2 mt-2">
+            <div className="flex flex-wrap items-center gap-2 mt-2">
               <div className="flex items-center gap-1 text-sm text-muted-foreground">
                 <Bookmark className="h-3 w-3" />
                 <span>On shortlists:</span>
