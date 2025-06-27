@@ -1,6 +1,7 @@
+
 import { useState, useEffect } from "react";
 import { Player } from "@/types/player";
-import { usePlayersData } from "@/hooks/usePlayersData";
+import { useUnifiedPlayersData } from "@/hooks/useUnifiedPlayersData";
 import { useTeamsData } from "@/hooks/useTeamsData";
 import { useNavigate } from "react-router-dom";
 import SearchInput from "./unified-search/SearchInput";
@@ -22,7 +23,7 @@ const UnifiedPlayerSearch = ({
   placeholder = "Search players, reports...",
   showFilters = true 
 }: UnifiedPlayerSearchProps) => {
-  const { data: players = [], isLoading, error } = usePlayersData();
+  const { data: players = [], isLoading, error } = useUnifiedPlayersData();
   const { data: teams = [] } = useTeamsData();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
@@ -40,11 +41,11 @@ const UnifiedPlayerSearch = ({
     console.log('UnifiedPlayerSearch - Players loaded:', players?.length || 0);
     console.log('UnifiedPlayerSearch - Search query:', searchQuery);
     console.log('UnifiedPlayerSearch - Filtered results:', filteredPlayers?.length || 0);
-    if (searchQuery.toLowerCase().includes('james') || searchQuery.toLowerCase().includes('maddison')) {
-      console.log('UnifiedPlayerSearch - Searching for James/Maddison');
+    if (searchQuery.toLowerCase().includes('herbie') || searchQuery.toLowerCase().includes('hughes')) {
+      console.log('UnifiedPlayerSearch - Searching for Herbie Hughes');
       const matches = players.filter(p => 
-        p.name.toLowerCase().includes('james') || 
-        p.name.toLowerCase().includes('maddison')
+        p.name.toLowerCase().includes('herbie') || 
+        p.name.toLowerCase().includes('hughes')
       );
       console.log('UnifiedPlayerSearch - Found matches:', matches);
     }
@@ -134,7 +135,12 @@ const UnifiedPlayerSearch = ({
     if (onSelectPlayer) {
       onSelectPlayer(player);
     } else {
-      navigate(`/player/${player.id}`);
+      // Route to appropriate profile page based on player type
+      if (player.isPrivatePlayer) {
+        navigate(`/private-player/${player.privatePlayerData?.id}`);
+      } else {
+        navigate(`/player/${player.id}`);
+      }
     }
     
     setOpen(false);

@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { ArrowLeft, Search, Filter, Loader2 } from "lucide-react";
-import { usePlayersData } from "@/hooks/usePlayersData";
+import { useUnifiedPlayersData } from "@/hooks/useUnifiedPlayersData";
 import { useTeamsData } from "@/hooks/useTeamsData";
 import { Player } from "@/types/player";
 import {
@@ -21,7 +21,7 @@ import {
 const SearchResults = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const { data: players = [], isLoading } = usePlayersData();
+  const { data: players = [], isLoading } = useUnifiedPlayersData();
   const { data: teams = [] } = useTeamsData();
   
   const initialQuery = searchParams.get('q') || '';
@@ -84,7 +84,11 @@ const SearchResults = () => {
   }, [searchQuery, ageFilter, contractFilter, regionFilter, players]);
 
   const handlePlayerClick = (player: Player) => {
-    navigate(`/player/${player.id}`); // Fixed: changed from /players/ to /player/
+    if (player.isPrivatePlayer) {
+      navigate(`/private-player/${player.privatePlayerData?.id}`);
+    } else {
+      navigate(`/player/${player.id}`);
+    }
   };
 
   if (isLoading) {

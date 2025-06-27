@@ -1,5 +1,3 @@
-
-
 export interface Player {
   id: string;
   name: string;
@@ -22,7 +20,10 @@ export interface Player {
     goals: number;
     assists: number;
     rating: number;
-  }
+  };
+  // New properties for private players
+  isPrivatePlayer?: boolean;
+  privatePlayerData?: import('@/types/privatePlayer').PrivatePlayer;
 }
 
 export interface RecentPlayer extends Pick<Player, 'id' | 'name' | 'club' | 'positions'> {
@@ -45,4 +46,3 @@ export type PlayerPosition =
   | 'RW' // Right Winger
   | 'ST' // Striker
   | 'CF'; // Center Forward
-

@@ -1,9 +1,8 @@
-
 import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Search, Loader2 } from "lucide-react";
 import { Player } from "@/types/player";
-import { usePlayersData } from "@/hooks/usePlayersData";
+import { useUnifiedPlayersData } from "@/hooks/useUnifiedPlayersData";
 import { useTeamsData } from "@/hooks/useTeamsData";
 import { useNavigate } from "react-router-dom";
 import PlayerSearchFilters from "./player-search/PlayerSearchFilters";
@@ -15,7 +14,7 @@ interface PlayerSearchProps {
 }
 
 const PlayerSearch = ({ onSelectPlayer }: PlayerSearchProps) => {
-  const { data: players = [], isLoading, error } = usePlayersData();
+  const { data: players = [], isLoading, error } = useUnifiedPlayersData();
   const { data: teams = [] } = useTeamsData();
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
@@ -100,16 +99,19 @@ const PlayerSearch = ({ onSelectPlayer }: PlayerSearchProps) => {
     setFilteredPlayers(results);
   }, [searchQuery, ageFilter, contractFilter, regionFilter, players]);
 
-  // Handle player selection - Fixed to use correct route
+  // Handle player selection - Updated to handle private players
   const handleSelectPlayer = (player: Player) => {
     console.log('Selecting player:', player);
-    console.log('Navigating to:', `/player/${player.id}`);
     
     // Call the callback first
     onSelectPlayer(player);
     
-    // Navigate to the player profile page using the correct route
-    navigate(`/player/${player.id}`);
+    // Navigate to the appropriate profile page
+    if (player.isPrivatePlayer) {
+      navigate(`/private-player/${player.privatePlayerData?.id}`);
+    } else {
+      navigate(`/player/${player.id}`);
+    }
     
     // Update recent players in localStorage
     const recentPlayerIds = JSON.parse(localStorage.getItem('recentPlayers') || '[]');

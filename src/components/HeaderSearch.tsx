@@ -1,11 +1,10 @@
-
 import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Search, ArrowRight } from "lucide-react";
 import { Player } from "@/types/player";
-import { usePlayersData } from "@/hooks/usePlayersData";
+import { useUnifiedPlayersData } from "@/hooks/useUnifiedPlayersData";
 import { useTeamsData } from "@/hooks/useTeamsData";
 import { useNavigate } from "react-router-dom";
 import {
@@ -18,7 +17,7 @@ import {
 } from "@/components/ui/command";
 
 const HeaderSearch = () => {
-  const { data: players = [] } = usePlayersData();
+  const { data: players = [] } = useUnifiedPlayersData();
   const { data: teams = [] } = useTeamsData();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
@@ -81,9 +80,13 @@ const HeaderSearch = () => {
     setFilteredPlayers(results.slice(0, MAX_DISPLAY_RESULTS));
   }, [searchQuery, players]);
 
-  // Handle player selection
+  // Handle player selection - Updated to handle private players
   const handleSelectPlayer = (player: Player) => {
-    navigate(`/player/${player.id}`);
+    if (player.isPrivatePlayer) {
+      navigate(`/private-player/${player.privatePlayerData?.id}`);
+    } else {
+      navigate(`/player/${player.id}`);
+    }
     setOpen(false);
     setSearchQuery("");
     
