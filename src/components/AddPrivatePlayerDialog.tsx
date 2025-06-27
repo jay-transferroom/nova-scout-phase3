@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -35,6 +34,7 @@ import { Plus, UserPlus } from "lucide-react";
 import { usePrivatePlayers } from "@/hooks/usePrivatePlayers";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
+import { CreatePrivatePlayerData } from "@/types/privatePlayer";
 
 const formSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
