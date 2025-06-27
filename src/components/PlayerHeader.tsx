@@ -6,7 +6,6 @@ import { Badge } from "@/components/ui/badge";
 import { Player } from "@/types/player";
 import TrackPlayerButton from "./TrackPlayerButton";
 import AddToShortlistButton from "./AddToShortlistButton";
-import ScoutManagerVerdictPanel from "./ScoutManagerVerdictPanel";
 import { useShortlists } from "@/hooks/useShortlists";
 import { useNavigate } from "react-router-dom";
 
@@ -61,119 +60,106 @@ export const PlayerHeader = ({
   };
 
   return (
-    <div className="space-y-4">
-      <Card className="mb-4">
-        <CardContent className="p-4">
-          <div className="flex items-start gap-4">
-            <div className="flex-shrink-0">
-              {player.image ? (
-                <img 
-                  src={player.image} 
-                  alt={player.name} 
-                  className="w-20 h-20 rounded-full object-cover border-2 border-white shadow-md" 
-                />
-              ) : (
-                <div className="w-20 h-20 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-2xl font-bold shadow-md">
-                  {player.name.split(' ').map(n => n[0]).join('').toUpperCase()}
-                </div>
-              )}
-            </div>
-            
-            <div className="flex-1 min-w-0">
-              <h1 className="text-2xl font-bold text-gray-900 mb-1">{player.name}</h1>
-              <p className="text-lg text-gray-600 mb-2">{player.club}</p>
-              
-              <div className="flex flex-wrap items-center gap-2 mb-2">
-                {player.positions.map((position) => (
-                  <span
-                    key={position}
-                    className={`inline-flex items-center justify-center text-xs font-bold rounded px-2 py-1 text-white ${getPositionColor(position)}`}
-                  >
-                    {position}
-                  </span>
-                ))}
-                
-                <div className="flex items-center gap-1 text-sm text-gray-600">
-                  <Calendar className="h-3 w-3" />
-                  <span>{calculateAge(player.dateOfBirth)} years</span>
-                </div>
-                <div className="flex items-center gap-1 text-sm text-gray-600">
-                  <MapPin className="h-3 w-3" />
-                  <span>{player.nationality}</span>
-                </div>
-              </div>
-
-              {/* Shortlist badges - show all shortlists player is on */}
-              {playerShortlists.length > 0 && (
-                <div className="flex flex-wrap items-center gap-2 mb-2">
-                  <div className="flex items-center gap-1 text-sm text-gray-600">
-                    <Bookmark className="h-3 w-3" />
-                    <span>On shortlists:</span>
-                  </div>
-                  {playerShortlists.map((shortlist) => (
-                    <Badge 
-                      key={shortlist.id} 
-                      variant="outline" 
-                      className="bg-blue-50 text-blue-700 border-blue-200 cursor-pointer hover:bg-blue-100 transition-colors"
-                      onClick={() => handleShortlistClick(shortlist.id)}
-                    >
-                      {shortlist.name}
-                    </Badge>
-                  ))}
-                </div>
-              )}
-
-              {aggregatedData && (
-                <div className="flex flex-wrap items-center gap-3">
-                  {aggregatedData.avgRating !== null && (
-                    <Badge variant="outline" className={`text-xs font-bold ${getRatingColor(aggregatedData.avgRating)}`}>
-                      {aggregatedData.avgRating}/10
-                    </Badge>
-                  )}
-                  
-                  {aggregatedData.recommendation && (
-                    <Badge className={`text-xs ${getRecommendationColor(aggregatedData.recommendation)}`}>
-                      {aggregatedData.recommendation}
-                    </Badge>
-                  )}
-                  
-                  <span className="text-xs text-gray-600">
-                    {aggregatedData.reportCount} {aggregatedData.reportCount === 1 ? 'Report' : 'Reports'}
-                  </span>
-                </div>
-              )}
-            </div>
-
-            <div className="flex-shrink-0 flex gap-2 flex-wrap">
-              <Button onClick={onCreateReport} size="sm" className="gap-1">
-                <FileText className="h-3 w-3" />
-                Report
-              </Button>
-              <Button onClick={onOpenNotes} variant="outline" size="sm" className="gap-1">
-                <MessageSquare className="h-3 w-3" />
-                Notes
-              </Button>
-              <TrackPlayerButton playerId={player.id} playerName={player.name} />
-              <AddToShortlistButton 
-                playerId={player.id} 
-                playerName={player.name}
-                isPrivatePlayer={player.isPrivatePlayer}
+    <Card className="mb-4">
+      <CardContent className="p-4">
+        <div className="flex items-start gap-4">
+          <div className="flex-shrink-0">
+            {player.image ? (
+              <img 
+                src={player.image} 
+                alt={player.name} 
+                className="w-20 h-20 rounded-full object-cover border-2 border-white shadow-md" 
               />
-            </div>
+            ) : (
+              <div className="w-20 h-20 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-2xl font-bold shadow-md">
+                {player.name.split(' ').map(n => n[0]).join('').toUpperCase()}
+              </div>
+            )}
           </div>
-        </CardContent>
-      </Card>
+          
+          <div className="flex-1 min-w-0">
+            <h1 className="text-2xl font-bold text-gray-900 mb-1">{player.name}</h1>
+            <p className="text-lg text-gray-600 mb-2">{player.club}</p>
+            
+            <div className="flex flex-wrap items-center gap-2 mb-2">
+              {player.positions.map((position) => (
+                <span
+                  key={position}
+                  className={`inline-flex items-center justify-center text-xs font-bold rounded px-2 py-1 text-white ${getPositionColor(position)}`}
+                >
+                  {position}
+                </span>
+              ))}
+              
+              <div className="flex items-center gap-1 text-sm text-gray-600">
+                <Calendar className="h-3 w-3" />
+                <span>{calculateAge(player.dateOfBirth)} years</span>
+              </div>
+              <div className="flex items-center gap-1 text-sm text-gray-600">
+                <MapPin className="h-3 w-3" />
+                <span>{player.nationality}</span>
+              </div>
+            </div>
 
-      {/* Scout Manager Verdict Panel */}
-      <ScoutManagerVerdictPanel
-        playerId={player.id}
-        playerName={player.name}
-        currentVerdict={aggregatedData?.recommendation}
-        onVerdictUpdate={(verdict) => {
-          console.log(`Verdict updated for ${player.name}: ${verdict}`);
-          // This would typically update the database and refresh the data
-        }}
-      />
-    </div>
+            {/* Shortlist badges - show all shortlists player is on */}
+            {playerShortlists.length > 0 && (
+              <div className="flex flex-wrap items-center gap-2 mb-2">
+                <div className="flex items-center gap-1 text-sm text-gray-600">
+                  <Bookmark className="h-3 w-3" />
+                  <span>On shortlists:</span>
+                </div>
+                {playerShortlists.map((shortlist) => (
+                  <Badge 
+                    key={shortlist.id} 
+                    variant="outline" 
+                    className="bg-blue-50 text-blue-700 border-blue-200 cursor-pointer hover:bg-blue-100 transition-colors"
+                    onClick={() => handleShortlistClick(shortlist.id)}
+                  >
+                    {shortlist.name}
+                  </Badge>
+                ))}
+              </div>
+            )}
+
+            {aggregatedData && (
+              <div className="flex flex-wrap items-center gap-3">
+                {aggregatedData.avgRating !== null && (
+                  <Badge variant="outline" className={`text-xs font-bold ${getRatingColor(aggregatedData.avgRating)}`}>
+                    {aggregatedData.avgRating}/10
+                  </Badge>
+                )}
+                
+                {aggregatedData.recommendation && (
+                  <Badge className={`text-xs ${getRecommendationColor(aggregatedData.recommendation)}`}>
+                    {aggregatedData.recommendation}
+                  </Badge>
+                )}
+                
+                <span className="text-xs text-gray-600">
+                  {aggregatedData.reportCount} {aggregatedData.reportCount === 1 ? 'Report' : 'Reports'}
+                </span>
+              </div>
+            )}
+          </div>
+
+          <div className="flex-shrink-0 flex gap-2 flex-wrap">
+            <Button onClick={onCreateReport} size="sm" className="gap-1">
+              <FileText className="h-3 w-3" />
+              Report
+            </Button>
+            <Button onClick={onOpenNotes} variant="outline" size="sm" className="gap-1">
+              <MessageSquare className="h-3 w-3" />
+              Notes
+            </Button>
+            <TrackPlayerButton playerId={player.id} playerName={player.name} />
+            <AddToShortlistButton 
+              playerId={player.id} 
+              playerName={player.name}
+              isPrivatePlayer={player.isPrivatePlayer}
+            />
+          </div>
+        </div>
+      </CardContent>
+    </Card>
   );
 };
