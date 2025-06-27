@@ -1,4 +1,5 @@
 
+
 export interface Player {
   id: string;
   name: string;
@@ -15,7 +16,7 @@ export interface Player {
   xtvScore?: number;
   transferroomRating?: number;
   futureRating?: number;
-  euGbeStatus: 'Pass' | 'Fail' | 'Pending'; // Added EU/GBE status
+  euGbeStatus?: 'Pass' | 'Fail' | 'Pending'; // Made optional to fix mock data compatibility
   recentForm?: {
     matches: number;
     goals: number;
@@ -44,3 +45,4 @@ export type PlayerPosition =
   | 'RW' // Right Winger
   | 'ST' // Striker
   | 'CF'; // Center Forward
+

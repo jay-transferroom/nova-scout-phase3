@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -104,7 +103,7 @@ const Shortlists = () => {
   // Apply EU/GBE filter
   const euGbeFilteredPlayers = euGbeFilter === "all" 
     ? searchFilteredPlayers 
-    : searchFilteredPlayers.filter(player => player.euGbeStatus.toLowerCase() === euGbeFilter.toLowerCase());
+    : searchFilteredPlayers.filter(player => (player.euGbeStatus || 'Pass').toLowerCase() === euGbeFilter.toLowerCase());
 
   // Apply sorting
   const sortedPlayers = [...euGbeFilteredPlayers].sort((a, b) => {
@@ -429,7 +428,7 @@ const Shortlists = () => {
                             <div className="flex items-center gap-2 mb-1">
                               <h3 className="font-semibold text-lg">{player.name}</h3>
                               {getAssignmentBadge(player.id.toString())}
-                              {getEuGbeBadge(player.euGbeStatus)}
+                              {getEuGbeBadge(player.euGbeStatus || 'Pass')}
                             </div>
                             <div className="flex items-center gap-4 text-sm text-muted-foreground mb-2">
                               <span className="flex items-center gap-1">
