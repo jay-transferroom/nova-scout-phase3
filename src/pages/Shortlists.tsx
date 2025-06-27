@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -5,7 +6,8 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Bookmark, Plus, Search, UserPlus, FileText, Trash2, MoreHorizontal, Download, Eye, Star, MapPin, Calendar } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Bookmark, Plus, Search, UserPlus, FileText, Trash2, MoreHorizontal, Download, Eye, Star, MapPin, Calendar, ArrowUpDown, Filter } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 import { usePlayersData } from "@/hooks/usePlayersData";
@@ -23,6 +25,11 @@ const Shortlists = () => {
   const [newListDescription, setNewListDescription] = useState("");
   const [selectedPlayer, setSelectedPlayer] = useState<any>(null);
   const [isAssignDialogOpen, setIsAssignDialogOpen] = useState(false);
+  
+  // Sorting and filtering states
+  const [sortBy, setSortBy] = useState<string>("name");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
+  const [euGbeFilter, setEuGbeFilter] = useState<string>("all");
 
   const { data: allPlayers = [], isLoading } = usePlayersData();
   const { data: playerAssignments = [], refetch: refetchAssignments } = usePlayerAssignments();
@@ -87,11 +94,56 @@ const Shortlists = () => {
   const currentList = shortlists.find(list => list.id === selectedList);
   const currentPlayers = currentList ? allPlayers.filter(currentList.filter).slice(0, 15) : [];
   
-  const filteredPlayers = currentPlayers.filter(player =>
+  // Apply search filter
+  const searchFilteredPlayers = currentPlayers.filter(player =>
     player.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     player.club.toLowerCase().includes(searchTerm.toLowerCase()) ||
     player.positions.some((pos: string) => pos?.toLowerCase().includes(searchTerm.toLowerCase()))
   );
+
+  // Apply EU/GBE filter
+  const euGbeFilteredPlayers = euGbeFilter === "all" 
+    ? searchFilteredPlayers 
+    : searchFilteredPlayers.filter(player => player.euGbeStatus.toLowerCase() === euGbeFilter.toLowerCase());
+
+  // Apply sorting
+  const sortedPlayers = [...euGbeFilteredPlayers].sort((a, b) => {
+    let aValue: any, bValue: any;
+    
+    switch (sortBy) {
+      case "age":
+        aValue = a.age || 0;
+        bValue = b.age || 0;
+        break;
+      case "xtv":
+        aValue = a.xtvScore || 0;
+        bValue = b.xtvScore || 0;
+        break;
+      case "rating":
+        aValue = a.transferroomRating || 0;
+        bValue = b.transferroomRating || 0;
+        break;
+      case "potential":
+        aValue = a.futureRating || 0;
+        bValue = b.futureRating || 0;
+        break;
+      case "contract":
+        aValue = a.contractExpiry ? new Date(a.contractExpiry).getTime() : 0;
+        bValue = b.contractExpiry ? new Date(b.contractExpiry).getTime() : 0;
+        break;
+      case "name":
+      default:
+        aValue = a.name.toLowerCase();
+        bValue = b.name.toLowerCase();
+        break;
+    }
+    
+    if (sortOrder === "asc") {
+      return aValue > bValue ? 1 : -1;
+    } else {
+      return aValue < bValue ? 1 : -1;
+    }
+  });
 
   const getPlayerAssignment = (playerId: string) => {
     // Match assignment by player_id (string) with players_new.id (converted to string)
@@ -124,6 +176,20 @@ const Shortlists = () => {
         className={`${statusColors[assignment.status]} border-0`}
       >
         {scoutName} ({assignment.status.replace('_', ' ')})
+      </Badge>
+    );
+  };
+
+  const getEuGbeBadge = (status: string) => {
+    const colors = {
+      'Pass': 'bg-green-100 text-green-800',
+      'Fail': 'bg-red-100 text-red-800',
+      'Pending': 'bg-yellow-100 text-yellow-800'
+    };
+    
+    return (
+      <Badge variant="outline" className={`${colors[status]} border-0`}>
+        {status}
       </Badge>
     );
   };
@@ -279,7 +345,7 @@ const Shortlists = () => {
                 </div>
                 <div className="flex items-center gap-2">
                   <Badge variant="outline">
-                    {filteredPlayers.length} players
+                    {sortedPlayers.length} players
                   </Badge>
                   <Button variant="outline" size="sm" onClick={handleExportList}>
                     <Download className="h-4 w-4 mr-1" />
@@ -287,7 +353,9 @@ const Shortlists = () => {
                   </Button>
                 </div>
               </div>
-              <div className="relative">
+              
+              {/* Search Bar */}
+              <div className="relative mb-4">
                 <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                 <Input
                   placeholder="Search players..."
@@ -296,10 +364,54 @@ const Shortlists = () => {
                   className="pl-10"
                 />
               </div>
+
+              {/* Sorting and Filtering Controls */}
+              <div className="flex flex-wrap items-center gap-2 mb-4">
+                <div className="flex items-center gap-2">
+                  <ArrowUpDown className="h-4 w-4" />
+                  <span className="text-sm font-medium">Sort by:</span>
+                  <Select value={sortBy} onValueChange={setSortBy}>
+                    <SelectTrigger className="w-32">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="name">Name</SelectItem>
+                      <SelectItem value="age">Age</SelectItem>
+                      <SelectItem value="xtv">xTV Score</SelectItem>
+                      <SelectItem value="rating">Rating</SelectItem>
+                      <SelectItem value="potential">Potential</SelectItem>
+                      <SelectItem value="contract">Contract</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
+                  >
+                    {sortOrder === "asc" ? "↑" : "↓"}
+                  </Button>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <Filter className="h-4 w-4" />
+                  <span className="text-sm font-medium">EU/GBE:</span>
+                  <Select value={euGbeFilter} onValueChange={setEuGbeFilter}>
+                    <SelectTrigger className="w-24">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All</SelectItem>
+                      <SelectItem value="pass">Pass</SelectItem>
+                      <SelectItem value="fail">Fail</SelectItem>
+                      <SelectItem value="pending">Pending</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {filteredPlayers.map((player) => (
+                {sortedPlayers.map((player) => (
                   <div key={player.id} className="border rounded-lg p-4 hover:bg-muted/50 transition-colors">
                     <div className="flex items-start gap-4">
                       {/* Player Avatar */}
@@ -317,6 +429,7 @@ const Shortlists = () => {
                             <div className="flex items-center gap-2 mb-1">
                               <h3 className="font-semibold text-lg">{player.name}</h3>
                               {getAssignmentBadge(player.id.toString())}
+                              {getEuGbeBadge(player.euGbeStatus)}
                             </div>
                             <div className="flex items-center gap-4 text-sm text-muted-foreground mb-2">
                               <span className="flex items-center gap-1">
@@ -337,6 +450,11 @@ const Shortlists = () => {
                               {player.futureRating && (
                                 <span className="text-green-600">
                                   Potential: {player.futureRating}
+                                </span>
+                              )}
+                              {player.xtvScore && (
+                                <span className="text-blue-600">
+                                  xTV: {player.xtvScore}
                                 </span>
                               )}
                               {player.contractExpiry && (
@@ -410,13 +528,16 @@ const Shortlists = () => {
                 ))}
               </div>
 
-              {filteredPlayers.length === 0 && (
+              {sortedPlayers.length === 0 && (
                 <div className="text-center py-12">
                   <div className="text-muted-foreground mb-4">
                     No players found matching your criteria
                   </div>
-                  <Button onClick={() => setSearchTerm("")}>
-                    Clear Search
+                  <Button onClick={() => {
+                    setSearchTerm("");
+                    setEuGbeFilter("all");
+                  }}>
+                    Clear Filters
                   </Button>
                 </div>
               )}

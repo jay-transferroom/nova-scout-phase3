@@ -15,6 +15,7 @@ export interface Player {
   xtvScore?: number;
   transferroomRating?: number;
   futureRating?: number;
+  euGbeStatus: 'Pass' | 'Fail' | 'Pending'; // Added EU/GBE status
   recentForm?: {
     matches: number;
     goals: number;

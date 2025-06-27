@@ -52,6 +52,7 @@ export const usePlayersData = () => {
         xtvScore: player.xtv,
         transferroomRating: player.rating,
         futureRating: player.potential,
+        euGbeStatus: 'Pass' as const, // All current Premier League players have Pass status
         recentForm: undefined, // Not available in players_new
       }));
     },
