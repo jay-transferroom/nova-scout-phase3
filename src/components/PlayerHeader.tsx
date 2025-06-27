@@ -1,5 +1,5 @@
 
-import { Calendar, MapPin, FileText, MessageSquare, Plus } from "lucide-react";
+import { Calendar, MapPin, FileText, MessageSquare, Plus, Bookmark } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -44,6 +44,17 @@ export const PlayerHeader = ({
     return "bg-gray-100 text-gray-800";
   };
 
+  // Mock function to check which shortlists this player is on
+  const getPlayerShortlists = (playerId: string) => {
+    // This would normally come from a database query
+    const mockShortlists = {
+      [player.id]: ["Striker Targets", "Loan Prospects"]
+    };
+    return mockShortlists[playerId] || [];
+  };
+
+  const playerShortlists = getPlayerShortlists(player.id);
+
   return (
     <Card className="mb-4">
       <CardContent className="p-4">
@@ -85,6 +96,21 @@ export const PlayerHeader = ({
                 <span>{player.nationality}</span>
               </div>
             </div>
+
+            {/* Shortlist badges */}
+            {playerShortlists.length > 0 && (
+              <div className="flex flex-wrap items-center gap-2 mb-2">
+                <div className="flex items-center gap-1 text-sm text-gray-600">
+                  <Bookmark className="h-3 w-3" />
+                  <span>On shortlists:</span>
+                </div>
+                {playerShortlists.map((shortlist) => (
+                  <Badge key={shortlist} variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                    {shortlist}
+                  </Badge>
+                ))}
+              </div>
+            )}
 
             {aggregatedData && (
               <div className="flex flex-wrap items-center gap-3">

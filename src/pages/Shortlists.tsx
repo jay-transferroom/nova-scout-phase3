@@ -11,6 +11,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { cn } from "@/lib/utils";
 import { usePlayersData } from "@/hooks/usePlayersData";
 import { usePlayerAssignments } from "@/hooks/usePlayerAssignments";
+import { usePrivatePlayers } from "@/hooks/usePrivatePlayers";
 import AssignScoutDialog from "@/components/AssignScoutDialog";
 import { useQueryClient } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
@@ -32,6 +33,7 @@ const Shortlists = () => {
 
   const { data: allPlayers = [], isLoading } = usePlayersData();
   const { data: playerAssignments = [], refetch: refetchAssignments } = usePlayerAssignments();
+  const { privatePlayers } = usePrivatePlayers();
   const queryClient = useQueryClient();
 
   // Create 4 focused shortlists for Chelsea's specific recruitment needs
@@ -90,20 +92,60 @@ const Shortlists = () => {
     }
   ];
 
+  // Mock private players on shortlists - including Herbie Hughes
+  const getPrivatePlayersForShortlist = (shortlistId: string) => {
+    const mockPrivatePlayersOnShortlists = {
+      "striker-targets": [
+        {
+          id: "private-herbie-hughes",
+          name: "Herbie Hughes",
+          club: "Manchester United U21",
+          age: 19,
+          positions: ["ST", "CF"],
+          nationality: "England",
+          isPrivate: true,
+          profilePath: "/private-player/1f4c01f4-9548-4cbc-a10f-951eaa41aa56"
+        }
+      ],
+      "loan-prospects": [
+        {
+          id: "private-herbie-hughes",
+          name: "Herbie Hughes", 
+          club: "Manchester United U21",
+          age: 19,
+          positions: ["ST", "CF"],
+          nationality: "England",
+          isPrivate: true,
+          profilePath: "/private-player/1f4c01f4-9548-4cbc-a10f-951eaa41aa56"
+        }
+      ]
+    };
+    return mockPrivatePlayersOnShortlists[shortlistId] || [];
+  };
+
   const currentList = shortlists.find(list => list.id === selectedList);
-  const currentPlayers = currentList ? allPlayers.filter(currentList.filter).slice(0, 15) : [];
+  const currentPublicPlayers = currentList ? allPlayers.filter(currentList.filter).slice(0, 15) : [];
+  const currentPrivatePlayers = currentList ? getPrivatePlayersForShortlist(currentList.id) : [];
+  
+  // Combine public and private players
+  const allCurrentPlayers = [
+    ...currentPublicPlayers.map(p => ({ ...p, isPrivate: false, profilePath: `/player/${p.id}` })),
+    ...currentPrivatePlayers
+  ];
   
   // Apply search filter
-  const searchFilteredPlayers = currentPlayers.filter(player =>
+  const searchFilteredPlayers = allCurrentPlayers.filter(player =>
     player.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     player.club.toLowerCase().includes(searchTerm.toLowerCase()) ||
     player.positions.some((pos: string) => pos?.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
-  // Apply EU/GBE filter
+  // Apply EU/GBE filter (only for public players)
   const euGbeFilteredPlayers = euGbeFilter === "all" 
     ? searchFilteredPlayers 
-    : searchFilteredPlayers.filter(player => (player.euGbeStatus || 'Pass').toLowerCase() === euGbeFilter.toLowerCase());
+    : searchFilteredPlayers.filter(player => 
+        player.isPrivate || (player.euGbeStatus || 'Pass').toLowerCase() === euGbeFilter.toLowerCase()
+      );
 
   // Apply sorting
   const sortedPlayers = [...euGbeFilteredPlayers].sort((a, b) => {
@@ -308,7 +350,9 @@ const Shortlists = () => {
             <CardContent className="p-0">
               <div className="space-y-1">
                 {shortlists.map((list) => {
-                  const playerCount = Math.min(allPlayers.filter(list.filter).length, 15);
+                  const publicPlayerCount = Math.min(allPlayers.filter(list.filter).length, 15);
+                  const privatePlayerCount = getPrivatePlayersForShortlist(list.id).length;
+                  const totalCount = publicPlayerCount + privatePlayerCount;
                   return (
                     <button
                       key={list.id}
@@ -323,7 +367,7 @@ const Shortlists = () => {
                         <div className="flex-1 min-w-0">
                           <div className="font-medium text-sm truncate">{list.name}</div>
                           <div className="text-xs text-muted-foreground">
-                            {playerCount} players
+                            {totalCount} players
                           </div>
                         </div>
                       </div>
@@ -431,8 +475,11 @@ const Shortlists = () => {
                           <div>
                             <div className="flex items-center gap-2 mb-1">
                               <h3 className="font-semibold text-lg">{player.name}</h3>
-                              {getAssignmentBadge(player.id.toString())}
-                              {getEuGbeBadge(player.euGbeStatus || 'Pass')}
+                              {player.isPrivate && (
+                                <Badge variant="secondary">Private Player</Badge>
+                              )}
+                              {!player.isPrivate && getAssignmentBadge(player.id.toString())}
+                              {!player.isPrivate && getEuGbeBadge(player.euGbeStatus || 'Pass')}
                             </div>
                             <div className="flex items-center gap-4 text-sm text-muted-foreground mb-2">
                               <span className="flex items-center gap-1">
@@ -443,36 +490,38 @@ const Shortlists = () => {
                               {player.age && <span>{player.age} years</span>}
                               <span>{player.nationality}</span>
                             </div>
-                            <div className="flex items-center gap-4 text-sm">
-                              {player.transferroomRating && (
-                                <span className="flex items-center gap-1">
-                                  <Star className="h-3 w-3 text-yellow-500" />
-                                  Rating: {player.transferroomRating}/100
-                                </span>
-                              )}
-                              {player.futureRating && (
-                                <span className="text-green-600">
-                                  Potential: {player.futureRating}
-                                </span>
-                              )}
-                              {player.xtvScore && (
-                                <span className="text-blue-600">
-                                  xTV: £{formatXtvScore(player.xtvScore)}M
-                                </span>
-                              )}
-                              {player.contractExpiry && (
-                                <span className="flex items-center gap-1">
-                                  <Calendar className="h-3 w-3" />
-                                  Contract: {new Date(player.contractExpiry).getFullYear()}
-                                </span>
-                              )}
-                            </div>
+                            {!player.isPrivate && (
+                              <div className="flex items-center gap-4 text-sm">
+                                {player.transferroomRating && (
+                                  <span className="flex items-center gap-1">
+                                    <Star className="h-3 w-3 text-yellow-500" />
+                                    Rating: {player.transferroomRating}/100
+                                  </span>
+                                )}
+                                {player.futureRating && (
+                                  <span className="text-green-600">
+                                    Potential: {player.futureRating}
+                                  </span>
+                                )}
+                                {player.xtvScore && (
+                                  <span className="text-blue-600">
+                                    xTV: £{formatXtvScore(player.xtvScore)}M
+                                  </span>
+                                )}
+                                {player.contractExpiry && (
+                                  <span className="flex items-center gap-1">
+                                    <Calendar className="h-3 w-3" />
+                                    Contract: {new Date(player.contractExpiry).getFullYear()}
+                                  </span>
+                                )}
+                              </div>
+                            )}
                           </div>
                         </div>
 
                         {/* Action Buttons */}
                         <div className="flex items-center gap-2">
-                          {!getPlayerAssignment(player.id.toString()) ? (
+                          {!player.isPrivate && !getPlayerAssignment(player.id.toString()) ? (
                             <Button 
                               size="sm" 
                               variant="outline"
@@ -481,7 +530,7 @@ const Shortlists = () => {
                               <UserPlus className="h-4 w-4 mr-1" />
                               Assign Scout
                             </Button>
-                          ) : (
+                          ) : !player.isPrivate && (
                             <Button 
                               size="sm" 
                               variant="outline"
@@ -491,7 +540,7 @@ const Shortlists = () => {
                               Reassign Scout
                             </Button>
                           )}
-                          <Link to={`/player/${player.id}`}>
+                          <Link to={player.profilePath}>
                             <Button 
                               size="sm" 
                               variant="outline"

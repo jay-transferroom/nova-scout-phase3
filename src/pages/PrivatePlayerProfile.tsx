@@ -4,7 +4,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Edit, UserPlus, MessageSquare } from "lucide-react";
+import { ArrowLeft, Edit, UserPlus, MessageSquare, Bookmark } from "lucide-react";
 import { usePrivatePlayers } from "@/hooks/usePrivatePlayers";
 import { useToast } from "@/hooks/use-toast";
 import { PlayerNotes } from "@/components/PlayerNotes";
@@ -19,6 +19,15 @@ const PrivatePlayerProfile = () => {
   const [showNotes, setShowNotes] = useState(false);
 
   const player = privatePlayers.find(p => p.id === id);
+
+  // Mock function to get shortlists for private players
+  const getPrivatePlayerShortlists = (playerId: string) => {
+    // Mock data - Herbie Hughes is on striker targets
+    const mockShortlists = {
+      [id]: ["Striker Targets", "Loan Prospects"]
+    };
+    return mockShortlists[playerId] || [];
+  };
 
   if (loading) {
     return (
@@ -47,6 +56,8 @@ const PrivatePlayerProfile = () => {
     );
   }
 
+  const playerShortlists = getPrivatePlayerShortlists(player.id);
+
   return (
     <div className="container mx-auto py-8 max-w-6xl">
       <div className="flex items-center gap-4 mb-8">
@@ -64,6 +75,21 @@ const PrivatePlayerProfile = () => {
             {player.age && `${player.age} years old • `}
             {player.nationality}
           </p>
+          
+          {/* Shortlist information */}
+          {playerShortlists.length > 0 && (
+            <div className="flex items-center gap-2 mt-2">
+              <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                <Bookmark className="h-3 w-3" />
+                <span>On shortlists:</span>
+              </div>
+              {playerShortlists.map((shortlist) => (
+                <Badge key={shortlist} variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                  {shortlist}
+                </Badge>
+              ))}
+            </div>
+          )}
         </div>
         <div className="flex gap-2 flex-wrap">
           <Button 
