@@ -1,10 +1,12 @@
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import { FileText, Users, Calendar, Target, Plus, TrendingUp, AlertCircle } from "lucide-react";
+import { FileText, Users, Calendar, Target, Plus, TrendingUp, AlertCircle, UserPlus } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useReports } from "@/hooks/useReports";
 import { Badge } from "@/components/ui/badge";
+import AddPrivatePlayerDialog from "@/components/AddPrivatePlayerDialog";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -22,6 +24,14 @@ const Index = () => {
       icon: Plus,
       action: () => navigate("/report-builder"),
       variant: "default" as const,
+    },
+    {
+      title: "Add Private Player",
+      description: "Add a player not in database",
+      icon: UserPlus,
+      action: null, // Will be handled by the dialog component
+      variant: "outline" as const,
+      isDialog: true,
     },
     {
       title: "View All Reports",
@@ -134,9 +144,32 @@ const Index = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
               {quickActions.map((action, index) => {
                 const Icon = action.icon;
+                
+                if (action.isDialog) {
+                  return (
+                    <AddPrivatePlayerDialog
+                      key={index}
+                      trigger={
+                        <Button
+                          variant={action.variant}
+                          className="h-auto p-4 flex flex-col items-center gap-2"
+                        >
+                          <Icon className="h-6 w-6" />
+                          <div className="text-center">
+                            <div className="font-medium">{action.title}</div>
+                            <div className="text-xs text-muted-foreground">
+                              {action.description}
+                            </div>
+                          </div>
+                        </Button>
+                      }
+                    />
+                  );
+                }
+                
                 return (
                   <Button
                     key={index}

@@ -353,6 +353,60 @@ export type Database = {
         }
         Relationships: []
       }
+      private_players: {
+        Row: {
+          age: number | null
+          club: string | null
+          created_at: string
+          created_by_user_id: string
+          date_of_birth: string | null
+          dominant_foot: string | null
+          id: string
+          name: string
+          nationality: string | null
+          notes: string | null
+          positions: string[] | null
+          region: string | null
+          source_context: string | null
+          updated_at: string
+          visibility: string
+        }
+        Insert: {
+          age?: number | null
+          club?: string | null
+          created_at?: string
+          created_by_user_id: string
+          date_of_birth?: string | null
+          dominant_foot?: string | null
+          id?: string
+          name: string
+          nationality?: string | null
+          notes?: string | null
+          positions?: string[] | null
+          region?: string | null
+          source_context?: string | null
+          updated_at?: string
+          visibility?: string
+        }
+        Update: {
+          age?: number | null
+          club?: string | null
+          created_at?: string
+          created_by_user_id?: string
+          date_of_birth?: string | null
+          dominant_foot?: string | null
+          id?: string
+          name?: string
+          nationality?: string | null
+          notes?: string | null
+          positions?: string[] | null
+          region?: string | null
+          source_context?: string | null
+          updated_at?: string
+          visibility?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           club_id: string | null
