@@ -2,6 +2,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { Player } from "@/types/player";
+import { PrivatePlayer } from "@/types/privatePlayer";
 import { ReportTemplate, Report } from "@/types/report";
 import { useAuth } from "@/contexts/AuthContext";
 import PlayerSelectionScreen from "@/components/report-builder/PlayerSelectionScreen";
@@ -14,7 +15,31 @@ interface LocationState {
   player?: Player;
   template?: ReportTemplate;
   selectedPlayerId?: string;
+  selectedPrivatePlayer?: PrivatePlayer;
 }
+
+// Transform private player to regular player format for report building
+const transformPrivatePlayerToPlayer = (privatePlayer: PrivatePlayer): Player => ({
+  id: `private-${privatePlayer.id}`,
+  name: privatePlayer.name,
+  club: privatePlayer.club || 'Unknown',
+  age: privatePlayer.age || 0,
+  dateOfBirth: privatePlayer.date_of_birth || '',
+  positions: privatePlayer.positions || [],
+  dominantFoot: privatePlayer.dominant_foot || 'Right',
+  nationality: privatePlayer.nationality || 'Unknown',
+  contractStatus: 'Under Contract',
+  contractExpiry: undefined,
+  region: privatePlayer.region || 'Unknown',
+  image: undefined,
+  xtvScore: undefined,
+  transferroomRating: undefined,
+  futureRating: undefined,
+  euGbeStatus: 'Pass',
+  recentForm: undefined,
+  isPrivatePlayer: true,
+  privatePlayerData: privatePlayer
+});
 
 const ReportBuilder = () => {
   const location = useLocation();
@@ -65,7 +90,17 @@ const ReportBuilder = () => {
       return;
     }
 
-    // Case 3: Player fetched from URL/state ID
+    // Case 3: Private player provided via state
+    if (state?.selectedPrivatePlayer) {
+      console.log('Private player provided via state, converting and showing template selection');
+      const convertedPlayer = transformPrivatePlayerToPlayer(state.selectedPrivatePlayer);
+      setPlayer(convertedPlayer);
+      setShowTemplateSelection(true);
+      setInitialized(true);
+      return;
+    }
+
+    // Case 4: Player fetched from URL/state ID
     if (playerIdToFetch && fetchedPlayer) {
       console.log('Player fetched from ID, going to template selection');
       setPlayer(fetchedPlayer);
@@ -74,15 +109,15 @@ const ReportBuilder = () => {
       return;
     }
 
-    // Case 4: No player data available
-    if (!playerIdToFetch && !state?.player && !playerLoading) {
+    // Case 5: No player data available
+    if (!playerIdToFetch && !state?.player && !state?.selectedPrivatePlayer && !playerLoading) {
       console.log('No player data provided, showing player selection');
       setShowPlayerSearch(true);
       setInitialized(true);
       return;
     }
 
-    // Case 5: Still loading player data
+    // Case 6: Still loading player data
     if (playerIdToFetch && playerLoading) {
       console.log('Waiting for player to be fetched');
       return;

@@ -1,17 +1,21 @@
 
+import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Edit, UserPlus } from "lucide-react";
+import { ArrowLeft, Edit, UserPlus, MessageSquare } from "lucide-react";
 import { usePrivatePlayers } from "@/hooks/usePrivatePlayers";
 import { useToast } from "@/hooks/use-toast";
+import { PlayerNotes } from "@/components/PlayerNotes";
+import TrackPlayerButton from "@/components/TrackPlayerButton";
 
 const PrivatePlayerProfile = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { privatePlayers, loading } = usePrivatePlayers();
   const { toast } = useToast();
+  const [showNotes, setShowNotes] = useState(false);
 
   const player = privatePlayers.find(p => p.id === id);
 
@@ -60,15 +64,29 @@ const PrivatePlayerProfile = () => {
             {player.nationality}
           </p>
         </div>
-        <Button 
-          onClick={() => navigate('/report-builder', { 
-            state: { selectedPrivatePlayer: player } 
-          })}
-          className="gap-2"
-        >
-          <UserPlus className="h-4 w-4" />
-          Create Report
-        </Button>
+        <div className="flex gap-2">
+          <Button 
+            variant="outline"
+            onClick={() => setShowNotes(true)}
+            className="gap-2"
+          >
+            <MessageSquare className="h-4 w-4" />
+            Notes
+          </Button>
+          <TrackPlayerButton 
+            playerId={`private-${player.id}`}
+            playerName={player.name}
+          />
+          <Button 
+            onClick={() => navigate('/report-builder', { 
+              state: { selectedPrivatePlayer: player } 
+            })}
+            className="gap-2"
+          >
+            <UserPlus className="h-4 w-4" />
+            Create Report
+          </Button>
+        </div>
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">
@@ -161,6 +179,13 @@ const PrivatePlayerProfile = () => {
           </CardContent>
         </Card>
       </div>
+
+      <PlayerNotes
+        playerId={`private-${player.id}`}
+        playerName={player.name}
+        open={showNotes}
+        onOpenChange={setShowNotes}
+      />
     </div>
   );
 };
