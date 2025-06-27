@@ -25,16 +25,17 @@ const PlayerVerdictSummary = ({ playerReports, playerName }: PlayerVerdictSummar
     return null;
   }
 
-  // Count occurrences of each verdict
+  // Count occurrences of each verdict with proper typing
   const verdictCounts = verdicts.reduce((acc, verdict) => {
-    acc[verdict] = (acc[verdict] || 0) + 1;
+    const currentCount = acc[verdict] || 0;
+    acc[verdict] = currentCount + 1;
     return acc;
   }, {} as Record<string, number>);
 
   // Get unique verdicts with their counts
   const uniqueVerdicts = Object.entries(verdictCounts).map(([verdict, count]) => ({
     verdict,
-    count,
+    count: count as number, // Ensure count is typed as number
     option: getVerdictOption(verdict)
   }));
 
