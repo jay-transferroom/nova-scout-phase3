@@ -20,11 +20,13 @@ import {
   calculateAge, 
   formatDateLocal 
 } from "@/utils/playerProfileUtils";
+import ScoutManagerVerdictPanel from "@/components/ScoutManagerVerdictPanel";
 
 const PlayerProfile = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [notesOpen, setNotesOpen] = useState(false);
+  const [managerVerdict, setManagerVerdict] = useState<string | null>(null);
 
   const { player, isLoading, error, playerReports, reportsLoading } = usePlayerProfile(id);
 
@@ -50,6 +52,12 @@ const PlayerProfile = () => {
 
   const handleOpenNotes = () => {
     setNotesOpen(true);
+  };
+
+  const handleVerdictUpdate = (verdict: string) => {
+    setManagerVerdict(verdict);
+    // In a real implementation, you would save this to the database
+    console.log(`Manager verdict updated for player ${id}:`, verdict);
   };
 
   if (isLoading) {
@@ -119,6 +127,16 @@ const PlayerProfile = () => {
             aggregatedData={aggregatedData}
           />
         </div>
+      </div>
+
+      {/* Scout Manager Verdict Panel */}
+      <div className="mb-4">
+        <ScoutManagerVerdictPanel
+          playerId={id || ""}
+          playerName={player.name}
+          currentVerdict={managerVerdict}
+          onVerdictUpdate={handleVerdictUpdate}
+        />
       </div>
 
       {/* Detailed Player Statistics */}
