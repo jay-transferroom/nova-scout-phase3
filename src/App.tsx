@@ -24,6 +24,7 @@ import PrivatePlayerProfile from "@/pages/PrivatePlayerProfile";
 import Shortlists from "@/pages/Shortlists";
 import ScoutManagement from "@/pages/ScoutManagement";
 import Settings from "@/pages/Settings";
+import AssignedPlayers from "@/pages/AssignedPlayers";
 
 const queryClient = new QueryClient();
 
@@ -52,6 +53,13 @@ function App() {
               <ProtectedRoute>
                 <Layout>
                   <Settings />
+                </Layout>
+              </ProtectedRoute>
+            } />
+            <Route path="/assigned-players" element={
+              <ProtectedRoute>
+                <Layout>
+                  <AssignedPlayers />
                 </Layout>
               </ProtectedRoute>
             } />
