@@ -21,7 +21,7 @@ const PrivatePlayerProfile = () => {
 
   const player = privatePlayers.find(p => p.id === id);
 
-  // Get actual shortlists for this private player
+  // Get actual shortlists for this private player - use "private-" prefix for ID
   const playerShortlists = player ? getPlayerShortlists(`private-${player.id}`).map(shortlist => shortlist.name) : [];
 
   if (loading) {

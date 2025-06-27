@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Bookmark, Plus } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
+import { useShortlists } from "@/hooks/useShortlists";
 
 interface AddToShortlistButtonProps {
   playerId: string;
@@ -19,27 +20,32 @@ const AddToShortlistButton = ({ playerId, playerName, isPrivatePlayer = false }:
   const [selectedList, setSelectedList] = useState<string>("");
   const { profile } = useAuth();
   const { toast } = useToast();
+  const { shortlists, addPlayerToShortlist, getPlayerShortlists } = useShortlists();
 
   // Only show for recruitment (Scout Manager) role
   if (profile?.role !== 'recruitment') {
     return null;
   }
 
-  // Mock shortlists - in a real app this would come from the database
-  const shortlists = [
-    { id: "striker-targets", name: "Striker Targets" },
-    { id: "cb-reinforcements", name: "Centre-Back Options" },
-    { id: "loan-prospects", name: "Loan Prospects" },
-    { id: "bargain-deals", name: "Contract Expiry Watch" },
-  ];
+  // Format player ID consistently - private players need "private-" prefix
+  const formattedPlayerId = isPrivatePlayer && !playerId.startsWith('private-') 
+    ? `private-${playerId}` 
+    : playerId;
+
+  // Get current shortlists for this player
+  const currentPlayerShortlists = getPlayerShortlists(formattedPlayerId);
+  const currentShortlistIds = currentPlayerShortlists.map(list => list.id);
+
+  // Filter out shortlists the player is already on
+  const availableShortlists = shortlists.filter(list => !currentShortlistIds.includes(list.id));
 
   const handleAddToShortlist = () => {
     if (!selectedList) return;
 
     const listName = shortlists.find(list => list.id === selectedList)?.name;
     
-    // Mock implementation - in a real app this would save to database
-    console.log(`Adding ${playerName} to shortlist: ${listName}`);
+    // Add player to the selected shortlist
+    addPlayerToShortlist(selectedList, formattedPlayerId);
     
     toast({
       title: "Player Added to Shortlist",
@@ -70,27 +76,46 @@ const AddToShortlistButton = ({ playerId, playerName, isPrivatePlayer = false }:
               <Badge variant="secondary">Private Player</Badge>
             )}
           </div>
+
+          {currentPlayerShortlists.length > 0 && (
+            <div>
+              <span className="text-sm text-muted-foreground">Currently on:</span>
+              <div className="flex flex-wrap gap-1 mt-1">
+                {currentPlayerShortlists.map((list) => (
+                  <Badge key={list.id} variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                    {list.name}
+                  </Badge>
+                ))}
+              </div>
+            </div>
+          )}
           
           <div className="space-y-2">
             <label className="text-sm font-medium">Select Shortlist</label>
-            <Select value={selectedList} onValueChange={setSelectedList}>
-              <SelectTrigger>
-                <SelectValue placeholder="Choose a shortlist" />
-              </SelectTrigger>
-              <SelectContent>
-                {shortlists.map((list) => (
-                  <SelectItem key={list.id} value={list.id}>
-                    {list.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            {availableShortlists.length > 0 ? (
+              <Select value={selectedList} onValueChange={setSelectedList}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Choose a shortlist" />
+                </SelectTrigger>
+                <SelectContent>
+                  {availableShortlists.map((list) => (
+                    <SelectItem key={list.id} value={list.id}>
+                      {list.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            ) : (
+              <div className="text-sm text-muted-foreground p-2 border rounded">
+                This player is already on all available shortlists
+              </div>
+            )}
           </div>
 
           <div className="flex gap-2 pt-4">
             <Button 
               onClick={handleAddToShortlist} 
-              disabled={!selectedList}
+              disabled={!selectedList || availableShortlists.length === 0}
               className="flex-1"
             >
               <Plus className="h-4 w-4 mr-1" />

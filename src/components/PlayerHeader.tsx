@@ -46,8 +46,11 @@ export const PlayerHeader = ({
     return "bg-gray-100 text-gray-800";
   };
 
+  // Format player ID for shortlist lookup - private players need "private-" prefix
+  const shortlistPlayerId = player.isPrivatePlayer ? `private-${player.id}` : player.id;
+  
   // Get actual shortlists this player is on
-  const playerShortlists = getPlayerShortlists(player.id).map(shortlist => shortlist.name);
+  const playerShortlists = getPlayerShortlists(shortlistPlayerId).map(shortlist => shortlist.name);
 
   return (
     <Card className="mb-4">
