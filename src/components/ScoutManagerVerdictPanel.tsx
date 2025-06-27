@@ -26,8 +26,8 @@ const ScoutManagerVerdictPanel = ({
   const [isLoading, setIsLoading] = useState(false);
   const { profile } = useAuth();
 
-  // Only show for scout managers and recruitment users
-  const canAddVerdict = profile?.role === 'scout_manager' || profile?.role === 'recruitment';
+  // Only show for recruitment users (who act as scout managers)
+  const canAddVerdict = profile?.role === 'recruitment';
 
   if (!canAddVerdict) {
     return null;
