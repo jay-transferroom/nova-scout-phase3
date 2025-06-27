@@ -1,4 +1,5 @@
-import { FileText, Star, Award, User, Plus } from "lucide-react";
+
+import { FileText, Star, Award, User, Plus, UserCheck } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -8,15 +9,51 @@ import { formatDate, getRatingColor } from "@/utils/reportFormatting";
 import { useNavigate } from "react-router-dom";
 import PlayerVerdictSummary from "@/components/PlayerVerdictSummary";
 import VerdictBadge from "@/components/VerdictBadge";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface PlayerReportsProps {
   playerReports: ReportWithPlayer[];
   reportsLoading: boolean;
   onViewReport: (reportId: string) => void;
+  playerId?: string;
+  playerName?: string;
 }
 
-export const PlayerReports = ({ playerReports, reportsLoading, onViewReport }: PlayerReportsProps) => {
+export const PlayerReports = ({ 
+  playerReports, 
+  reportsLoading, 
+  onViewReport,
+  playerId,
+  playerName 
+}: PlayerReportsProps) => {
   const navigate = useNavigate();
+  const { profile } = useAuth();
+
+  const handleCreateReport = () => {
+    if (playerId && playerName) {
+      if (playerId.startsWith('private-')) {
+        // For private players
+        navigate('/report-builder', { 
+          state: { selectedPrivatePlayer: { id: playerId.replace('private-', ''), name: playerName } } 
+        });
+      } else {
+        // For public players
+        navigate('/report-builder', { 
+          state: { selectedPlayer: { id: playerId, name: playerName } } 
+        });
+      }
+    } else {
+      navigate('/report-builder');
+    }
+  };
+
+  const handleScoutManagerVerdict = () => {
+    // This functionality would be handled on the player profile page
+    console.log('Scout manager verdict for player:', playerName);
+  };
+
+  // Only show scout manager verdict button for recruitment users
+  const canAddVerdict = profile?.role === 'recruitment';
 
   return (
     <div className="space-y-4">
@@ -24,7 +61,7 @@ export const PlayerReports = ({ playerReports, reportsLoading, onViewReport }: P
       {playerReports && playerReports.length > 0 && (
         <PlayerVerdictSummary 
           playerReports={playerReports} 
-          playerName={playerReports[0]?.player?.name || "This Player"} 
+          playerName={playerReports[0]?.player?.name || playerName || "This Player"} 
         />
       )}
 
@@ -41,14 +78,26 @@ export const PlayerReports = ({ playerReports, reportsLoading, onViewReport }: P
                 All scouting reports for this player
               </CardDescription>
             </div>
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={() => navigate('/report-builder')}
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Create Report
-            </Button>
+            <div className="flex gap-2">
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={handleCreateReport}
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Create Report
+              </Button>
+              {canAddVerdict && (
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={handleScoutManagerVerdict}
+                >
+                  <UserCheck className="h-4 w-4 mr-2" />
+                  Add Verdict
+                </Button>
+              )}
+            </div>
           </div>
         </CardHeader>
         <CardContent>
@@ -103,13 +152,23 @@ export const PlayerReports = ({ playerReports, reportsLoading, onViewReport }: P
                         </div>
                       </div>
                       
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => onViewReport(report.id)}
-                      >
-                        View Report
-                      </Button>
+                      <div className="flex gap-2">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => onViewReport(report.id)}
+                        >
+                          View Report
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={handleCreateReport}
+                        >
+                          <Plus className="h-4 w-4 mr-1" />
+                          New Report
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 );
@@ -122,7 +181,7 @@ export const PlayerReports = ({ playerReports, reportsLoading, onViewReport }: P
                   This player doesn't have any scouting reports. Create the first one to get started.
                 </p>
                 <Button 
-                  onClick={() => navigate('/report-builder')}
+                  onClick={handleCreateReport}
                   variant="outline"
                 >
                   <Plus className="h-4 w-4 mr-2" />

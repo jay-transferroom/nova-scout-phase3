@@ -1,6 +1,7 @@
+
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Award, Trash2, Edit, Eye } from "lucide-react";
+import { Award, Trash2, Edit, Eye, User, FileText, UserCheck } from "lucide-react";
 import { ReportWithPlayer } from "@/types/report";
 import { getRatingColor, formatDate } from "@/utils/reportFormatting";
 import { getOverallRating, getRecommendation } from "@/utils/reportDataExtraction";
@@ -8,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/contexts/AuthContext";
 import { useReportPlayerData } from "@/hooks/useReportPlayerData";
 import VerdictBadge from "@/components/VerdictBadge";
+import { useNavigate } from "react-router-dom";
 
 interface ReportsTableProps {
   reports: ReportWithPlayer[];
@@ -24,6 +26,8 @@ const ReportRow = ({ report, onViewReport, onEditReport, onDeleteReport, canEdit
   canEdit: boolean;
 }) => {
   const { data: playerData, isLoading: playerLoading, error: playerError } = useReportPlayerData(report.playerId);
+  const navigate = useNavigate();
+  const { profile } = useAuth();
   const overallRating = getOverallRating(report);
   const verdict = getRecommendation(report);
 
@@ -41,6 +45,42 @@ const ReportRow = ({ report, onViewReport, onEditReport, onDeleteReport, canEdit
   const playerPositions = playerLoading ? 'Loading...' : 
                           playerError ? 'Unknown' :
                           playerData?.positions?.join(", ") || 'Unknown';
+
+  const handleViewPlayerProfile = () => {
+    if (playerData) {
+      // Check if it's a private player by looking at the ID format
+      if (report.playerId.startsWith('private-')) {
+        const privatePlayerId = report.playerId.replace('private-', '');
+        navigate(`/private-player/${privatePlayerId}`);
+      } else {
+        navigate(`/player/${report.playerId}`);
+      }
+    }
+  };
+
+  const handleCreateReport = () => {
+    if (playerData) {
+      if (report.playerId.startsWith('private-')) {
+        // For private players
+        navigate('/report-builder', { 
+          state: { selectedPrivatePlayer: playerData } 
+        });
+      } else {
+        // For public players
+        navigate('/report-builder', { 
+          state: { selectedPlayer: playerData } 
+        });
+      }
+    }
+  };
+
+  const handleScoutManagerVerdict = () => {
+    // Navigate to player profile where scout manager verdict can be added
+    handleViewPlayerProfile();
+  };
+
+  // Only show scout manager verdict button for recruitment users
+  const canAddVerdict = profile?.role === 'recruitment';
 
   return (
     <TableRow key={report.id}>
@@ -75,7 +115,7 @@ const ReportRow = ({ report, onViewReport, onEditReport, onDeleteReport, canEdit
         {report.scoutProfile?.first_name || "Scout"}
       </TableCell>
       <TableCell className="text-right">
-        <div className="flex gap-2 justify-end">
+        <div className="flex gap-1 justify-end flex-wrap">
           <Button 
             variant="outline" 
             size="sm" 
@@ -84,6 +124,35 @@ const ReportRow = ({ report, onViewReport, onEditReport, onDeleteReport, canEdit
           >
             <Eye className="h-4 w-4" />
           </Button>
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={handleViewPlayerProfile}
+            title="View player profile"
+            disabled={playerLoading || playerError}
+          >
+            <User className="h-4 w-4" />
+          </Button>
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={handleCreateReport}
+            title="Create new report for this player"
+            disabled={playerLoading || playerError}
+          >
+            <FileText className="h-4 w-4" />
+          </Button>
+          {canAddVerdict && (
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={handleScoutManagerVerdict}
+              title="Add scout manager verdict"
+              disabled={playerLoading || playerError}
+            >
+              <UserCheck className="h-4 w-4" />
+            </Button>
+          )}
           {canEdit && onEditReport && (
             <Button 
               variant="outline" 
@@ -130,7 +199,7 @@ const ReportsTable = ({ reports, onViewReport, onEditReport, onDeleteReport }: R
           </TableHead>
           <TableHead>Verdict</TableHead>
           <TableHead>Scout</TableHead>
-          <TableHead className="w-[200px] text-right">Actions</TableHead>
+          <TableHead className="w-[250px] text-right">Actions</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
