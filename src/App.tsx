@@ -23,6 +23,7 @@ import Calendar from "./pages/Calendar";
 import PrivatePlayerProfile from "@/pages/PrivatePlayerProfile";
 import Shortlists from "@/pages/Shortlists";
 import ScoutManagement from "@/pages/ScoutManagement";
+import Settings from "@/pages/Settings";
 
 const queryClient = new QueryClient();
 
@@ -44,6 +45,13 @@ function App() {
               <ProtectedRoute>
                 <Layout>
                   <Profile />
+                </Layout>
+              </ProtectedRoute>
+            } />
+            <Route path="/settings" element={
+              <ProtectedRoute>
+                <Layout>
+                  <Settings />
                 </Layout>
               </ProtectedRoute>
             } />

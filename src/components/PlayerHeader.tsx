@@ -5,6 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Player } from "@/types/player";
 import TrackPlayerButton from "./TrackPlayerButton";
+import AddToShortlistButton from "./AddToShortlistButton";
 
 interface PlayerHeaderProps {
   player: Player;
@@ -106,7 +107,7 @@ export const PlayerHeader = ({
             )}
           </div>
 
-          <div className="flex-shrink-0 flex gap-2">
+          <div className="flex-shrink-0 flex gap-2 flex-wrap">
             <Button onClick={onCreateReport} size="sm" className="gap-1">
               <FileText className="h-3 w-3" />
               Report
@@ -116,6 +117,11 @@ export const PlayerHeader = ({
               Notes
             </Button>
             <TrackPlayerButton playerId={player.id} playerName={player.name} />
+            <AddToShortlistButton 
+              playerId={player.id} 
+              playerName={player.name}
+              isPrivatePlayer={player.isPrivatePlayer}
+            />
           </div>
         </div>
       </CardContent>

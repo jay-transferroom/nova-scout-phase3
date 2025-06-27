@@ -9,6 +9,7 @@ import { usePrivatePlayers } from "@/hooks/usePrivatePlayers";
 import { useToast } from "@/hooks/use-toast";
 import { PlayerNotes } from "@/components/PlayerNotes";
 import TrackPlayerButton from "@/components/TrackPlayerButton";
+import AddToShortlistButton from "@/components/AddToShortlistButton";
 
 const PrivatePlayerProfile = () => {
   const { id } = useParams<{ id: string }>();
@@ -64,7 +65,7 @@ const PrivatePlayerProfile = () => {
             {player.nationality}
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
           <Button 
             variant="outline"
             onClick={() => setShowNotes(true)}
@@ -76,6 +77,11 @@ const PrivatePlayerProfile = () => {
           <TrackPlayerButton 
             playerId={`private-${player.id}`}
             playerName={player.name}
+          />
+          <AddToShortlistButton 
+            playerId={player.id}
+            playerName={player.name}
+            isPrivatePlayer={true}
           />
           <Button 
             onClick={() => navigate('/report-builder', { 
