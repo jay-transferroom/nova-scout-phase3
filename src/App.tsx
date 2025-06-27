@@ -21,6 +21,8 @@ import ReportBuilder from "./pages/ReportBuilder";
 import SearchResults from "./pages/SearchResults";
 import Calendar from "./pages/Calendar";
 import PrivatePlayerProfile from "@/pages/PrivatePlayerProfile";
+import Shortlists from "@/pages/Shortlists";
+import ScoutManagement from "@/pages/ScoutManagement";
 
 const queryClient = new QueryClient();
 
@@ -84,6 +86,20 @@ function App() {
               <ProtectedRoute>
                 <Layout>
                   <Calendar />
+                </Layout>
+              </ProtectedRoute>
+            } />
+            <Route path="/shortlists" element={
+              <ProtectedRoute>
+                <Layout>
+                  <Shortlists />
+                </Layout>
+              </ProtectedRoute>
+            } />
+            <Route path="/scout-management" element={
+              <ProtectedRoute>
+                <Layout>
+                  <ScoutManagement />
                 </Layout>
               </ProtectedRoute>
             } />

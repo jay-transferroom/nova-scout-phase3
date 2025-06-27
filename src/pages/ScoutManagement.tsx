@@ -1,7 +1,8 @@
+
 import { useState, useEffect } from "react";
 import { useScoutingAssignments } from "@/hooks/useScoutingAssignments";
 import { useScoutUsers } from "@/hooks/useScoutUsers";
-import { usePlayersData } from "@/hooks/usePlayersData";
+import { useUnifiedPlayersData } from "@/hooks/useUnifiedPlayersData";
 import { useReports } from "@/hooks/useReports";
 import AssignScoutDialog from "@/components/AssignScoutDialog";
 import ScoutManagementHeader from "@/components/scout-management/ScoutManagementHeader";
@@ -22,11 +23,13 @@ const ScoutManagement = () => {
 
   const { data: assignments = [], refetch: refetchAssignments } = useScoutingAssignments();
   const { data: scouts = [] } = useScoutUsers();
-  const { data: allPlayers = [] } = usePlayersData();
+  const { data: allPlayers = [], isLoading } = useUnifiedPlayersData();
   const { reports = [] } = useReports();
 
   // Transform assignments and shortlisted players into kanban format
   useEffect(() => {
+    if (isLoading) return;
+
     console.log('Scout Management - Assignments:', assignments.length);  
     console.log('Scout Management - Scouts:', scouts.length);
     console.log('Scout Management - All Players:', allPlayers.length);
@@ -38,7 +41,7 @@ const ScoutManagement = () => {
       completed: [] as any[]
     };
 
-    // Get assigned player IDs
+    // Get assigned player IDs - handle both string and bigint IDs
     const assignedPlayerIds = new Set(assignments.map(a => a.player_id));
 
     // Create a map of player reports for quick lookup
@@ -52,7 +55,10 @@ const ScoutManagement = () => {
     // Show ONLY unassigned shortlisted players (using first 25 players as shortlist, filtered to unassigned only)
     const unassignedShortlistedPlayers = allPlayers
       .slice(0, 25)
-      .filter(player => !assignedPlayerIds.has(player.id.toString())) // Only unassigned players
+      .filter(player => {
+        const playerId = player.isPrivatePlayer ? player.id : player.id.toString();
+        return !assignedPlayerIds.has(playerId);
+      })
       .map(player => ({
         id: `shortlisted-${player.id}`,
         playerName: player.name,
@@ -67,7 +73,7 @@ const ScoutManagement = () => {
         deadline: null,
         scoutId: null,
         status: 'shortlisted',
-        playerId: player.id.toString()
+        playerId: player.isPrivatePlayer ? player.id : player.id.toString()
       }));
 
     // Apply search filter to shortlisted players
@@ -91,9 +97,16 @@ const ScoutManagement = () => {
         return;
       }
 
+      // Find the player from unified data
+      const player = allPlayers.find(p => {
+        const playerId = p.isPrivatePlayer ? p.id : p.id.toString();
+        return playerId === assignment.player_id;
+      });
+
+      const playerName = player?.name || 'Unknown Player';
+      const club = player?.club || 'Unknown Club';
+
       // Apply search filter
-      const playerName = assignment.players?.name || 'Unknown Player';
-      const club = assignment.players?.club || 'Unknown Club';
       if (searchTerm && !playerName.toLowerCase().includes(searchTerm.toLowerCase()) && !club.toLowerCase().includes(searchTerm.toLowerCase())) {
         return;
       }
@@ -106,12 +119,12 @@ const ScoutManagement = () => {
         id: assignment.id,
         playerName,
         club,
-        position: assignment.players?.positions?.[0] || 'Unknown',
+        position: player?.positions?.[0] || 'Unknown',
         rating: (Math.random() * 20 + 70).toFixed(1), // Mock rating for now
         assignedTo: scoutName,
         updatedAt: getUpdatedTime(effectiveStatus),
         lastStatusChange: getLastStatusChange(effectiveStatus, assignment.updated_at),
-        avatar: assignment.players?.imageUrl || `https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=48&h=48&fit=crop&crop=face&auto=format`,
+        avatar: player?.image || `https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=48&h=48&fit=crop&crop=face&auto=format`,
         priority: assignment.priority,
         deadline: assignment.deadline,
         scoutId: assignment.assigned_to_scout_id,
@@ -128,7 +141,7 @@ const ScoutManagement = () => {
     });
 
     setKanbanData(newKanbanData);
-  }, [assignments, scouts, allPlayers, reports, selectedScout, searchTerm]);
+  }, [assignments, scouts, allPlayers, reports, selectedScout, searchTerm, isLoading]);
 
   const getUpdatedTime = (status: string) => {
     const times = {
@@ -178,10 +191,14 @@ const ScoutManagement = () => {
 
   const handleAssignScout = (player: any) => {
     // Find the original player data from allPlayers to get the full player object
-    const originalPlayer = allPlayers.find(p => p.id.toString() === player.playerId);
+    const originalPlayer = allPlayers.find(p => {
+      const playerId = p.isPrivatePlayer ? p.id : p.id.toString();
+      return playerId === player.playerId;
+    });
+    
     if (originalPlayer) {
       setSelectedPlayer({
-        id: originalPlayer.id.toString(),
+        id: originalPlayer.isPrivatePlayer ? originalPlayer.id : originalPlayer.id.toString(),
         name: originalPlayer.name,
         club: originalPlayer.club,
         positions: originalPlayer.positions
@@ -199,6 +216,14 @@ const ScoutManagement = () => {
   const handleScoutClick = (scoutId: string) => {
     setSelectedScout(scoutId);
   };
+
+  if (isLoading) {
+    return (
+      <div className="container mx-auto py-8 max-w-7xl">
+        <div className="text-center">Loading players...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto py-8 max-w-7xl">

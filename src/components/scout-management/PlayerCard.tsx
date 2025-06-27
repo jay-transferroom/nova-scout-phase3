@@ -22,6 +22,12 @@ const PlayerCard = ({ player, onAssignScout }: PlayerCardProps) => {
     }
   };
 
+  // Determine if this is a private player based on the playerId format
+  const isPrivatePlayer = player.playerId && player.playerId.startsWith('private-');
+  const profilePath = isPrivatePlayer 
+    ? `/private-player/${player.playerId.replace('private-', '')}`
+    : `/player/${player.playerId}`;
+
   return (
     <Card className={`mb-3 hover:shadow-md transition-all duration-200 border-2 ${getStatusColor(player.status)}`}>
       <CardContent className="p-4">
@@ -73,7 +79,7 @@ const PlayerCard = ({ player, onAssignScout }: PlayerCardProps) => {
               )}
               
               {player.playerId && (
-                <Link to={`/player/${player.playerId}`} className="block">
+                <Link to={profilePath} className="block">
                   <Button 
                     variant="outline" 
                     size="sm" 
