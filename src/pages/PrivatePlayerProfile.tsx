@@ -22,7 +22,11 @@ const PrivatePlayerProfile = () => {
   const player = privatePlayers.find(p => p.id === id);
 
   // Get actual shortlists for this private player - use "private-" prefix for ID
-  const playerShortlists = player ? getPlayerShortlists(`private-${player.id}`).map(shortlist => shortlist.name) : [];
+  const playerShortlists = player ? getPlayerShortlists(`private-${player.id}`) : [];
+
+  const handleShortlistClick = (shortlistId: string) => {
+    navigate(`/shortlists?selected=${shortlistId}`);
+  };
 
   if (loading) {
     return (
@@ -77,8 +81,13 @@ const PrivatePlayerProfile = () => {
                 <span>On shortlists:</span>
               </div>
               {playerShortlists.map((shortlist) => (
-                <Badge key={shortlist} variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
-                  {shortlist}
+                <Badge 
+                  key={shortlist.id} 
+                  variant="outline" 
+                  className="bg-blue-50 text-blue-700 border-blue-200 cursor-pointer hover:bg-blue-100 transition-colors"
+                  onClick={() => handleShortlistClick(shortlist.id)}
+                >
+                  {shortlist.name}
                 </Badge>
               ))}
             </div>

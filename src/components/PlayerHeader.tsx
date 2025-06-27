@@ -1,3 +1,4 @@
+
 import { Calendar, MapPin, FileText, MessageSquare, Plus, Bookmark } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -6,6 +7,7 @@ import { Player } from "@/types/player";
 import TrackPlayerButton from "./TrackPlayerButton";
 import AddToShortlistButton from "./AddToShortlistButton";
 import { useShortlists } from "@/hooks/useShortlists";
+import { useNavigate } from "react-router-dom";
 
 interface PlayerHeaderProps {
   player: Player;
@@ -29,6 +31,7 @@ export const PlayerHeader = ({
   aggregatedData 
 }: PlayerHeaderProps) => {
   const { getPlayerShortlists } = useShortlists();
+  const navigate = useNavigate();
 
   const getRatingColor = (rating: number) => {
     if (rating >= 8) return "text-green-600 bg-green-50";
@@ -50,7 +53,11 @@ export const PlayerHeader = ({
   const shortlistPlayerId = player.isPrivatePlayer ? `private-${player.id}` : player.id;
   
   // Get actual shortlists this player is on
-  const playerShortlists = getPlayerShortlists(shortlistPlayerId).map(shortlist => shortlist.name);
+  const playerShortlists = getPlayerShortlists(shortlistPlayerId);
+
+  const handleShortlistClick = (shortlistId: string) => {
+    navigate(`/shortlists?selected=${shortlistId}`);
+  };
 
   return (
     <Card className="mb-4">
@@ -102,8 +109,13 @@ export const PlayerHeader = ({
                   <span>On shortlists:</span>
                 </div>
                 {playerShortlists.map((shortlist) => (
-                  <Badge key={shortlist} variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
-                    {shortlist}
+                  <Badge 
+                    key={shortlist.id} 
+                    variant="outline" 
+                    className="bg-blue-50 text-blue-700 border-blue-200 cursor-pointer hover:bg-blue-100 transition-colors"
+                    onClick={() => handleShortlistClick(shortlist.id)}
+                  >
+                    {shortlist.name}
                   </Badge>
                 ))}
               </div>
