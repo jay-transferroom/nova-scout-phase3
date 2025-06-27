@@ -1,4 +1,3 @@
-
 import { ReportField as ReportFieldType } from "@/types/report";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -13,6 +12,8 @@ import {
 } from "@/components/ui/select";
 import RatingInput from "@/components/RatingInput";
 import { DEFAULT_RATING_SYSTEMS } from "@/types/report";
+import VerdictSelector from "@/components/VerdictSelector";
+import { STANDARD_SCOUT_VERDICTS } from "@/utils/recommendationHelpers";
 
 interface ReportFieldProps {
   field: ReportFieldType;
@@ -29,6 +30,11 @@ const ReportField = ({ field, value, notes, onChange }: ReportFieldProps) => {
   const handleNotesChange = (newNotes: string) => {
     onChange(value, newNotes);
   };
+
+  // Check if this is a verdict/recommendation field
+  const isVerdictField = field.id.toLowerCase().includes('recommendation') || 
+                        field.id.toLowerCase().includes('verdict') ||
+                        field.id.toLowerCase().includes('decision');
 
   return (
     <div className="space-y-2">
@@ -64,25 +70,34 @@ const ReportField = ({ field, value, notes, onChange }: ReportFieldProps) => {
         )}
 
         {field.type === "dropdown" && field.options && (
-          <Select
-            value={value || ""}
-            onValueChange={(newValue) => handleValueChange(newValue)}
-          >
-            <SelectTrigger className="bg-background">
-              <SelectValue placeholder={`Select ${field.label.toLowerCase()}`} />
-            </SelectTrigger>
-            <SelectContent className="bg-background border shadow-lg z-50">
-              {field.options.map((option) => (
-                <SelectItem 
-                  key={option.toString()} 
-                  value={option.toString()}
-                  className="hover:bg-accent hover:text-accent-foreground"
-                >
-                  {option.toString()}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <>
+            {isVerdictField ? (
+              <VerdictSelector
+                value={value || ""}
+                onValueChange={(newValue) => handleValueChange(newValue)}
+              />
+            ) : (
+              <Select
+                value={value || ""}
+                onValueChange={(newValue) => handleValueChange(newValue)}
+              >
+                <SelectTrigger className="bg-background">
+                  <SelectValue placeholder={`Select ${field.label.toLowerCase()}`} />
+                </SelectTrigger>
+                <SelectContent className="bg-background border shadow-lg z-50">
+                  {field.options.map((option) => (
+                    <SelectItem 
+                      key={option.toString()} 
+                      value={option.toString()}
+                      className="hover:bg-accent hover:text-accent-foreground"
+                    >
+                      {option.toString()}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+          </>
         )}
 
         {field.type === "checkbox" && (

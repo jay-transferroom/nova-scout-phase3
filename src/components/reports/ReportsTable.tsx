@@ -1,4 +1,3 @@
-
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Award, Trash2, Edit, Eye } from "lucide-react";
@@ -8,6 +7,7 @@ import { getOverallRating, getRecommendation } from "@/utils/reportDataExtractio
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/contexts/AuthContext";
 import { useReportPlayerData } from "@/hooks/useReportPlayerData";
+import VerdictBadge from "@/components/VerdictBadge";
 
 interface ReportsTableProps {
   reports: ReportWithPlayer[];
@@ -25,7 +25,7 @@ const ReportRow = ({ report, onViewReport, onEditReport, onDeleteReport, canEdit
 }) => {
   const { data: playerData, isLoading: playerLoading, error: playerError } = useReportPlayerData(report.playerId);
   const overallRating = getOverallRating(report);
-  const recommendation = getRecommendation(report);
+  const verdict = getRecommendation(report);
 
   console.log(`Report ${report.id} - Player ID: ${report.playerId}, Player Data:`, playerData, 'Loading:', playerLoading, 'Error:', playerError);
 
@@ -65,10 +65,8 @@ const ReportRow = ({ report, onViewReport, onEditReport, onDeleteReport, canEdit
         )}
       </TableCell>
       <TableCell>
-        {recommendation ? (
-          <span className="text-slate-600 font-medium">
-            {recommendation}
-          </span>
+        {verdict ? (
+          <VerdictBadge verdict={verdict} />
         ) : (
           <span className="text-muted-foreground text-sm">-</span>
         )}
@@ -130,7 +128,7 @@ const ReportsTable = ({ reports, onViewReport, onEditReport, onDeleteReport }: R
               <span>Rating</span>
             </div>
           </TableHead>
-          <TableHead>Recommendation</TableHead>
+          <TableHead>Verdict</TableHead>
           <TableHead>Scout</TableHead>
           <TableHead className="w-[200px] text-right">Actions</TableHead>
         </TableRow>

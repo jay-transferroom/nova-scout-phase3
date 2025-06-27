@@ -1,9 +1,10 @@
-
 import { useState } from "react";
 import { ReportSectionData } from "@/types/report";
 import ReportField from "@/components/ReportField";
 import { Button } from "@/components/ui/button";
 import { ChevronDown, ChevronUp, Award } from "lucide-react";
+import VerdictSelector from "@/components/VerdictSelector";
+import { STANDARD_SCOUT_VERDICTS } from "@/utils/recommendationHelpers";
 
 interface ReportEditSectionProps {
   section: ReportSectionData;
@@ -75,10 +76,18 @@ const ReportEditSection = ({
               // Find the corresponding field definition from the template
               const templateField = templateSection?.fields?.find((tf: any) => tf.id === fieldData.fieldId);
               
+              // Check if this is a verdict/recommendation field
+              const isVerdictField = fieldData.fieldId === 'recommendation' || 
+                                    fieldData.fieldId === 'verdict' ||
+                                    fieldData.fieldId === 'overall_recommendation' ||
+                                    fieldData.fieldId === 'final_recommendation' ||
+                                    fieldData.fieldId.toLowerCase().includes('recommendation') ||
+                                    fieldData.fieldId.toLowerCase().includes('verdict');
+
               // Create a proper field structure for ReportField component
               let field = {
                 id: fieldData.fieldId,
-                label: templateField?.label || fieldData.fieldId.charAt(0).toUpperCase() + fieldData.fieldId.slice(1),
+                label: templateField?.label || fieldData.fieldId.charAt(0).toUpperCase() + fieldData.fieldId.slice(1).replace('_', ' '),
                 type: templateField?.type || 'text' as const,
                 required: templateField?.required || false,
                 description: templateField?.description,
@@ -86,16 +95,12 @@ const ReportEditSection = ({
                 ratingSystem: templateField?.ratingSystem
               };
 
-              // Only apply scout recommendations to specific recommendation fields
-              // Be more specific - only exact matches for recommendation fields
-              if (fieldData.fieldId === 'recommendation' || 
-                  fieldData.fieldId === 'overall_recommendation' ||
-                  fieldData.fieldId === 'verdict' ||
-                  fieldData.fieldId === 'final_recommendation') {
+              // For verdict fields, use dropdown with our standard verdicts
+              if (isVerdictField) {
                 field = {
                   ...field,
                   type: 'dropdown' as const,
-                  options: SCOUT_RECOMMENDATIONS
+                  options: STANDARD_SCOUT_VERDICTS
                 };
               }
 

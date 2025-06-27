@@ -1,9 +1,9 @@
-
 import { ReportField, RatingSystem } from "@/types/report";
 import FieldBasicInfo from "@/components/field-editor/FieldBasicInfo";
 import FieldTypeSelector from "@/components/field-editor/FieldTypeSelector";
 import DropdownOptionsEditor from "@/components/field-editor/DropdownOptionsEditor";
 import RatingSystemEditor from "@/components/field-editor/RatingSystemEditor";
+import { STANDARD_SCOUT_VERDICTS } from "@/utils/recommendationHelpers";
 
 interface FieldEditorProps {
   field: ReportField;
@@ -35,7 +35,7 @@ const FieldEditor = ({ field, onUpdate }: FieldEditorProps) => {
       if (field.label.toLowerCase().includes('recommendation') || 
           field.label.toLowerCase().includes('verdict') ||
           field.label.toLowerCase().includes('decision')) {
-        updatedField.options = [...SCOUT_RECOMMENDATIONS];
+        updatedField.options = [...STANDARD_SCOUT_VERDICTS];
       } else {
         updatedField.options = ['Option 1', 'Option 2', 'Option 3'];
       }
@@ -70,10 +70,10 @@ const FieldEditor = ({ field, onUpdate }: FieldEditorProps) => {
     });
   };
 
-  const handleUseScoutRecommendations = () => {
+  const handleUseScoutVerdicts = () => {
     onUpdate({
       ...field,
-      options: [...SCOUT_RECOMMENDATIONS]
+      options: [...STANDARD_SCOUT_VERDICTS]
     });
   };
 
@@ -99,7 +99,7 @@ const FieldEditor = ({ field, onUpdate }: FieldEditorProps) => {
           onAddOption={handleAddDropdownOption}
           onUpdateOption={handleUpdateDropdownOption}
           onRemoveOption={handleRemoveDropdownOption}
-          onUseScoutRecommendations={handleUseScoutRecommendations}
+          onUseScoutRecommendations={handleUseScoutVerdicts}
         />
       )}
       
