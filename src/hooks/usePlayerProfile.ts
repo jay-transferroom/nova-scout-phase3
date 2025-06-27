@@ -2,6 +2,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Player } from "@/types/player";
+import { ReportWithPlayer } from "@/types/report";
 
 interface PlayerNewRecord {
   id: number;
@@ -68,19 +69,75 @@ export const usePlayerProfile = (playerId?: string) => {
     enabled: !!playerId,
   });
 
-  // For reports, we still need to query using string player_id since reports table uses UUID
+  // Fetch reports for this player - try both the integer ID and player name
   const { data: playerReports, isLoading: reportsLoading } = useQuery({
-    queryKey: ['player-reports', playerId],
-    queryFn: async () => {
-      if (!playerId) return [];
+    queryKey: ['player-reports', playerId, player?.name],
+    queryFn: async (): Promise<ReportWithPlayer[]> => {
+      if (!playerId || !player) return [];
 
-      console.log('Fetching reports for player ID:', playerId);
+      console.log('Fetching reports for player:', { playerId, playerName: player.name });
 
-      // Since reports table still uses old UUID format, we need to handle this differently
-      // For now, return empty array since we don't have matching records
-      return [];
+      // Try to find reports by player_id (could be stored as string version of integer ID or player name)
+      const { data, error } = await supabase
+        .from('reports')
+        .select(`
+          *,
+          scout_profile:profiles(*)
+        `)
+        .or(`player_id.eq.${playerId},player_id.ilike.${player.name}`)
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching player reports:', error);
+        return [];
+      }
+
+      console.log('Found reports for player:', data?.length || 0);
+
+      // Transform the data to match our ReportWithPlayer interface
+      const transformedReports: ReportWithPlayer[] = (data || []).map((report: any) => {
+        // Parse sections if it's a string
+        let sections = report.sections;
+        if (typeof sections === 'string') {
+          try {
+            sections = JSON.parse(sections);
+          } catch (e) {
+            console.log(`Failed to parse sections for report ${report.id}:`, e);
+            sections = [];
+          }
+        }
+
+        // Parse match_context if it's a string
+        let matchContext = report.match_context;
+        if (typeof matchContext === 'string') {
+          try {
+            matchContext = JSON.parse(matchContext);
+          } catch (e) {
+            console.log(`Failed to parse match_context for report ${report.id}:`, e);
+            matchContext = null;
+          }
+        }
+
+        return {
+          id: report.id,
+          playerId: report.player_id,
+          templateId: report.template_id,
+          scoutId: report.scout_id,
+          createdAt: new Date(report.created_at),
+          updatedAt: new Date(report.updated_at),
+          status: report.status as 'draft' | 'submitted' | 'reviewed',
+          sections: Array.isArray(sections) ? sections : [],
+          matchContext: matchContext,
+          tags: report.tags || [],
+          flaggedForReview: report.flagged_for_review || false,
+          player: player, // Include the player data
+          scoutProfile: report.scout_profile,
+        };
+      });
+
+      return transformedReports;
     },
-    enabled: !!playerId,
+    enabled: !!playerId && !!player,
   });
 
   return {
