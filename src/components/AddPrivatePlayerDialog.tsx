@@ -85,10 +85,17 @@ const AddPrivatePlayerDialog = ({ trigger }: AddPrivatePlayerDialogProps) => {
         ? data.positions.split(',').map(p => p.trim()).filter(p => p.length > 0)
         : undefined;
 
-      const playerData = {
-        ...data,
-        positions,
+      // Ensure name is included and properly typed
+      const playerData: CreatePrivatePlayerData = {
+        name: data.name, // This is guaranteed to be a string due to form validation
+        club: data.club,
         age: data.age || undefined,
+        positions,
+        nationality: data.nationality,
+        dominant_foot: data.dominant_foot,
+        region: data.region,
+        source_context: data.source_context,
+        notes: data.notes,
       };
 
       const newPlayer = await createPrivatePlayer(playerData);

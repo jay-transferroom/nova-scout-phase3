@@ -21,7 +21,14 @@ export const usePrivatePlayers = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setPrivatePlayers(data || []);
+      
+      // Type assertion to ensure proper typing from database
+      const typedData = (data || []).map(player => ({
+        ...player,
+        dominant_foot: player.dominant_foot as 'Left' | 'Right' | 'Both' | undefined,
+      })) as PrivatePlayer[];
+      
+      setPrivatePlayers(typedData);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
@@ -44,9 +51,15 @@ export const usePrivatePlayers = () => {
 
       if (error) throw error;
       
+      // Type assertion for the returned data
+      const typedData = {
+        ...data,
+        dominant_foot: data.dominant_foot as 'Left' | 'Right' | 'Both' | undefined,
+      } as PrivatePlayer;
+      
       // Add to local state
-      setPrivatePlayers(prev => [data, ...prev]);
-      return data;
+      setPrivatePlayers(prev => [typedData, ...prev]);
+      return typedData;
     } catch (err) {
       throw err instanceof Error ? err : new Error('Failed to create player');
     }
@@ -66,11 +79,17 @@ export const usePrivatePlayers = () => {
 
       if (error) throw error;
       
+      // Type assertion for the returned data
+      const typedData = {
+        ...data,
+        dominant_foot: data.dominant_foot as 'Left' | 'Right' | 'Both' | undefined,
+      } as PrivatePlayer;
+      
       // Update local state
       setPrivatePlayers(prev => 
-        prev.map(player => player.id === id ? data : player)
+        prev.map(player => player.id === id ? typedData : player)
       );
-      return data;
+      return typedData;
     } catch (err) {
       throw err instanceof Error ? err : new Error('Failed to update player');
     }
