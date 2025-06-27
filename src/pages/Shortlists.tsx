@@ -144,6 +144,10 @@ const Shortlists = () => {
     }
   });
 
+  const formatXtvScore = (score: number) => {
+    return (score / 1000000).toFixed(1);
+  };
+
   const getPlayerAssignment = (playerId: string) => {
     // Match assignment by player_id (string) with players_new.id (converted to string)
     const assignment = playerAssignments.find(assignment => assignment.player_id === playerId);
@@ -453,7 +457,7 @@ const Shortlists = () => {
                               )}
                               {player.xtvScore && (
                                 <span className="text-blue-600">
-                                  xTV: {player.xtvScore}
+                                  xTV: £{formatXtvScore(player.xtvScore)}M
                                 </span>
                               )}
                               {player.contractExpiry && (
