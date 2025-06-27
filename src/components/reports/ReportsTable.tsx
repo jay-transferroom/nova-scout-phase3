@@ -81,6 +81,9 @@ const ReportRow = ({ report, onViewReport, onEditReport, onDeleteReport, canEdit
 
   // Only show scout manager verdict button for recruitment users
   const canAddVerdict = profile?.role === 'recruitment';
+  
+  // Convert error to boolean for disabled prop
+  const isDisabled = playerLoading || !!playerError;
 
   return (
     <TableRow key={report.id}>
@@ -129,7 +132,7 @@ const ReportRow = ({ report, onViewReport, onEditReport, onDeleteReport, canEdit
             size="sm"
             onClick={handleViewPlayerProfile}
             title="View player profile"
-            disabled={playerLoading || playerError}
+            disabled={isDisabled}
           >
             <User className="h-4 w-4" />
           </Button>
@@ -138,7 +141,7 @@ const ReportRow = ({ report, onViewReport, onEditReport, onDeleteReport, canEdit
             size="sm"
             onClick={handleCreateReport}
             title="Create new report for this player"
-            disabled={playerLoading || playerError}
+            disabled={isDisabled}
           >
             <FileText className="h-4 w-4" />
           </Button>
@@ -148,7 +151,7 @@ const ReportRow = ({ report, onViewReport, onEditReport, onDeleteReport, canEdit
               size="sm"
               onClick={handleScoutManagerVerdict}
               title="Add scout manager verdict"
-              disabled={playerLoading || playerError}
+              disabled={isDisabled}
             >
               <UserCheck className="h-4 w-4" />
             </Button>
