@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { usePlayersData } from "@/hooks/usePlayersData";
 import { usePlayerAssignments } from "@/hooks/usePlayerAssignments";
 import { usePrivatePlayers } from "@/hooks/usePrivatePlayers";
+import { useShortlists } from "@/hooks/useShortlists";
 import AssignScoutDialog from "@/components/AssignScoutDialog";
 import { useQueryClient } from "@tanstack/react-query";
 import { ShortlistsSidebar } from "@/components/shortlists/ShortlistsSidebar";
@@ -23,63 +24,8 @@ const Shortlists = () => {
   const { data: allPlayers = [], isLoading } = usePlayersData();
   const { data: playerAssignments = [], refetch: refetchAssignments } = usePlayerAssignments();
   const { privatePlayers } = usePrivatePlayers();
+  const { shortlists, createShortlist, getPlayerShortlists } = useShortlists();
   const queryClient = useQueryClient();
-
-  // Create 4 focused shortlists for Chelsea's specific recruitment needs
-  const shortlists = [
-    {
-      id: "striker-targets",
-      name: "Striker Targets",
-      description: "Center forwards to strengthen attack",
-      color: "bg-blue-500",
-      filter: (player: any) => 
-        (player.positions.some((pos: string) => 
-          pos?.toLowerCase().includes('st') || 
-          pos?.toLowerCase().includes('cf') ||
-          pos?.toLowerCase().includes('striker') ||
-          pos?.toLowerCase().includes('forward')
-        ) && 
-        player.transferroomRating && player.transferroomRating >= 75 &&
-        player.age && player.age <= 28)
-    },
-    {
-      id: "cb-reinforcements",
-      name: "Centre-Back Options",
-      description: "Defensive reinforcements for back line",
-      color: "bg-red-500",
-      filter: (player: any) => 
-        (player.positions.some((pos: string) => 
-          pos?.toLowerCase().includes('cb') || 
-          pos?.toLowerCase().includes('centre') ||
-          pos?.toLowerCase().includes('center')
-        ) && 
-        player.transferroomRating && player.transferroomRating >= 70 &&
-        player.age && player.age >= 22 && player.age <= 30)
-    },
-    {
-      id: "loan-prospects",
-      name: "Loan Prospects",
-      description: "Young talents for loan opportunities",
-      color: "bg-green-500",
-      filter: (player: any) => 
-        (player.age && player.age <= 22 &&
-        player.futureRating && player.futureRating >= 75 &&
-        player.transferroomRating && player.transferroomRating >= 60)
-    },
-    {
-      id: "bargain-deals",
-      name: "Contract Expiry Watch",  
-      description: "Players with expiring contracts",
-      color: "bg-purple-500",
-      filter: (player: any) => {
-        if (!player.contractExpiry) return false;
-        const contractYear = new Date(player.contractExpiry).getFullYear();
-        const currentYear = new Date().getFullYear();
-        return (contractYear <= currentYear + 1 && 
-                player.transferroomRating && player.transferroomRating >= 70);
-      }
-    }
-  ];
 
   // Mock private players on shortlists - including Herbie Hughes
   const getPrivatePlayersForShortlist = (shortlistId: string) => {
@@ -292,6 +238,7 @@ const Shortlists = () => {
             onSelectList={setSelectedList}
             allPlayers={allPlayers}
             getPrivatePlayersForShortlist={getPrivatePlayersForShortlist}
+            onCreateShortlist={createShortlist}
           />
         </div>
 

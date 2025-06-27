@@ -7,14 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Bookmark, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
-
-interface Shortlist {
-  id: string;
-  name: string;
-  description: string;
-  color: string;
-  filter: (player: any) => boolean;
-}
+import { Shortlist } from "@/hooks/useShortlists";
 
 interface ShortlistsSidebarProps {
   shortlists: Shortlist[];
@@ -22,6 +15,7 @@ interface ShortlistsSidebarProps {
   onSelectList: (listId: string) => void;
   allPlayers: any[];
   getPrivatePlayersForShortlist: (shortlistId: string) => any[];
+  onCreateShortlist: (name: string, description: string) => void;
 }
 
 export const ShortlistsSidebar = ({
@@ -29,7 +23,8 @@ export const ShortlistsSidebar = ({
   selectedList,
   onSelectList,
   allPlayers,
-  getPrivatePlayersForShortlist
+  getPrivatePlayersForShortlist,
+  onCreateShortlist
 }: ShortlistsSidebarProps) => {
   const [isCreateListOpen, setIsCreateListOpen] = useState(false);
   const [newListName, setNewListName] = useState("");
@@ -37,7 +32,7 @@ export const ShortlistsSidebar = ({
 
   const handleCreateList = () => {
     if (newListName.trim()) {
-      console.log("Creating new list:", newListName, newListDescription);
+      onCreateShortlist(newListName.trim(), newListDescription.trim());
       setIsCreateListOpen(false);
       setNewListName("");
       setNewListDescription("");
@@ -73,7 +68,11 @@ export const ShortlistsSidebar = ({
                   value={newListDescription}
                   onChange={(e) => setNewListDescription(e.target.value)}
                 />
-                <Button className="w-full" onClick={handleCreateList}>
+                <Button 
+                  className="w-full" 
+                  onClick={handleCreateList}
+                  disabled={!newListName.trim()}
+                >
                   Create List
                 </Button>
               </div>
@@ -86,7 +85,9 @@ export const ShortlistsSidebar = ({
           {shortlists.map((list) => {
             const publicPlayerCount = Math.min(allPlayers.filter(list.filter).length, 15);
             const privatePlayerCount = getPrivatePlayersForShortlist(list.id).length;
-            const totalCount = publicPlayerCount + privatePlayerCount;
+            const manualPlayerCount = (list.playerIds || []).length;
+            const totalCount = publicPlayerCount + privatePlayerCount + manualPlayerCount;
+            
             return (
               <button
                 key={list.id}

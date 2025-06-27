@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -10,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { PlayerNotes } from "@/components/PlayerNotes";
 import TrackPlayerButton from "@/components/TrackPlayerButton";
 import AddToShortlistButton from "@/components/AddToShortlistButton";
+import { useShortlists } from "@/hooks/useShortlists";
 
 const PrivatePlayerProfile = () => {
   const { id } = useParams<{ id: string }>();
@@ -17,17 +17,12 @@ const PrivatePlayerProfile = () => {
   const { privatePlayers, loading } = usePrivatePlayers();
   const { toast } = useToast();
   const [showNotes, setShowNotes] = useState(false);
+  const { getPlayerShortlists } = useShortlists();
 
   const player = privatePlayers.find(p => p.id === id);
 
-  // Mock function to get shortlists for private players
-  const getPrivatePlayerShortlists = (playerId: string) => {
-    // Mock data - Herbie Hughes is on striker targets
-    const mockShortlists = {
-      [id]: ["Striker Targets", "Loan Prospects"]
-    };
-    return mockShortlists[playerId] || [];
-  };
+  // Get actual shortlists for this private player
+  const playerShortlists = player ? getPlayerShortlists(`private-${player.id}`).map(shortlist => shortlist.name) : [];
 
   if (loading) {
     return (
@@ -55,8 +50,6 @@ const PrivatePlayerProfile = () => {
       </div>
     );
   }
-
-  const playerShortlists = getPrivatePlayerShortlists(player.id);
 
   return (
     <div className="container mx-auto py-8 max-w-6xl">
@@ -122,7 +115,6 @@ const PrivatePlayerProfile = () => {
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">
-        {/* Basic Info */}
         <Card>
           <CardHeader>
             <CardTitle>Basic Information</CardTitle>
@@ -180,7 +172,6 @@ const PrivatePlayerProfile = () => {
           </CardContent>
         </Card>
 
-        {/* Additional Info */}
         <Card>
           <CardHeader>
             <CardTitle>Additional Information</CardTitle>

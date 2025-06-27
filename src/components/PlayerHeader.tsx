@@ -1,4 +1,3 @@
-
 import { Calendar, MapPin, FileText, MessageSquare, Plus, Bookmark } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -6,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Player } from "@/types/player";
 import TrackPlayerButton from "./TrackPlayerButton";
 import AddToShortlistButton from "./AddToShortlistButton";
+import { useShortlists } from "@/hooks/useShortlists";
 
 interface PlayerHeaderProps {
   player: Player;
@@ -28,6 +28,8 @@ export const PlayerHeader = ({
   getPositionColor,
   aggregatedData 
 }: PlayerHeaderProps) => {
+  const { getPlayerShortlists } = useShortlists();
+
   const getRatingColor = (rating: number) => {
     if (rating >= 8) return "text-green-600 bg-green-50";
     if (rating >= 6) return "text-yellow-600 bg-yellow-50";
@@ -44,16 +46,8 @@ export const PlayerHeader = ({
     return "bg-gray-100 text-gray-800";
   };
 
-  // Mock function to check which shortlists this player is on
-  const getPlayerShortlists = (playerId: string) => {
-    // This would normally come from a database query
-    const mockShortlists = {
-      [player.id]: ["Striker Targets", "Loan Prospects"]
-    };
-    return mockShortlists[playerId] || [];
-  };
-
-  const playerShortlists = getPlayerShortlists(player.id);
+  // Get actual shortlists this player is on
+  const playerShortlists = getPlayerShortlists(player.id).map(shortlist => shortlist.name);
 
   return (
     <Card className="mb-4">
