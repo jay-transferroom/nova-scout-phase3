@@ -23,7 +23,7 @@ const ScoutManagement = () => {
   const { data: assignments = [], refetch: refetchAssignments } = useScoutingAssignments();
   const { data: scouts = [] } = useScoutUsers();
   const { data: allPlayers = [] } = usePlayersData();
-  const { data: reports = [] } = useReports();
+  const { reports = [] } = useReports();
 
   // Transform assignments and shortlisted players into kanban format
   useEffect(() => {
@@ -44,8 +44,8 @@ const ScoutManagement = () => {
     // Create a map of player reports for quick lookup
     const playerReportsMap = new Map();
     reports.forEach(report => {
-      if (report.player_id) {
-        playerReportsMap.set(report.player_id, report);
+      if (report.playerId) {
+        playerReportsMap.set(report.playerId, report);
       }
     });
 
