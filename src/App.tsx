@@ -1,3 +1,4 @@
+
 import {
   BrowserRouter as Router,
   Route,
@@ -14,8 +15,8 @@ import Index from "./pages/Index";
 import Profile from "./pages/Profile";
 import PlayerProfile from "./pages/PlayerProfile";
 import ProtectedRoute from "./components/ProtectedRoute";
-import Reports from "./pages/Reports";
-import Report from "./pages/Report";
+import ReportsList from "./pages/ReportsList";
+import ReportView from "./pages/ReportView";
 import ReportBuilder from "./pages/ReportBuilder";
 import SearchResults from "./pages/SearchResults";
 import Calendar from "./pages/Calendar";
@@ -54,14 +55,14 @@ function App() {
             <Route path="/reports" element={
               <ProtectedRoute>
                 <Layout>
-                  <Reports />
+                  <ReportsList />
                 </Layout>
               </ProtectedRoute>
             } />
             <Route path="/report/:id" element={
               <ProtectedRoute>
                 <Layout>
-                  <Report />
+                  <ReportView />
                 </Layout>
               </ProtectedRoute>
             } />
