@@ -1,28 +1,17 @@
+
 import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Bookmark, Plus, Search, UserPlus, FileText, Trash2, MoreHorizontal, Download, Eye, Star, MapPin, Calendar, ArrowUpDown, Filter } from "lucide-react";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { cn } from "@/lib/utils";
 import { usePlayersData } from "@/hooks/usePlayersData";
 import { usePlayerAssignments } from "@/hooks/usePlayerAssignments";
 import { usePrivatePlayers } from "@/hooks/usePrivatePlayers";
 import AssignScoutDialog from "@/components/AssignScoutDialog";
 import { useQueryClient } from "@tanstack/react-query";
-import { Link } from "react-router-dom";
+import { ShortlistsSidebar } from "@/components/shortlists/ShortlistsSidebar";
+import { ShortlistsContent } from "@/components/shortlists/ShortlistsContent";
 
 const Shortlists = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedList, setSelectedList] = useState<string | null>("striker-targets");
-  const [isCreateListOpen, setIsCreateListOpen] = useState(false);
-  const [isAddPlayersOpen, setIsAddPlayersOpen] = useState(false);
-  const [newListName, setNewListName] = useState("");
-  const [newListDescription, setNewListDescription] = useState("");
   const [selectedPlayer, setSelectedPlayer] = useState<any>(null);
   const [isAssignDialogOpen, setIsAssignDialogOpen] = useState(false);
   
@@ -191,7 +180,6 @@ const Shortlists = () => {
   };
 
   const getPlayerAssignment = (playerId: string) => {
-    // Match assignment by player_id (string) with players_new.id (converted to string)
     const assignment = playerAssignments.find(assignment => assignment.player_id === playerId);
     console.log(`Looking for assignment for player ${playerId}:`, assignment);
     return assignment;
@@ -239,15 +227,6 @@ const Shortlists = () => {
     );
   };
 
-  const handleCreateList = () => {
-    if (newListName.trim()) {
-      console.log("Creating new list:", newListName, newListDescription);
-      setIsCreateListOpen(false);
-      setNewListName("");
-      setNewListDescription("");
-    }
-  };
-
   const handleExportList = () => {
     console.log("Exporting list:", currentList?.name);
   };
@@ -255,7 +234,7 @@ const Shortlists = () => {
   const handleAssignScout = (player: any) => {
     console.log("Assigning scout to player:", player);
     setSelectedPlayer({
-      id: player.id.toString(), // Convert bigint to string
+      id: player.id.toString(),
       name: player.name,
       club: player.club,
       positions: player.positions
@@ -280,10 +259,6 @@ const Shortlists = () => {
     setTimeout(() => {
       console.log("Assignment dialog closed, comprehensive data refresh completed");
     }, 100);
-  };
-
-  const handleViewProfile = (playerId: string) => {
-    console.log("Viewing profile for player:", playerId);
   };
 
   const handleRemovePlayer = (playerId: string) => {
@@ -311,290 +286,36 @@ const Shortlists = () => {
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         {/* Shortlists Sidebar */}
         <div className="lg:col-span-1">
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle className="flex items-center gap-2">
-                  <Bookmark className="h-5 w-5" />
-                  Recruitment Lists
-                </CardTitle>
-                <Dialog open={isCreateListOpen} onOpenChange={setIsCreateListOpen}>
-                  <DialogTrigger asChild>
-                    <Button size="sm">
-                      <Plus className="h-4 w-4" />
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>Create New Shortlist</DialogTitle>
-                    </DialogHeader>
-                    <div className="space-y-4">
-                      <Input 
-                        placeholder="List name" 
-                        value={newListName}
-                        onChange={(e) => setNewListName(e.target.value)}
-                      />
-                      <Input 
-                        placeholder="Description (optional)" 
-                        value={newListDescription}
-                        onChange={(e) => setNewListDescription(e.target.value)}
-                      />
-                      <Button className="w-full" onClick={handleCreateList}>
-                        Create List
-                      </Button>
-                    </div>
-                  </DialogContent>
-                </Dialog>
-              </div>
-            </CardHeader>
-            <CardContent className="p-0">
-              <div className="space-y-1">
-                {shortlists.map((list) => {
-                  const publicPlayerCount = Math.min(allPlayers.filter(list.filter).length, 15);
-                  const privatePlayerCount = getPrivatePlayersForShortlist(list.id).length;
-                  const totalCount = publicPlayerCount + privatePlayerCount;
-                  return (
-                    <button
-                      key={list.id}
-                      onClick={() => setSelectedList(list.id)}
-                      className={cn(
-                        "w-full p-3 text-left hover:bg-muted/50 transition-colors",
-                        selectedList === list.id && "bg-muted"
-                      )}
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className={cn("w-3 h-3 rounded-full", list.color)} />
-                        <div className="flex-1 min-w-0">
-                          <div className="font-medium text-sm truncate">{list.name}</div>
-                          <div className="text-xs text-muted-foreground">
-                            {totalCount} players
-                          </div>
-                        </div>
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-            </CardContent>
-          </Card>
+          <ShortlistsSidebar
+            shortlists={shortlists}
+            selectedList={selectedList}
+            onSelectList={setSelectedList}
+            allPlayers={allPlayers}
+            getPrivatePlayersForShortlist={getPrivatePlayersForShortlist}
+          />
         </div>
 
         {/* Players List */}
         <div className="lg:col-span-3">
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between mb-4">
-                <div>
-                  <CardTitle>{currentList?.name}</CardTitle>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    {currentList?.description}
-                  </p>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Badge variant="outline">
-                    {sortedPlayers.length} players
-                  </Badge>
-                  <Button variant="outline" size="sm" onClick={handleExportList}>
-                    <Download className="h-4 w-4 mr-1" />
-                    Export List
-                  </Button>
-                </div>
-              </div>
-              
-              {/* Search Bar */}
-              <div className="relative mb-4">
-                <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search players..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-
-              {/* Sorting and Filtering Controls */}
-              <div className="flex flex-wrap items-center gap-2 mb-4">
-                <div className="flex items-center gap-2">
-                  <ArrowUpDown className="h-4 w-4" />
-                  <span className="text-sm font-medium">Sort by:</span>
-                  <Select value={sortBy} onValueChange={setSortBy}>
-                    <SelectTrigger className="w-32">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="name">Name</SelectItem>
-                      <SelectItem value="age">Age</SelectItem>
-                      <SelectItem value="xtv">xTV Score</SelectItem>
-                      <SelectItem value="rating">Rating</SelectItem>
-                      <SelectItem value="potential">Potential</SelectItem>
-                      <SelectItem value="contract">Contract</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
-                  >
-                    {sortOrder === "asc" ? "↑" : "↓"}
-                  </Button>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <Filter className="h-4 w-4" />
-                  <span className="text-sm font-medium">EU/GBE:</span>
-                  <Select value={euGbeFilter} onValueChange={setEuGbeFilter}>
-                    <SelectTrigger className="w-24">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All</SelectItem>
-                      <SelectItem value="pass">Pass</SelectItem>
-                      <SelectItem value="fail">Fail</SelectItem>
-                      <SelectItem value="pending">Pending</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {sortedPlayers.map((player) => (
-                  <div key={player.id} className="border rounded-lg p-4 hover:bg-muted/50 transition-colors">
-                    <div className="flex items-start gap-4">
-                      {/* Player Avatar */}
-                      <Avatar className="h-16 w-16">
-                        <AvatarImage src={player.image} alt={player.name} />
-                        <AvatarFallback>
-                          {player.name.split(' ').map((n: string) => n[0]).join('')}
-                        </AvatarFallback>
-                      </Avatar>
-
-                      {/* Player Info */}
-                      <div className="flex-1">
-                        <div className="flex items-start justify-between mb-2">
-                          <div>
-                            <div className="flex items-center gap-2 mb-1">
-                              <h3 className="font-semibold text-lg">{player.name}</h3>
-                              {player.isPrivate && (
-                                <Badge variant="secondary">Private Player</Badge>
-                              )}
-                              {!player.isPrivate && getAssignmentBadge(player.id.toString())}
-                              {!player.isPrivate && getEuGbeBadge(player.euGbeStatus || 'Pass')}
-                            </div>
-                            <div className="flex items-center gap-4 text-sm text-muted-foreground mb-2">
-                              <span className="flex items-center gap-1">
-                                <MapPin className="h-3 w-3" />
-                                {player.club}
-                              </span>
-                              <span>{player.positions.join(', ')}</span>
-                              {player.age && <span>{player.age} years</span>}
-                              <span>{player.nationality}</span>
-                            </div>
-                            {!player.isPrivate && (
-                              <div className="flex items-center gap-4 text-sm">
-                                {player.transferroomRating && (
-                                  <span className="flex items-center gap-1">
-                                    <Star className="h-3 w-3 text-yellow-500" />
-                                    Rating: {player.transferroomRating}/100
-                                  </span>
-                                )}
-                                {player.futureRating && (
-                                  <span className="text-green-600">
-                                    Potential: {player.futureRating}
-                                  </span>
-                                )}
-                                {player.xtvScore && (
-                                  <span className="text-blue-600">
-                                    xTV: £{formatXtvScore(player.xtvScore)}M
-                                  </span>
-                                )}
-                                {player.contractExpiry && (
-                                  <span className="flex items-center gap-1">
-                                    <Calendar className="h-3 w-3" />
-                                    Contract: {new Date(player.contractExpiry).getFullYear()}
-                                  </span>
-                                )}
-                              </div>
-                            )}
-                          </div>
-                        </div>
-
-                        {/* Action Buttons */}
-                        <div className="flex items-center gap-2">
-                          {!player.isPrivate && !getPlayerAssignment(player.id.toString()) ? (
-                            <Button 
-                              size="sm" 
-                              variant="outline"
-                              onClick={() => handleAssignScout(player)}
-                            >
-                              <UserPlus className="h-4 w-4 mr-1" />
-                              Assign Scout
-                            </Button>
-                          ) : !player.isPrivate && (
-                            <Button 
-                              size="sm" 
-                              variant="outline"
-                              onClick={() => handleAssignScout(player)}
-                            >
-                              <UserPlus className="h-4 w-4 mr-1" />
-                              Reassign Scout
-                            </Button>
-                          )}
-                          <Link to={player.profilePath}>
-                            <Button 
-                              size="sm" 
-                              variant="outline"
-                            >
-                              <Eye className="h-4 w-4 mr-1" />
-                              View Profile
-                            </Button>
-                          </Link>
-                          <Button size="sm" variant="outline">
-                            <FileText className="h-4 w-4 mr-1" />
-                            Report
-                          </Button>
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button size="sm" variant="ghost">
-                                <MoreHorizontal className="h-4 w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem>
-                                <Bookmark className="h-4 w-4 mr-2" />
-                                Move to list
-                              </DropdownMenuItem>
-                              <DropdownMenuItem 
-                                className="text-destructive"
-                                onClick={() => handleRemovePlayer(player.id.toString())}
-                              >
-                                <Trash2 className="h-4 w-4 mr-2" />
-                                Remove from list
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              {sortedPlayers.length === 0 && (
-                <div className="text-center py-12">
-                  <div className="text-muted-foreground mb-4">
-                    No players found matching your criteria
-                  </div>
-                  <Button onClick={() => {
-                    setSearchTerm("");
-                    setEuGbeFilter("all");
-                  }}>
-                    Clear Filters
-                  </Button>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+          <ShortlistsContent
+            currentList={currentList}
+            sortedPlayers={sortedPlayers}
+            searchTerm={searchTerm}
+            onSearchChange={setSearchTerm}
+            sortBy={sortBy}
+            onSortByChange={setSortBy}
+            sortOrder={sortOrder}
+            onSortOrderChange={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
+            euGbeFilter={euGbeFilter}
+            onEuGbeFilterChange={setEuGbeFilter}
+            getAssignmentBadge={getAssignmentBadge}
+            getEuGbeBadge={getEuGbeBadge}
+            getPlayerAssignment={getPlayerAssignment}
+            formatXtvScore={formatXtvScore}
+            onAssignScout={handleAssignScout}
+            onRemovePlayer={handleRemovePlayer}
+            onExportList={handleExportList}
+          />
         </div>
       </div>
 
