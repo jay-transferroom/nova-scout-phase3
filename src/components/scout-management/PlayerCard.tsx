@@ -3,7 +3,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { Clock, UserPlus } from "lucide-react";
+import { Clock, UserPlus, User } from "lucide-react";
+import { Link } from "react-router-dom";
 
 interface PlayerCardProps {
   player: any;
@@ -59,8 +60,8 @@ const PlayerCard = ({ player, onAssignScout }: PlayerCardProps) => {
               )}
             </div>
 
-            {player.status === 'shortlisted' && onAssignScout && (
-              <div className="mt-3">
+            <div className="mt-3 space-y-2">
+              {player.status === 'shortlisted' && onAssignScout && (
                 <Button 
                   size="sm" 
                   className="w-full"
@@ -69,8 +70,21 @@ const PlayerCard = ({ player, onAssignScout }: PlayerCardProps) => {
                   <UserPlus className="h-3 w-3 mr-1" />
                   Assign Scout
                 </Button>
-              </div>
-            )}
+              )}
+              
+              {player.playerId && (
+                <Link to={`/player/${player.playerId}`} className="block">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="w-full"
+                  >
+                    <User className="h-3 w-3 mr-1" />
+                    View Profile
+                  </Button>
+                </Link>
+              )}
+            </div>
           </div>
         </div>
       </CardContent>

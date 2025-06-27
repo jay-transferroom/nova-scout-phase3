@@ -1,8 +1,8 @@
-
 import { useState, useEffect } from "react";
 import { useScoutingAssignments } from "@/hooks/useScoutingAssignments";
 import { useScoutUsers } from "@/hooks/useScoutUsers";
 import { usePlayersData } from "@/hooks/usePlayersData";
+import { useReports } from "@/hooks/useReports";
 import AssignScoutDialog from "@/components/AssignScoutDialog";
 import ScoutManagementHeader from "@/components/scout-management/ScoutManagementHeader";
 import ScoutManagementFilters from "@/components/scout-management/ScoutManagementFilters";
@@ -23,12 +23,14 @@ const ScoutManagement = () => {
   const { data: assignments = [], refetch: refetchAssignments } = useScoutingAssignments();
   const { data: scouts = [] } = useScoutUsers();
   const { data: allPlayers = [] } = usePlayersData();
+  const { data: reports = [] } = useReports();
 
   // Transform assignments and shortlisted players into kanban format
   useEffect(() => {
     console.log('Scout Management - Assignments:', assignments.length);  
     console.log('Scout Management - Scouts:', scouts.length);
     console.log('Scout Management - All Players:', allPlayers.length);
+    console.log('Scout Management - Reports:', reports.length);
 
     const newKanbanData = {
       shortlisted: [] as any[],
@@ -38,6 +40,14 @@ const ScoutManagement = () => {
 
     // Get assigned player IDs
     const assignedPlayerIds = new Set(assignments.map(a => a.player_id));
+
+    // Create a map of player reports for quick lookup
+    const playerReportsMap = new Map();
+    reports.forEach(report => {
+      if (report.player_id) {
+        playerReportsMap.set(report.player_id, report);
+      }
+    });
 
     // Show ONLY unassigned shortlisted players (using first 25 players as shortlist, filtered to unassigned only)
     const unassignedShortlistedPlayers = allPlayers
@@ -88,6 +98,10 @@ const ScoutManagement = () => {
         return;
       }
 
+      // Check if there's a report for this player - if so, mark as completed
+      const hasReport = playerReportsMap.has(assignment.player_id);
+      const effectiveStatus = hasReport ? 'completed' : assignment.status;
+
       const playerData = {
         id: assignment.id,
         playerName,
@@ -95,17 +109,17 @@ const ScoutManagement = () => {
         position: assignment.players?.positions?.[0] || 'Unknown',
         rating: (Math.random() * 20 + 70).toFixed(1), // Mock rating for now
         assignedTo: scoutName,
-        updatedAt: getUpdatedTime(assignment.status),
-        lastStatusChange: getLastStatusChange(assignment.status, assignment.updated_at),
+        updatedAt: getUpdatedTime(effectiveStatus),
+        lastStatusChange: getLastStatusChange(effectiveStatus, assignment.updated_at),
         avatar: assignment.players?.imageUrl || `https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=48&h=48&fit=crop&crop=face&auto=format`,
         priority: assignment.priority,
         deadline: assignment.deadline,
         scoutId: assignment.assigned_to_scout_id,
-        status: assignment.status,
+        status: effectiveStatus,
         playerId: assignment.player_id
       };
 
-      if (assignment.status === 'completed') {
+      if (effectiveStatus === 'completed') {
         newKanbanData.completed.push(playerData);
       } else {
         // All non-completed assignments go to 'assigned'
@@ -114,7 +128,7 @@ const ScoutManagement = () => {
     });
 
     setKanbanData(newKanbanData);
-  }, [assignments, scouts, allPlayers, selectedScout, searchTerm]);
+  }, [assignments, scouts, allPlayers, reports, selectedScout, searchTerm]);
 
   const getUpdatedTime = (status: string) => {
     const times = {

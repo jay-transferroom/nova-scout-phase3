@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { MapPin, Calendar, FileText, ArrowRight, Loader2, CheckCircle } from "lucide-react";
+import { MapPin, Calendar, FileText, ArrowRight, Loader2, CheckCircle, User } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useMyScoutingTasks, useUpdateAssignmentStatus } from "@/hooks/useScoutingAssignments";
 import { toast } from "@/hooks/use-toast";
@@ -203,6 +203,13 @@ const ScoutingTasks = () => {
                         <Button variant="outline" size="sm" className="flex items-center gap-1">
                           <FileText className="h-3 w-3" />
                           <span>Scout</span>
+                        </Button>
+                      </Link>
+
+                      <Link to={`/player/${task.player_id}`}>
+                        <Button variant="outline" size="sm" className="flex items-center gap-1">
+                          <User className="h-3 w-3" />
+                          <span>Profile</span>
                         </Button>
                       </Link>
 
