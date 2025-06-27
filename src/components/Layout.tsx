@@ -1,13 +1,10 @@
 
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
+import { Outlet } from "react-router-dom";
 import MainNavigation from "./MainNavigation";
 import Header from "./Header";
 
-interface LayoutProps {
-  children: React.ReactNode;
-}
-
-const Layout = ({ children }: LayoutProps) => {
+const Layout = () => {
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full">
@@ -15,7 +12,7 @@ const Layout = ({ children }: LayoutProps) => {
         <SidebarInset>
           <Header />
           <main className="flex-1 p-6 pt-20">
-            {children}
+            <Outlet />
           </main>
         </SidebarInset>
       </div>
