@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { MapPin, Calendar, Star, UserPlus, Eye, FileText, MoreHorizontal, Bookmark, Trash2 } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 interface PlayerCardProps {
   player: any;
@@ -25,6 +25,22 @@ export const PlayerCard = ({
   onAssignScout,
   onRemovePlayer
 }: PlayerCardProps) => {
+  const navigate = useNavigate();
+
+  const handleCreateReport = () => {
+    if (player.isPrivate) {
+      // For private players, navigate with the private player data
+      navigate('/report-builder', { 
+        state: { selectedPrivatePlayer: player } 
+      });
+    } else {
+      // For public players, navigate with the public player data
+      navigate('/report-builder', { 
+        state: { selectedPlayer: player } 
+      });
+    }
+  };
+
   return (
     <div className="border rounded-lg p-4 hover:bg-muted/50 transition-colors">
       <div className="flex items-start gap-4">
@@ -62,7 +78,7 @@ export const PlayerCard = ({
                   {player.transferroomRating && (
                     <span className="flex items-center gap-1">
                       <Star className="h-3 w-3 text-yellow-500" />
-                      Rating: {player.transferroomRating}/100
+                      Rating: {player.transferroomRating}
                     </span>
                   )}
                   {player.futureRating && (
@@ -116,7 +132,11 @@ export const PlayerCard = ({
                 View Profile
               </Button>
             </Link>
-            <Button size="sm" variant="outline">
+            <Button 
+              size="sm" 
+              variant="outline"
+              onClick={handleCreateReport}
+            >
               <FileText className="h-4 w-4 mr-1" />
               Report
             </Button>
