@@ -11,6 +11,7 @@ import { PlayerBasicInfo } from "@/components/PlayerBasicInfo";
 import { PlayerClubInfo } from "@/components/PlayerClubInfo";
 import { PlayerNotes } from "@/components/PlayerNotes";
 import PlayerRatingsCard from "@/components/PlayerRatingsCard";
+import PlayerAIRecommendation from "@/components/PlayerAIRecommendation";
 
 const PrivatePlayerProfile = () => {
   const { playerId } = useParams();
@@ -140,6 +141,7 @@ const PrivatePlayerProfile = () => {
         
         <div className="space-y-4">
           <PlayerRatingsCard player={player} />
+          <PlayerAIRecommendation player={player} />
         </div>
       </div>
 
@@ -154,4 +156,3 @@ const PrivatePlayerProfile = () => {
 };
 
 export default PrivatePlayerProfile;
-

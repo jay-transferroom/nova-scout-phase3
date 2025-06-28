@@ -1,5 +1,4 @@
 
-
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -13,6 +12,7 @@ import { PlayerNotes } from "@/components/PlayerNotes";
 import PlayerRatingsCard from "@/components/PlayerRatingsCard";
 import PlayerDetailedStats from "@/components/PlayerDetailedStats";
 import PlayerInjuryHistory from "@/components/PlayerInjuryHistory";
+import PlayerAIRecommendation from "@/components/PlayerAIRecommendation";
 import { usePlayerProfile } from "@/hooks/usePlayerProfile";
 import { groupReportsByPlayer } from "@/utils/reportGrouping";
 import { 
@@ -126,6 +126,7 @@ const PlayerProfile = () => {
         
         <div className="space-y-4">
           <PlayerRatingsCard player={player} aggregatedData={aggregatedData} />
+          <PlayerAIRecommendation player={player} />
         </div>
       </div>
 
@@ -169,4 +170,3 @@ const PlayerProfile = () => {
 };
 
 export default PlayerProfile;
-
