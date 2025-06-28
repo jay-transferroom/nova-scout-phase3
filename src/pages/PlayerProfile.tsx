@@ -58,21 +58,23 @@ const PlayerProfile = () => {
 
   const handleVerdictUpdate = (verdict: string) => {
     setManagerVerdict(verdict);
-    // In a real implementation, you would save this to the database
     console.log(`Manager verdict updated for player ${id}:`, verdict);
   };
 
   if (isLoading) {
     return (
-      <div className="container mx-auto py-4 flex items-center justify-center">
-        <p>Loading player profile...</p>
+      <div className="container mx-auto py-8 flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-lg font-medium">Loading player profile...</p>
+        </div>
       </div>
     );
   }
 
   if (error || !player) {
     return (
-      <div className="container mx-auto py-4 flex items-center justify-center">
+      <div className="container mx-auto py-8 flex items-center justify-center min-h-[400px]">
         <div className="text-center">
           <p className="text-lg font-medium text-gray-900 mb-2">Player not found</p>
           <p className="text-gray-600 mb-4">The player you're looking for doesn't exist or may have been removed.</p>
@@ -87,6 +89,7 @@ const PlayerProfile = () => {
 
   return (
     <div className="container mx-auto py-6 max-w-7xl px-4 sm:px-6 lg:px-8">
+      {/* Back Navigation */}
       <div className="mb-6">
         <Button variant="ghost" onClick={() => navigate(-1)} className="gap-2">
           <ArrowLeft size={16} />
@@ -94,71 +97,71 @@ const PlayerProfile = () => {
         </Button>
       </div>
 
-      <PlayerHeader 
-        player={player}
-        onCreateReport={handleCreateReport}
-        onOpenNotes={handleOpenNotes}
-        calculateAge={calculateAge}
-        getPositionColor={getPositionColor}
-        aggregatedData={aggregatedData}
-      />
+      {/* Player Header */}
+      <div className="mb-6">
+        <PlayerHeader 
+          player={player}
+          onCreateReport={handleCreateReport}
+          onOpenNotes={handleOpenNotes}
+          calculateAge={calculateAge}
+          getPositionColor={getPositionColor}
+          aggregatedData={aggregatedData}
+        />
+      </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-        <div className="lg:col-span-2 space-y-6">
-          <PlayerBasicInfo 
-            player={player}
-            calculateAge={calculateAge}
-            formatDateLocal={formatDateLocal}
+      {/* Main Content Grid */}
+      <div className="grid grid-cols-1 xl:grid-cols-4 gap-6 mb-6">
+        {/* Left Column - Main Info */}
+        <div className="xl:col-span-3 space-y-6">
+          {/* Basic Info Row */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <PlayerBasicInfo 
+              player={player}
+              calculateAge={calculateAge}
+              formatDateLocal={formatDateLocal}
+            />
+            <PlayerClubInfo 
+              player={player}
+              getContractStatusColor={getContractStatusColor}
+              getPositionColor={getPositionColor}
+              formatDateLocal={formatDateLocal}
+            />
+            <PlayerRecentForm 
+              player={player}
+              getFormRatingColor={getFormRatingColor}
+            />
+          </div>
+
+          {/* Scout Manager Verdict Panel */}
+          <ScoutManagerVerdictPanel
+            playerId={id || ""}
+            playerName={player.name}
+            currentVerdict={managerVerdict}
+            onVerdictUpdate={handleVerdictUpdate}
           />
 
-          <PlayerClubInfo 
-            player={player}
-            getContractStatusColor={getContractStatusColor}
-            getPositionColor={getPositionColor}
-            formatDateLocal={formatDateLocal}
-          />
+          {/* Detailed Player Statistics */}
+          <PlayerDetailedStats player={player} />
 
-          <PlayerRecentForm 
-            player={player}
-            getFormRatingColor={getFormRatingColor}
+          {/* Player Injury History */}
+          <PlayerInjuryHistory playerId={id || ""} />
+
+          {/* Player Reports Section */}
+          <PlayerReports 
+            playerReports={playerReports || []}
+            reportsLoading={reportsLoading}
+            onViewReport={handleViewReport}
           />
         </div>
         
-        <div className="space-y-6">
+        {/* Right Column - Sidebar */}
+        <div className="xl:col-span-1 space-y-6">
           <PlayerRatingsCard player={player} aggregatedData={aggregatedData} />
           <PlayerAIRecommendation player={player} />
         </div>
       </div>
 
-      {/* Scout Manager Verdict Panel */}
-      <div className="mb-6">
-        <ScoutManagerVerdictPanel
-          playerId={id || ""}
-          playerName={player.name}
-          currentVerdict={managerVerdict}
-          onVerdictUpdate={handleVerdictUpdate}
-        />
-      </div>
-
-      {/* Detailed Player Statistics */}
-      <div className="mb-6">
-        <PlayerDetailedStats player={player} />
-      </div>
-
-      {/* Player Injury History */}
-      <div className="mb-6">
-        <PlayerInjuryHistory playerId={id || ""} />
-      </div>
-
-      {/* Player Reports Section - Enhanced */}
-      <div className="mb-6">
-        <PlayerReports 
-          playerReports={playerReports || []}
-          reportsLoading={reportsLoading}
-          onViewReport={handleViewReport}
-        />
-      </div>
-
+      {/* Player Notes Modal */}
       <PlayerNotes
         playerId={id || ""}
         playerName={player.name}
