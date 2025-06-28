@@ -4,6 +4,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { TrendingUp, Clock, Target } from "lucide-react";
 import { ScoutUser } from "@/hooks/useScoutUsers";
 import { ScoutingAssignmentWithDetails } from "@/hooks/useScoutingAssignments";
+import { useReports } from "@/hooks/useReports";
 
 interface ScoutPerformanceCardProps {
   scout: ScoutUser;
@@ -18,12 +19,32 @@ const ScoutPerformanceCard = ({
   selectedScout,
   onScoutClick
 }: ScoutPerformanceCardProps) => {
+  const { reports = [] } = useReports();
+  
+  // Create a map of player reports for quick lookup
+  const playerReportsMap = new Map();
+  reports.forEach(report => {
+    if (report.playerId) {
+      playerReportsMap.set(report.playerId, report);
+    }
+  });
+
   const scoutAssignments = assignments.filter(a => a.assigned_to_scout_id === scout.id);
-  const completedCount = scoutAssignments.filter(a => a.status === 'completed').length;
+  
+  // Count completed assignments based on whether reports exist
+  const completedCount = scoutAssignments.filter(assignment => {
+    const hasReport = playerReportsMap.has(assignment.player_id);
+    return hasReport || assignment.status === 'completed';
+  }).length;
+  
   const completionRate = scoutAssignments.length > 0 ? Math.round((completedCount / scoutAssignments.length) * 100) : 0;
   
   // Calculate average completion time based on actual completed assignments
-  const completedAssignments = scoutAssignments.filter(a => a.status === 'completed');
+  const completedAssignments = scoutAssignments.filter(assignment => {
+    const hasReport = playerReportsMap.has(assignment.player_id);
+    return hasReport || assignment.status === 'completed';
+  });
+  
   const avgCompletionDays = completedAssignments.length > 0 
     ? Math.round(completedAssignments.reduce((acc, assignment) => {
         // Calculate days between created_at and updated_at for completed assignments
