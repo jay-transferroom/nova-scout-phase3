@@ -83,10 +83,37 @@ export const ShortlistsSidebar = ({
       <CardContent className="p-0">
         <div className="space-y-1">
           {shortlists.map((list) => {
-            const publicPlayerCount = Math.min(allPlayers.filter(list.filter).length, 15);
+            // Calculate actual player count that matches the logic in useShortlistsLogic
+            let publicPlayerCount = 0;
             const privatePlayerCount = getPrivatePlayersForShortlist(list.id).length;
             const manualPlayerCount = (list.playerIds || []).length;
-            const totalCount = publicPlayerCount + privatePlayerCount + manualPlayerCount;
+            
+            if (list.playerIds && list.playerIds.length > 0 && !list.filter) {
+              // Custom shortlist - only manually added public players
+              publicPlayerCount = allPlayers.filter(player => 
+                list.playerIds.includes(player.id.toString())
+              ).length;
+            } else if (list.filter && typeof list.filter === 'function') {
+              // Default lists with filters - get all filtered players
+              publicPlayerCount = allPlayers.filter(list.filter).length;
+              
+              // Don't double count manual players that are already included via filter
+              if (list.playerIds && list.playerIds.length > 0) {
+                const filteredPlayerIds = new Set(allPlayers.filter(list.filter).map(p => p.id.toString()));
+                const additionalManualPlayers = allPlayers.filter(player => 
+                  list.playerIds.includes(player.id.toString()) &&
+                  !filteredPlayerIds.has(player.id.toString())
+                ).length;
+                publicPlayerCount += additionalManualPlayers;
+              }
+            } else if (list.playerIds && list.playerIds.length > 0) {
+              // Lists with only playerIds
+              publicPlayerCount = allPlayers.filter(player => 
+                list.playerIds.includes(player.id.toString())
+              ).length;
+            }
+            
+            const totalCount = publicPlayerCount + privatePlayerCount;
             
             return (
               <button
