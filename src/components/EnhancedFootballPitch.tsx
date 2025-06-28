@@ -1,4 +1,3 @@
-
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -29,37 +28,39 @@ const FORMATION_POSITIONS = {
 };
 
 const EnhancedFootballPitch = ({ players, squadType, onPositionClick, selectedPosition }: EnhancedFootballPitchProps) => {
+  // Track used players to avoid duplicates across positions
+  const usedPlayerIds = new Set<string>();
+
   const getPlayersForPosition = (position: string) => {
-    // Create a more comprehensive position mapping
+    // Create a more comprehensive position mapping with multiple fallback levels
     const getPositionPriorities = (pos: string) => {
       switch (pos) {
         case 'GK': 
-          return [['GK']];
+          return [['GK'], ['CB'], ['CDM']]; // Goalkeepers first, then defensive players as emergency
         case 'LB': 
-          return [['LB', 'LWB'], ['CB'], ['LM']];
+          return [['LB', 'LWB'], ['LM', 'LW'], ['CB'], ['CM']];
         case 'CB1': 
         case 'CB2': 
-          return [['CB'], ['CDM']];
+          return [['CB'], ['CDM'], ['LB', 'RB', 'LWB', 'RWB'], ['CM']];
         case 'RB': 
-          return [['RB', 'RWB'], ['CB'], ['RM']];
+          return [['RB', 'RWB'], ['RM', 'RW'], ['CB'], ['CM']];
         case 'CDM': 
-          return [['CDM'], ['CM'], ['CB']];
+          return [['CDM'], ['CM'], ['CB'], ['CAM']];
         case 'CM1': 
         case 'CM2': 
-          return [['CM'], ['CAM', 'CDM'], ['LM', 'RM']];
+          return [['CM'], ['CAM', 'CDM'], ['LM', 'RM'], ['LW', 'RW']];
         case 'LW': 
-          return [['LW'], ['LM'], ['ST', 'CF']];
+          return [['LW'], ['LM'], ['LB', 'LWB'], ['ST', 'CF'], ['CAM']];
         case 'ST': 
-          return [['ST', 'CF'], ['CAM']];
+          return [['ST', 'CF'], ['CAM'], ['LW', 'RW'], ['CM']];
         case 'RW': 
-          return [['RW'], ['RM'], ['ST', 'CF']];
+          return [['RW'], ['RM'], ['RB', 'RWB'], ['ST', 'CF'], ['CAM']];
         default: 
           return [[]];
       }
     };
 
     const priorities = getPositionPriorities(position);
-    const usedPlayerIds = new Set();
     
     // Try each priority level until we find available players
     for (const priorityGroup of priorities) {
@@ -76,12 +77,22 @@ const EnhancedFootballPitch = ({ players, squadType, onPositionClick, selectedPo
           return ratingB - ratingA;
         });
         
-        // Mark players as used to avoid duplicates across positions
-        sortedPlayers.forEach(p => usedPlayerIds.add(p.id));
-        return sortedPlayers;
+        // Mark the best player as used
+        const selectedPlayer = sortedPlayers[0];
+        usedPlayerIds.add(selectedPlayer.id);
+        return [selectedPlayer];
       }
     }
 
+    // Ultimate fallback: if no players found with position matching, 
+    // just take any available player (this ensures every position gets filled)
+    const anyAvailablePlayer = players.find(player => !usedPlayerIds.has(player.id));
+    if (anyAvailablePlayer) {
+      usedPlayerIds.add(anyAvailablePlayer.id);
+      return [anyAvailablePlayer];
+    }
+
+    // If we somehow run out of players entirely, return empty array
     return [];
   };
 
