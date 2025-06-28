@@ -86,7 +86,7 @@ const ScoutManagement = () => {
 
     newKanbanData.shortlisted = filteredShortlisted;
 
-    // Process assigned players
+    // Process assigned players - using the deduplicated assignments
     assignments.forEach((assignment) => {
       const scoutName = assignment.assigned_to_scout?.first_name 
         ? `${assignment.assigned_to_scout.first_name} ${assignment.assigned_to_scout.last_name || ''}`.trim()
@@ -97,14 +97,8 @@ const ScoutManagement = () => {
         return;
       }
 
-      // Find the player from unified data
-      const player = allPlayers.find(p => {
-        const playerId = p.isPrivatePlayer ? p.id : p.id.toString();
-        return playerId === assignment.player_id;
-      });
-
-      const playerName = player?.name || 'Unknown Player';
-      const club = player?.club || 'Unknown Club';
+      const playerName = assignment.players?.name || 'Unknown Player';
+      const club = assignment.players?.club || 'Unknown Club';
 
       // Apply search filter
       if (searchTerm && !playerName.toLowerCase().includes(searchTerm.toLowerCase()) && !club.toLowerCase().includes(searchTerm.toLowerCase())) {
@@ -119,12 +113,12 @@ const ScoutManagement = () => {
         id: assignment.id,
         playerName,
         club,
-        position: player?.positions?.[0] || 'Unknown',
+        position: assignment.players?.positions?.[0] || 'Unknown',
         rating: (Math.random() * 20 + 70).toFixed(1), // Mock rating for now
         assignedTo: scoutName,
         updatedAt: getUpdatedTime(effectiveStatus),
         lastStatusChange: getLastStatusChange(effectiveStatus, assignment.updated_at),
-        avatar: player?.image || `https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=48&h=48&fit=crop&crop=face&auto=format`,
+        avatar: assignment.players?.imageUrl || `https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=48&h=48&fit=crop&crop=face&auto=format`,
         priority: assignment.priority,
         deadline: assignment.deadline,
         scoutId: assignment.assigned_to_scout_id,

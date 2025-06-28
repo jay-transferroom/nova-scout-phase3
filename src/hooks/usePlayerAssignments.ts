@@ -38,10 +38,26 @@ export const usePlayerAssignments = () => {
 
       console.log('Raw assignments from database:', data?.length || 0);
 
+      // Filter out assignments with invalid player IDs (should be numeric strings)
+      const validAssignments = (data || []).filter(assignment => {
+        const playerId = assignment.player_id;
+        // Check if player_id is a valid number (can be parsed as integer)
+        const isValidPlayerId = /^\d+$/.test(playerId);
+        
+        if (!isValidPlayerId) {
+          console.warn(`Filtering out assignment with invalid player_id: ${playerId}`);
+          return false;
+        }
+        
+        return true;
+      });
+
+      console.log('Valid assignments after filtering invalid IDs:', validAssignments.length);
+
       // Group by player_id and take the most recent assignment for each player
       const latestAssignments = new Map();
       
-      (data || []).forEach(assignment => {
+      validAssignments.forEach(assignment => {
         const playerId = assignment.player_id;
         if (!latestAssignments.has(playerId) || 
             new Date(assignment.created_at) > new Date(latestAssignments.get(playerId).created_at)) {
@@ -51,7 +67,7 @@ export const usePlayerAssignments = () => {
 
       const result = Array.from(latestAssignments.values()).map(assignment => ({
         ...assignment,
-        player_id: assignment.player_id, // Keep as string to match players_new.id
+        player_id: assignment.player_id,
         priority: assignment.priority as 'High' | 'Medium' | 'Low',
         status: assignment.status as 'assigned' | 'in_progress' | 'completed' | 'reviewed'
       }));
@@ -61,7 +77,7 @@ export const usePlayerAssignments = () => {
 
       return result;
     },
-    staleTime: 0, // Always refetch to get latest data
+    staleTime: 0,
     refetchOnWindowFocus: true,
   });
 };

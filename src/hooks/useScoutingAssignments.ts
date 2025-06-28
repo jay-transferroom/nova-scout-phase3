@@ -56,9 +56,22 @@ export const useScoutingAssignments = () => {
         return [];
       }
 
+      // Filter out assignments with invalid player IDs first
+      const validAssignments = assignments.filter(assignment => {
+        const playerId = assignment.player_id;
+        const isValidPlayerId = /^\d+$/.test(playerId);
+        
+        if (!isValidPlayerId) {
+          console.warn(`Filtering out assignment with invalid player_id: ${playerId}`);
+          return false;
+        }
+        
+        return true;
+      });
+
       // Group by player_id and only keep the most recent assignment for each player
       const latestAssignments = new Map();
-      assignments.forEach(assignment => {
+      validAssignments.forEach(assignment => {
         const playerId = assignment.player_id;
         if (!latestAssignments.has(playerId) || 
             new Date(assignment.created_at) > new Date(latestAssignments.get(playerId).created_at)) {
@@ -66,19 +79,13 @@ export const useScoutingAssignments = () => {
         }
       });
 
-      console.log(`Total assignments: ${assignments.length}, Unique players: ${latestAssignments.size}`);
+      console.log(`Total assignments: ${assignments.length}, Valid assignments: ${validAssignments.length}, Unique players: ${latestAssignments.size}`);
 
       // Now fetch player data from players_new for each unique assignment
       const assignmentsWithPlayers = await Promise.all(
         Array.from(latestAssignments.values()).map(async (assignment) => {
           // Convert player_id string to number for players_new table query
           const playerIdNumber = parseInt(assignment.player_id, 10);
-          
-          // Skip if player_id is not a valid number
-          if (isNaN(playerIdNumber)) {
-            console.warn(`Invalid player_id: ${assignment.player_id}, skipping assignment`);
-            return null;
-          }
           
           const { data: playerData, error: playerError } = await supabase
             .from('players_new')
@@ -108,10 +115,10 @@ export const useScoutingAssignments = () => {
       );
 
       // Filter out null entries (assignments with invalid/missing player data)
-      const validAssignments = assignmentsWithPlayers.filter(assignment => assignment !== null);
+      const validAssignments_final = assignmentsWithPlayers.filter(assignment => assignment !== null);
 
-      console.log(`Valid assignments after filtering: ${validAssignments.length}`);
-      return validAssignments;
+      console.log(`Valid assignments after filtering: ${validAssignments_final.length}`);
+      return validAssignments_final;
     },
   });
 };
