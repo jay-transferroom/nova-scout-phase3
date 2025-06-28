@@ -12,9 +12,6 @@ import { PlayerClubInfo } from "@/components/PlayerClubInfo";
 import { PlayerNotes } from "@/components/PlayerNotes";
 import PlayerRatingsCard from "@/components/PlayerRatingsCard";
 
-// Add SquadRecommendations import
-import SquadRecommendations from "@/components/SquadRecommendations";
-
 const PrivatePlayerProfile = () => {
   const { playerId } = useParams();
   const { privatePlayers } = usePrivatePlayers();
@@ -85,7 +82,6 @@ const PrivatePlayerProfile = () => {
     console.log("Open notes clicked");
   };
 
-  // In the return statement, add SquadRecommendations after PlayerRatingsCard:
   return (
     <div className="container mx-auto py-8 max-w-7xl px-4 sm:px-6 lg:px-8">
       <PlayerHeader
@@ -144,14 +140,6 @@ const PrivatePlayerProfile = () => {
         
         <div className="space-y-6">
           <PlayerRatingsCard player={player} />
-          
-          {/* Add Squad Recommendations */}
-          <SquadRecommendations 
-            players={[player]} 
-            selectedPosition={null}
-            onPositionSelect={() => {}}
-            allPlayers={[]}
-          />
         </div>
       </div>
 

@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -21,7 +22,6 @@ import {
   formatDateLocal 
 } from "@/utils/playerProfileUtils";
 import ScoutManagerVerdictPanel from "@/components/ScoutManagerVerdictPanel";
-import SquadRecommendations from "@/components/SquadRecommendations";
 
 const PlayerProfile = () => {
   const { id } = useParams<{ id: string }>();
@@ -125,14 +125,6 @@ const PlayerProfile = () => {
         
         <div className="space-y-6">
           <PlayerRatingsCard player={player} aggregatedData={aggregatedData} />
-          
-          {/* Add Squad Recommendations */}
-          <SquadRecommendations 
-            players={[player]} 
-            selectedPosition={null}
-            onPositionSelect={() => {}}
-            allPlayers={[]}
-          />
         </div>
       </div>
 
