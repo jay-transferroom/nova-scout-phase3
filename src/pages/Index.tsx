@@ -2,12 +2,14 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import { FileText, Users, Calendar, Target, Plus, TrendingUp, AlertCircle, UserPlus, Search, List } from "lucide-react";
+import { FileText, Users, Calendar, Target, Plus, TrendingUp, AlertCircle, UserPlus, Search, List, User, Eye, Star } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useReports } from "@/hooks/useReports";
 import { Badge } from "@/components/ui/badge";
 import AddPrivatePlayerDialog from "@/components/AddPrivatePlayerDialog";
 import { TrackedPlayersSection } from "@/components/TrackedPlayersSection";
+import { getOverallRating, getRecommendation } from "@/utils/reportDataExtraction";
+import VerdictBadge from "@/components/VerdictBadge";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -17,6 +19,11 @@ const Index = () => {
   const myReports = reports.filter(report => report.scoutId === user?.id);
   const draftReports = myReports.filter(report => report.status === 'draft');
   const submittedReports = myReports.filter(report => report.status === 'submitted');
+
+  // For Recent Reports section, show different data based on user role
+  const recentReportsToShow = profile?.role === 'recruitment' 
+    ? reports.filter(r => r.status === 'submitted').slice(0, 5) // Show all submitted reports for managers
+    : myReports.slice(0, 5); // Show user's own reports for scouts
 
   const quickActions = [
     {
@@ -68,28 +75,28 @@ const Index = () => {
   const stats = [
     {
       title: "Total Reports",
-      value: myReports.length,
-      description: "Reports created by you",
+      value: profile?.role === 'recruitment' ? reports.length : myReports.length,
+      description: profile?.role === 'recruitment' ? "All reports in system" : "Reports created by you",
       icon: FileText,
-      trend: "+2 this week",
+      trend: profile?.role === 'recruitment' ? `${reports.length} total` : "+2 this week",
     },
     {
       title: "Draft Reports",
-      value: draftReports.length,
+      value: profile?.role === 'recruitment' ? reports.filter(r => r.status === 'draft').length : draftReports.length,
       description: "Pending completion",
       icon: AlertCircle,
-      trend: loading ? "Loading..." : `${draftReports.length} pending`,
+      trend: loading ? "Loading..." : `${profile?.role === 'recruitment' ? reports.filter(r => r.status === 'draft').length : draftReports.length} pending`,
     },
     {
-      title: "Submitted Reports",
-      value: submittedReports.length,
+      title: "Submitted Reports", 
+      value: profile?.role === 'recruitment' ? reports.filter(r => r.status === 'submitted').length : submittedReports.length,
       description: "Completed reports",
       icon: TrendingUp,
-      trend: loading ? "Loading..." : `${submittedReports.length} completed`,
+      trend: loading ? "Loading..." : `${profile?.role === 'recruitment' ? reports.filter(r => r.status === 'submitted').length : submittedReports.length} completed`,
     },
     {
       title: "Players Scouted",
-      value: new Set(myReports.map(r => r.playerId)).size,
+      value: new Set((profile?.role === 'recruitment' ? reports : myReports).map(r => r.playerId)).size,
       description: "Unique players",
       icon: Users,
       trend: loading ? "Loading..." : "Across all reports",
@@ -106,12 +113,24 @@ const Index = () => {
     return user?.email || 'Scout';
   };
 
+  const getScoutName = (report: any) => {
+    if (report.scoutProfile?.first_name && report.scoutProfile?.last_name) {
+      return `${report.scoutProfile.first_name} ${report.scoutProfile.last_name}`;
+    }
+    if (report.scoutProfile?.first_name) {
+      return report.scoutProfile.first_name;
+    }
+    return report.scoutProfile?.email || 'Unknown Scout';
+  };
+
   return (
     <div className="container mx-auto py-8 max-w-7xl">
       <div className="space-y-6">
         <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-3xl font-bold">Scout Dashboard</h1>
+            <h1 className="text-3xl font-bold">
+              {profile?.role === 'recruitment' ? 'Scout Management Dashboard' : 'Scout Dashboard'}
+            </h1>
             <p className="text-muted-foreground">
               Welcome back, {getUserDisplayName()}. Here's your scouting overview.
             </p>
@@ -211,42 +230,84 @@ const Index = () => {
           {/* Recent Activity */}
           <Card>
             <CardHeader>
-              <CardTitle>Recent Reports</CardTitle>
+              <CardTitle className="flex items-center justify-between">
+                <span>Recent Reports</span>
+                <Badge variant="secondary">{recentReportsToShow.length} of {profile?.role === 'recruitment' ? reports.length : myReports.length}</Badge>
+              </CardTitle>
               <CardDescription>
-                Your most recent scouting activity
+                {profile?.role === 'recruitment' 
+                  ? 'Latest submitted reports from all scouts'
+                  : 'Your most recent scouting activity'
+                }
               </CardDescription>
             </CardHeader>
             <CardContent>
               {loading ? (
                 <p className="text-center text-muted-foreground">Loading reports...</p>
-              ) : myReports.length > 0 ? (
-                <div className="space-y-4">
-                  {myReports.slice(0, 5).map((report) => (
-                    <div
-                      key={report.id}
-                      className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent transition-colors cursor-pointer"
-                      onClick={() => navigate(`/report/${report.id}`)}
-                    >
-                      <div className="flex items-center gap-3">
-                        <FileText className="h-4 w-4 text-muted-foreground" />
-                        <div>
-                          <p className="font-medium">{report.player?.name}</p>
-                          <p className="text-sm text-muted-foreground">
-                            {report.player?.club} • {new Date(report.createdAt).toLocaleDateString()}
-                          </p>
+              ) : recentReportsToShow.length > 0 ? (
+                <div className="space-y-3">
+                  {recentReportsToShow.map((report) => {
+                    const rating = getOverallRating(report);
+                    const verdict = getRecommendation(report);
+                    
+                    return (
+                      <div
+                        key={report.id}
+                        className="flex items-start justify-between p-4 border rounded-lg hover:bg-accent transition-colors cursor-pointer"
+                        onClick={() => navigate(`/report/${report.id}`)}
+                      >
+                        <div className="flex-1 space-y-2">
+                          <div className="flex items-center gap-3">
+                            <div className="flex items-center gap-2">
+                              <FileText className="h-4 w-4 text-muted-foreground" />
+                              <span className="font-medium">{report.player?.name || `Player ID: ${report.playerId}`}</span>
+                            </div>
+                            <Badge variant={report.status === 'submitted' ? 'default' : 'secondary'}>
+                              {report.status}
+                            </Badge>
+                          </div>
+                          
+                          <div className="text-sm text-muted-foreground">
+                            <div className="flex items-center gap-4">
+                              <span>{report.player?.club || 'Unknown Club'}</span>
+                              <span>•</span>
+                              <span>{new Date(report.createdAt).toLocaleDateString()}</span>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-4 text-sm">
+                            <div className="flex items-center gap-1">
+                              <User className="h-3 w-3 text-muted-foreground" />
+                              <span className="text-muted-foreground">
+                                {profile?.role === 'recruitment' ? getScoutName(report) : 'You'}
+                              </span>
+                            </div>
+                            
+                            {rating !== null && rating !== undefined && (
+                              <div className="flex items-center gap-1">
+                                <Star className="h-3 w-3 text-yellow-500" />
+                                <span className="font-medium">{rating}</span>
+                              </div>
+                            )}
+                            
+                            {verdict && (
+                              <VerdictBadge verdict={verdict} />
+                            )}
+                          </div>
                         </div>
+                        
+                        <Button variant="ghost" size="sm">
+                          <Eye className="h-4 w-4" />
+                        </Button>
                       </div>
-                      <Badge variant={report.status === 'submitted' ? 'default' : 'secondary'}>
-                        {report.status}
-                      </Badge>
-                    </div>
-                  ))}
+                    );
+                  })}
                   <Button
                     variant="outline"
                     className="w-full"
                     onClick={() => navigate("/reports")}
                   >
-                    View All Reports
+                    View All Reports ({profile?.role === 'recruitment' ? reports.length : myReports.length})
                   </Button>
                 </div>
               ) : (
