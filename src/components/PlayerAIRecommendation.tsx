@@ -50,67 +50,64 @@ NEXT STEPS:
   };
 
   return (
-    <Card>
-      <CardHeader>
+    <Card className="h-fit">
+      <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
-          <CardTitle className="flex items-center gap-2">
-            <Sparkles className="h-5 w-5 text-purple-600" />
+          <CardTitle className="flex items-center gap-2 text-base">
+            <Sparkles className="h-4 w-4 text-purple-600" />
             AI Recommendation
           </CardTitle>
-          {!recommendation && (
-            <Button 
-              onClick={generateRecommendation} 
-              disabled={isGenerating}
-              size="sm"
-              className="gap-2"
-            >
-              {isGenerating ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <Sparkles className="h-4 w-4" />
-              )}
-              {isGenerating ? "Analyzing..." : "Generate"}
-            </Button>
-          )}
+          <Button 
+            onClick={generateRecommendation} 
+            disabled={isGenerating}
+            size="sm"
+            variant={recommendation ? "outline" : "default"}
+            className="gap-1.5"
+          >
+            {isGenerating ? (
+              <Loader2 className="h-3 w-3 animate-spin" />
+            ) : (
+              <Sparkles className="h-3 w-3" />
+            )}
+            {isGenerating ? "Analyzing..." : recommendation ? "Regenerate" : "Generate"}
+          </Button>
         </div>
       </CardHeader>
       
-      {recommendation && (
-        <CardContent>
-          <div className="space-y-4">
-            <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
-              <pre className="whitespace-pre-wrap text-sm text-gray-800 font-medium">
+      <CardContent className="pt-0">
+        {recommendation ? (
+          <div className="space-y-3">
+            <div className="bg-purple-50 border border-purple-200 rounded-lg p-3">
+              <pre className="whitespace-pre-wrap text-xs text-gray-800 font-medium leading-relaxed">
                 {recommendation}
               </pre>
             </div>
             
             <div className="flex items-center justify-between">
-              <Badge variant="outline" className="text-purple-700 bg-purple-50 border-purple-200">
+              <Badge variant="outline" className="text-purple-700 bg-purple-50 border-purple-200 text-xs">
                 AI Generated
               </Badge>
-              <Button 
-                onClick={generateRecommendation} 
-                disabled={isGenerating}
-                variant="outline"
-                size="sm"
-                className="gap-2"
-              >
-                <Sparkles className="h-4 w-4" />
-                Regenerate
-              </Button>
             </div>
           </div>
-        </CardContent>
-      )}
-      
-      {isGenerating && (
-        <CardContent>
-          <div className="flex items-center justify-center py-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mr-4"></div>
-            <p className="text-muted-foreground">Analyzing player data and generating recommendation...</p>
+        ) : isGenerating ? (
+          <div className="flex items-center justify-center py-6">
+            <div className="flex items-center gap-3">
+              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-purple-600"></div>
+              <p className="text-sm text-muted-foreground">Analyzing player data...</p>
+            </div>
           </div>
-        </CardContent>
-      )}
+        ) : (
+          <div className="text-center py-4">
+            <div className="bg-gray-50 rounded-lg p-4 mb-3">
+              <Sparkles className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+              <p className="text-sm text-gray-600 mb-2">Get AI insights for {player.name}</p>
+              <p className="text-xs text-gray-500">
+                Generate personalized recruitment recommendations based on player profile analysis
+              </p>
+            </div>
+          </div>
+        )}
+      </CardContent>
     </Card>
   );
 };
