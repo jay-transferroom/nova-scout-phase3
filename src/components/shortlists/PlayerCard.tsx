@@ -8,8 +8,8 @@ import { Link, useNavigate } from "react-router-dom";
 
 interface PlayerCardProps {
   player: any;
-  getAssignmentBadge: (playerId: string) => JSX.Element;
-  getEuGbeBadge: (status: string) => JSX.Element;
+  getAssignmentBadge: (playerId: string) => { variant: any; className?: string; children: string; };
+  getEuGbeBadge: (status: string) => { variant: any; className?: string; children: string; };
   getPlayerAssignment: (playerId: string) => any;
   formatXtvScore: (score: number) => string;
   onAssignScout: (player: any) => void;
@@ -41,6 +41,9 @@ export const PlayerCard = ({
     }
   };
 
+  const assignmentBadgeProps = getAssignmentBadge(player.id.toString());
+  const euGbeBadgeProps = getEuGbeBadge(player.euGbeStatus || 'Pass');
+
   return (
     <div className="border rounded-lg p-4 hover:bg-muted/50 transition-colors">
       <div className="flex items-start gap-4">
@@ -61,8 +64,8 @@ export const PlayerCard = ({
                 {player.isPrivate && (
                   <Badge variant="secondary">Private Player</Badge>
                 )}
-                {!player.isPrivate && getAssignmentBadge(player.id.toString())}
-                {!player.isPrivate && getEuGbeBadge(player.euGbeStatus || 'Pass')}
+                {!player.isPrivate && <Badge {...assignmentBadgeProps} />}
+                {!player.isPrivate && <Badge {...euGbeBadgeProps} />}
               </div>
               <div className="flex items-center gap-4 text-sm text-muted-foreground mb-2">
                 <span className="flex items-center gap-1">
