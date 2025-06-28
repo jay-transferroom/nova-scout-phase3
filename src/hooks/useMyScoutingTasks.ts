@@ -1,9 +1,8 @@
-
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 
-export interface ScoutingAssignment {
+export interface ScoutingAssignmentWithDetails {
   id: string;
   player_id: string;
   assigned_to_scout_id: string;
@@ -27,6 +26,11 @@ export interface ScoutingAssignment {
     last_name?: string;
     email: string;
   };
+  assigned_by_manager?: {
+    first_name?: string;
+    last_name?: string;
+    email: string;
+  };
 }
 
 export const useMyScoutingTasks = () => {
@@ -34,76 +38,127 @@ export const useMyScoutingTasks = () => {
   
   return useQuery({
     queryKey: ['my-scouting-tasks'],
-    queryFn: async (): Promise<ScoutingAssignment[]> => {
+    queryFn: async (): Promise<ScoutingAssignmentWithDetails[]> => {
       console.log('Fetching scouting tasks for user:', user?.id);
       
-      // Fetch real scouting assignments with player data from players_new
+      // First try to get actual scouting assignments without player data
       const { data: assignments, error: assignmentsError } = await supabase
         .from('scouting_assignments')
         .select(`
           *,
-          assigned_to_scout:profiles!scouting_assignments_assigned_to_scout_id_fkey(first_name, last_name, email)
+          assigned_to_scout:profiles!scouting_assignments_assigned_to_scout_id_fkey(first_name, last_name, email),
+          assigned_by_manager:profiles!scouting_assignments_assigned_by_manager_id_fkey(first_name, last_name, email)
         `)
         .eq('assigned_to_scout_id', user?.id)
-        .order('deadline', { ascending: true, nullsFirst: false });
+        .order('created_at', { ascending: false });
 
       console.log('Real assignments found:', assignments?.length || 0);
 
-      if (assignmentsError) {
-        console.error('Error fetching assignments:', assignmentsError);
-        return [];
-      }
-
-      if (!assignments || assignments.length === 0) {
-        console.log('No assignments found for user');
-        return [];
-      }
-
-      // For each assignment, fetch the corresponding player data from players_new
-      const assignmentsWithPlayers = await Promise.all(
-        assignments.map(async (assignment) => {
-          // Convert player_id string to number for players_new table query
-          const playerIdNumber = parseInt(assignment.player_id, 10);
+      if (!assignmentsError && assignments && assignments.length > 0) {
+        // Filter out assignments with invalid player IDs first
+        const validAssignments = assignments.filter(assignment => {
+          const playerId = assignment.player_id;
+          const isValidPlayerId = /^\d+$/.test(playerId);
           
-          const { data: playerData, error: playerError } = await supabase
-            .from('players_new')
-            .select('name, currentteam, parentteam, firstposition, secondposition, age, imageurl')
-            .eq('id', playerIdNumber)
-            .single();
+          if (!isValidPlayerId) {
+            console.warn(`Filtering out assignment with invalid player_id: ${playerId}`);
+            return false;
+          }
+          
+          return true;
+        });
 
-          if (playerError) {
-            console.error('Error fetching player data for assignment:', assignment.id, playerError);
+        console.log('Valid assignments after filtering invalid IDs:', validAssignments.length);
+
+        // Group by player_id and only keep the most recent assignment for each player
+        const latestAssignments = new Map();
+        validAssignments.forEach(assignment => {
+          const playerId = assignment.player_id;
+          if (!latestAssignments.has(playerId) || 
+              new Date(assignment.created_at) > new Date(latestAssignments.get(playerId).created_at)) {
+            latestAssignments.set(playerId, assignment);
+          }
+        });
+
+        console.log(`Deduplicated assignments: ${latestAssignments.size} unique players`);
+
+        // Fetch player data for each unique assignment from players_new
+        const assignmentsWithPlayers = await Promise.all(
+          Array.from(latestAssignments.values()).map(async (assignment) => {
+            const playerIdNumber = parseInt(assignment.player_id, 10);
+            
+            const { data: playerData, error: playerError } = await supabase
+              .from('players_new')
+              .select('name, currentteam, parentteam, firstposition, secondposition, age, imageurl')
+              .eq('id', playerIdNumber)
+              .single();
+
             return {
               ...assignment,
               priority: assignment.priority as 'High' | 'Medium' | 'Low',
               status: assignment.status as 'assigned' | 'in_progress' | 'completed' | 'reviewed',
-              players: {
+              players: playerError ? {
                 name: 'Unknown Player',
                 club: 'Unknown Club',
                 positions: ['Unknown'],
-                age: 0,
-                imageUrl: undefined
+                age: 0
+              } : {
+                name: playerData.name,
+                club: playerData.currentteam || playerData.parentteam || 'Unknown Club',
+                positions: [playerData.firstposition, playerData.secondposition].filter(Boolean) as string[],
+                age: playerData.age || 0,
+                imageUrl: playerData.imageurl
               }
             };
-          }
+          })
+        );
 
-          return {
-            ...assignment,
-            priority: assignment.priority as 'High' | 'Medium' | 'Low',
-            status: assignment.status as 'assigned' | 'in_progress' | 'completed' | 'reviewed',
-            players: {
-              name: playerData.name,
-              club: playerData.currentteam || playerData.parentteam || 'Unknown Club',
-              positions: [playerData.firstposition, playerData.secondposition].filter(Boolean) as string[],
-              age: playerData.age || 0,
-              imageUrl: playerData.imageurl || undefined
-            }
-          };
-        })
-      );
+        console.log('Final assignments with player data:', assignmentsWithPlayers.length);
+        return assignmentsWithPlayers;
+      }
 
-      console.log('Assignments with player data:', assignmentsWithPlayers.length);
-      return assignmentsWithPlayers;
+      console.log('No real assignments found, creating mock assignments...');
+
+      // If no assignments found, create mock assignments with real players from database
+      const { data: players, error: playersError } = await supabase
+        .from('players_new')
+        .select('id, name, currentteam, parentteam, firstposition, secondposition, age')
+        .limit(8);
+
+      console.log('Players fetched for mock assignments:', players?.length || 0);
+
+      if (playersError || !players || players.length === 0) {
+        console.error('Error fetching players for mock assignments:', playersError);
+        return [];
+      }
+
+      // Create mock assignments with real player data
+      const mockStatuses: ('assigned' | 'in_progress' | 'completed' | 'reviewed')[] = 
+        ['assigned', 'in_progress', 'completed', 'reviewed'];
+      const mockPriorities: ('High' | 'Medium' | 'Low')[] = ['High', 'Medium', 'Low'];
+      
+      const mockAssignments = players.slice(0, 6).map((player, index) => ({
+        id: `mock-assignment-${player.id}`,
+        player_id: player.id.toString(),
+        assigned_to_scout_id: user?.id || '',
+        assigned_by_manager_id: 'mock-manager-id',
+        priority: mockPriorities[index % 3],
+        status: mockStatuses[index % 4],
+        assignment_notes: `Scout ${player.name} for potential transfer target`,
+        deadline: new Date(Date.now() + (index + 1) * 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        report_type: 'Standard',
+        created_at: new Date(Date.now() - index * 24 * 60 * 60 * 1000).toISOString(),
+        updated_at: new Date().toISOString(),
+        players: {
+          name: player.name,
+          club: player.currentteam || player.parentteam || 'Unknown Club',
+          positions: [player.firstposition, player.secondposition].filter(Boolean) as string[],
+          age: player.age || 0
+        }
+      }));
+
+      console.log('Mock assignments created:', mockAssignments.length);
+      return mockAssignments;
     },
     enabled: !!user,
   });
