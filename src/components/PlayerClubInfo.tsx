@@ -1,7 +1,6 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 import { Player } from "@/types/player";
 
 interface PlayerClubInfoProps {
@@ -14,18 +13,18 @@ interface PlayerClubInfoProps {
 export const PlayerClubInfo = ({ player, getContractStatusColor, getPositionColor, formatDateLocal }: PlayerClubInfoProps) => {
   return (
     <Card>
-      <CardHeader className="pb-3">
-        <CardTitle className="text-base">Club & Contract</CardTitle>
+      <CardHeader className="pb-2">
+        <CardTitle className="text-sm">Club & Contract</CardTitle>
       </CardHeader>
-      <CardContent className="pt-0 pb-4 space-y-3 text-sm">
-        <div className="grid grid-cols-2 gap-3">
+      <CardContent className="pt-0 pb-3 space-y-2 text-sm">
+        <div className="grid grid-cols-2 gap-2">
           <div>
-            <p className="text-xs text-gray-600 mb-1">Current Club</p>
-            <p className="font-medium">{player.club}</p>
+            <p className="text-xs text-gray-600 mb-0.5">Current Club</p>
+            <p className="font-medium text-xs">{player.club}</p>
           </div>
           
           <div>
-            <p className="text-xs text-gray-600 mb-1">Contract Status</p>
+            <p className="text-xs text-gray-600 mb-0.5">Contract Status</p>
             <Badge className={`text-xs ${getContractStatusColor(player.contractStatus)}`}>
               {player.contractStatus}
             </Badge>
@@ -34,18 +33,18 @@ export const PlayerClubInfo = ({ player, getContractStatusColor, getPositionColo
         
         {player.contractExpiry && (
           <div>
-            <p className="text-xs text-gray-600 mb-1">Contract Expires</p>
+            <p className="text-xs text-gray-600 mb-0.5">Contract Expires</p>
             <p className="text-xs font-medium">{formatDateLocal(player.contractExpiry)}</p>
           </div>
         )}
         
         <div>
-          <p className="text-xs text-gray-600 mb-2">Positions</p>
+          <p className="text-xs text-gray-600 mb-1">Positions</p>
           <div className="flex flex-wrap gap-1">
             {player.positions.map((position) => (
               <span
                 key={position}
-                className={`inline-flex items-center justify-center text-xs font-bold rounded px-2 py-1 text-white ${getPositionColor(position)}`}
+                className={`inline-flex items-center justify-center text-xs font-bold rounded px-1.5 py-0.5 text-white ${getPositionColor(position)}`}
               >
                 {position}
               </span>
