@@ -83,7 +83,7 @@ const PrivatePlayerProfile = () => {
   };
 
   return (
-    <div className="container mx-auto py-8 max-w-7xl px-4 sm:px-6 lg:px-8">
+    <div className="container mx-auto py-6 max-w-7xl px-4 sm:px-6 lg:px-8">
       <PlayerHeader
         player={player}
         onCreateReport={onCreateReport}
@@ -92,8 +92,8 @@ const PrivatePlayerProfile = () => {
         getPositionColor={getPositionColor}
       />
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 space-y-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+        <div className="lg:col-span-2 space-y-4">
           <PlayerBasicInfo 
             player={player} 
             calculateAge={calculateAge}
@@ -110,7 +110,7 @@ const PrivatePlayerProfile = () => {
           {player.strengths && player.strengths.length > 0 && (
             <Card>
               <CardContent className="p-4">
-                <h3 className="font-semibold mb-2">Strengths</h3>
+                <h3 className="font-semibold mb-3">Strengths</h3>
                 <div className="flex flex-wrap gap-2">
                   {player.strengths.map((strength, index) => (
                     <Badge key={index} variant="outline" className="bg-green-50 text-green-700">
@@ -125,7 +125,7 @@ const PrivatePlayerProfile = () => {
           {player.weaknesses && player.weaknesses.length > 0 && (
             <Card>
               <CardContent className="p-4">
-                <h3 className="font-semibold mb-2">Areas for Improvement</h3>
+                <h3 className="font-semibold mb-3">Areas for Improvement</h3>
                 <div className="flex flex-wrap gap-2">
                   {player.weaknesses.map((weakness, index) => (
                     <Badge key={index} variant="outline" className="bg-orange-50 text-orange-700">
@@ -138,7 +138,7 @@ const PrivatePlayerProfile = () => {
           )}
         </div>
         
-        <div className="space-y-6">
+        <div className="space-y-4">
           <PlayerRatingsCard player={player} />
         </div>
       </div>
@@ -154,3 +154,4 @@ const PrivatePlayerProfile = () => {
 };
 
 export default PrivatePlayerProfile;
+

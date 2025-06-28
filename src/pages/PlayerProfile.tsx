@@ -1,4 +1,5 @@
 
+
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -85,8 +86,8 @@ const PlayerProfile = () => {
   }
 
   return (
-    <div className="container mx-auto py-8 max-w-7xl px-4 sm:px-6 lg:px-8">
-      <div className="mb-4">
+    <div className="container mx-auto py-6 max-w-7xl px-4 sm:px-6 lg:px-8">
+      <div className="mb-6">
         <Button variant="ghost" onClick={() => navigate(-1)} className="gap-2">
           <ArrowLeft size={16} />
           Back
@@ -102,8 +103,8 @@ const PlayerProfile = () => {
         aggregatedData={aggregatedData}
       />
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 space-y-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+        <div className="lg:col-span-2 space-y-4">
           <PlayerBasicInfo 
             player={player}
             calculateAge={calculateAge}
@@ -123,13 +124,13 @@ const PlayerProfile = () => {
           />
         </div>
         
-        <div className="space-y-6">
+        <div className="space-y-4">
           <PlayerRatingsCard player={player} aggregatedData={aggregatedData} />
         </div>
       </div>
 
       {/* Scout Manager Verdict Panel */}
-      <div className="mb-4">
+      <div className="mb-6">
         <ScoutManagerVerdictPanel
           playerId={id || ""}
           playerName={player.name}
@@ -139,17 +140,17 @@ const PlayerProfile = () => {
       </div>
 
       {/* Detailed Player Statistics */}
-      <div className="mb-4">
+      <div className="mb-6">
         <PlayerDetailedStats player={player} />
       </div>
 
       {/* Player Injury History */}
-      <div className="mb-4">
+      <div className="mb-6">
         <PlayerInjuryHistory playerId={id || ""} />
       </div>
 
       {/* Player Reports Section - Enhanced */}
-      <div className="mb-4">
+      <div className="mb-6">
         <PlayerReports 
           playerReports={playerReports || []}
           reportsLoading={reportsLoading}
@@ -168,3 +169,4 @@ const PlayerProfile = () => {
 };
 
 export default PlayerProfile;
+
