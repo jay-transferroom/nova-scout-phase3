@@ -22,9 +22,16 @@ const ScoutPerformanceCard = ({
   const completedCount = scoutAssignments.filter(a => a.status === 'completed').length;
   const completionRate = scoutAssignments.length > 0 ? Math.round((completedCount / scoutAssignments.length) * 100) : 0;
   
-  // Calculate average completion time (mock for now - in real app this would be calculated from actual dates)
-  const avgCompletionDays = scoutAssignments.length > 0 
-    ? Math.round(Math.random() * 10 + 3) // Mock: 3-13 days average
+  // Calculate average completion time based on actual completed assignments
+  const completedAssignments = scoutAssignments.filter(a => a.status === 'completed');
+  const avgCompletionDays = completedAssignments.length > 0 
+    ? Math.round(completedAssignments.reduce((acc, assignment) => {
+        // Calculate days between created_at and updated_at for completed assignments
+        const createdDate = new Date(assignment.created_at);
+        const completedDate = new Date(assignment.updated_at);
+        const daysDiff = Math.ceil((completedDate.getTime() - createdDate.getTime()) / (1000 * 3600 * 24));
+        return acc + Math.max(daysDiff, 1); // Minimum 1 day
+      }, 0) / completedAssignments.length)
     : 0;
 
   const getPerformanceColor = (rate: number) => {
@@ -61,7 +68,7 @@ const ScoutPerformanceCard = ({
           <div className="flex justify-between items-center">
             <span className="text-sm text-muted-foreground flex items-center gap-1">
               <Target className="h-3 w-3" />
-              Active tasks:
+              Total tasks:
             </span>
             <span className="font-semibold">{scoutAssignments.length}</span>
           </div>
@@ -75,15 +82,17 @@ const ScoutPerformanceCard = ({
               {completionRate}%
             </span>
           </div>
-          <div className="flex justify-between items-center">
-            <span className="text-sm text-muted-foreground flex items-center gap-1">
-              <Clock className="h-3 w-3" />
-              Avg. time:
-            </span>
-            <span className="font-semibold text-blue-600">
-              {avgCompletionDays}d
-            </span>
-          </div>
+          {completedCount > 0 && (
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-muted-foreground flex items-center gap-1">
+                <Clock className="h-3 w-3" />
+                Avg. time:
+              </span>
+              <span className="font-semibold text-blue-600">
+                {avgCompletionDays}d
+              </span>
+            </div>
+          )}
         </div>
       </CardContent>
     </Card>
