@@ -1,6 +1,5 @@
 
 import { useMemo } from "react";
-import React from "react";
 
 interface UseShortlistsLogicProps {
   allPlayers: any[];
@@ -58,8 +57,39 @@ export const useShortlistsLogic = ({
   };
 
   const currentList = shortlists.find(list => list.id === selectedList);
-  const currentPublicPlayers = currentList ? allPlayers.filter(currentList.filter).slice(0, 15) : [];
-  const currentPrivatePlayers = currentList ? getPrivatePlayersForShortlist(currentList.id) : [];
+  
+  // Get players based on list type
+  let currentPublicPlayers: any[] = [];
+  let currentPrivatePlayers: any[] = [];
+  
+  if (currentList) {
+    // For default lists with filters, apply the filter
+    if (currentList.filter && typeof currentList.filter === 'function') {
+      currentPublicPlayers = allPlayers.filter(currentList.filter);
+    }
+    
+    // For custom lists or lists with manual player IDs
+    if (currentList.playerIds && currentList.playerIds.length > 0) {
+      const manualPlayers = allPlayers.filter(player => 
+        currentList.playerIds.includes(player.id.toString())
+      );
+      currentPublicPlayers = [...currentPublicPlayers, ...manualPlayers];
+    }
+    
+    // Get private players for this shortlist
+    currentPrivatePlayers = getPrivatePlayersForShortlist(currentList.id);
+    
+    // Remove duplicates from public players
+    const seenIds = new Set();
+    currentPublicPlayers = currentPublicPlayers.filter(player => {
+      const id = player.id.toString();
+      if (seenIds.has(id)) {
+        return false;
+      }
+      seenIds.add(id);
+      return true;
+    });
+  }
   
   // Combine public and private players
   const allCurrentPlayers = [

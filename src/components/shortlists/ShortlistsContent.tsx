@@ -6,7 +6,10 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { PlayerCard } from "./PlayerCard";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { MoreHorizontal, Eye, FileText, UserPlus, Bookmark, Trash2 } from "lucide-react";
+import { Link } from "react-router-dom";
 
 interface ShortlistsContentProps {
   currentList: any;
@@ -56,6 +59,11 @@ export const ShortlistsContent = ({
       </Card>
     );
   }
+
+  const handleCreateReport = (player: any) => {
+    // This will be handled by the parent component
+    console.log("Creating report for:", player);
+  };
 
   return (
     <Card>
@@ -146,23 +154,29 @@ export const ShortlistsContent = ({
             <TableBody>
               {sortedPlayers.length > 0 ? (
                 sortedPlayers.map((player) => {
-                  const assignmentBadgeProps = getAssignmentBadge(player.id);
+                  const assignmentBadgeProps = getAssignmentBadge(player.id.toString());
                   const euGbeBadgeProps = getEuGbeBadge(player.euGbeStatus || 'Pass');
                   
                   return (
                     <TableRow key={player.id}>
                       <TableCell>
-                        <PlayerCard 
-                          player={player}
-                          getAssignmentBadge={getAssignmentBadge}
-                          getEuGbeBadge={getEuGbeBadge}
-                          getPlayerAssignment={getPlayerAssignment}
-                          formatXtvScore={formatXtvScore}
-                          onAssignScout={onAssignScout}
-                          onRemovePlayer={onRemovePlayer}
-                        />
+                        <div className="flex items-center gap-3">
+                          <Avatar className="h-10 w-10">
+                            <AvatarImage src={player.image} alt={player.name} />
+                            <AvatarFallback>
+                              {player.name.split(' ').map((n: string) => n[0]).join('')}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <div className="font-medium">{player.name}</div>
+                            <div className="text-sm text-muted-foreground">{player.club}</div>
+                            {player.isPrivate && (
+                              <Badge variant="secondary" className="text-xs mt-1">Private</Badge>
+                            )}
+                          </div>
+                        </div>
                       </TableCell>
-                      <TableCell>{player.age}</TableCell>
+                      <TableCell>{player.age || 'N/A'}</TableCell>
                       <TableCell>
                         <div className="flex gap-1">
                           {player.positions?.slice(0, 2).map((pos: string, idx: number) => (
@@ -182,28 +196,53 @@ export const ShortlistsContent = ({
                         {player.xtvScore ? formatXtvScore(player.xtvScore) : 'N/A'}
                       </TableCell>
                       <TableCell>
-                        <Badge {...euGbeBadgeProps} />
+                        {!player.isPrivate && <Badge {...euGbeBadgeProps} />}
                       </TableCell>
                       <TableCell>
-                        <Badge {...assignmentBadgeProps} />
+                        {!player.isPrivate && <Badge {...assignmentBadgeProps} />}
                       </TableCell>
                       <TableCell>
-                        <div className="flex gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => onAssignScout(player)}
-                          >
-                            Assign Scout
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => onRemovePlayer(player.id)}
-                          >
-                            Remove
-                          </Button>
-                        </div>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="sm">
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem asChild>
+                              <Link to={player.profilePath}>
+                                <Eye className="h-4 w-4 mr-2" />
+                                View Profile
+                              </Link>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleCreateReport(player)}>
+                              <FileText className="h-4 w-4 mr-2" />
+                              Create Report
+                            </DropdownMenuItem>
+                            {!player.isPrivate && !getPlayerAssignment(player.id.toString()) ? (
+                              <DropdownMenuItem onClick={() => onAssignScout(player)}>
+                                <UserPlus className="h-4 w-4 mr-2" />
+                                Assign Scout
+                              </DropdownMenuItem>
+                            ) : !player.isPrivate && (
+                              <DropdownMenuItem onClick={() => onAssignScout(player)}>
+                                <UserPlus className="h-4 w-4 mr-2" />
+                                Reassign Scout
+                              </DropdownMenuItem>
+                            )}
+                            <DropdownMenuItem>
+                              <Bookmark className="h-4 w-4 mr-2" />
+                              Move to list
+                            </DropdownMenuItem>
+                            <DropdownMenuItem 
+                              className="text-destructive"
+                              onClick={() => onRemovePlayer(player.id.toString())}
+                            >
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              Remove from list
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </TableCell>
                     </TableRow>
                   );

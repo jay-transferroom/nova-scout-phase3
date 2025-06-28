@@ -8,28 +8,44 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Calendar, Users, FileText, Search, Filter, Plus, TrendingUp, Target, Clock, CheckCircle } from "lucide-react";
 import { useMyScoutingTasks } from "@/hooks/useMyScoutingTasks";
 import { useReports } from "@/hooks/useReports";
+import { useAuth } from "@/contexts/AuthContext";
 import { Link } from "react-router-dom";
 
 const ScoutingDashboard = () => {
+  const { user, profile } = useAuth();
   const { data: allAssignments = [], isLoading: assignmentsLoading } = useMyScoutingTasks();
   const { reports, loading: reportsLoading } = useReports();
   const [searchTerm, setSearchTerm] = useState("");
+
+  // For Scout Managers, show all reports; for Scouts, show only their reports
+  const visibleReports = profile?.role === 'recruitment' 
+    ? reports.filter(r => r.status === 'submitted')
+    : reports.filter(r => r.scoutId === user?.id);
 
   const stats = {
     totalAssignments: allAssignments.length,
     pendingReports: allAssignments.filter(a => a.status === 'assigned').length,
     completedReports: allAssignments.filter(a => a.status === 'completed').length,
+    totalReports: visibleReports.length,
     activeScouts: new Set(allAssignments.map(a => a.assigned_to_scout_id)).size,
   };
 
-  // Recent activity from all scouts
-  const recentActivity = [
-    { type: 'report', player: 'Marcus Johnson', club: 'Arsenal', scout: 'John Smith', time: '2 hours ago' },
-    { type: 'assignment', player: 'David Silva', club: 'Chelsea', scout: 'Sarah Jones', time: '5 hours ago' },
-    { type: 'match', event: 'Liverpool vs Manchester City', scout: 'Mike Wilson', time: '1 day ago' },
-    { type: 'report', player: 'Kevin De Bruyne', club: 'Manchester City', scout: 'Emma Davis', time: '1 day ago' },
-    { type: 'assignment', player: 'Bruno Fernandes', club: 'Manchester United', scout: 'Tom Brown', time: '2 days ago' },
-  ];
+  // Recent activity - show different data based on role
+  const recentActivity = profile?.role === 'recruitment' 
+    ? [
+        { type: 'report', player: 'Marcus Johnson', club: 'Arsenal', scout: 'John Smith', time: '2 hours ago' },
+        { type: 'assignment', player: 'David Silva', club: 'Chelsea', scout: 'Sarah Jones', time: '5 hours ago' },
+        { type: 'match', event: 'Liverpool vs Manchester City', scout: 'Mike Wilson', time: '1 day ago' },
+        { type: 'report', player: 'Kevin De Bruyne', club: 'Manchester City', scout: 'Emma Davis', time: '1 day ago' },
+        { type: 'assignment', player: 'Bruno Fernandes', club: 'Manchester United', scout: 'Tom Brown', time: '2 days ago' },
+      ]
+    : visibleReports.slice(0, 5).map(report => ({
+        type: 'report',
+        player: report.player?.name || 'Unknown Player',
+        club: report.player?.club || 'Unknown Club',
+        scout: 'Me',
+        time: new Date(report.created_at).toLocaleDateString()
+      }));
 
   const upcomingTasks = allAssignments.slice(0, 5);
 
@@ -48,9 +64,14 @@ const ScoutingDashboard = () => {
       {/* Header */}
       <div className="flex justify-between items-start mb-8">
         <div>
-          <h1 className="text-3xl font-bold">Scout Management Dashboard</h1>
+          <h1 className="text-3xl font-bold">
+            {profile?.role === 'recruitment' ? 'Scout Management Dashboard' : 'Scouting Dashboard'}
+          </h1>
           <p className="text-muted-foreground mt-2">
-            Monitor and manage all scouting activities across your team.
+            {profile?.role === 'recruitment' 
+              ? 'Monitor and manage all scouting activities across your team.'
+              : 'Track your assignments and scouting progress.'
+            }
           </p>
         </div>
         <div className="flex gap-3">
@@ -61,7 +82,7 @@ const ScoutingDashboard = () => {
           <Link to="/report-builder">
             <Button className="flex items-center gap-2">
               <Plus className="h-4 w-4" />
-              New Assignment
+              New Report
             </Button>
           </Link>
         </div>
@@ -76,7 +97,20 @@ const ScoutingDashboard = () => {
           </CardHeader>
           <CardContent className="pt-0">
             <div className="text-3xl font-bold">{stats.totalAssignments}</div>
-            <p className="text-xs text-muted-foreground">All active tasks</p>
+            <p className="text-xs text-muted-foreground">Active tasks</p>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-3">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              {profile?.role === 'recruitment' ? 'All Reports' : 'My Reports'}
+            </CardTitle>
+            <FileText className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent className="pt-0">
+            <div className="text-3xl font-bold">{stats.totalReports}</div>
+            <p className="text-xs text-muted-foreground">Submitted reports</p>
           </CardContent>
         </Card>
         
@@ -93,35 +127,30 @@ const ScoutingDashboard = () => {
         
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Completed Reports</CardTitle>
-            <CheckCircle className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent className="pt-0">
-            <div className="text-3xl font-bold text-success-600">{stats.completedReports}</div>
-            <p className="text-xs text-muted-foreground">This month</p>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Active Scouts</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              {profile?.role === 'recruitment' ? 'Active Scouts' : 'Completed'}
+            </CardTitle>
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent className="pt-0">
-            <div className="text-3xl font-bold">{stats.activeScouts}</div>
-            <p className="text-xs text-muted-foreground">Currently assigned</p>
+            <div className="text-3xl font-bold text-success-600">
+              {profile?.role === 'recruitment' ? stats.activeScouts : stats.completedReports}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              {profile?.role === 'recruitment' ? 'Currently assigned' : 'This month'}
+            </p>
           </CardContent>
         </Card>
       </div>
 
       {/* Main Content Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Recent Activity - All Scouts */}
+        {/* Recent Activity */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <FileText className="h-5 w-5" />
-              Recent Activity - All Scouts
+              Recent Activity
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -148,7 +177,7 @@ const ScoutingDashboard = () => {
           </CardContent>
         </Card>
 
-        {/* All Assignments */}
+        {/* Assignments */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -195,26 +224,28 @@ const ScoutingDashboard = () => {
       <div className="mt-8">
         <Card>
           <CardHeader>
-            <CardTitle>Management Actions</CardTitle>
+            <CardTitle>Quick Actions</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <Link to="/scout-management">
-                <Button variant="outline" className="w-full h-20 flex flex-col gap-2">
-                  <Users className="h-6 w-6" />
-                  Manage Scouts
-                </Button>
-              </Link>
+              {profile?.role === 'recruitment' && (
+                <Link to="/scout-management">
+                  <Button variant="outline" className="w-full h-20 flex flex-col gap-2">
+                    <Users className="h-6 w-6" />
+                    Manage Scouts
+                  </Button>
+                </Link>
+              )}
               <Link to="/reports">
                 <Button variant="outline" className="w-full h-20 flex flex-col gap-2">
                   <FileText className="h-6 w-6" />
                   All Reports
                 </Button>
               </Link>
-              <Link to="/calendar">
+              <Link to="/shortlists">
                 <Button variant="outline" className="w-full h-20 flex flex-col gap-2">
-                  <Calendar className="h-6 w-6" />
-                  Match Schedule
+                  <Target className="h-6 w-6" />
+                  Shortlists
                 </Button>
               </Link>
             </div>
