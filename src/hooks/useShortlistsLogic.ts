@@ -1,6 +1,6 @@
 
 import { useMemo } from "react";
-import { Badge } from "@/components/ui/badge";
+import React from "react";
 
 interface UseShortlistsLogicProps {
   allPlayers: any[];
@@ -144,7 +144,10 @@ export const useShortlistsLogic = ({
   const getAssignmentBadge = (playerId: string) => {
     const assignment = getPlayerAssignment(playerId);
     if (!assignment) {
-      return <Badge variant="secondary">Unassigned</Badge>;
+      return {
+        variant: "secondary" as const,
+        children: "Unassigned"
+      };
     }
 
     // Check if there's a report for this player - if so, mark as completed
@@ -170,14 +173,11 @@ export const useShortlistsLogic = ({
       'reviewed': 'reviewed'
     };
 
-    return (
-      <Badge 
-        variant="outline" 
-        className={`${statusColors[effectiveStatus]} border-0`}
-      >
-        {scoutName} ({statusLabels[effectiveStatus]})
-      </Badge>
-    );
+    return {
+      variant: "outline" as const,
+      className: `${statusColors[effectiveStatus]} border-0`,
+      children: `${scoutName} (${statusLabels[effectiveStatus]})`
+    };
   };
 
   const getEuGbeBadge = (status: string) => {
@@ -187,11 +187,11 @@ export const useShortlistsLogic = ({
       'Pending': 'bg-yellow-100 text-yellow-800'
     };
     
-    return (
-      <Badge variant="outline" className={`${colors[status]} border-0`}>
-        {status}
-      </Badge>
-    );
+    return {
+      variant: "outline" as const,
+      className: `${colors[status]} border-0`,
+      children: status
+    };
   };
 
   return {

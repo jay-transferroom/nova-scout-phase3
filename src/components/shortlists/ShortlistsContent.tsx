@@ -1,20 +1,15 @@
 
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Search, ArrowUpDown, Download, Plus } from "lucide-react";
+import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { ShortlistsHeader } from "./ShortlistsHeader";
-import { ShortlistFilters } from "./ShortlistFilters";
+import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { PlayerCard } from "./PlayerCard";
 
-interface Shortlist {
-  id: string;
-  name: string;
-  description: string;
-  color: string;
-  filter: (player: any) => boolean;
-}
-
 interface ShortlistsContentProps {
-  currentList: Shortlist | undefined;
+  currentList: any;
   sortedPlayers: any[];
   searchTerm: string;
   onSearchChange: (value: string) => void;
@@ -24,8 +19,8 @@ interface ShortlistsContentProps {
   onSortOrderChange: () => void;
   euGbeFilter: string;
   onEuGbeFilterChange: (value: string) => void;
-  getAssignmentBadge: (playerId: string) => JSX.Element;
-  getEuGbeBadge: (status: string) => JSX.Element;
+  getAssignmentBadge: (playerId: string) => { variant: any; className?: string; children: string };
+  getEuGbeBadge: (status: string) => { variant: any; className?: string; children: string };
   getPlayerAssignment: (playerId: string) => any;
   formatXtvScore: (score: number) => string;
   onAssignScout: (player: any) => void;
@@ -52,55 +47,173 @@ export const ShortlistsContent = ({
   onRemovePlayer,
   onExportList
 }: ShortlistsContentProps) => {
+  if (!currentList) {
+    return (
+      <Card>
+        <CardContent className="p-8 text-center">
+          <p className="text-muted-foreground">Select a shortlist to view players</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Card>
       <CardHeader>
-        <ShortlistsHeader 
-          currentList={currentList}
-          playerCount={sortedPlayers.length}
-          onExportList={onExportList}
-        />
-        
-        <ShortlistFilters
-          searchTerm={searchTerm}
-          onSearchChange={onSearchChange}
-          sortBy={sortBy}
-          onSortByChange={onSortByChange}
-          sortOrder={sortOrder}
-          onSortOrderChange={onSortOrderChange}
-          euGbeFilter={euGbeFilter}
-          onEuGbeFilterChange={onEuGbeFilterChange}
-        />
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-4">
-          {sortedPlayers.map((player) => (
-            <PlayerCard
-              key={player.id}
-              player={player}
-              getAssignmentBadge={getAssignmentBadge}
-              getEuGbeBadge={getEuGbeBadge}
-              getPlayerAssignment={getPlayerAssignment}
-              formatXtvScore={formatXtvScore}
-              onAssignScout={onAssignScout}
-              onRemovePlayer={onRemovePlayer}
-            />
-          ))}
-        </div>
-
-        {sortedPlayers.length === 0 && (
-          <div className="text-center py-12">
-            <div className="text-muted-foreground mb-4">
-              No players found matching your criteria
-            </div>
-            <Button onClick={() => {
-              onSearchChange("");
-              onEuGbeFilterChange("all");
-            }}>
-              Clear Filters
+        <div className="flex items-center justify-between">
+          <CardTitle className="flex items-center gap-2">
+            {currentList.name}
+            <Badge variant="secondary">{sortedPlayers.length} players</Badge>
+          </CardTitle>
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" onClick={onExportList}>
+              <Download className="h-4 w-4 mr-2" />
+              Export
+            </Button>
+            <Button size="sm">
+              <Plus className="h-4 w-4 mr-2" />
+              Add Player
             </Button>
           </div>
-        )}
+        </div>
+      </CardHeader>
+      <CardContent>
+        {/* Search and Filters */}
+        <div className="flex flex-col md:flex-row gap-4 mb-6">
+          <div className="flex-1 relative">
+            <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search players..."
+              value={searchTerm}
+              onChange={(e) => onSearchChange(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+          
+          <div className="flex gap-2">
+            <Select value={sortBy} onValueChange={onSortByChange}>
+              <SelectTrigger className="w-40">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="name">Name</SelectItem>
+                <SelectItem value="age">Age</SelectItem>
+                <SelectItem value="rating">Rating</SelectItem>
+                <SelectItem value="potential">Potential</SelectItem>
+                <SelectItem value="xtv">XTV</SelectItem>
+                <SelectItem value="contract">Contract</SelectItem>
+              </SelectContent>
+            </Select>
+            
+            <Button 
+              variant="outline" 
+              size="icon"
+              onClick={onSortOrderChange}
+            >
+              <ArrowUpDown className="h-4 w-4" />
+            </Button>
+
+            <Select value={euGbeFilter} onValueChange={onEuGbeFilterChange}>
+              <SelectTrigger className="w-32">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All</SelectItem>
+                <SelectItem value="pass">Pass</SelectItem>
+                <SelectItem value="fail">Fail</SelectItem>
+                <SelectItem value="pending">Pending</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
+        {/* Players Table */}
+        <div className="rounded-md border">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Player</TableHead>
+                <TableHead>Age</TableHead>
+                <TableHead>Positions</TableHead>
+                <TableHead>Rating</TableHead>
+                <TableHead>Potential</TableHead>
+                <TableHead>XTV (£M)</TableHead>
+                <TableHead>EU/GBE</TableHead>
+                <TableHead>Assignment</TableHead>
+                <TableHead>Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {sortedPlayers.length > 0 ? (
+                sortedPlayers.map((player) => {
+                  const assignmentBadgeProps = getAssignmentBadge(player.id);
+                  const euGbeBadgeProps = getEuGbeBadge(player.euGbeStatus || 'Pass');
+                  
+                  return (
+                    <TableRow key={player.id}>
+                      <TableCell>
+                        <PlayerCard 
+                          player={player}
+                          showImage={true}
+                          showClub={true}
+                        />
+                      </TableCell>
+                      <TableCell>{player.age}</TableCell>
+                      <TableCell>
+                        <div className="flex gap-1">
+                          {player.positions?.slice(0, 2).map((pos: string, idx: number) => (
+                            <Badge key={idx} variant="outline" className="text-xs">
+                              {pos}
+                            </Badge>
+                          ))}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        {player.transferroomRating ? player.transferroomRating.toFixed(1) : 'N/A'}
+                      </TableCell>
+                      <TableCell>
+                        {player.futureRating ? player.futureRating.toFixed(1) : 'N/A'}
+                      </TableCell>
+                      <TableCell>
+                        {player.xtvScore ? formatXtvScore(player.xtvScore) : 'N/A'}
+                      </TableCell>
+                      <TableCell>
+                        <Badge {...euGbeBadgeProps} />
+                      </TableCell>
+                      <TableCell>
+                        <Badge {...assignmentBadgeProps} />
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => onAssignScout(player)}
+                          >
+                            Assign Scout
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => onRemovePlayer(player.id)}
+                          >
+                            Remove
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={9} className="text-center py-6 text-muted-foreground">
+                    No players found matching your criteria.
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </div>
       </CardContent>
     </Card>
   );

@@ -6,7 +6,7 @@ import Header from "./Header";
 
 const Layout = () => {
   return (
-    <SidebarProvider>
+    <SidebarProvider defaultOpen={false}>
       <div className="min-h-screen flex w-full">
         <MainNavigation />
         <SidebarInset>
