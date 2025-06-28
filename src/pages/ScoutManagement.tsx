@@ -52,6 +52,8 @@ const ScoutManagement = () => {
       }
     });
 
+    console.log('Player reports map size:', playerReportsMap.size);
+
     // Show ONLY unassigned shortlisted players
     const unassignedShortlistedPlayers = allPlayers
       .slice(0, 25)
@@ -109,6 +111,8 @@ const ScoutManagement = () => {
       const hasReport = playerReportsMap.has(assignment.player_id);
       const effectiveStatus = hasReport ? 'completed' : assignment.status;
 
+      console.log(`Player ${playerName} (ID: ${assignment.player_id}): hasReport=${hasReport}, effectiveStatus=${effectiveStatus}`);
+
       const playerData = {
         id: assignment.id,
         playerName,
@@ -132,6 +136,12 @@ const ScoutManagement = () => {
         // All non-completed assignments go to 'assigned'
         newKanbanData.assigned.push(playerData);
       }
+    });
+
+    console.log('Final kanban data:', {
+      shortlisted: newKanbanData.shortlisted.length,
+      assigned: newKanbanData.assigned.length,
+      completed: newKanbanData.completed.length
     });
 
     setKanbanData(newKanbanData);

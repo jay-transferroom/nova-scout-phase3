@@ -3,16 +3,16 @@ import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { usePlayersData } from "@/hooks/usePlayersData";
-import { usePlayerAssignments } from "@/hooks/usePlayerAssignments";
+import { useScoutingAssignments } from "@/hooks/useScoutingAssignments"; // Using consolidated source
 import { usePrivatePlayers } from "@/hooks/usePrivatePlayers";
 import { useShortlists } from "@/hooks/useShortlists";
+import { useReports } from "@/hooks/useReports";
 import AssignScoutDialog from "@/components/AssignScoutDialog";
 import { useQueryClient } from "@tanstack/react-query";
 import { ShortlistsSidebar } from "@/components/shortlists/ShortlistsSidebar";
 import { ShortlistsContent } from "@/components/shortlists/ShortlistsContent";
 
 const Shortlists = () => {
-  const [searchParams] = useSearchParams();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedList, setSelectedList] = useState<string | null>(null);
   const [selectedPlayer, setSelectedPlayer] = useState<any>(null);
@@ -24,7 +24,8 @@ const Shortlists = () => {
   const [euGbeFilter, setEuGbeFilter] = useState<string>("all");
 
   const { data: allPlayers = [], isLoading } = usePlayersData();
-  const { data: playerAssignments = [], refetch: refetchAssignments } = usePlayerAssignments();
+  const { data: assignments = [], refetch: refetchAssignments } = useScoutingAssignments(); // Using consolidated source
+  const { reports = [] } = useReports();
   const { privatePlayers } = usePrivatePlayers();
   const { shortlists, createShortlist, getPlayerShortlists } = useShortlists();
   const queryClient = useQueryClient();
@@ -137,17 +138,30 @@ const Shortlists = () => {
     return (score / 1000000).toFixed(1);
   };
 
+  // Updated to use consolidated assignment data
   const getPlayerAssignment = (playerId: string) => {
-    const assignment = playerAssignments.find(assignment => assignment.player_id === playerId);
+    const assignment = assignments.find(assignment => assignment.player_id === playerId);
     console.log(`Looking for assignment for player ${playerId}:`, assignment);
     return assignment;
   };
+
+  // Create reports map for quick lookup
+  const playerReportsMap = new Map();
+  reports.forEach(report => {
+    if (report.playerId) {
+      playerReportsMap.set(report.playerId, report);
+    }
+  });
 
   const getAssignmentBadge = (playerId: string) => {
     const assignment = getPlayerAssignment(playerId);
     if (!assignment) {
       return <Badge variant="secondary">Unassigned</Badge>;
     }
+
+    // Check if there's a report for this player - if so, mark as completed
+    const hasReport = playerReportsMap.has(playerId);
+    const effectiveStatus = hasReport ? 'completed' : assignment.status;
 
     const scoutName = assignment.assigned_to_scout ? 
       `${assignment.assigned_to_scout.first_name || ''} ${assignment.assigned_to_scout.last_name || ''}`.trim() || 
@@ -161,12 +175,19 @@ const Shortlists = () => {
       'reviewed': 'bg-blue-100 text-blue-800'
     };
 
+    const statusLabels = {
+      'assigned': 'assigned',
+      'in_progress': 'in progress',
+      'completed': 'completed',
+      'reviewed': 'reviewed'
+    };
+
     return (
       <Badge 
         variant="outline" 
-        className={`${statusColors[assignment.status]} border-0`}
+        className={`${statusColors[effectiveStatus]} border-0`}
       >
-        {scoutName} ({assignment.status.replace('_', ' ')})
+        {scoutName} ({statusLabels[effectiveStatus]})
       </Badge>
     );
   };
@@ -206,10 +227,7 @@ const Shortlists = () => {
     
     // Force comprehensive refresh of all assignment-related data
     await Promise.all([
-      queryClient.invalidateQueries({ queryKey: ['player-assignments'] }),
       queryClient.invalidateQueries({ queryKey: ['scouting-assignments'] }),
-      queryClient.invalidateQueries({ queryKey: ['my-scouting-tasks'] }),
-      queryClient.refetchQueries({ queryKey: ['player-assignments'] }),
       refetchAssignments()
     ]);
     
