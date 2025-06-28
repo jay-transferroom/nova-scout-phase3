@@ -94,7 +94,7 @@ const PrivatePlayerProfile = () => {
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-        <div className="lg:col-span-2 space-y-4">
+        <div className="lg:col-span-2 space-y-6">
           <PlayerBasicInfo 
             player={player} 
             calculateAge={calculateAge}
@@ -110,7 +110,7 @@ const PrivatePlayerProfile = () => {
           {/* Simple strengths and weaknesses cards since the components don't exist */}
           {player.strengths && player.strengths.length > 0 && (
             <Card>
-              <CardContent className="p-4">
+              <CardContent className="p-6">
                 <h3 className="font-semibold mb-3">Strengths</h3>
                 <div className="flex flex-wrap gap-2">
                   {player.strengths.map((strength, index) => (
@@ -125,7 +125,7 @@ const PrivatePlayerProfile = () => {
           
           {player.weaknesses && player.weaknesses.length > 0 && (
             <Card>
-              <CardContent className="p-4">
+              <CardContent className="p-6">
                 <h3 className="font-semibold mb-3">Areas for Improvement</h3>
                 <div className="flex flex-wrap gap-2">
                   {player.weaknesses.map((weakness, index) => (
@@ -139,7 +139,7 @@ const PrivatePlayerProfile = () => {
           )}
         </div>
         
-        <div className="space-y-4">
+        <div className="space-y-6">
           <PlayerRatingsCard player={player} />
           <PlayerAIRecommendation player={player} />
         </div>
