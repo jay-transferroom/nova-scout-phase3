@@ -1,9 +1,8 @@
-
 import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { usePlayersData } from "@/hooks/usePlayersData";
-import { useScoutingAssignments } from "@/hooks/useScoutingAssignments"; // Using consolidated source
+import { useScoutingAssignments } from "@/hooks/useScoutingAssignments";
 import { usePrivatePlayers } from "@/hooks/usePrivatePlayers";
 import { useShortlists } from "@/hooks/useShortlists";
 import { useReports } from "@/hooks/useReports";
@@ -17,6 +16,7 @@ const Shortlists = () => {
   const [selectedList, setSelectedList] = useState<string | null>(null);
   const [selectedPlayer, setSelectedPlayer] = useState<any>(null);
   const [isAssignDialogOpen, setIsAssignDialogOpen] = useState(false);
+  const [searchParams] = useSearchParams();
   
   // Sorting and filtering states
   const [sortBy, setSortBy] = useState<string>("name");
@@ -24,7 +24,7 @@ const Shortlists = () => {
   const [euGbeFilter, setEuGbeFilter] = useState<string>("all");
 
   const { data: allPlayers = [], isLoading } = usePlayersData();
-  const { data: assignments = [], refetch: refetchAssignments } = useScoutingAssignments(); // Using consolidated source
+  const { data: assignments = [], refetch: refetchAssignments } = useScoutingAssignments();
   const { reports = [] } = useReports();
   const { privatePlayers } = usePrivatePlayers();
   const { shortlists, createShortlist, getPlayerShortlists } = useShortlists();
