@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -44,7 +43,7 @@ const ScoutingDashboard = () => {
         player: report.player?.name || 'Unknown Player',
         club: report.player?.club || 'Unknown Club',
         scout: 'Me',
-        time: new Date(report.created_at).toLocaleDateString()
+        time: new Date(report.createdAt).toLocaleDateString()
       }));
 
   const upcomingTasks = allAssignments.slice(0, 5);
