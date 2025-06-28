@@ -1,6 +1,6 @@
+
 import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
-import { Badge } from "@/components/ui/badge";
 import { usePlayersData } from "@/hooks/usePlayersData";
 import { useScoutingAssignments } from "@/hooks/useScoutingAssignments";
 import { usePrivatePlayers } from "@/hooks/usePrivatePlayers";
@@ -10,6 +10,8 @@ import AssignScoutDialog from "@/components/AssignScoutDialog";
 import { useQueryClient } from "@tanstack/react-query";
 import { ShortlistsSidebar } from "@/components/shortlists/ShortlistsSidebar";
 import { ShortlistsContent } from "@/components/shortlists/ShortlistsContent";
+import { ShortlistsHeader } from "@/components/shortlists/ShortlistsPageHeader";
+import { useShortlistsLogic } from "@/hooks/useShortlistsLogic";
 
 const Shortlists = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -30,6 +32,18 @@ const Shortlists = () => {
   const { shortlists, createShortlist, getPlayerShortlists } = useShortlists();
   const queryClient = useQueryClient();
 
+  const shortlistsLogic = useShortlistsLogic({
+    allPlayers,
+    assignments,
+    reports,
+    selectedList,
+    searchTerm,
+    sortBy,
+    sortOrder,
+    euGbeFilter,
+    shortlists
+  });
+
   // Handle URL parameters for selected shortlist
   useEffect(() => {
     const selectedParam = searchParams.get('selected');
@@ -40,174 +54,8 @@ const Shortlists = () => {
     }
   }, [searchParams, shortlists, selectedList]);
 
-  // Mock private players on shortlists - including Herbie Hughes
-  const getPrivatePlayersForShortlist = (shortlistId: string) => {
-    const mockPrivatePlayersOnShortlists = {
-      "striker-targets": [
-        {
-          id: "private-herbie-hughes",
-          name: "Herbie Hughes",
-          club: "Manchester United U21",
-          age: 19,
-          positions: ["ST", "CF"],
-          nationality: "England",
-          isPrivate: true,
-          profilePath: "/private-player/1f4c01f4-9548-4cbc-a10f-951eaa41aa56"
-        }
-      ],
-      "loan-prospects": [
-        {
-          id: "private-herbie-hughes",
-          name: "Herbie Hughes", 
-          club: "Manchester United U21",
-          age: 19,
-          positions: ["ST", "CF"],
-          nationality: "England",
-          isPrivate: true,
-          profilePath: "/private-player/1f4c01f4-9548-4cbc-a10f-951eaa41aa56"
-        }
-      ]
-    };
-    return mockPrivatePlayersOnShortlists[shortlistId] || [];
-  };
-
-  const currentList = shortlists.find(list => list.id === selectedList);
-  const currentPublicPlayers = currentList ? allPlayers.filter(currentList.filter).slice(0, 15) : [];
-  const currentPrivatePlayers = currentList ? getPrivatePlayersForShortlist(currentList.id) : [];
-  
-  // Combine public and private players
-  const allCurrentPlayers = [
-    ...currentPublicPlayers.map(p => ({ ...p, isPrivate: false, profilePath: `/player/${p.id}` })),
-    ...currentPrivatePlayers
-  ];
-  
-  // Apply search filter
-  const searchFilteredPlayers = allCurrentPlayers.filter(player =>
-    player.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    player.club.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    player.positions.some((pos: string) => pos?.toLowerCase().includes(searchTerm.toLowerCase()))
-  );
-
-  // Apply EU/GBE filter (only for public players)
-  const euGbeFilteredPlayers = euGbeFilter === "all" 
-    ? searchFilteredPlayers 
-    : searchFilteredPlayers.filter(player => 
-        player.isPrivate || (player.euGbeStatus || 'Pass').toLowerCase() === euGbeFilter.toLowerCase()
-      );
-
-  // Apply sorting
-  const sortedPlayers = [...euGbeFilteredPlayers].sort((a, b) => {
-    let aValue: any, bValue: any;
-    
-    switch (sortBy) {
-      case "age":
-        aValue = a.age || 0;
-        bValue = b.age || 0;
-        break;
-      case "xtv":
-        aValue = a.xtvScore || 0;
-        bValue = b.xtvScore || 0;
-        break;
-      case "rating":
-        aValue = a.transferroomRating || 0;
-        bValue = b.transferroomRating || 0;
-        break;
-      case "potential":
-        aValue = a.futureRating || 0;
-        bValue = b.futureRating || 0;
-        break;
-      case "contract":
-        aValue = a.contractExpiry ? new Date(a.contractExpiry).getTime() : 0;
-        bValue = b.contractExpiry ? new Date(b.contractExpiry).getTime() : 0;
-        break;
-      case "name":
-      default:
-        aValue = a.name.toLowerCase();
-        bValue = b.name.toLowerCase();
-        break;
-    }
-    
-    if (sortOrder === "asc") {
-      return aValue > bValue ? 1 : -1;
-    } else {
-      return aValue < bValue ? 1 : -1;
-    }
-  });
-
-  const formatXtvScore = (score: number) => {
-    return (score / 1000000).toFixed(1);
-  };
-
-  // Updated to use consolidated assignment data
-  const getPlayerAssignment = (playerId: string) => {
-    const assignment = assignments.find(assignment => assignment.player_id === playerId);
-    console.log(`Looking for assignment for player ${playerId}:`, assignment);
-    return assignment;
-  };
-
-  // Create reports map for quick lookup
-  const playerReportsMap = new Map();
-  reports.forEach(report => {
-    if (report.playerId) {
-      playerReportsMap.set(report.playerId, report);
-    }
-  });
-
-  const getAssignmentBadge = (playerId: string) => {
-    const assignment = getPlayerAssignment(playerId);
-    if (!assignment) {
-      return <Badge variant="secondary">Unassigned</Badge>;
-    }
-
-    // Check if there's a report for this player - if so, mark as completed
-    const hasReport = playerReportsMap.has(playerId);
-    const effectiveStatus = hasReport ? 'completed' : assignment.status;
-
-    const scoutName = assignment.assigned_to_scout ? 
-      `${assignment.assigned_to_scout.first_name || ''} ${assignment.assigned_to_scout.last_name || ''}`.trim() || 
-      assignment.assigned_to_scout.email : 
-      'Unknown Scout';
-
-    const statusColors = {
-      'assigned': 'bg-red-100 text-red-800',
-      'in_progress': 'bg-orange-100 text-orange-800', 
-      'completed': 'bg-green-100 text-green-800',
-      'reviewed': 'bg-blue-100 text-blue-800'
-    };
-
-    const statusLabels = {
-      'assigned': 'assigned',
-      'in_progress': 'in progress',
-      'completed': 'completed',
-      'reviewed': 'reviewed'
-    };
-
-    return (
-      <Badge 
-        variant="outline" 
-        className={`${statusColors[effectiveStatus]} border-0`}
-      >
-        {scoutName} ({statusLabels[effectiveStatus]})
-      </Badge>
-    );
-  };
-
-  const getEuGbeBadge = (status: string) => {
-    const colors = {
-      'Pass': 'bg-green-100 text-green-800',
-      'Fail': 'bg-red-100 text-red-800',
-      'Pending': 'bg-yellow-100 text-yellow-800'
-    };
-    
-    return (
-      <Badge variant="outline" className={`${colors[status]} border-0`}>
-        {status}
-      </Badge>
-    );
-  };
-
   const handleExportList = () => {
-    console.log("Exporting list:", currentList?.name);
+    console.log("Exporting list:", shortlistsLogic.currentList?.name);
   };
 
   const handleAssignScout = (player: any) => {
@@ -251,13 +99,7 @@ const Shortlists = () => {
 
   return (
     <div className="container mx-auto py-8 max-w-7xl">
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold">Chelsea FC - Recruitment Shortlists</h1>
-        <p className="text-muted-foreground mt-2">
-          Targeted player lists for upcoming transfer windows
-        </p>
-      </div>
+      <ShortlistsHeader />
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         {/* Shortlists Sidebar */}
@@ -267,7 +109,7 @@ const Shortlists = () => {
             selectedList={selectedList}
             onSelectList={setSelectedList}
             allPlayers={allPlayers}
-            getPrivatePlayersForShortlist={getPrivatePlayersForShortlist}
+            getPrivatePlayersForShortlist={shortlistsLogic.getPrivatePlayersForShortlist}
             onCreateShortlist={createShortlist}
           />
         </div>
@@ -275,8 +117,8 @@ const Shortlists = () => {
         {/* Players List */}
         <div className="lg:col-span-3">
           <ShortlistsContent
-            currentList={currentList}
-            sortedPlayers={sortedPlayers}
+            currentList={shortlistsLogic.currentList}
+            sortedPlayers={shortlistsLogic.sortedPlayers}
             searchTerm={searchTerm}
             onSearchChange={setSearchTerm}
             sortBy={sortBy}
@@ -285,10 +127,10 @@ const Shortlists = () => {
             onSortOrderChange={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
             euGbeFilter={euGbeFilter}
             onEuGbeFilterChange={setEuGbeFilter}
-            getAssignmentBadge={getAssignmentBadge}
-            getEuGbeBadge={getEuGbeBadge}
-            getPlayerAssignment={getPlayerAssignment}
-            formatXtvScore={formatXtvScore}
+            getAssignmentBadge={shortlistsLogic.getAssignmentBadge}
+            getEuGbeBadge={shortlistsLogic.getEuGbeBadge}
+            getPlayerAssignment={shortlistsLogic.getPlayerAssignment}
+            formatXtvScore={shortlistsLogic.formatXtvScore}
             onAssignScout={handleAssignScout}
             onRemovePlayer={handleRemovePlayer}
             onExportList={handleExportList}
