@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
@@ -10,6 +9,7 @@ import AddPrivatePlayerDialog from "@/components/AddPrivatePlayerDialog";
 import { TrackedPlayersSection } from "@/components/TrackedPlayersSection";
 import { getOverallRating, getRecommendation } from "@/utils/reportDataExtraction";
 import VerdictBadge from "@/components/VerdictBadge";
+import { useReportPlayerData } from "@/hooks/useReportPlayerData";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -227,7 +227,7 @@ const Index = () => {
           {/* Tracked Players Section */}
           <TrackedPlayersSection />
 
-          {/* Recent Activity */}
+          {/* Recent Activity - Now shows real reports */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center justify-between">
@@ -246,62 +246,15 @@ const Index = () => {
                 <p className="text-center text-muted-foreground">Loading reports...</p>
               ) : recentReportsToShow.length > 0 ? (
                 <div className="space-y-3">
-                  {recentReportsToShow.map((report) => {
-                    const rating = getOverallRating(report);
-                    const verdict = getRecommendation(report);
-                    
-                    return (
-                      <div
-                        key={report.id}
-                        className="flex items-start justify-between p-4 border rounded-lg hover:bg-accent transition-colors cursor-pointer"
-                        onClick={() => navigate(`/report/${report.id}`)}
-                      >
-                        <div className="flex-1 space-y-2">
-                          <div className="flex items-center gap-3">
-                            <div className="flex items-center gap-2">
-                              <FileText className="h-4 w-4 text-muted-foreground" />
-                              <span className="font-medium">{report.player?.name || `Player ID: ${report.playerId}`}</span>
-                            </div>
-                            <Badge variant={report.status === 'submitted' ? 'default' : 'secondary'}>
-                              {report.status}
-                            </Badge>
-                          </div>
-                          
-                          <div className="text-sm text-muted-foreground">
-                            <div className="flex items-center gap-4">
-                              <span>{report.player?.club || 'Unknown Club'}</span>
-                              <span>•</span>
-                              <span>{new Date(report.createdAt).toLocaleDateString()}</span>
-                            </div>
-                          </div>
-
-                          <div className="flex items-center gap-4 text-sm">
-                            <div className="flex items-center gap-1">
-                              <User className="h-3 w-3 text-muted-foreground" />
-                              <span className="text-muted-foreground">
-                                {profile?.role === 'recruitment' ? getScoutName(report) : 'You'}
-                              </span>
-                            </div>
-                            
-                            {rating !== null && rating !== undefined && (
-                              <div className="flex items-center gap-1">
-                                <Star className="h-3 w-3 text-yellow-500" />
-                                <span className="font-medium">{rating}</span>
-                              </div>
-                            )}
-                            
-                            {verdict && (
-                              <VerdictBadge verdict={verdict} />
-                            )}
-                          </div>
-                        </div>
-                        
-                        <Button variant="ghost" size="sm">
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    );
-                  })}
+                  {recentReportsToShow.map((report) => (
+                    <RecentReportItem 
+                      key={report.id} 
+                      report={report} 
+                      profile={profile}
+                      getScoutName={getScoutName}
+                      navigate={navigate}
+                    />
+                  ))}
                   <Button
                     variant="outline"
                     className="w-full"
@@ -323,6 +276,69 @@ const Index = () => {
           </Card>
         </div>
       </div>
+    </div>
+  );
+};
+
+// Component to display individual report items with real player data
+const RecentReportItem = ({ report, profile, getScoutName, navigate }) => {
+  const { data: playerData, isLoading: playerLoading } = useReportPlayerData(report.playerId);
+  const rating = getOverallRating(report);
+  const verdict = getRecommendation(report);
+
+  const playerName = playerLoading ? 'Loading...' : 
+                     playerData?.name || `Player ID: ${report.playerId}`;
+  const playerClub = playerLoading ? 'Loading...' : 
+                     playerData?.club || 'Unknown Club';
+
+  return (
+    <div
+      className="flex items-start justify-between p-4 border rounded-lg hover:bg-accent transition-colors cursor-pointer"
+      onClick={() => navigate(`/report/${report.id}`)}
+    >
+      <div className="flex-1 space-y-2">
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            <FileText className="h-4 w-4 text-muted-foreground" />
+            <span className="font-medium">{playerName}</span>
+          </div>
+          <Badge variant={report.status === 'submitted' ? 'default' : 'secondary'}>
+            {report.status}
+          </Badge>
+        </div>
+        
+        <div className="text-sm text-muted-foreground">
+          <div className="flex items-center gap-4">
+            <span>{playerClub}</span>
+            <span>•</span>
+            <span>{new Date(report.createdAt).toLocaleDateString()}</span>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-4 text-sm">
+          <div className="flex items-center gap-1">
+            <User className="h-3 w-3 text-muted-foreground" />
+            <span className="text-muted-foreground">
+              {profile?.role === 'recruitment' ? getScoutName(report) : 'You'}
+            </span>
+          </div>
+          
+          {rating !== null && rating !== undefined && (
+            <div className="flex items-center gap-1">
+              <Star className="h-3 w-3 text-yellow-500" />
+              <span className="font-medium">{rating}</span>
+            </div>
+          )}
+          
+          {verdict && (
+            <VerdictBadge verdict={verdict} />
+          )}
+        </div>
+      </div>
+      
+      <Button variant="ghost" size="sm">
+        <Eye className="h-4 w-4" />
+      </Button>
     </div>
   );
 };
