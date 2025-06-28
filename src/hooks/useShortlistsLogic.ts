@@ -28,7 +28,7 @@ export const useShortlistsLogic = ({
   
   // Mock private players on shortlists - including Herbie Hughes
   const getPrivatePlayersForShortlist = (shortlistId: string) => {
-    const mockPrivatePlayersOnShortlists = {
+    const mockPrivatePlayersOnShortlists: { [key: string]: any[] } = {
       "striker-targets": [
         {
           id: "private-herbie-hughes",
@@ -156,14 +156,14 @@ export const useShortlistsLogic = ({
       assignment.assigned_to_scout.email : 
       'Unknown Scout';
 
-    const statusColors = {
+    const statusColors: { [key: string]: string } = {
       'assigned': 'bg-red-100 text-red-800',
       'in_progress': 'bg-orange-100 text-orange-800', 
       'completed': 'bg-green-100 text-green-800',
       'reviewed': 'bg-blue-100 text-blue-800'
     };
 
-    const statusLabels = {
+    const statusLabels: { [key: string]: string } = {
       'assigned': 'assigned',
       'in_progress': 'in progress',
       'completed': 'completed',
@@ -181,7 +181,7 @@ export const useShortlistsLogic = ({
   };
 
   const getEuGbeBadge = (status: string) => {
-    const colors = {
+    const colors: { [key: string]: string } = {
       'Pass': 'bg-green-100 text-green-800',
       'Fail': 'bg-red-100 text-red-800',
       'Pending': 'bg-yellow-100 text-yellow-800'
