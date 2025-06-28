@@ -33,11 +33,14 @@ export interface ScoutingAssignmentWithDetails {
   };
 }
 
+// Single source of truth for all assignment data
 export const useScoutingAssignments = () => {
   return useQuery({
     queryKey: ['scouting-assignments'],
     queryFn: async (): Promise<ScoutingAssignmentWithDetails[]> => {
-      // First get the assignments without player data
+      console.log('Fetching all scouting assignments...');
+      
+      // Get all assignments with scout profile data
       const { data: assignments, error } = await supabase
         .from('scouting_assignments')
         .select(`
@@ -53,10 +56,13 @@ export const useScoutingAssignments = () => {
       }
 
       if (!assignments || assignments.length === 0) {
+        console.log('No assignments found');
         return [];
       }
 
-      // Filter out assignments with invalid player IDs first
+      console.log('Raw assignments from database:', assignments.length);
+
+      // Filter out assignments with invalid player IDs
       const validAssignments = assignments.filter(assignment => {
         const playerId = assignment.player_id;
         const isValidPlayerId = /^\d+$/.test(playerId);
@@ -69,7 +75,9 @@ export const useScoutingAssignments = () => {
         return true;
       });
 
-      // Group by player_id and only keep the most recent assignment for each player
+      console.log('Valid assignments after filtering invalid IDs:', validAssignments.length);
+
+      // Group by player_id and keep only the most recent assignment for each player
       const latestAssignments = new Map();
       validAssignments.forEach(assignment => {
         const playerId = assignment.player_id;
@@ -79,12 +87,11 @@ export const useScoutingAssignments = () => {
         }
       });
 
-      console.log(`Total assignments: ${assignments.length}, Valid assignments: ${validAssignments.length}, Unique players: ${latestAssignments.size}`);
+      console.log(`Deduplicated assignments: ${latestAssignments.size} unique players`);
 
-      // Now fetch player data from players_new for each unique assignment
+      // Fetch player data for each unique assignment
       const assignmentsWithPlayers = await Promise.all(
         Array.from(latestAssignments.values()).map(async (assignment) => {
-          // Convert player_id string to number for players_new table query
           const playerIdNumber = parseInt(assignment.player_id, 10);
           
           const { data: playerData, error: playerError } = await supabase
@@ -93,7 +100,6 @@ export const useScoutingAssignments = () => {
             .eq('id', playerIdNumber)
             .single();
 
-          // Skip assignments where player data is not found
           if (playerError || !playerData) {
             console.warn(`Player not found for ID: ${playerIdNumber}, skipping assignment`);
             return null;
@@ -114,115 +120,32 @@ export const useScoutingAssignments = () => {
         })
       );
 
-      // Filter out null entries (assignments with invalid/missing player data)
-      const validAssignments_final = assignmentsWithPlayers.filter(assignment => assignment !== null);
+      // Filter out null entries
+      const finalAssignments = assignmentsWithPlayers.filter(assignment => assignment !== null);
 
-      console.log(`Valid assignments after filtering: ${validAssignments_final.length}`);
-      return validAssignments_final;
+      console.log(`Final processed assignments: ${finalAssignments.length}`);
+      return finalAssignments;
     },
+    staleTime: 0,
+    refetchOnWindowFocus: true,
   });
 };
 
+// Hook for getting assignments for a specific scout (used in Assigned Players)
 export const useMyScoutingTasks = () => {
   const { user } = useAuth();
+  const { data: allAssignments = [], ...queryProps } = useScoutingAssignments();
   
-  return useQuery({
-    queryKey: ['my-scouting-tasks'],
-    queryFn: async (): Promise<ScoutingAssignmentWithDetails[]> => {
-      console.log('Fetching scouting tasks for user:', user?.id);
-      
-      // First try to get actual scouting assignments without player data
-      const { data: assignments, error: assignmentsError } = await supabase
-        .from('scouting_assignments')
-        .select(`
-          *,
-          assigned_to_scout:profiles!scouting_assignments_assigned_to_scout_id_fkey(first_name, last_name, email),
-          assigned_by_manager:profiles!scouting_assignments_assigned_by_manager_id_fkey(first_name, last_name, email)
-        `)
-        .eq('assigned_to_scout_id', user?.id)
-        .order('deadline', { ascending: true, nullsFirst: false });
+  const myAssignments = allAssignments.filter(assignment => 
+    assignment.assigned_to_scout_id === user?.id
+  );
 
-      console.log('Real assignments found:', assignments?.length || 0);
+  console.log(`My assignments for user ${user?.id}:`, myAssignments.length);
 
-      if (!assignmentsError && assignments && assignments.length > 0) {
-        // Fetch player data for each assignment from players_new
-        const assignmentsWithPlayers = await Promise.all(
-          assignments.map(async (assignment) => {
-            const playerIdNumber = parseInt(assignment.player_id, 10);
-            
-            const { data: playerData, error: playerError } = await supabase
-              .from('players_new')
-              .select('name, currentteam, parentteam, firstposition, secondposition, age')
-              .eq('id', playerIdNumber)
-              .single();
-
-            return {
-              ...assignment,
-              priority: assignment.priority as 'High' | 'Medium' | 'Low',
-              status: assignment.status as 'assigned' | 'in_progress' | 'completed' | 'reviewed',
-              players: playerError ? {
-                name: 'Unknown Player',
-                club: 'Unknown Club',
-                positions: ['Unknown'],
-                age: 0
-              } : {
-                name: playerData.name,
-                club: playerData.currentteam || playerData.parentteam || 'Unknown Club',
-                positions: [playerData.firstposition, playerData.secondposition].filter(Boolean) as string[],
-                age: playerData.age || 0
-              }
-            };
-          })
-        );
-
-        return assignmentsWithPlayers;
-      }
-
-      console.log('No real assignments found, creating mock assignments...');
-
-      // If no assignments found, create mock assignments with real players from database
-      const { data: players, error: playersError } = await supabase
-        .from('players_new')
-        .select('id, name, currentteam, parentteam, firstposition, secondposition, age')
-        .limit(8);
-
-      console.log('Players fetched for mock assignments:', players?.length || 0);
-
-      if (playersError || !players || players.length === 0) {
-        console.error('Error fetching players for mock assignments:', playersError);
-        return [];
-      }
-
-      // Create mock assignments with real player data
-      const mockStatuses: ('assigned' | 'in_progress' | 'completed' | 'reviewed')[] = 
-        ['assigned', 'in_progress', 'completed', 'reviewed'];
-      const mockPriorities: ('High' | 'Medium' | 'Low')[] = ['High', 'Medium', 'Low'];
-      
-      const mockAssignments = players.slice(0, 6).map((player, index) => ({
-        id: `mock-assignment-${player.id}`,
-        player_id: player.id.toString(),
-        assigned_to_scout_id: user?.id || '',
-        assigned_by_manager_id: 'mock-manager-id',
-        priority: mockPriorities[index % 3],
-        status: mockStatuses[index % 4],
-        assignment_notes: `Scout ${player.name} for potential transfer target`,
-        deadline: new Date(Date.now() + (index + 1) * 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-        report_type: 'Standard',
-        created_at: new Date(Date.now() - index * 24 * 60 * 60 * 1000).toISOString(),
-        updated_at: new Date().toISOString(),
-        players: {
-          name: player.name,
-          club: player.currentteam || player.parentteam || 'Unknown Club',
-          positions: [player.firstposition, player.secondposition].filter(Boolean) as string[],
-          age: player.age || 0
-        }
-      }));
-
-      console.log('Mock assignments created:', mockAssignments.length);
-      return mockAssignments;
-    },
-    enabled: !!user,
-  });
+  return {
+    ...queryProps,
+    data: myAssignments,
+  };
 };
 
 export const useUpdateAssignmentStatus = () => {
@@ -242,7 +165,6 @@ export const useUpdateAssignmentStatus = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['scouting-assignments'] });
-      queryClient.invalidateQueries({ queryKey: ['my-scouting-tasks'] });
     },
   });
 };
@@ -335,8 +257,6 @@ export const useCreateAssignment = () => {
     onSuccess: () => {
       console.log('Assignment mutation successful, invalidating queries');
       queryClient.invalidateQueries({ queryKey: ['scouting-assignments'] });
-      queryClient.invalidateQueries({ queryKey: ['my-scouting-tasks'] });
-      queryClient.invalidateQueries({ queryKey: ['player-assignments'] });
     },
     onError: (error) => {
       console.error('Assignment mutation failed:', error);

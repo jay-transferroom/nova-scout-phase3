@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useScoutingAssignments } from "@/hooks/useScoutingAssignments";
 import { useScoutUsers } from "@/hooks/useScoutUsers";
@@ -21,6 +20,7 @@ const ScoutManagement = () => {
     completed: [] as any[]
   });
 
+  // Using the consolidated data source
   const { data: assignments = [], refetch: refetchAssignments } = useScoutingAssignments();
   const { data: scouts = [] } = useScoutUsers();
   const { data: allPlayers = [], isLoading } = useUnifiedPlayersData();
@@ -30,7 +30,7 @@ const ScoutManagement = () => {
   useEffect(() => {
     if (isLoading) return;
 
-    console.log('Scout Management - Assignments:', assignments.length);  
+    console.log('Scout Management - Using consolidated assignments:', assignments.length);  
     console.log('Scout Management - Scouts:', scouts.length);
     console.log('Scout Management - All Players:', allPlayers.length);
     console.log('Scout Management - Reports:', reports.length);
@@ -41,7 +41,7 @@ const ScoutManagement = () => {
       completed: [] as any[]
     };
 
-    // Get assigned player IDs - handle both string and bigint IDs
+    // Get assigned player IDs from the consolidated source
     const assignedPlayerIds = new Set(assignments.map(a => a.player_id));
 
     // Create a map of player reports for quick lookup
@@ -52,7 +52,7 @@ const ScoutManagement = () => {
       }
     });
 
-    // Show ONLY unassigned shortlisted players (using first 25 players as shortlist, filtered to unassigned only)
+    // Show ONLY unassigned shortlisted players
     const unassignedShortlistedPlayers = allPlayers
       .slice(0, 25)
       .filter(player => {
@@ -86,7 +86,7 @@ const ScoutManagement = () => {
 
     newKanbanData.shortlisted = filteredShortlisted;
 
-    // Process assigned players - using the deduplicated assignments
+    // Process assigned players using consolidated data
     assignments.forEach((assignment) => {
       const scoutName = assignment.assigned_to_scout?.first_name 
         ? `${assignment.assigned_to_scout.first_name} ${assignment.assigned_to_scout.last_name || ''}`.trim()
