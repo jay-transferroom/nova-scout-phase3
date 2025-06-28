@@ -11,15 +11,15 @@ interface PlayerRecentFormProps {
 export const PlayerRecentForm = ({ player, getFormRatingColor }: PlayerRecentFormProps) => {
   return (
     <Card>
-      <CardHeader className="pb-2">
-        <CardTitle className="flex items-center gap-2 text-sm">
+      <CardHeader className="pb-3">
+        <CardTitle className="flex items-center gap-2 text-base">
           <TrendingUp className="h-4 w-4" />
           Recent Form
         </CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="pt-0 pb-4">
         {player.recentForm ? (
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-4 gap-2">
             <div className="text-center p-2 bg-gray-50 rounded">
               <p className="text-lg font-bold text-gray-900">{player.recentForm.matches}</p>
               <p className="text-xs text-gray-600">Matches</p>
@@ -43,7 +43,7 @@ export const PlayerRecentForm = ({ player, getFormRatingColor }: PlayerRecentFor
             </div>
           </div>
         ) : (
-          <p className="text-gray-600 text-center py-4 text-sm">No recent form data available</p>
+          <p className="text-gray-600 text-center py-3 text-sm">No recent form data available</p>
         )}
       </CardContent>
     </Card>

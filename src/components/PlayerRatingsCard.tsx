@@ -47,13 +47,13 @@ const PlayerRatingsCard = ({ player, aggregatedData }: PlayerRatingsCardProps) =
 
   return (
     <Card className="h-full">
-      <CardHeader className="pb-2">
-        <CardTitle className="flex items-center gap-2 text-sm">
+      <CardHeader className="pb-3">
+        <CardTitle className="flex items-center gap-2 text-base">
           <BarChart3 className="h-4 w-4" />
           Ratings & Scores
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-3">
+      <CardContent className="pt-0 pb-4 space-y-3">
         {/* Market Value & Analysis Scores */}
         <div className="space-y-2">
           <div className="text-center p-2 bg-blue-50 rounded">
