@@ -154,8 +154,12 @@ export const ShortlistsContent = ({
                       <TableCell>
                         <PlayerCard 
                           player={player}
-                          showImage={true}
-                          showClub={true}
+                          getAssignmentBadge={getAssignmentBadge}
+                          getEuGbeBadge={getEuGbeBadge}
+                          getPlayerAssignment={getPlayerAssignment}
+                          formatXtvScore={formatXtvScore}
+                          onAssignScout={onAssignScout}
+                          onRemovePlayer={onRemovePlayer}
                         />
                       </TableCell>
                       <TableCell>{player.age}</TableCell>
