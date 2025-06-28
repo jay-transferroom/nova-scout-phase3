@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 
@@ -6,11 +7,9 @@ import { Badge } from "@/components/ui/badge";
 
 import { usePrivatePlayers } from "@/hooks/usePrivatePlayers";
 import { PlayerHeader } from "@/components/PlayerHeader";
-import PlayerBasicInfo from "@/components/PlayerBasicInfo";
-import PlayerClubInfo from "@/components/PlayerClubInfo";
-import PlayerStrengths from "@/components/PlayerStrengths";
-import PlayerWeaknesses from "@/components/PlayerWeaknesses";
-import PlayerNotes from "@/components/PlayerNotes";
+import { PlayerBasicInfo } from "@/components/PlayerBasicInfo";
+import { PlayerClubInfo } from "@/components/PlayerClubInfo";
+import { PlayerNotes } from "@/components/PlayerNotes";
 import PlayerRatingsCard from "@/components/PlayerRatingsCard";
 
 // Add SquadRecommendations import
@@ -47,6 +46,11 @@ const PrivatePlayerProfile = () => {
     return age;
   };
 
+  const formatDateLocal = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString();
+  };
+
   const getPositionColor = (position: string) => {
     const positionColors = {
       "GK": "bg-red-500",
@@ -62,6 +66,15 @@ const PrivatePlayerProfile = () => {
       "CF": "bg-orange-500",
     };
     return positionColors[position] || "bg-gray-500";
+  };
+
+  const getContractStatusColor = (status: string) => {
+    const colors = {
+      'Active': 'bg-green-100 text-green-800',
+      'Expiring': 'bg-yellow-100 text-yellow-800',
+      'Expired': 'bg-red-100 text-red-800'
+    };
+    return colors[status] || 'bg-gray-100 text-gray-800';
   };
 
   const onCreateReport = () => {
@@ -85,11 +98,48 @@ const PrivatePlayerProfile = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
-          <PlayerBasicInfo player={player} calculateAge={calculateAge} />
-          <PlayerClubInfo player={player} />
-          <PlayerStrengths player={player} />
-          <PlayerWeaknesses player={player} />
-          <PlayerNotes player={player} />
+          <PlayerBasicInfo 
+            player={player} 
+            calculateAge={calculateAge}
+            formatDateLocal={formatDateLocal}
+          />
+          <PlayerClubInfo 
+            player={player}
+            getContractStatusColor={getContractStatusColor}
+            getPositionColor={getPositionColor}
+            formatDateLocal={formatDateLocal}
+          />
+          
+          {/* Simple strengths and weaknesses cards since the components don't exist */}
+          {player.strengths && player.strengths.length > 0 && (
+            <Card>
+              <CardContent className="p-4">
+                <h3 className="font-semibold mb-2">Strengths</h3>
+                <div className="flex flex-wrap gap-2">
+                  {player.strengths.map((strength, index) => (
+                    <Badge key={index} variant="outline" className="bg-green-50 text-green-700">
+                      {strength}
+                    </Badge>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+          
+          {player.weaknesses && player.weaknesses.length > 0 && (
+            <Card>
+              <CardContent className="p-4">
+                <h3 className="font-semibold mb-2">Areas for Improvement</h3>
+                <div className="flex flex-wrap gap-2">
+                  {player.weaknesses.map((weakness, index) => (
+                    <Badge key={index} variant="outline" className="bg-orange-50 text-orange-700">
+                      {weakness}
+                    </Badge>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </div>
         
         <div className="space-y-6">
@@ -104,6 +154,13 @@ const PrivatePlayerProfile = () => {
           />
         </div>
       </div>
+
+      <PlayerNotes
+        playerId={player.id || ""}
+        playerName={player.name}
+        open={false}
+        onOpenChange={() => {}}
+      />
     </div>
   );
 };
