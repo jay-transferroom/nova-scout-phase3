@@ -17,21 +17,22 @@ const SquadRecommendations = ({ players, selectedPosition, onPositionSelect, all
   const { getPositionAnalysis } = usePositionAnalysis(players, allPlayers);
   const positionAnalysis = getPositionAnalysis();
 
-  // Filter out positions that don't need recommendations (adequate depth and no risks)
+  // Filter to show positions with strategic opportunities or recommendations
   const positionsWithRecommendations = positionAnalysis.filter(analysis => {
-    // Show if priority is not 'Low' OR if there are any risks
-    return analysis.priority !== 'Low' || 
+    // Show positions where we can improve depth, quality, or planning
+    return analysis.priority === 'High' || 
+           analysis.priority === 'Critical' ||
+           analysis.priority === 'Medium' ||
            analysis.risks.contractExpiring > 0 || 
-           analysis.risks.agingPlayers > 0 || 
-           analysis.risks.injuredPlayers > 0;
+           analysis.risks.agingPlayers > 1;
   });
 
   return (
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <Target className="h-5 w-5 text-purple-600" />
-          Squad Depth Analysis & Recommendations
+          <Target className="h-5 w-5 text-blue-600" />
+          Strategic Squad Recommendations
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -50,9 +51,9 @@ const SquadRecommendations = ({ players, selectedPosition, onPositionSelect, all
           </>
         ) : (
           <div className="text-center py-8 text-muted-foreground">
-            <Target className="h-12 w-12 mx-auto mb-4 opacity-50" />
-            <p>All positions have adequate depth</p>
-            <p className="text-sm">No immediate recruitment recommendations</p>
+            <Target className="h-12 w-12 mx-auto mb-4 opacity-50 text-green-500" />
+            <p className="font-medium text-green-700">Squad depth looks excellent</p>
+            <p className="text-sm">All positions have strong coverage with good rotation options</p>
           </div>
         )}
       </CardContent>

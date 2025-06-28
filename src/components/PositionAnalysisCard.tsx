@@ -1,7 +1,7 @@
 
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-import { AlertTriangle } from "lucide-react";
+import { TrendingUp } from "lucide-react";
 import { PositionAnalysis } from "@/hooks/usePositionAnalysis";
 import PositionPriorityBadge from "./PositionPriorityBadge";
 import PositionRiskIndicators from "./PositionRiskIndicators";
@@ -44,15 +44,15 @@ const PositionAnalysisCard = ({ analysis, isSelected, onPositionSelect }: Positi
       <PositionRiskIndicators risks={analysis.risks} />
       
       {(analysis.priority === 'High' || analysis.priority === 'Critical') && (
-        <div className="mt-2 flex items-center gap-2 text-xs text-red-600">
-          <AlertTriangle className="h-3 w-3" />
-          {analysis.priority === 'Critical' ? 'URGENT ACTION REQUIRED' : 'Immediate attention required'}
+        <div className="mt-2 flex items-center gap-2 text-xs text-blue-600">
+          <TrendingUp className="h-3 w-3" />
+          {analysis.priority === 'Critical' ? 'Strategic priority for recruitment' : 'Good opportunity for squad enhancement'}
         </div>
       )}
 
       {analysis.players.length > 0 && (
         <div className="mt-2 pt-2 border-t border-gray-100">
-          <p className="text-xs text-muted-foreground mb-1">Key players:</p>
+          <p className="text-xs text-muted-foreground mb-1">Current squad:</p>
           <div className="flex flex-wrap gap-1">
             {analysis.players.slice(0, 3).map((player, idx) => (
               <Badge key={idx} variant="outline" className="text-xs">

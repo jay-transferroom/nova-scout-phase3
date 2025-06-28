@@ -72,20 +72,20 @@ export const usePositionAnalysis = (players: Player[], allPlayers: Player[] = []
       const injuredPlayers = 0; // Real injury data would come from API
 
       let priority = 'Low';
-      let recommendation = 'Squad depth is adequate';
+      let recommendation = 'Position is well-covered with good depth';
       
       if (positionPlayers.length === 0) {
         priority = 'Critical';
-        recommendation = 'URGENT: No players available in this position';
+        recommendation = 'Consider immediate recruitment to fill this essential position';
       } else if (positionPlayers.length === 1) {
         priority = 'High';
-        recommendation = 'Critical lack of depth - immediate backup needed';
+        recommendation = 'Adding depth would improve rotation options and squad resilience';
       } else if (positionPlayers.length < pos.needed / 2) {
         priority = 'High';
-        recommendation = 'Insufficient depth for squad rotation';
+        recommendation = 'Strategic additions could enhance squad depth and competition';
       } else if (contractExpiring > 0 || agingPlayers > 1) {
         priority = 'Medium';
-        recommendation = 'Squad renewal needed due to age/contract issues';
+        recommendation = 'Plan future recruitment to maintain long-term squad stability';
       }
 
       return {
