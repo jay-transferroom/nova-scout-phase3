@@ -21,6 +21,7 @@ import {
   formatDateLocal 
 } from "@/utils/playerProfileUtils";
 import ScoutManagerVerdictPanel from "@/components/ScoutManagerVerdictPanel";
+import SquadRecommendations from "@/components/SquadRecommendations";
 
 const PlayerProfile = () => {
   const { id } = useParams<{ id: string }>();
@@ -84,7 +85,7 @@ const PlayerProfile = () => {
   }
 
   return (
-    <div className="container mx-auto py-4 max-w-7xl">
+    <div className="container mx-auto py-8 max-w-7xl px-4 sm:px-6 lg:px-8">
       <div className="mb-4">
         <Button variant="ghost" onClick={() => navigate(-1)} className="gap-2">
           <ArrowLeft size={16} />
@@ -101,30 +102,36 @@ const PlayerProfile = () => {
         aggregatedData={aggregatedData}
       />
 
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 mb-4">
-        <PlayerBasicInfo 
-          player={player}
-          calculateAge={calculateAge}
-          formatDateLocal={formatDateLocal}
-        />
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2 space-y-6">
+          <PlayerBasicInfo 
+            player={player}
+            calculateAge={calculateAge}
+            formatDateLocal={formatDateLocal}
+          />
 
-        <PlayerClubInfo 
-          player={player}
-          getContractStatusColor={getContractStatusColor}
-          getPositionColor={getPositionColor}
-          formatDateLocal={formatDateLocal}
-        />
+          <PlayerClubInfo 
+            player={player}
+            getContractStatusColor={getContractStatusColor}
+            getPositionColor={getPositionColor}
+            formatDateLocal={formatDateLocal}
+          />
 
-        <PlayerRecentForm 
-          player={player}
-          getFormRatingColor={getFormRatingColor}
-        />
-
-        <div className="lg:col-span-1">
-          {/* Player Ratings & Scores Section */}
-          <PlayerRatingsCard 
-            player={player} 
-            aggregatedData={aggregatedData}
+          <PlayerRecentForm 
+            player={player}
+            getFormRatingColor={getFormRatingColor}
+          />
+        </div>
+        
+        <div className="space-y-6">
+          <PlayerRatingsCard player={player} aggregatedData={aggregatedData} />
+          
+          {/* Add Squad Recommendations */}
+          <SquadRecommendations 
+            players={[player]} 
+            selectedPosition={null}
+            onPositionSelect={() => {}}
+            allPlayers={[]}
           />
         </div>
       </div>

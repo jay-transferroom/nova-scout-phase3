@@ -58,26 +58,40 @@ export const useShortlistsLogic = ({
 
   const currentList = shortlists.find(list => list.id === selectedList);
   
-  // Get players based on list type
+  // Get players based on list type - FIXED LOGIC
   let currentPublicPlayers: any[] = [];
   let currentPrivatePlayers: any[] = [];
   
   if (currentList) {
-    // For default lists with filters, apply the filter
-    if (currentList.filter && typeof currentList.filter === 'function') {
-      currentPublicPlayers = allPlayers.filter(currentList.filter);
-    }
+    // Get private players for this shortlist first
+    currentPrivatePlayers = getPrivatePlayersForShortlist(currentList.id);
     
-    // For custom lists or lists with manual player IDs
-    if (currentList.playerIds && currentList.playerIds.length > 0) {
-      const manualPlayers = allPlayers.filter(player => 
+    // For custom lists (those with playerIds but no filter), only show manually added players
+    if (currentList.playerIds && currentList.playerIds.length > 0 && !currentList.filter) {
+      // Custom shortlist - only show manually added public players
+      currentPublicPlayers = allPlayers.filter(player => 
         currentList.playerIds.includes(player.id.toString())
       );
-      currentPublicPlayers = [...currentPublicPlayers, ...manualPlayers];
     }
-    
-    // Get private players for this shortlist
-    currentPrivatePlayers = getPrivatePlayersForShortlist(currentList.id);
+    // For default lists with filters, apply the filter to get base players
+    else if (currentList.filter && typeof currentList.filter === 'function') {
+      currentPublicPlayers = allPlayers.filter(currentList.filter);
+      
+      // Then add any manually added players that aren't already included
+      if (currentList.playerIds && currentList.playerIds.length > 0) {
+        const manualPlayers = allPlayers.filter(player => 
+          currentList.playerIds.includes(player.id.toString()) &&
+          !currentPublicPlayers.some(existing => existing.id.toString() === player.id.toString())
+        );
+        currentPublicPlayers = [...currentPublicPlayers, ...manualPlayers];
+      }
+    }
+    // For lists with only playerIds and no filter (shouldn't happen with current setup, but defensive)
+    else if (currentList.playerIds && currentList.playerIds.length > 0) {
+      currentPublicPlayers = allPlayers.filter(player => 
+        currentList.playerIds.includes(player.id.toString())
+      );
+    }
     
     // Remove duplicates from public players
     const seenIds = new Set();
