@@ -46,43 +46,43 @@ const PlayerRatingsCard = ({ player, aggregatedData }: PlayerRatingsCardProps) =
   };
 
   return (
-    <Card className="h-full">
-      <CardHeader className="pb-2">
-        <CardTitle className="flex items-center gap-2 text-sm">
-          <BarChart3 className="h-4 w-4" />
+    <Card className="h-fit">
+      <CardHeader className="pb-1">
+        <CardTitle className="flex items-center gap-1 text-xs">
+          <BarChart3 className="h-3 w-3" />
           Ratings & Scores
         </CardTitle>
       </CardHeader>
-      <CardContent className="pt-0 pb-3 space-y-2">
+      <CardContent className="pt-0 pb-2 space-y-1">
         {/* Market Value & Analysis Scores */}
-        <div className="space-y-1.5">
-          <div className="text-center p-1.5 bg-blue-50 rounded">
-            <div className="flex items-center justify-center gap-1 mb-0.5">
-              <TrendingUp className="h-3 w-3 text-blue-600" />
+        <div className="space-y-1">
+          <div className="text-center p-1 bg-blue-50 rounded">
+            <div className="flex items-center justify-center gap-0.5 mb-0.5">
+              <TrendingUp className="h-2.5 w-2.5 text-blue-600" />
               <span className="text-xs font-medium text-blue-700">xTV</span>
             </div>
-            <div className={`text-sm font-bold ${getRatingColor(player.xtvScore)}`}>
+            <div className={`text-xs font-bold ${getRatingColor(player.xtvScore)}`}>
               {formatXTVScore(player.xtvScore)}
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-1.5">
-            <div className="text-center p-1.5 bg-purple-50 rounded">
-              <div className="flex items-center justify-center gap-1 mb-0.5">
-                <Star className="h-3 w-3 text-purple-600" />
+          <div className="grid grid-cols-2 gap-1">
+            <div className="text-center p-1 bg-purple-50 rounded">
+              <div className="flex items-center justify-center gap-0.5 mb-0.5">
+                <Star className="h-2.5 w-2.5 text-purple-600" />
                 <span className="text-xs font-medium text-purple-700">TR</span>
               </div>
-              <div className={`text-sm font-bold ${getRatingColor(player.transferroomRating)}`}>
+              <div className={`text-xs font-bold ${getRatingColor(player.transferroomRating)}`}>
                 {player.transferroomRating ? `${player.transferroomRating.toFixed(1)}` : 'N/A'}
               </div>
             </div>
 
-            <div className="text-center p-1.5 bg-green-50 rounded">
-              <div className="flex items-center justify-center gap-1 mb-0.5">
-                <Target className="h-3 w-3 text-green-600" />
+            <div className="text-center p-1 bg-green-50 rounded">
+              <div className="flex items-center justify-center gap-0.5 mb-0.5">
+                <Target className="h-2.5 w-2.5 text-green-600" />
                 <span className="text-xs font-medium text-green-700">Future</span>
               </div>
-              <div className={`text-sm font-bold ${getRatingColor(player.futureRating)}`}>
+              <div className={`text-xs font-bold ${getRatingColor(player.futureRating)}`}>
                 {player.futureRating ? `${player.futureRating.toFixed(1)}` : 'N/A'}
               </div>
             </div>
@@ -91,8 +91,8 @@ const PlayerRatingsCard = ({ player, aggregatedData }: PlayerRatingsCardProps) =
 
         {/* Scouting Analysis */}
         {aggregatedData && (
-          <div className="border-t pt-1.5">
-            <h4 className="text-xs font-medium text-gray-700 mb-1">Scout Analysis</h4>
+          <div className="border-t pt-1">
+            <h4 className="text-xs font-medium text-gray-700 mb-0.5">Scout Analysis</h4>
             <div className="space-y-0.5">
               <div className="flex items-center justify-between text-xs">
                 <span className="text-gray-600">Avg Rating:</span>
