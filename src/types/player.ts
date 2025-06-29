@@ -1,3 +1,4 @@
+
 export interface Player {
   id: string;
   name: string;
@@ -7,7 +8,7 @@ export interface Player {
   positions: string[];
   dominantFoot: 'Left' | 'Right' | 'Both';
   nationality: string;
-  contractStatus: 'Free Agent' | 'Under Contract' | 'Loan' | 'Youth Contract';
+  contractStatus: 'Free Agent' | 'Under Contract' | 'Loan' | 'Youth Contract' | 'Private Player';
   contractExpiry?: string;
   region: string;
   image?: string;

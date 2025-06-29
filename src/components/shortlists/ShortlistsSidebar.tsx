@@ -1,10 +1,11 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Users } from "lucide-react";
 import { Player } from "@/types/player";
-import AddToShortlistDialog from "@/components/AddToShortlistDialog";
+import AddPrivatePlayerDialog from "@/components/AddPrivatePlayerDialog";
 import { useNavigate } from "react-router-dom";
 
 interface ShortlistsSidebarProps {
@@ -127,11 +128,13 @@ export const ShortlistsSidebar = ({
         })}
       </div>
 
-      <AddToShortlistDialog
-        open={isAddDialogOpen}
-        onOpenChange={setIsAddDialogOpen}
-        allPlayers={allPlayers}
-        onCreateShortlist={handleCreateShortlist}
+      <AddPrivatePlayerDialog
+        trigger={
+          <Button variant="outline" className="w-full">
+            <Plus className="mr-2 h-4 w-4" />
+            Add Private Player
+          </Button>
+        }
       />
     </div>
   );

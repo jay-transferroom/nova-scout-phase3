@@ -111,13 +111,13 @@ export const useShortlists = () => {
     }
   }, [toast]);
 
-  const createShortlist = useCallback((name: string, description: string) => {
+  const createShortlist = useCallback(async (name: string, playerIds: string[]) => {
     const newShortlist: Shortlist = {
       id: `shortlist-${Date.now()}`,
       name,
-      description,
+      description: `Custom shortlist: ${name}`,
       color: "bg-gray-500", // Default color
-      playerIds: [],
+      playerIds: playerIds || [],
       filter: () => false // Custom shortlists don't have auto-filters
     };
 
