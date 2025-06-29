@@ -1,6 +1,8 @@
 
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { ArrowLeft } from "lucide-react";
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -15,25 +17,46 @@ import PlayerAIRecommendation from "@/components/PlayerAIRecommendation";
 
 const PrivatePlayerProfile = () => {
   const { playerId } = useParams();
-  const { privatePlayers } = usePrivatePlayers();
+  const navigate = useNavigate();
+  const { privatePlayers, loading } = usePrivatePlayers();
   const [player, setPlayer] = useState(null);
 
   useEffect(() => {
     if (playerId && privatePlayers) {
-      const foundPlayer = privatePlayers.find(p => p.id === `private-${playerId}`);
-      setPlayer(foundPlayer);
+      // Try to find by the UUID directly first, then by prefixed ID
+      const foundPlayer = privatePlayers.find(p => 
+        p.id === playerId || 
+        p.id === `private-${playerId}` ||
+        `private-${p.id}` === playerId
+      );
+      
+      console.log('Looking for player:', playerId);
+      console.log('Available private players:', privatePlayers.map(p => ({ id: p.id, name: p.name })));
+      console.log('Found player:', foundPlayer);
+      
+      if (foundPlayer) {
+        // Transform to match expected Player interface for components
+        const transformedPlayer = {
+          ...foundPlayer,
+          id: foundPlayer.id,
+          dateOfBirth: foundPlayer.date_of_birth,
+          dominantFoot: foundPlayer.dominant_foot,
+          contractStatus: 'Under Contract',
+          contractExpiry: undefined,
+          image: undefined,
+          xtvScore: undefined,
+          transferroomRating: undefined,
+          futureRating: undefined,
+          euGbeStatus: 'Pass',
+          recentForm: undefined
+        };
+        setPlayer(transformedPlayer);
+      }
     }
   }, [playerId, privatePlayers]);
 
-  if (!player) {
-    return (
-      <div className="container mx-auto py-8 max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="text-center">Loading player data...</div>
-      </div>
-    );
-  }
-
   const calculateAge = (dateOfBirth: string) => {
+    if (!dateOfBirth) return null;
     const birthDate = new Date(dateOfBirth);
     const today = new Date();
     let age = today.getFullYear() - birthDate.getFullYear();
@@ -45,6 +68,7 @@ const PrivatePlayerProfile = () => {
   };
 
   const formatDateLocal = (dateString: string) => {
+    if (!dateString) return 'N/A';
     const date = new Date(dateString);
     return date.toLocaleDateString();
   };
@@ -70,76 +94,105 @@ const PrivatePlayerProfile = () => {
     const colors = {
       'Active': 'bg-green-100 text-green-800',
       'Expiring': 'bg-yellow-100 text-yellow-800',
-      'Expired': 'bg-red-100 text-red-800'
+      'Expired': 'bg-red-100 text-red-800',
+      'Under Contract': 'bg-green-100 text-green-800'
     };
     return colors[status] || 'bg-gray-100 text-gray-800';
   };
 
   const onCreateReport = () => {
-    console.log("Create report clicked");
+    navigate('/report-builder', { 
+      state: { selectedPrivatePlayer: player } 
+    });
   };
 
   const onOpenNotes = () => {
     console.log("Open notes clicked");
   };
 
+  if (loading) {
+    return (
+      <div className="container mx-auto py-8 max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="text-center">Loading player data...</div>
+      </div>
+    );
+  }
+
+  if (!player) {
+    return (
+      <div className="container mx-auto py-8 max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="text-center">
+          <p className="text-lg font-medium text-gray-900 mb-2">Private player not found</p>
+          <p className="text-gray-600 mb-4">The player you're looking for doesn't exist or may have been removed.</p>
+          <Button onClick={() => navigate('/shortlists')} variant="outline">
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back to Shortlists
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="container mx-auto py-6 max-w-7xl px-4 sm:px-6 lg:px-8">
-      <PlayerHeader
-        player={player}
-        onCreateReport={onCreateReport}
-        onOpenNotes={onOpenNotes}
-        calculateAge={calculateAge}
-        getPositionColor={getPositionColor}
-      />
+      {/* Back Navigation */}
+      <div className="mb-6">
+        <Button variant="ghost" onClick={() => navigate(-1)} className="gap-2">
+          <ArrowLeft size={16} />
+          Back
+        </Button>
+      </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-        <div className="lg:col-span-2 space-y-6">
-          <PlayerBasicInfo 
-            player={player} 
-            calculateAge={calculateAge}
-            formatDateLocal={formatDateLocal}
-          />
-          <PlayerClubInfo 
-            player={player}
-            getContractStatusColor={getContractStatusColor}
-            getPositionColor={getPositionColor}
-            formatDateLocal={formatDateLocal}
-          />
+      <div className="mb-6">
+        <PlayerHeader
+          player={player}
+          onCreateReport={onCreateReport}
+          onOpenNotes={onOpenNotes}
+          calculateAge={calculateAge}
+          getPositionColor={getPositionColor}
+        />
+      </div>
+
+      <div className="grid grid-cols-1 xl:grid-cols-4 gap-6 mb-6">
+        <div className="xl:col-span-3 space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <PlayerBasicInfo 
+              player={player} 
+              calculateAge={calculateAge}
+              formatDateLocal={formatDateLocal}
+            />
+            <PlayerClubInfo 
+              player={player}
+              getContractStatusColor={getContractStatusColor}
+              getPositionColor={getPositionColor}
+              formatDateLocal={formatDateLocal}
+            />
+          </div>
           
-          {/* Simple strengths and weaknesses cards since the components don't exist */}
-          {player.strengths && player.strengths.length > 0 && (
+          {/* Notes Section */}
+          {player.notes && (
             <Card>
               <CardContent className="p-6">
-                <h3 className="font-semibold mb-3">Strengths</h3>
-                <div className="flex flex-wrap gap-2">
-                  {player.strengths.map((strength, index) => (
-                    <Badge key={index} variant="outline" className="bg-green-50 text-green-700">
-                      {strength}
-                    </Badge>
-                  ))}
-                </div>
+                <h3 className="font-semibold mb-3">Scout Notes</h3>
+                <p className="text-gray-700">{player.notes}</p>
               </CardContent>
             </Card>
           )}
-          
-          {player.weaknesses && player.weaknesses.length > 0 && (
+
+          {/* Source Context */}
+          {player.source_context && (
             <Card>
               <CardContent className="p-6">
-                <h3 className="font-semibold mb-3">Areas for Improvement</h3>
-                <div className="flex flex-wrap gap-2">
-                  {player.weaknesses.map((weakness, index) => (
-                    <Badge key={index} variant="outline" className="bg-orange-50 text-orange-700">
-                      {weakness}
-                    </Badge>
-                  ))}
-                </div>
+                <h3 className="font-semibold mb-3">Source</h3>
+                <Badge variant="outline" className="bg-blue-50 text-blue-700">
+                  {player.source_context}
+                </Badge>
               </CardContent>
             </Card>
           )}
         </div>
         
-        <div className="space-y-6">
+        <div className="xl:col-span-1 space-y-6">
           <PlayerRatingsCard player={player} />
           <PlayerAIRecommendation player={player} />
         </div>
