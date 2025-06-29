@@ -1,4 +1,5 @@
 
+
 export interface Player {
   id: string;
   name: string;
@@ -15,7 +16,7 @@ export interface Player {
   xtvScore?: number;
   transferroomRating?: number;
   futureRating?: number;
-  euGbeStatus?: 'Pass' | 'Fail' | 'Pending'; // Made optional to fix mock data compatibility
+  euGbeStatus?: 'Pass' | 'Fail' | 'Pending' | 'Unknown'; // Added 'Unknown' to fix the type error
   recentForm?: {
     matches: number;
     goals: number;

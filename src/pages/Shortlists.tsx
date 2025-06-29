@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { usePlayersData } from "@/hooks/usePlayersData";
@@ -87,6 +86,10 @@ const Shortlists = () => {
 
   const handleRemovePlayer = (playerId: string) => {
     console.log("Removing player from list:", playerId);
+  };
+
+  const handleCreateShortlist = async (name: string, playerIds: string[]) => {
+    await createShortlist(name, playerIds);
   };
 
   if (isLoading) {
