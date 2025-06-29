@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -22,17 +21,14 @@ const PrivatePlayerProfile = () => {
   const [player, setPlayer] = useState(null);
 
   useEffect(() => {
-    if (playerId && privatePlayers) {
-      // Try to find by the UUID directly first, then by prefixed ID
-      const foundPlayer = privatePlayers.find(p => 
-        p.id === playerId || 
-        p.id === `private-${playerId}` ||
-        `private-${p.id}` === playerId
-      );
+    console.log('PrivatePlayerProfile - playerId from URL:', playerId);
+    console.log('PrivatePlayerProfile - privatePlayers:', privatePlayers);
+    
+    if (playerId && privatePlayers && privatePlayers.length > 0) {
+      // Find the private player by ID
+      const foundPlayer = privatePlayers.find(p => p.id === playerId);
       
-      console.log('Looking for player:', playerId);
-      console.log('Available private players:', privatePlayers.map(p => ({ id: p.id, name: p.name })));
-      console.log('Found player:', foundPlayer);
+      console.log('PrivatePlayerProfile - Found player:', foundPlayer);
       
       if (foundPlayer) {
         // Transform to match expected Player interface for components
@@ -41,16 +37,18 @@ const PrivatePlayerProfile = () => {
           id: foundPlayer.id,
           dateOfBirth: foundPlayer.date_of_birth,
           dominantFoot: foundPlayer.dominant_foot,
-          contractStatus: 'Under Contract',
+          contractStatus: 'Private Player',
           contractExpiry: undefined,
           image: undefined,
           xtvScore: undefined,
           transferroomRating: undefined,
           futureRating: undefined,
-          euGbeStatus: 'Pass',
+          euGbeStatus: 'Unknown',
           recentForm: undefined
         };
         setPlayer(transformedPlayer);
+      } else {
+        console.log('PrivatePlayerProfile - Player not found with ID:', playerId);
       }
     }
   }, [playerId, privatePlayers]);

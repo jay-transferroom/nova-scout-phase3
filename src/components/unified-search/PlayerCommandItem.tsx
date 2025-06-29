@@ -1,20 +1,19 @@
 
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { CommandItem } from "@/components/ui/command";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Player } from "@/types/player";
 
 interface PlayerCommandItemProps {
   player: Player;
   teamLogo?: string;
   onSelect: () => void;
-  className?: string;
 }
 
-const PlayerCommandItem = ({ player, teamLogo, onSelect, className = "" }: PlayerCommandItemProps) => {
+const PlayerCommandItem = ({ player, teamLogo, onSelect }: PlayerCommandItemProps) => {
   return (
     <CommandItem
       onSelect={onSelect}
-      className={`flex items-center gap-3 p-3 ${className}`}
+      className="flex items-center gap-3 p-3"
     >
       <Avatar className="h-10 w-10">
         <AvatarImage 
@@ -31,7 +30,12 @@ const PlayerCommandItem = ({ player, teamLogo, onSelect, className = "" }: Playe
       
       <div className="flex-1">
         <p className="font-medium">{player.name}</p>
-        <p className="text-sm text-muted-foreground">{player.club} • {player.positions.join(", ")}</p>
+        <p className="text-sm text-muted-foreground">
+          {player.club} • {player.positions.join(", ")}
+          {player.isPrivatePlayer && (
+            <span className="ml-1 text-xs bg-purple-100 text-purple-700 px-1 rounded">Private</span>
+          )}
+        </p>
       </div>
       
       <div className="flex items-center gap-3">

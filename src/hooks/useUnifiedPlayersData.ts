@@ -1,55 +1,47 @@
 
-import { useQuery } from "@tanstack/react-query";
-import { usePlayersData } from "./usePlayersData";
-import { usePrivatePlayers } from "./usePrivatePlayers";
-import { Player } from "@/types/player";
-import { PrivatePlayer } from "@/types/privatePlayer";
-
-// Transform private player to regular player format
-const transformPrivatePlayerToPlayer = (privatePlayer: PrivatePlayer): Player => ({
-  id: `private-${privatePlayer.id}`, // Prefix to distinguish from regular players
-  name: privatePlayer.name,
-  club: privatePlayer.club || 'Unknown',
-  age: privatePlayer.age || 0,
-  dateOfBirth: privatePlayer.date_of_birth || '',
-  positions: privatePlayer.positions || [],
-  dominantFoot: privatePlayer.dominant_foot || 'Right',
-  nationality: privatePlayer.nationality || 'Unknown',
-  contractStatus: 'Under Contract',
-  contractExpiry: undefined,
-  region: privatePlayer.region || 'Unknown',
-  image: undefined,
-  xtvScore: undefined,
-  transferroomRating: undefined,
-  futureRating: undefined,
-  euGbeStatus: 'Pass',
-  recentForm: undefined,
-  // Add metadata to identify as private player
-  isPrivatePlayer: true,
-  privatePlayerData: privatePlayer
-});
+import { usePlayersData } from './usePlayersData';
+import { usePrivatePlayers } from './usePrivatePlayers';
+import { Player } from '@/types/player';
+import { useMemo } from 'react';
 
 export const useUnifiedPlayersData = () => {
-  const { data: regularPlayers = [], isLoading: regularLoading, error: regularError } = usePlayersData();
+  const { data: publicPlayers = [], isLoading: publicLoading, error: publicError } = usePlayersData();
   const { privatePlayers = [], loading: privateLoading, error: privateError } = usePrivatePlayers();
 
-  return useQuery({
-    queryKey: ['unified-players', regularPlayers, privatePlayers],
-    queryFn: () => {
-      // Transform private players to match Player interface
-      const transformedPrivatePlayers = privatePlayers.map(transformPrivatePlayerToPlayer);
-      
-      // Combine both arrays
-      const allPlayers = [...regularPlayers, ...transformedPrivatePlayers];
-      
-      console.log('Unified players:', {
-        regularCount: regularPlayers.length,
-        privateCount: privatePlayers.length,
-        totalCount: allPlayers.length
-      });
-      
-      return allPlayers;
-    },
-    enabled: !regularLoading && !privateLoading,
-  });
+  const data = useMemo(() => {
+    // Transform private players to match Player interface
+    const transformedPrivatePlayers: Player[] = privatePlayers.map(privatePlayer => ({
+      id: privatePlayer.id,
+      name: privatePlayer.name,
+      club: privatePlayer.club || 'Unknown Club',
+      age: privatePlayer.age || 0,
+      positions: privatePlayer.positions || [],
+      nationality: privatePlayer.nationality || 'Unknown',
+      region: privatePlayer.region || 'Unknown',
+      dateOfBirth: privatePlayer.date_of_birth || '',
+      dominantFoot: privatePlayer.dominant_foot || 'Right',
+      contractStatus: 'Private Player',
+      contractExpiry: undefined,
+      image: undefined,
+      xtvScore: undefined,
+      transferroomRating: undefined,
+      futureRating: undefined,
+      euGbeStatus: 'Unknown',
+      recentForm: undefined,
+      isPrivatePlayer: true,
+      privatePlayerData: privatePlayer
+    }));
+
+    // Combine public and private players
+    return [...publicPlayers, ...transformedPrivatePlayers];
+  }, [publicPlayers, privatePlayers]);
+
+  const isLoading = publicLoading || privateLoading;
+  const error = publicError || privateError;
+
+  console.log('useUnifiedPlayersData - Total players:', data.length);
+  console.log('useUnifiedPlayersData - Private players:', privatePlayers.length);
+  console.log('useUnifiedPlayersData - Public players:', publicPlayers.length);
+
+  return { data, isLoading, error };
 };

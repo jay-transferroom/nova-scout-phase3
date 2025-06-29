@@ -1,21 +1,19 @@
-
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Bookmark, Plus } from "lucide-react";
-import { cn } from "@/lib/utils";
 import { useState } from "react";
-import { Shortlist } from "@/hooks/useShortlists";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Plus, Users } from "lucide-react";
+import { Player } from "@/types/player";
+import AddToShortlistDialog from "@/components/AddToShortlistDialog";
+import { useNavigate } from "react-router-dom";
 
 interface ShortlistsSidebarProps {
-  shortlists: Shortlist[];
+  shortlists: any[];
   selectedList: string | null;
   onSelectList: (listId: string) => void;
-  allPlayers: any[];
-  getPrivatePlayersForShortlist: (shortlistId: string) => any[];
-  onCreateShortlist: (name: string, description: string) => void;
+  allPlayers: Player[];
+  getPrivatePlayersForShortlist: (shortlistId: string) => Player[];
+  onCreateShortlist: (name: string, playerIds: string[]) => Promise<void>;
 }
 
 export const ShortlistsSidebar = ({
@@ -26,118 +24,115 @@ export const ShortlistsSidebar = ({
   getPrivatePlayersForShortlist,
   onCreateShortlist
 }: ShortlistsSidebarProps) => {
-  const [isCreateListOpen, setIsCreateListOpen] = useState(false);
-  const [newListName, setNewListName] = useState("");
-  const [newListDescription, setNewListDescription] = useState("");
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const navigate = useNavigate();
 
-  const handleCreateList = () => {
-    if (newListName.trim()) {
-      onCreateShortlist(newListName.trim(), newListDescription.trim());
-      setIsCreateListOpen(false);
-      setNewListName("");
-      setNewListDescription("");
+  const handlePlayerClick = (player: Player) => {
+    console.log('ShortlistsSidebar - Player clicked:', player);
+    
+    if (player.isPrivatePlayer && player.privatePlayerData) {
+      console.log('ShortlistsSidebar - Navigating to private player:', player.privatePlayerData.id);
+      navigate(`/private-player/${player.privatePlayerData.id}`);
+    } else {
+      console.log('ShortlistsSidebar - Navigating to public player:', player.id);
+      navigate(`/player/${player.id}`);
     }
   };
 
+  const handleCreateShortlist = async (name: string, playerIds: string[]) => {
+    await onCreateShortlist(name, playerIds);
+    setIsAddDialogOpen(false);
+  };
+
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <CardTitle className="flex items-center gap-2">
-            <Bookmark className="h-5 w-5" />
-            Recruitment Lists
-          </CardTitle>
-          <Dialog open={isCreateListOpen} onOpenChange={setIsCreateListOpen}>
-            <DialogTrigger asChild>
-              <Button size="sm">
-                <Plus className="h-4 w-4" />
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Create New Shortlist</DialogTitle>
-              </DialogHeader>
-              <div className="space-y-4">
-                <Input 
-                  placeholder="List name" 
-                  value={newListName}
-                  onChange={(e) => setNewListName(e.target.value)}
-                />
-                <Input 
-                  placeholder="Description (optional)" 
-                  value={newListDescription}
-                  onChange={(e) => setNewListDescription(e.target.value)}
-                />
-                <Button 
-                  className="w-full" 
-                  onClick={handleCreateList}
-                  disabled={!newListName.trim()}
-                >
-                  Create List
-                </Button>
-              </div>
-            </DialogContent>
-          </Dialog>
-        </div>
-      </CardHeader>
-      <CardContent className="p-0">
-        <div className="space-y-1">
-          {shortlists.map((list) => {
-            // Calculate actual player count that matches the logic in useShortlistsLogic
-            let publicPlayerCount = 0;
-            const privatePlayerCount = getPrivatePlayersForShortlist(list.id).length;
-            const manualPlayerCount = (list.playerIds || []).length;
-            
-            if (list.playerIds && list.playerIds.length > 0 && !list.filter) {
-              // Custom shortlist - only manually added public players
-              publicPlayerCount = allPlayers.filter(player => 
-                list.playerIds.includes(player.id.toString())
-              ).length;
-            } else if (list.filter && typeof list.filter === 'function') {
-              // Default lists with filters - get all filtered players
-              publicPlayerCount = allPlayers.filter(list.filter).length;
-              
-              // Don't double count manual players that are already included via filter
-              if (list.playerIds && list.playerIds.length > 0) {
-                const filteredPlayerIds = new Set(allPlayers.filter(list.filter).map(p => p.id.toString()));
-                const additionalManualPlayers = allPlayers.filter(player => 
-                  list.playerIds.includes(player.id.toString()) &&
-                  !filteredPlayerIds.has(player.id.toString())
-                ).length;
-                publicPlayerCount += additionalManualPlayers;
-              }
-            } else if (list.playerIds && list.playerIds.length > 0) {
-              // Lists with only playerIds
-              publicPlayerCount = allPlayers.filter(player => 
-                list.playerIds.includes(player.id.toString())
-              ).length;
-            }
-            
-            const totalCount = publicPlayerCount + privatePlayerCount;
-            
-            return (
-              <button
-                key={list.id}
-                onClick={() => onSelectList(list.id)}
-                className={cn(
-                  "w-full p-3 text-left hover:bg-muted/50 transition-colors",
-                  selectedList === list.id && "bg-muted"
-                )}
-              >
-                <div className="flex items-center gap-3">
-                  <div className={cn("w-3 h-3 rounded-full", list.color)} />
-                  <div className="flex-1 min-w-0">
-                    <div className="font-medium text-sm truncate">{list.name}</div>
-                    <div className="text-xs text-muted-foreground">
-                      {totalCount} players
-                    </div>
-                  </div>
+    <div className="space-y-4">
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-base font-semibold">Shortlists</CardTitle>
+            <Button variant="ghost" size="sm" onClick={() => setIsAddDialogOpen(true)}>
+              <Plus className="mr-2 h-4 w-4" />
+              Create
+            </Button>
+          </div>
+        </CardHeader>
+      </Card>
+      
+      <div className="space-y-2">
+        {shortlists.map((list) => {
+          const privatePlayersForList = getPrivatePlayersForShortlist(list.id);
+          const totalPlayers = (list.playerIds?.length || 0) + privatePlayersForList.length;
+          
+          return (
+            <Card
+              key={list.id}
+              className={`cursor-pointer transition-colors ${
+                selectedList === list.id ? "ring-2 ring-blue-500" : ""
+              }`}
+              onClick={() => onSelectList(list.id)}
+            >
+              <CardHeader className="pb-2">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-sm font-medium">{list.name}</CardTitle>
+                  <Badge variant="secondary" className="text-xs">
+                    {totalPlayers}
+                  </Badge>
                 </div>
-              </button>
-            );
-          })}
-        </div>
-      </CardContent>
-    </Card>
+              </CardHeader>
+              <CardContent className="pt-0">
+                <div className="space-y-1">
+                  {/* Show first few players as preview */}
+                  {list.playerIds?.slice(0, 2).map((playerId: string) => {
+                    const player = allPlayers.find(p => p.id === playerId);
+                    if (!player) return null;
+                    
+                    return (
+                      <div 
+                        key={playerId} 
+                        className="text-xs text-gray-600 hover:text-blue-600 cursor-pointer"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handlePlayerClick(player);
+                        }}
+                      >
+                        {player.name} ({player.club})
+                      </div>
+                    );
+                  })}
+                  
+                  {/* Show private players */}
+                  {privatePlayersForList.slice(0, 2).map((player) => (
+                    <div 
+                      key={player.id} 
+                      className="text-xs text-gray-600 hover:text-blue-600 cursor-pointer flex items-center gap-1"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handlePlayerClick(player);
+                      }}
+                    >
+                      {player.name} ({player.club})
+                      <Badge variant="outline" className="text-xs px-1 py-0">Private</Badge>
+                    </div>
+                  ))}
+                  
+                  {totalPlayers > 2 && (
+                    <div className="text-xs text-gray-400">
+                      +{totalPlayers - 2} more
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })}
+      </div>
+
+      <AddToShortlistDialog
+        open={isAddDialogOpen}
+        onOpenChange={setIsAddDialogOpen}
+        allPlayers={allPlayers}
+        onCreateShortlist={handleCreateShortlist}
+      />
+    </div>
   );
 };
