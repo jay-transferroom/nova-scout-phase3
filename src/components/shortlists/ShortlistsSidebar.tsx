@@ -6,7 +6,9 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Plus, Users } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { Plus, Users, MoreHorizontal, Edit2, Trash2 } from "lucide-react";
 import { Player } from "@/types/player";
 import AddPrivatePlayerDialog from "@/components/AddPrivatePlayerDialog";
 import { useNavigate } from "react-router-dom";
@@ -18,6 +20,8 @@ interface ShortlistsSidebarProps {
   allPlayers: Player[];
   privatePlayers: any[];
   onCreateShortlist: (name: string, playerIds: string[]) => Promise<void>;
+  onUpdateShortlist: (id: string, name: string) => Promise<void>;
+  onDeleteShortlist: (id: string) => Promise<void>;
 }
 
 export const ShortlistsSidebar = ({
@@ -26,10 +30,15 @@ export const ShortlistsSidebar = ({
   onSelectList,
   allPlayers,
   privatePlayers,
-  onCreateShortlist
+  onCreateShortlist,
+  onUpdateShortlist,
+  onDeleteShortlist
 }: ShortlistsSidebarProps) => {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [newShortlistName, setNewShortlistName] = useState("");
+  const [editingShortlist, setEditingShortlist] = useState<any>(null);
+  const [editShortlistName, setEditShortlistName] = useState("");
   const navigate = useNavigate();
 
   const handlePlayerClick = (player: Player) => {
@@ -49,6 +58,28 @@ export const ShortlistsSidebar = ({
       await onCreateShortlist(newShortlistName.trim(), []);
       setNewShortlistName("");
       setIsAddDialogOpen(false);
+    }
+  };
+
+  const handleEditShortlist = (shortlist: any) => {
+    setEditingShortlist(shortlist);
+    setEditShortlistName(shortlist.name);
+    setIsEditDialogOpen(true);
+  };
+
+  const handleUpdateShortlist = async () => {
+    if (editShortlistName.trim() && editingShortlist) {
+      await onUpdateShortlist(editingShortlist.id, editShortlistName.trim());
+      setEditShortlistName("");
+      setEditingShortlist(null);
+      setIsEditDialogOpen(false);
+    }
+  };
+
+  const handleDeleteShortlist = async (shortlist: any) => {
+    await onDeleteShortlist(shortlist.id);
+    if (selectedList === shortlist.id) {
+      onSelectList(shortlists.find(s => s.id !== shortlist.id)?.id || "");
     }
   };
 
@@ -111,17 +142,61 @@ export const ShortlistsSidebar = ({
               className={`cursor-pointer transition-colors ${
                 selectedList === list.id ? "ring-2 ring-blue-500" : ""
               }`}
-              onClick={() => onSelectList(list.id)}
             >
               <CardHeader className="pb-2">
                 <div className="flex items-center justify-between">
-                  <CardTitle className="text-sm font-medium">{list.name}</CardTitle>
-                  <Badge variant="secondary" className="text-xs">
-                    {totalPlayers}
-                  </Badge>
+                  <CardTitle 
+                    className="text-sm font-medium cursor-pointer"
+                    onClick={() => onSelectList(list.id)}
+                  >
+                    {list.name}
+                  </CardTitle>
+                  <div className="flex items-center gap-1">
+                    <Badge variant="secondary" className="text-xs">
+                      {totalPlayers}
+                    </Badge>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+                          <MoreHorizontal className="h-3 w-3" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => handleEditShortlist(list)}>
+                          <Edit2 className="h-4 w-4 mr-2" />
+                          Rename
+                        </DropdownMenuItem>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              Delete
+                            </DropdownMenuItem>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Delete Shortlist</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Are you sure you want to delete "{list.name}"? This action cannot be undone.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction 
+                                onClick={() => handleDeleteShortlist(list)}
+                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                              >
+                                Delete
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
                 </div>
               </CardHeader>
-              <CardContent className="pt-0">
+              <CardContent className="pt-0" onClick={() => onSelectList(list.id)}>
                 <div className="space-y-1">
                   {/* Show first few public players as preview */}
                   {publicPlayersForList.slice(0, 2).map((player) => (
@@ -163,6 +238,35 @@ export const ShortlistsSidebar = ({
           );
         })}
       </div>
+
+      {/* Edit Shortlist Dialog */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Rename Shortlist</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="edit-shortlist-name">Shortlist Name</Label>
+              <Input
+                id="edit-shortlist-name"
+                value={editShortlistName}
+                onChange={(e) => setEditShortlistName(e.target.value)}
+                placeholder="Enter new shortlist name..."
+                onKeyDown={(e) => e.key === "Enter" && handleUpdateShortlist()}
+              />
+            </div>
+            <div className="flex justify-end space-x-2">
+              <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button onClick={handleUpdateShortlist} disabled={!editShortlistName.trim()}>
+                Update
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <AddPrivatePlayerDialog
         trigger={

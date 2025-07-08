@@ -222,17 +222,52 @@ export const ShortlistsContent = ({
             <p className="text-sm text-muted-foreground mb-3">
               Based on your shortlist name "{currentList.name}", we found these matching players:
             </p>
-            <div className="flex flex-wrap gap-2">
-              {suggestedPlayers.map((player) => (
-                <Badge 
-                  key={player.id} 
-                  variant="outline" 
-                  className="cursor-pointer hover:bg-muted"
-                  onClick={() => onAddPlayersToShortlist([player.isPrivatePlayer ? player.id : player.id.toString()])}
-                >
-                  {player.name} ({player.positions?.[0]})
-                </Badge>
-              ))}
+            <div className="space-y-2">
+              {suggestedPlayers.map((player) => {
+                const rating = player.transferroomRating || 0;
+                const suitability = rating >= 85 ? 'Excellent' : rating >= 75 ? 'Good' : rating >= 65 ? 'Average' : 'Below Average';
+                const suitabilityColor = rating >= 85 ? 'bg-green-100 text-green-800' : 
+                                       rating >= 75 ? 'bg-blue-100 text-blue-800' : 
+                                       rating >= 65 ? 'bg-yellow-100 text-yellow-800' : 
+                                       'bg-gray-100 text-gray-800';
+                
+                return (
+                  <div 
+                    key={player.id} 
+                    className="flex items-center justify-between p-3 bg-background rounded-lg border hover:shadow-sm transition-shadow cursor-pointer"
+                    onClick={() => onAddPlayersToShortlist([player.isPrivatePlayer ? player.id : player.id.toString()])}
+                  >
+                    <div className="flex items-center gap-3">
+                      <Avatar className="h-8 w-8">
+                        <AvatarImage src={player.image} alt={player.name} />
+                        <AvatarFallback className="text-xs">
+                          {player.name.split(' ').map((n: string) => n[0]).join('')}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <div className="font-medium text-sm">{player.name}</div>
+                        <div className="text-xs text-muted-foreground">{player.club}</div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Badge variant="outline" className="text-xs">
+                        {player.positions?.[0]}
+                      </Badge>
+                      {rating > 0 && (
+                        <Badge variant="secondary" className="text-xs">
+                          {rating.toFixed(1)}
+                        </Badge>
+                      )}
+                      <Badge variant="outline" className={`text-xs ${suitabilityColor} border-0`}>
+                        {suitability}
+                      </Badge>
+                      <Button size="sm" variant="ghost" className="h-6 w-6 p-0">
+                        <Plus className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
         )}

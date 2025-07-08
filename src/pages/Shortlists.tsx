@@ -28,7 +28,7 @@ const Shortlists = () => {
   const { data: assignments = [], refetch: refetchAssignments } = useScoutingAssignments();
   const { reports = [] } = useReports();
   const { privatePlayers } = usePrivatePlayers();
-  const { shortlists, createShortlist, addPlayerToShortlist, getPlayerShortlists } = useShortlists();
+  const { shortlists, createShortlist, updateShortlist, deleteShortlist, addPlayerToShortlist, getPlayerShortlists } = useShortlists();
   const queryClient = useQueryClient();
 
   const shortlistsLogic = useShortlistsLogic({
@@ -101,6 +101,14 @@ const Shortlists = () => {
     }
   };
 
+  const handleUpdateShortlist = async (id: string, name: string) => {
+    updateShortlist(id, { name });
+  };
+
+  const handleDeleteShortlist = async (id: string) => {
+    deleteShortlist(id);
+  };
+
   if (isLoading) {
     return (
       <div className="container mx-auto py-8 max-w-7xl">
@@ -123,6 +131,8 @@ const Shortlists = () => {
             allPlayers={allPlayers}
             privatePlayers={privatePlayers}
             onCreateShortlist={handleCreateShortlist}
+            onUpdateShortlist={handleUpdateShortlist}
+            onDeleteShortlist={handleDeleteShortlist}
           />
         </div>
 

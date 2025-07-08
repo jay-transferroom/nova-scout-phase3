@@ -114,9 +114,23 @@ export const useShortlists = () => {
     });
   }, [shortlists]);
 
+  const updateShortlist = useCallback((id: string, updates: Partial<Shortlist>) => {
+    const updatedShortlists = shortlists.map(shortlist => 
+      shortlist.id === id ? { ...shortlist, ...updates } : shortlist
+    );
+    saveShortlists(updatedShortlists);
+  }, [shortlists, saveShortlists]);
+
+  const deleteShortlist = useCallback((id: string) => {
+    const updatedShortlists = shortlists.filter(shortlist => shortlist.id !== id);
+    saveShortlists(updatedShortlists);
+  }, [shortlists, saveShortlists]);
+
   return {
     shortlists,
     createShortlist,
+    updateShortlist,
+    deleteShortlist,
     addPlayerToShortlist,
     removePlayerFromShortlist,
     getPlayerShortlists
