@@ -40,7 +40,8 @@ const Shortlists = () => {
     sortBy,
     sortOrder,
     euGbeFilter,
-    shortlists
+    shortlists,
+    privatePlayers
   });
 
   // Handle URL parameters for selected shortlist
@@ -49,7 +50,7 @@ const Shortlists = () => {
     if (selectedParam && shortlists.find(list => list.id === selectedParam)) {
       setSelectedList(selectedParam);
     } else if (!selectedList && shortlists.length > 0) {
-      setSelectedList("striker-targets");
+      setSelectedList(shortlists[0].id);
     }
   }, [searchParams, shortlists, selectedList]);
 
@@ -112,7 +113,7 @@ const Shortlists = () => {
             selectedList={selectedList}
             onSelectList={setSelectedList}
             allPlayers={allPlayers}
-            getPrivatePlayersForShortlist={shortlistsLogic.getPrivatePlayersForShortlist}
+            privatePlayers={privatePlayers}
             onCreateShortlist={handleCreateShortlist}
           />
         </div>

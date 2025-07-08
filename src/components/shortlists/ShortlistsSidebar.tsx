@@ -13,7 +13,7 @@ interface ShortlistsSidebarProps {
   selectedList: string | null;
   onSelectList: (listId: string) => void;
   allPlayers: Player[];
-  getPrivatePlayersForShortlist: (shortlistId: string) => Player[];
+  privatePlayers: any[];
   onCreateShortlist: (name: string, playerIds: string[]) => Promise<void>;
 }
 
@@ -22,7 +22,7 @@ export const ShortlistsSidebar = ({
   selectedList,
   onSelectList,
   allPlayers,
-  getPrivatePlayersForShortlist,
+  privatePlayers,
   onCreateShortlist
 }: ShortlistsSidebarProps) => {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
@@ -61,8 +61,13 @@ export const ShortlistsSidebar = ({
       
       <div className="space-y-2">
         {shortlists.map((list) => {
-          const privatePlayersForList = getPrivatePlayersForShortlist(list.id);
-          const totalPlayers = (list.playerIds?.length || 0) + privatePlayersForList.length;
+          const privatePlayersForList = privatePlayers.filter(player => 
+            list.playerIds?.includes(player.id)
+          );
+          const publicPlayersForList = allPlayers.filter(player =>
+            list.playerIds?.includes(player.id.toString())
+          );
+          const totalPlayers = publicPlayersForList.length + privatePlayersForList.length;
           
           return (
             <Card
@@ -82,24 +87,19 @@ export const ShortlistsSidebar = ({
               </CardHeader>
               <CardContent className="pt-0">
                 <div className="space-y-1">
-                  {/* Show first few players as preview */}
-                  {list.playerIds?.slice(0, 2).map((playerId: string) => {
-                    const player = allPlayers.find(p => p.id === playerId);
-                    if (!player) return null;
-                    
-                    return (
-                      <div 
-                        key={playerId} 
-                        className="text-xs text-gray-600 hover:text-blue-600 cursor-pointer"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handlePlayerClick(player);
-                        }}
-                      >
-                        {player.name} ({player.club})
-                      </div>
-                    );
-                  })}
+                  {/* Show first few public players as preview */}
+                  {publicPlayersForList.slice(0, 2).map((player) => (
+                    <div 
+                      key={player.id} 
+                      className="text-xs text-gray-600 hover:text-blue-600 cursor-pointer"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handlePlayerClick(player);
+                      }}
+                    >
+                      {player.name} ({player.club})
+                    </div>
+                  ))}
                   
                   {/* Show private players */}
                   {privatePlayersForList.slice(0, 2).map((player) => (
@@ -108,7 +108,7 @@ export const ShortlistsSidebar = ({
                       className="text-xs text-gray-600 hover:text-blue-600 cursor-pointer flex items-center gap-1"
                       onClick={(e) => {
                         e.stopPropagation();
-                        handlePlayerClick(player);
+                        handlePlayerClick({...player, isPrivatePlayer: true, privatePlayerData: player});
                       }}
                     >
                       {player.name} ({player.club})

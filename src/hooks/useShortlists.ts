@@ -14,64 +14,7 @@ export interface Shortlist {
 // Mock shortlist storage - in a real app this would be in a database
 const SHORTLISTS_STORAGE_KEY = 'chelsea_shortlists';
 
-const getDefaultShortlists = (): Shortlist[] => [
-  {
-    id: "striker-targets",
-    name: "Striker Targets",
-    description: "Center forwards to strengthen attack",
-    color: "bg-blue-500",
-    playerIds: ["private-herbie-hughes"], // Herbie Hughes is manually added
-    filter: (player: any) => 
-      (player.positions.some((pos: string) => 
-        pos?.toLowerCase().includes('st') || 
-        pos?.toLowerCase().includes('cf') ||
-        pos?.toLowerCase().includes('striker') ||
-        pos?.toLowerCase().includes('forward')
-      ) && 
-      player.transferroomRating && player.transferroomRating >= 75 &&
-      player.age && player.age <= 28)
-  },
-  {
-    id: "cb-reinforcements",
-    name: "Centre-Back Options",
-    description: "Defensive reinforcements for back line",
-    color: "bg-red-500",
-    playerIds: [],
-    filter: (player: any) => 
-      (player.positions.some((pos: string) => 
-        pos?.toLowerCase().includes('cb') || 
-        pos?.toLowerCase().includes('centre') ||
-        pos?.toLowerCase().includes('center')
-      ) && 
-      player.transferroomRating && player.transferroomRating >= 70 &&
-      player.age && player.age >= 22 && player.age <= 30)
-  },
-  {
-    id: "loan-prospects",
-    name: "Loan Prospects",
-    description: "Young talents for loan opportunities",
-    color: "bg-green-500",
-    playerIds: ["private-herbie-hughes"], // Herbie Hughes is also on loan prospects
-    filter: (player: any) => 
-      (player.age && player.age <= 22 &&
-      player.futureRating && player.futureRating >= 75 &&
-      player.transferroomRating && player.transferroomRating >= 60)
-  },
-  {
-    id: "bargain-deals",
-    name: "Contract Expiry Watch",  
-    description: "Players with expiring contracts",
-    color: "bg-purple-500",
-    playerIds: [],
-    filter: (player: any) => {
-      if (!player.contractExpiry) return false;
-      const contractYear = new Date(player.contractExpiry).getFullYear();
-      const currentYear = new Date().getFullYear();
-      return (contractYear <= currentYear + 1 && 
-              player.transferroomRating && player.transferroomRating >= 70);
-    }
-  }
-];
+const getDefaultShortlists = (): Shortlist[] => [];
 
 export const useShortlists = () => {
   const { toast } = useToast();
@@ -82,11 +25,13 @@ export const useShortlists = () => {
       const stored = localStorage.getItem(SHORTLISTS_STORAGE_KEY);
       if (stored) {
         const parsed = JSON.parse(stored);
-        // Ensure all shortlists have the required properties
-        return parsed.map((shortlist: any) => ({
-          ...shortlist,
-          playerIds: shortlist.playerIds || []
-        }));
+        // Filter out any old default shortlists and ensure all shortlists have the required properties
+        return parsed
+          .filter((shortlist: any) => !['striker-targets', 'cb-reinforcements', 'loan-prospects', 'bargain-deals'].includes(shortlist.id))
+          .map((shortlist: any) => ({
+            ...shortlist,
+            playerIds: shortlist.playerIds || []
+          }));
       }
     } catch (error) {
       console.error('Error loading shortlists:', error);

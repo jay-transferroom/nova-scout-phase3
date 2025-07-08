@@ -10,24 +10,6 @@ export const usePrivatePlayers = () => {
   const [error, setError] = useState<string | null>(null);
   const { user } = useAuth();
 
-  // Mock Herbie Hughes data to match shortlist expectations
-  const mockHerbieHughes: PrivatePlayer = {
-    id: "1f4c01f4-9548-4cbc-a10f-951eaa41aa56",
-    created_by_user_id: user?.id || "mock-user-id",
-    name: "Herbie Hughes",
-    club: "Manchester United U21",
-    age: 19,
-    date_of_birth: "2005-03-15",
-    positions: ["ST", "CF"],
-    nationality: "England",
-    dominant_foot: "Right",
-    region: "Europe",
-    notes: "Promising young striker from Manchester United academy. Strong physical presence and good finishing ability.",
-    source_context: "Academy scout recommendation",
-    visibility: "private",
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString()
-  };
 
   const fetchPrivatePlayers = async () => {
     if (!user) return;
@@ -47,11 +29,7 @@ export const usePrivatePlayers = () => {
         dominant_foot: player.dominant_foot as 'Left' | 'Right' | 'Both' | undefined,
       })) as PrivatePlayer[];
       
-      // Add mock Herbie Hughes if not already present
-      const hasHerbie = typedData.some(p => p.name === "Herbie Hughes");
-      const allPlayers = hasHerbie ? typedData : [mockHerbieHughes, ...typedData];
-      
-      setPrivatePlayers(allPlayers);
+      setPrivatePlayers(typedData);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {

@@ -11,6 +11,7 @@ interface UseShortlistsLogicProps {
   sortOrder: "asc" | "desc";
   euGbeFilter: string;
   shortlists: any[];
+  privatePlayers: any[];
 }
 
 export const useShortlistsLogic = ({
@@ -22,38 +23,21 @@ export const useShortlistsLogic = ({
   sortBy,
   sortOrder,
   euGbeFilter,
-  shortlists
+  shortlists,
+  privatePlayers
 }: UseShortlistsLogicProps) => {
   
-  // Mock private players on shortlists - including Herbie Hughes
-  const getPrivatePlayersForShortlist = (shortlistId: string) => {
-    const mockPrivatePlayersOnShortlists: { [key: string]: any[] } = {
-      "striker-targets": [
-        {
-          id: "private-herbie-hughes",
-          name: "Herbie Hughes",
-          club: "Manchester United U21",
-          age: 19,
-          positions: ["ST", "CF"],
-          nationality: "England",
-          isPrivate: true,
-          profilePath: "/private-player/1f4c01f4-9548-4cbc-a10f-951eaa41aa56"
-        }
-      ],
-      "loan-prospects": [
-        {
-          id: "private-herbie-hughes",
-          name: "Herbie Hughes", 
-          club: "Manchester United U21",
-          age: 19,
-          positions: ["ST", "CF"],
-          nationality: "England",
-          isPrivate: true,
-          profilePath: "/private-player/1f4c01f4-9548-4cbc-a10f-951eaa41aa56"
-        }
-      ]
-    };
-    return mockPrivatePlayersOnShortlists[shortlistId] || [];
+  // Get real private players for shortlists from usePrivatePlayers hook
+  const getPrivatePlayersForShortlist = (shortlistId: string, allPrivatePlayers: any[], shortlist: any) => {
+    if (!shortlist || !shortlist.playerIds) return [];
+    
+    return allPrivatePlayers
+      .filter(player => shortlist.playerIds.includes(player.id))
+      .map(player => ({
+        ...player,
+        isPrivate: true,
+        profilePath: `/private-player/${player.id}`
+      }));
   };
 
   const currentList = shortlists.find(list => list.id === selectedList);
@@ -64,7 +48,7 @@ export const useShortlistsLogic = ({
   
   if (currentList) {
     // Get private players for this shortlist first
-    currentPrivatePlayers = getPrivatePlayersForShortlist(currentList.id);
+    currentPrivatePlayers = getPrivatePlayersForShortlist(currentList.id, privatePlayers, currentList);
     
     // For custom lists (those with playerIds but no filter), only show manually added players
     if (currentList.playerIds && currentList.playerIds.length > 0 && !currentList.filter) {
@@ -241,7 +225,6 @@ export const useShortlistsLogic = ({
   return {
     currentList,
     sortedPlayers,
-    getPrivatePlayersForShortlist,
     formatXtvScore,
     getPlayerAssignment,
     getAssignmentBadge,
