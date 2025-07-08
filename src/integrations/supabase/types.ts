@@ -539,6 +539,8 @@ export type Database = {
           player_id: string
           priority: string
           report_type: string
+          reviewed_at: string | null
+          reviewed_by_manager_id: string | null
           status: string
           updated_at: string
         }
@@ -552,6 +554,8 @@ export type Database = {
           player_id: string
           priority?: string
           report_type?: string
+          reviewed_at?: string | null
+          reviewed_by_manager_id?: string | null
           status?: string
           updated_at?: string
         }
@@ -565,6 +569,8 @@ export type Database = {
           player_id?: string
           priority?: string
           report_type?: string
+          reviewed_at?: string | null
+          reviewed_by_manager_id?: string | null
           status?: string
           updated_at?: string
         }
@@ -579,6 +585,13 @@ export type Database = {
           {
             foreignKeyName: "scouting_assignments_assigned_to_scout_id_fkey"
             columns: ["assigned_to_scout_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "scouting_assignments_reviewed_by_manager_id_fkey"
+            columns: ["reviewed_by_manager_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]

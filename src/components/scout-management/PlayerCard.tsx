@@ -3,16 +3,17 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { Clock, UserPlus, User, FileText } from "lucide-react";
+import { Clock, UserPlus, User, FileText, Check } from "lucide-react";
 import { Link } from "react-router-dom";
 
 interface PlayerCardProps {
   player: any;
   onAssignScout?: (player: any) => void;
   onViewReport?: (player: any) => void;
+  onMarkAsReviewed?: (player: any) => void;
 }
 
-const PlayerCard = ({ player, onAssignScout, onViewReport }: PlayerCardProps) => {
+const PlayerCard = ({ player, onAssignScout, onViewReport, onMarkAsReviewed }: PlayerCardProps) => {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'shortlisted': return 'bg-gray-100 border-gray-200';
@@ -79,15 +80,31 @@ const PlayerCard = ({ player, onAssignScout, onViewReport }: PlayerCardProps) =>
                 </Button>
               )}
               
-              {player.status === 'completed' && onViewReport && (
-                <Button 
-                  size="sm" 
-                  className="w-full"
-                  onClick={() => onViewReport(player)}
-                >
-                  <FileText className="h-3 w-3 mr-1" />
-                  View Report
-                </Button>
+              {player.status === 'completed' && (
+                <div className="space-y-2">
+                  {onViewReport && (
+                    <Button 
+                      size="sm" 
+                      className="w-full"
+                      onClick={() => onViewReport(player)}
+                    >
+                      <FileText className="h-3 w-3 mr-1" />
+                      View Report
+                    </Button>
+                  )}
+                  
+                  {onMarkAsReviewed && (
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      className="w-full"
+                      onClick={() => onMarkAsReviewed(player)}
+                    >
+                      <Check className="h-3 w-3 mr-1" />
+                      Mark as Reviewed
+                    </Button>
+                  )}
+                </div>
               )}
               
               {player.playerId && (

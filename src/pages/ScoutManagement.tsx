@@ -6,17 +6,24 @@ import { useShortlists } from "@/hooks/useShortlists";
 import { useUnifiedPlayersData } from "@/hooks/useUnifiedPlayersData";
 import { useReports } from "@/hooks/useReports";
 import AssignScoutDialog from "@/components/AssignScoutDialog";
+import { Button } from "@/components/ui/button";
 import ScoutManagementHeader from "@/components/scout-management/ScoutManagementHeader";
 import ScoutManagementFilters from "@/components/scout-management/ScoutManagementFilters";
 import ScoutPerformanceGrid from "@/components/scout-management/ScoutPerformanceGrid";
 import KanbanColumn from "@/components/scout-management/KanbanColumn";
+import ReviewedAssignmentsModal from "@/components/scout-management/ReviewedAssignmentsModal";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 const ScoutManagement = () => {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedScout, setSelectedScout] = useState("all");
   const [selectedPlayer, setSelectedPlayer] = useState<any>(null);
   const [isAssignDialogOpen, setIsAssignDialogOpen] = useState(false);
+  const [isReviewedModalOpen, setIsReviewedModalOpen] = useState(false);
+  const [reviewedAssignments, setReviewedAssignments] = useState<any[]>([]);
   const [kanbanData, setKanbanData] = useState({
     shortlisted: [] as any[],
     assigned: [] as any[],
@@ -29,6 +36,58 @@ const ScoutManagement = () => {
   const { data: allPlayers = [], isLoading } = useUnifiedPlayersData();
   const { reports = [] } = useReports();
   const { shortlists } = useShortlists();
+
+  // Fetch reviewed assignments
+  useEffect(() => {
+    const fetchReviewedAssignments = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('scouting_assignments')
+          .select(`
+            *,
+            assigned_to_scout:profiles!assigned_to_scout_id(*)
+          `)
+          .eq('status', 'reviewed')
+          .not('reviewed_at', 'is', null);
+
+        if (error) {
+          console.error('Error fetching reviewed assignments:', error);
+          return;
+        }
+
+        const reviewedData = data?.map(assignment => {
+          // Find player data from our unified players data
+          const playerData = allPlayers.find(p => {
+            const playerId = p.isPrivatePlayer ? p.id : p.id.toString();
+            return playerId === assignment.player_id;
+          });
+
+          return {
+            id: assignment.id,
+            playerName: playerData?.name || 'Unknown Player',
+            club: playerData?.club || 'Unknown Club',
+            position: playerData?.positions?.[0] || 'Unknown',
+            assignedTo: assignment.assigned_to_scout?.first_name 
+              ? `${assignment.assigned_to_scout.first_name} ${assignment.assigned_to_scout.last_name || ''}`.trim()
+              : assignment.assigned_to_scout?.email || 'Unknown Scout',
+            avatar: playerData?.image || `https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=48&h=48&fit=crop&crop=face&auto=format`,
+            priority: assignment.priority,
+            status: assignment.status,
+            playerId: assignment.player_id,
+            reviewed_at: assignment.reviewed_at
+          };
+        }) || [];
+
+        setReviewedAssignments(reviewedData);
+      } catch (error) {
+        console.error('Error in fetchReviewedAssignments:', error);
+      }
+    };
+
+    if (!isLoading && allPlayers.length > 0) {
+      fetchReviewedAssignments();
+    }
+  }, [assignments, allPlayers, isLoading]);
 
   // Transform assignments and shortlisted players into kanban format
   useEffect(() => {
@@ -103,6 +162,11 @@ const ScoutManagement = () => {
 
     // Process assigned players using consolidated data
     assignments.forEach((assignment) => {
+      // Skip reviewed assignments - they shouldn't appear in the completed column
+      if (assignment.status === 'reviewed') {
+        return;
+      }
+
       const scoutName = assignment.assigned_to_scout?.first_name 
         ? `${assignment.assigned_to_scout.first_name} ${assignment.assigned_to_scout.last_name || ''}`.trim()
         : assignment.assigned_to_scout?.email || 'Unknown Scout';
@@ -244,6 +308,48 @@ const ScoutManagement = () => {
     }
   };
 
+  const handleMarkAsReviewed = async (player: any) => {
+    try {
+      const { error } = await supabase
+        .from('scouting_assignments')
+        .update({
+          status: 'reviewed',
+          reviewed_at: new Date().toISOString(),
+          reviewed_by_manager_id: (await supabase.auth.getUser()).data.user?.id
+        })
+        .eq('id', player.id);
+
+      if (error) {
+        console.error('Error marking assignment as reviewed:', error);
+        toast({
+          title: "Error",
+          description: "Failed to mark assignment as reviewed",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      toast({
+        title: "Success",
+        description: "Assignment marked as reviewed",
+      });
+
+      // Refresh assignments to update the kanban board
+      refetchAssignments();
+    } catch (error) {
+      console.error('Error in handleMarkAsReviewed:', error);
+      toast({
+        title: "Error",
+        description: "An error occurred while marking assignment as reviewed",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleViewReviewedAssignments = () => {
+    setIsReviewedModalOpen(true);
+  };
+
   if (isLoading) {
     return (
       <div className="container mx-auto py-8 max-w-7xl">
@@ -271,6 +377,17 @@ const ScoutManagement = () => {
         onScoutClick={handleScoutClick}
       />
 
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-xl font-semibold">Assignment Status</h2>
+        <Button 
+          variant="outline" 
+          onClick={handleViewReviewedAssignments}
+          className="gap-2"
+        >
+          View Reviewed ({reviewedAssignments.length})
+        </Button>
+      </div>
+
       {/* Status Board */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {columns.map((column) => (
@@ -282,6 +399,7 @@ const ScoutManagement = () => {
             selectedScout={selectedScout}
             onAssignScout={column.id === 'shortlisted' ? handleAssignScout : undefined}
             onViewReport={column.id === 'completed' ? handleViewReport : undefined}
+            onMarkAsReviewed={column.id === 'completed' ? handleMarkAsReviewed : undefined}
           />
         ))}
       </div>
@@ -291,6 +409,14 @@ const ScoutManagement = () => {
         isOpen={isAssignDialogOpen}
         onClose={handleAssignDialogClose}
         player={selectedPlayer}
+      />
+
+      {/* Reviewed Assignments Modal */}
+      <ReviewedAssignmentsModal
+        isOpen={isReviewedModalOpen}
+        onClose={() => setIsReviewedModalOpen(false)}
+        reviewedAssignments={reviewedAssignments}
+        onViewReport={handleViewReport}
       />
     </div>
   );
