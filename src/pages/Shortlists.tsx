@@ -113,7 +113,7 @@ const Shortlists = () => {
             onSelectList={setSelectedList}
             allPlayers={allPlayers}
             getPrivatePlayersForShortlist={shortlistsLogic.getPrivatePlayersForShortlist}
-            onCreateShortlist={createShortlist}
+            onCreateShortlist={handleCreateShortlist}
           />
         </div>
 
