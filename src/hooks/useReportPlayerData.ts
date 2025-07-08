@@ -75,44 +75,78 @@ export const useReportPlayerData = (playerId?: string) => {
           recentForm: undefined,
         };
       } else {
-        // UUID format - check players table
+        // UUID format - check players table first, then private_players
         console.log('useReportPlayerData: Fetching from players table');
-        const { data, error } = await supabase
+        const { data: playersData, error: playersError } = await supabase
           .from('players')
           .select('*')
           .eq('id', playerId)
-          .single();
+          .maybeSingle();
 
-        if (error) {
-          console.error('Error fetching player from players:', error);
+        if (playersError) {
+          console.error('Error fetching player from players:', playersError);
+        }
+
+        if (playersData) {
+          console.log('useReportPlayerData: Found player in players:', playersData);
+          return {
+            id: playersData.id,
+            name: playersData.name,
+            club: playersData.club,
+            age: playersData.age,
+            dateOfBirth: playersData.date_of_birth,
+            positions: playersData.positions,
+            dominantFoot: playersData.dominant_foot as 'Left' | 'Right' | 'Both',
+            nationality: playersData.nationality,
+            contractStatus: playersData.contract_status as 'Free Agent' | 'Under Contract' | 'Loan' | 'Youth Contract',
+            contractExpiry: playersData.contract_expiry,
+            region: playersData.region,
+            image: playersData.image_url,
+            xtvScore: playersData.xtv_score,
+            transferroomRating: playersData.transferroom_rating,
+            futureRating: playersData.future_rating,
+            recentForm: undefined,
+          };
+        }
+
+        // If not found in players table, check private_players table
+        console.log('useReportPlayerData: Player not found in players table, checking private_players');
+        const { data: privatePlayerData, error: privatePlayerError } = await supabase
+          .from('private_players')
+          .select('*')
+          .eq('id', playerId)
+          .maybeSingle();
+
+        if (privatePlayerError) {
+          console.error('Error fetching private player:', privatePlayerError);
           return null;
         }
 
-        if (!data) {
-          console.log('useReportPlayerData: No player found in players table');
-          return null;
+        if (privatePlayerData) {
+          console.log('useReportPlayerData: Found private player:', privatePlayerData);
+          return {
+            id: privatePlayerData.id,
+            name: privatePlayerData.name,
+            club: privatePlayerData.club || 'Unknown',
+            age: privatePlayerData.age || 0,
+            dateOfBirth: privatePlayerData.date_of_birth || '',
+            positions: privatePlayerData.positions || [],
+            dominantFoot: (privatePlayerData.dominant_foot as 'Left' | 'Right' | 'Both') || 'Right',
+            nationality: privatePlayerData.nationality || 'Unknown',
+            contractStatus: 'Private Player' as any,
+            contractExpiry: null,
+            region: privatePlayerData.region || 'Unknown',
+            image: undefined,
+            xtvScore: undefined,
+            transferroomRating: undefined,
+            futureRating: undefined,
+            recentForm: undefined,
+            isPrivatePlayer: true,
+          };
         }
 
-        console.log('useReportPlayerData: Found player in players:', data);
-
-        return {
-          id: data.id,
-          name: data.name,
-          club: data.club,
-          age: data.age,
-          dateOfBirth: data.date_of_birth,
-          positions: data.positions,
-          dominantFoot: data.dominant_foot as 'Left' | 'Right' | 'Both',
-          nationality: data.nationality,
-          contractStatus: data.contract_status as 'Free Agent' | 'Under Contract' | 'Loan' | 'Youth Contract',
-          contractExpiry: data.contract_expiry,
-          region: data.region,
-          image: data.image_url,
-          xtvScore: data.xtv_score,
-          transferroomRating: data.transferroom_rating,
-          futureRating: data.future_rating,
-          recentForm: undefined,
-        };
+        console.log('useReportPlayerData: No player found in any table');
+        return null;
       }
     },
     enabled: !!playerId,

@@ -43,10 +43,9 @@ const ReportRow = ({ report, onViewReport, onEditReport, onDeleteReport, canEdit
 
   const handleViewPlayerProfile = () => {
     if (playerData) {
-      // Check if it's a private player by looking at the ID format
-      if (report.playerId.startsWith('private-')) {
-        const privatePlayerId = report.playerId.replace('private-', '');
-        navigate(`/private-player/${privatePlayerId}`);
+      // Check if it's a private player by looking for the isPrivatePlayer flag
+      if (playerData.isPrivatePlayer) {
+        navigate(`/private-player/${report.playerId}`);
       } else {
         navigate(`/player/${report.playerId}`);
       }
@@ -55,7 +54,7 @@ const ReportRow = ({ report, onViewReport, onEditReport, onDeleteReport, canEdit
 
   const handleCreateReport = () => {
     if (playerData) {
-      if (report.playerId.startsWith('private-')) {
+      if (playerData.isPrivatePlayer) {
         // For private players
         navigate('/report-builder', { 
           state: { selectedPrivatePlayer: playerData } 
