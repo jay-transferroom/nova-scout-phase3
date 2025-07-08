@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { useScoutingAssignments } from "@/hooks/useScoutingAssignments";
 import { useScoutUsers } from "@/hooks/useScoutUsers";
 import { useShortlists } from "@/hooks/useShortlists";
@@ -11,6 +12,7 @@ import ScoutPerformanceGrid from "@/components/scout-management/ScoutPerformance
 import KanbanColumn from "@/components/scout-management/KanbanColumn";
 
 const ScoutManagement = () => {
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedScout, setSelectedScout] = useState("all");
   const [selectedPlayer, setSelectedPlayer] = useState<any>(null);
@@ -233,9 +235,13 @@ const ScoutManagement = () => {
   };
 
   const handleViewReport = (player: any) => {
-    // Navigate to the report view page - we'll implement this when we have the reports view
-    console.log("Viewing report for player:", player);
-    // TODO: Navigate to /reports with player filter or specific report ID
+    // Find the report for this player
+    const playerReport = reports.find(report => report.playerId === player.playerId);
+    if (playerReport) {
+      navigate(`/report/${playerReport.id}`);
+    } else {
+      console.error("No report found for player:", player.playerId);
+    }
   };
 
   if (isLoading) {
