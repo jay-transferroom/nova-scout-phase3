@@ -38,7 +38,8 @@ export const getContractStatusColor = (status: string) => {
   }
 };
 
-export const calculateAge = (dateOfBirth: string) => {
+export const calculateAge = (dateOfBirth: string): number | null => {
+  if (!dateOfBirth) return null;
   const birthDate = new Date(dateOfBirth);
   const today = new Date();
   let age = today.getFullYear() - birthDate.getFullYear();
@@ -52,6 +53,7 @@ export const calculateAge = (dateOfBirth: string) => {
 };
 
 export const formatDateLocal = (dateString: string) => {
+  if (!dateString) return 'N/A';
   return new Date(dateString).toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'long',

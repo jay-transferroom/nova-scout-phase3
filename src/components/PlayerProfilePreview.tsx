@@ -1,6 +1,11 @@
 import { Button } from "@/components/ui/button";
 import { Player } from "@/types/player";
 import { useNavigate } from "react-router-dom";
+import { 
+  calculateAge, 
+  getPositionColor, 
+  getFormRatingColor 
+} from "@/utils/playerProfileUtils";
 
 interface PlayerProfilePreviewProps {
   player: Player;
@@ -10,48 +15,6 @@ interface PlayerProfilePreviewProps {
 
 const PlayerProfilePreview = ({ player, onCreateReport, onClose }: PlayerProfilePreviewProps) => {
   const navigate = useNavigate();
-  
-  const getPositionColor = (position: string) => {
-    const colors: Record<string, string> = {
-      'GK': 'bg-yellow-500',
-      'CB': 'bg-blue-500',
-      'LB': 'bg-blue-300',
-      'RB': 'bg-blue-300',
-      'LWB': 'bg-teal-400',
-      'RWB': 'bg-teal-400',
-      'CDM': 'bg-green-600',
-      'CM': 'bg-green-500',
-      'CAM': 'bg-green-400',
-      'LM': 'bg-teal-300',
-      'RM': 'bg-teal-300',
-      'LW': 'bg-red-300',
-      'RW': 'bg-red-300',
-      'ST': 'bg-red-600',
-      'CF': 'bg-red-500',
-    };
-    
-    return colors[position] || 'bg-gray-400';
-  };
-  
-  const getFormRatingColor = (rating: number) => {
-    if (rating >= 8) return 'text-green-500';
-    if (rating >= 7) return 'text-blue-500';
-    if (rating >= 6) return 'text-yellow-500';
-    return 'text-red-500';
-  };
-
-  const calculateAge = (dateOfBirth: string) => {
-    const birthDate = new Date(dateOfBirth);
-    const today = new Date();
-    let age = today.getFullYear() - birthDate.getFullYear();
-    const monthDifference = today.getMonth() - birthDate.getMonth();
-    
-    if (monthDifference < 0 || (monthDifference === 0 && today.getDate() < birthDate.getDate())) {
-      age--;
-    }
-    
-    return age;
-  };
   
   const handleViewFullProfile = () => {
     navigate(`/player/${player.id}`); // Fixed: changed from /players/ to /player/
