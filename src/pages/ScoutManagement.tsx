@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useScoutingAssignments } from "@/hooks/useScoutingAssignments";
 import { useScoutUsers } from "@/hooks/useScoutUsers";
+import { useShortlists } from "@/hooks/useShortlists";
 import { useUnifiedPlayersData } from "@/hooks/useUnifiedPlayersData";
 import { useReports } from "@/hooks/useReports";
 import AssignScoutDialog from "@/components/AssignScoutDialog";
@@ -25,6 +26,7 @@ const ScoutManagement = () => {
   const { data: scouts = [] } = useScoutUsers();
   const { data: allPlayers = [], isLoading } = useUnifiedPlayersData();
   const { reports = [] } = useReports();
+  const { shortlists } = useShortlists();
 
   // Transform assignments and shortlisted players into kanban format
   useEffect(() => {
@@ -54,12 +56,21 @@ const ScoutManagement = () => {
 
     console.log('Player reports map size:', playerReportsMap.size);
 
-    // Show ONLY unassigned shortlisted players
-    const unassignedShortlistedPlayers = allPlayers
-      .slice(0, 25)
+    // Get all players from shortlists instead of just showing random unassigned players
+    const shortlistedPlayerIds = new Set<string>();
+    shortlists.forEach(shortlist => {
+      if (shortlist.playerIds) {
+        shortlist.playerIds.forEach(id => shortlistedPlayerIds.add(id));
+      }
+    });
+
+    console.log('Shortlisted player IDs:', Array.from(shortlistedPlayerIds));
+
+    // Create shortlisted players from actual shortlists
+    const actualShortlistedPlayers = allPlayers
       .filter(player => {
         const playerId = player.isPrivatePlayer ? player.id : player.id.toString();
-        return !assignedPlayerIds.has(playerId);
+        return shortlistedPlayerIds.has(playerId) && !assignedPlayerIds.has(playerId);
       })
       .map(player => ({
         id: `shortlisted-${player.id}`,
@@ -80,11 +91,11 @@ const ScoutManagement = () => {
 
     // Apply search filter to shortlisted players
     const filteredShortlisted = searchTerm 
-      ? unassignedShortlistedPlayers.filter(player => 
+      ? actualShortlistedPlayers.filter(player => 
           player.playerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
           player.club.toLowerCase().includes(searchTerm.toLowerCase())
         )
-      : unassignedShortlistedPlayers;
+      : actualShortlistedPlayers;
 
     newKanbanData.shortlisted = filteredShortlisted;
 
@@ -145,7 +156,7 @@ const ScoutManagement = () => {
     });
 
     setKanbanData(newKanbanData);
-  }, [assignments, scouts, allPlayers, reports, selectedScout, searchTerm, isLoading]);
+  }, [assignments, scouts, allPlayers, reports, selectedScout, searchTerm, isLoading, shortlists]);
 
   const getUpdatedTime = (status: string) => {
     const times = {
