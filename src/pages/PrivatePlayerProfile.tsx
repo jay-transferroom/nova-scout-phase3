@@ -23,12 +23,15 @@ const PrivatePlayerProfile = () => {
   useEffect(() => {
     console.log('PrivatePlayerProfile - playerId from URL:', playerId);
     console.log('PrivatePlayerProfile - privatePlayers:', privatePlayers);
+    console.log('PrivatePlayerProfile - privatePlayers length:', privatePlayers?.length);
     
     if (playerId && privatePlayers && privatePlayers.length > 0) {
       // Find the private player by ID
       const foundPlayer = privatePlayers.find(p => p.id === playerId);
       
       console.log('PrivatePlayerProfile - Found player:', foundPlayer);
+      console.log('PrivatePlayerProfile - Looking for ID:', playerId);
+      console.log('PrivatePlayerProfile - Available IDs:', privatePlayers.map(p => p.id));
       
       if (foundPlayer) {
         // Transform to match expected Player interface for components
@@ -49,7 +52,10 @@ const PrivatePlayerProfile = () => {
         setPlayer(transformedPlayer);
       } else {
         console.log('PrivatePlayerProfile - Player not found with ID:', playerId);
+        console.log('PrivatePlayerProfile - This could be due to RLS permissions if user is not the creator');
       }
+    } else if (playerId && privatePlayers && privatePlayers.length === 0) {
+      console.log('PrivatePlayerProfile - No private players found - likely due to RLS or user not authenticated');
     }
   }, [playerId, privatePlayers]);
 
@@ -121,10 +127,13 @@ const PrivatePlayerProfile = () => {
       <div className="container mx-auto py-8 max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="text-center">
           <p className="text-lg font-medium text-gray-900 mb-2">Private player not found</p>
-          <p className="text-gray-600 mb-4">The player you're looking for doesn't exist or may have been removed.</p>
-          <Button onClick={() => navigate('/shortlists')} variant="outline">
+          <p className="text-gray-600 mb-4">
+            This private player either doesn't exist, has been removed, or you don't have permission to view it. 
+            Private players can only be viewed by the user who created them.
+          </p>
+          <Button onClick={() => navigate('/')} variant="outline">
             <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Shortlists
+            Back to Home
           </Button>
         </div>
       </div>
