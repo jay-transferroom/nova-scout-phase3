@@ -3,6 +3,9 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Plus, Users } from "lucide-react";
 import { Player } from "@/types/player";
 import AddPrivatePlayerDialog from "@/components/AddPrivatePlayerDialog";
@@ -26,6 +29,7 @@ export const ShortlistsSidebar = ({
   onCreateShortlist
 }: ShortlistsSidebarProps) => {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [newShortlistName, setNewShortlistName] = useState("");
   const navigate = useNavigate();
 
   const handlePlayerClick = (player: Player) => {
@@ -40,9 +44,12 @@ export const ShortlistsSidebar = ({
     }
   };
 
-  const handleCreateShortlist = async (name: string, playerIds: string[]) => {
-    await onCreateShortlist(name, playerIds);
-    setIsAddDialogOpen(false);
+  const handleCreateShortlist = async () => {
+    if (newShortlistName.trim()) {
+      await onCreateShortlist(newShortlistName.trim(), []);
+      setNewShortlistName("");
+      setIsAddDialogOpen(false);
+    }
   };
 
   return (
@@ -51,10 +58,39 @@ export const ShortlistsSidebar = ({
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle className="text-base font-semibold">Shortlists</CardTitle>
-            <Button variant="ghost" size="sm" onClick={() => setIsAddDialogOpen(true)}>
-              <Plus className="mr-2 h-4 w-4" />
-              Create
-            </Button>
+            <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+              <DialogTrigger asChild>
+                <Button variant="ghost" size="sm">
+                  <Plus className="mr-2 h-4 w-4" />
+                  Create
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Create New Shortlist</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4 py-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="shortlist-name">Shortlist Name</Label>
+                    <Input
+                      id="shortlist-name"
+                      value={newShortlistName}
+                      onChange={(e) => setNewShortlistName(e.target.value)}
+                      placeholder="Enter shortlist name..."
+                      onKeyDown={(e) => e.key === 'Enter' && handleCreateShortlist()}
+                    />
+                  </div>
+                  <div className="flex justify-end space-x-2">
+                    <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
+                      Cancel
+                    </Button>
+                    <Button onClick={handleCreateShortlist} disabled={!newShortlistName.trim()}>
+                      Create Shortlist
+                    </Button>
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
           </div>
         </CardHeader>
       </Card>
