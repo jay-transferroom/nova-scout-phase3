@@ -1,6 +1,6 @@
 
 import { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -221,67 +221,75 @@ const ReportView = () => {
       {/* Enhanced Player Header */}
       <Card className="mb-6 overflow-hidden">
         <CardContent className="p-0">
-          <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-6">
-            <div className="flex items-start gap-6">
-              {report.player.image ? (
-                <img 
-                  src={report.player.image} 
-                  alt={report.player.name} 
-                  className="w-20 h-20 rounded-full object-cover border-4 border-white shadow-lg" 
-                />
-              ) : (
-                <div className="w-20 h-20 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center border-4 border-white shadow-lg">
-                  <span className="text-2xl font-bold text-white">
-                    {report.player.name.charAt(0)}
-                  </span>
-                </div>
-              )}
-              
-              <div className="flex-1 min-w-0">
-                <h1 className="text-3xl font-bold text-gray-900 mb-2">{report.player.name}</h1>
-                <div className="flex flex-wrap gap-4 text-sm text-gray-600 mb-3">
-                  <div className="flex items-center gap-1">
-                    <User className="h-4 w-4" />
-                    <span className="font-medium">{report.player.club}</span>
+          <Link 
+            to={report.player.isPrivatePlayer 
+              ? `/private-player/${report.playerId}` 
+              : `/player/${report.playerId}`
+            }
+            className="block hover:bg-gray-50 transition-colors"
+          >
+            <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-6 hover:from-blue-100 hover:to-purple-100 transition-all cursor-pointer">
+              <div className="flex items-start gap-6">
+                {report.player.image ? (
+                  <img 
+                    src={report.player.image} 
+                    alt={report.player.name} 
+                    className="w-20 h-20 rounded-full object-cover border-4 border-white shadow-lg" 
+                  />
+                ) : (
+                  <div className="w-20 h-20 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center border-4 border-white shadow-lg">
+                    <span className="text-2xl font-bold text-white">
+                      {report.player.name.charAt(0)}
+                    </span>
                   </div>
-                  <div className="flex items-center gap-1">
-                    <MapPin className="h-4 w-4" />
-                    <span>{report.player.positions.join(", ")}</span>
+                )}
+                
+                <div className="flex-1 min-w-0">
+                  <h1 className="text-3xl font-bold text-gray-900 mb-2 hover:text-blue-700 transition-colors">{report.player.name}</h1>
+                  <div className="flex flex-wrap gap-4 text-sm text-gray-600 mb-3">
+                    <div className="flex items-center gap-1">
+                      <User className="h-4 w-4" />
+                      <span className="font-medium">{report.player.club}</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <MapPin className="h-4 w-4" />
+                      <span>{report.player.positions.join(", ")}</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Calendar className="h-4 w-4" />
+                      <span>{report.player.age} years old</span>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-1">
-                    <Calendar className="h-4 w-4" />
-                    <span>{report.player.age} years old</span>
+                  
+                  <div className="flex flex-wrap gap-2">
+                    {report.player.positions.map((position) => (
+                      <Badge key={position} variant="secondary" className="bg-blue-100 text-blue-800">
+                        {position}
+                      </Badge>
+                    ))}
                   </div>
                 </div>
                 
-                <div className="flex flex-wrap gap-2">
-                  {report.player.positions.map((position) => (
-                    <Badge key={position} variant="secondary" className="bg-blue-100 text-blue-800">
-                      {position}
-                    </Badge>
-                  ))}
-                </div>
-              </div>
-              
-              <div className="text-right">
-                <Badge 
-                  variant={
-                    report.status === 'submitted' ? 'default' : 
-                    report.status === 'draft' ? 'secondary' : 'outline'
-                  }
-                  className="mb-2"
-                >
-                  {report.status.charAt(0).toUpperCase() + report.status.slice(1)}
-                </Badge>
-                <div className="text-sm text-gray-600">
-                  <div className="flex items-center gap-1 mb-1">
-                    <Clock className="h-3 w-3" />
-                    <span>{formatReportDate(report.createdAt)}</span>
+                <div className="text-right">
+                  <Badge 
+                    variant={
+                      report.status === 'submitted' ? 'default' : 
+                      report.status === 'draft' ? 'secondary' : 'outline'
+                    }
+                    className="mb-2"
+                  >
+                    {report.status.charAt(0).toUpperCase() + report.status.slice(1)}
+                  </Badge>
+                  <div className="text-sm text-gray-600">
+                    <div className="flex items-center gap-1 mb-1">
+                      <Clock className="h-3 w-3" />
+                      <span>{formatReportDate(report.createdAt)}</span>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
+          </Link>
         </CardContent>
       </Card>
 
