@@ -15,6 +15,7 @@ interface KanbanColumnProps {
   searchTerm: string;
   selectedScout: string;
   onAssignScout?: (player: any) => void;
+  onViewReport?: (player: any) => void;
 }
 
 const KanbanColumn = ({
@@ -22,7 +23,8 @@ const KanbanColumn = ({
   players,
   searchTerm,
   selectedScout,
-  onAssignScout
+  onAssignScout,
+  onViewReport
 }: KanbanColumnProps) => {
   return (
     <div className="flex flex-col">
@@ -48,6 +50,7 @@ const KanbanColumn = ({
               key={player.id} 
               player={player} 
               onAssignScout={onAssignScout}
+              onViewReport={onViewReport}
             />
           ))
         ) : (

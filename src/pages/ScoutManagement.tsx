@@ -232,6 +232,12 @@ const ScoutManagement = () => {
     setSelectedScout(scoutId);
   };
 
+  const handleViewReport = (player: any) => {
+    // Navigate to the report view page - we'll implement this when we have the reports view
+    console.log("Viewing report for player:", player);
+    // TODO: Navigate to /reports with player filter or specific report ID
+  };
+
   if (isLoading) {
     return (
       <div className="container mx-auto py-8 max-w-7xl">
@@ -269,6 +275,7 @@ const ScoutManagement = () => {
             searchTerm={searchTerm}
             selectedScout={selectedScout}
             onAssignScout={column.id === 'shortlisted' ? handleAssignScout : undefined}
+            onViewReport={column.id === 'completed' ? handleViewReport : undefined}
           />
         ))}
       </div>
