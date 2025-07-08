@@ -15,7 +15,7 @@ import PlayerRatingsCard from "@/components/PlayerRatingsCard";
 import PlayerAIRecommendation from "@/components/PlayerAIRecommendation";
 
 const PrivatePlayerProfile = () => {
-  const { playerId } = useParams();
+  const { id: playerId } = useParams();
   const navigate = useNavigate();
   const { privatePlayers, loading } = usePrivatePlayers();
   const [player, setPlayer] = useState(null);
