@@ -26,6 +26,9 @@ export interface Player {
   // New properties for private players
   isPrivatePlayer?: boolean;
   privatePlayerData?: import('@/types/privatePlayer').PrivatePlayer;
+  // Direct private player properties
+  notes?: string;
+  source_context?: string;
 }
 
 export interface RecentPlayer extends Pick<Player, 'id' | 'name' | 'club' | 'positions'> {

@@ -6,58 +6,34 @@ import { ArrowLeft } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
-import { usePrivatePlayers } from "@/hooks/usePrivatePlayers";
+import { usePrivatePlayerProfile } from "@/hooks/usePrivatePlayerProfile";
 import { PlayerHeader } from "@/components/PlayerHeader";
 import { PlayerBasicInfo } from "@/components/PlayerBasicInfo";
 import { PlayerClubInfo } from "@/components/PlayerClubInfo";
 import { PlayerNotes } from "@/components/PlayerNotes";
+import { PlayerReports } from "@/components/PlayerReports";
 import PlayerRatingsCard from "@/components/PlayerRatingsCard";
 import PlayerAIRecommendation from "@/components/PlayerAIRecommendation";
+import { groupReportsByPlayer } from "@/utils/reportGrouping";
 
 const PrivatePlayerProfile = () => {
   const { id: playerId } = useParams();
   const navigate = useNavigate();
-  const { privatePlayers, loading } = usePrivatePlayers();
-  const [player, setPlayer] = useState(null);
+  const [notesOpen, setNotesOpen] = useState(false);
 
-  useEffect(() => {
-    console.log('PrivatePlayerProfile - playerId from URL:', playerId);
-    console.log('PrivatePlayerProfile - privatePlayers:', privatePlayers);
-    console.log('PrivatePlayerProfile - privatePlayers length:', privatePlayers?.length);
+  const { player, isLoading, error, playerReports, reportsLoading } = usePrivatePlayerProfile(playerId);
+
+  // Calculate aggregated data from reports
+  const aggregatedData = playerReports && playerReports.length > 0 ? (() => {
+    const groupedReports = groupReportsByPlayer(playerReports);
+    const playerData = groupedReports[0]; // Should only be one player's reports
     
-    if (playerId && privatePlayers && privatePlayers.length > 0) {
-      // Find the private player by ID
-      const foundPlayer = privatePlayers.find(p => p.id === playerId);
-      
-      console.log('PrivatePlayerProfile - Found player:', foundPlayer);
-      console.log('PrivatePlayerProfile - Looking for ID:', playerId);
-      console.log('PrivatePlayerProfile - Available IDs:', privatePlayers.map(p => p.id));
-      
-      if (foundPlayer) {
-        // Transform to match expected Player interface for components
-        const transformedPlayer = {
-          ...foundPlayer,
-          id: foundPlayer.id,
-          dateOfBirth: foundPlayer.date_of_birth,
-          dominantFoot: foundPlayer.dominant_foot,
-          contractStatus: 'Private Player',
-          contractExpiry: undefined,
-          image: undefined,
-          xtvScore: undefined,
-          transferroomRating: undefined,
-          futureRating: undefined,
-          euGbeStatus: 'Unknown',
-          recentForm: undefined
-        };
-        setPlayer(transformedPlayer);
-      } else {
-        console.log('PrivatePlayerProfile - Player not found with ID:', playerId);
-        console.log('PrivatePlayerProfile - This could be due to RLS permissions if user is not the creator');
-      }
-    } else if (playerId && privatePlayers && privatePlayers.length === 0) {
-      console.log('PrivatePlayerProfile - No private players found - likely due to RLS or user not authenticated');
-    }
-  }, [playerId, privatePlayers]);
+    return {
+      avgRating: playerData?.avgRating || null,
+      recommendation: playerData?.recommendation || null,
+      reportCount: playerData?.reportCount || 0
+    };
+  })() : undefined;
 
   const calculateAge = (dateOfBirth: string) => {
     if (!dateOfBirth) return null;
@@ -111,18 +87,22 @@ const PrivatePlayerProfile = () => {
   };
 
   const onOpenNotes = () => {
-    console.log("Open notes clicked");
+    setNotesOpen(true);
   };
 
-  if (loading) {
+  const handleViewReport = (reportId: string) => {
+    navigate(`/report/${reportId}`);
+  };
+
+  if (isLoading) {
     return (
       <div className="container mx-auto py-8 max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="text-center">Loading player data...</div>
+        <div className="text-center">Loading private player data...</div>
       </div>
     );
   }
 
-  if (!player) {
+  if (error || !player) {
     return (
       <div className="container mx-auto py-8 max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="text-center">
@@ -157,6 +137,7 @@ const PrivatePlayerProfile = () => {
           onOpenNotes={onOpenNotes}
           calculateAge={calculateAge}
           getPositionColor={getPositionColor}
+          aggregatedData={aggregatedData}
         />
       </div>
 
@@ -175,6 +156,15 @@ const PrivatePlayerProfile = () => {
               formatDateLocal={formatDateLocal}
             />
           </div>
+          
+          {/* Player Reports Section */}
+          <PlayerReports 
+            playerReports={playerReports || []}
+            reportsLoading={reportsLoading}
+            onViewReport={handleViewReport}
+            playerId={player.id}
+            playerName={player.name}
+          />
           
           {/* Notes Section */}
           {player.notes && (
@@ -200,7 +190,7 @@ const PrivatePlayerProfile = () => {
         </div>
         
         <div className="xl:col-span-1 space-y-6">
-          <PlayerRatingsCard player={player} />
+          <PlayerRatingsCard player={player} aggregatedData={aggregatedData} />
           <PlayerAIRecommendation player={player} />
         </div>
       </div>
@@ -208,8 +198,8 @@ const PrivatePlayerProfile = () => {
       <PlayerNotes
         playerId={player.id || ""}
         playerName={player.name}
-        open={false}
-        onOpenChange={() => {}}
+        open={notesOpen}
+        onOpenChange={setNotesOpen}
       />
     </div>
   );

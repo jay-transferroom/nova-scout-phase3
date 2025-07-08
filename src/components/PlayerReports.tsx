@@ -31,13 +31,17 @@ export const PlayerReports = ({
 
   const handleCreateReport = () => {
     if (playerId && playerName) {
-      if (playerId.startsWith('private-')) {
+      // Check if we have a private player by looking at the playerReports data
+      const isPrivatePlayer = playerReports && playerReports.length > 0 && 
+                             playerReports[0].player?.isPrivatePlayer;
+      
+      if (isPrivatePlayer) {
         // For private players
         navigate('/report-builder', { 
-          state: { selectedPrivatePlayer: { id: playerId.replace('private-', ''), name: playerName } } 
+          state: { selectedPrivatePlayer: playerReports[0].player } 
         });
       } else {
-        // For public players
+        // For public players  
         navigate('/report-builder', { 
           state: { selectedPlayer: { id: playerId, name: playerName } } 
         });
