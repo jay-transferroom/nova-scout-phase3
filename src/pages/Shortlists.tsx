@@ -28,7 +28,7 @@ const Shortlists = () => {
   const { data: assignments = [], refetch: refetchAssignments } = useScoutingAssignments();
   const { reports = [] } = useReports();
   const { privatePlayers } = usePrivatePlayers();
-  const { shortlists, createShortlist, getPlayerShortlists } = useShortlists();
+  const { shortlists, createShortlist, addPlayerToShortlist, getPlayerShortlists } = useShortlists();
   const queryClient = useQueryClient();
 
   const shortlistsLogic = useShortlistsLogic({
@@ -93,6 +93,14 @@ const Shortlists = () => {
     await createShortlist(name, playerIds);
   };
 
+  const handleAddPlayersToShortlist = (playerIds: string[]) => {
+    if (selectedList) {
+      playerIds.forEach(playerId => {
+        addPlayerToShortlist(selectedList, playerId);
+      });
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="container mx-auto py-8 max-w-7xl">
@@ -123,6 +131,7 @@ const Shortlists = () => {
           <ShortlistsContent
             currentList={shortlistsLogic.currentList}
             sortedPlayers={shortlistsLogic.sortedPlayers}
+            allPlayers={allPlayers}
             searchTerm={searchTerm}
             onSearchChange={setSearchTerm}
             sortBy={sortBy}
@@ -138,6 +147,7 @@ const Shortlists = () => {
             onAssignScout={handleAssignScout}
             onRemovePlayer={handleRemovePlayer}
             onExportList={handleExportList}
+            onAddPlayersToShortlist={handleAddPlayersToShortlist}
           />
         </div>
       </div>

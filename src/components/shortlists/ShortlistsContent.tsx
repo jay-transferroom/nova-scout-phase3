@@ -1,5 +1,6 @@
 
-import { Search, ArrowUpDown, Download, Plus } from "lucide-react";
+import { useState, useMemo } from "react";
+import { Search, ArrowUpDown, Download, Plus, Wand2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -14,6 +15,7 @@ import { Link } from "react-router-dom";
 interface ShortlistsContentProps {
   currentList: any;
   sortedPlayers: any[];
+  allPlayers: any[];
   searchTerm: string;
   onSearchChange: (value: string) => void;
   sortBy: string;
@@ -29,11 +31,13 @@ interface ShortlistsContentProps {
   onAssignScout: (player: any) => void;
   onRemovePlayer: (playerId: string) => void;
   onExportList: () => void;
+  onAddPlayersToShortlist: (playerIds: string[]) => void;
 }
 
 export const ShortlistsContent = ({
   currentList,
   sortedPlayers,
+  allPlayers,
   searchTerm,
   onSearchChange,
   sortBy,
@@ -48,7 +52,8 @@ export const ShortlistsContent = ({
   formatXtvScore,
   onAssignScout,
   onRemovePlayer,
-  onExportList
+  onExportList,
+  onAddPlayersToShortlist
 }: ShortlistsContentProps) => {
   if (!currentList) {
     return (
@@ -63,6 +68,67 @@ export const ShortlistsContent = ({
   const handleCreateReport = (player: any) => {
     // This will be handled by the parent component
     console.log("Creating report for:", player);
+  };
+
+  // Auto-suggest players based on shortlist name
+  const suggestedPlayers = useMemo(() => {
+    if (!currentList || !allPlayers.length) return [];
+
+    const listName = currentList.name.toLowerCase();
+    const positionKeywords = {
+      'striker': ['st', 'cf', 'striker', 'forward'],
+      'winger': ['lw', 'rw', 'lm', 'rm', 'wing'],
+      'midfielder': ['cm', 'cam', 'cdm', 'dm', 'mid'],
+      'defender': ['cb', 'lb', 'rb', 'lwb', 'rwb', 'def'],
+      'goalkeeper': ['gk', 'keeper'],
+      'fullback': ['lb', 'rb', 'back'],
+      'centreback': ['cb', 'centre', 'center'],
+      'centremid': ['cm', 'centre', 'center'],
+      'attacking': ['cam', 'cf', 'lw', 'rw', 'attack'],
+      'defensive': ['cdm', 'cb', 'dm', 'def']
+    };
+
+    // Get current shortlist player IDs to exclude them
+    const currentPlayerIds = new Set(currentList.playerIds || []);
+
+    // Find matching positions based on shortlist name
+    let relevantPositions: string[] = [];
+    for (const [keyword, positions] of Object.entries(positionKeywords)) {
+      if (listName.includes(keyword)) {
+        relevantPositions.push(...positions);
+      }
+    }
+
+    // If no specific keywords found, try to match exact position abbreviations
+    if (relevantPositions.length === 0) {
+      const allPositions = Object.values(positionKeywords).flat();
+      relevantPositions = allPositions.filter(pos => listName.includes(pos.toLowerCase()));
+    }
+
+    if (relevantPositions.length === 0) return [];
+
+    // Filter players by matching positions and exclude already added players
+    const suggested = allPlayers
+      .filter(player => {
+        const playerId = player.isPrivatePlayer ? player.id : player.id.toString();
+        if (currentPlayerIds.has(playerId)) return false;
+        
+        return player.positions?.some((pos: string) => 
+          relevantPositions.some(relevantPos => 
+            pos.toLowerCase().includes(relevantPos.toLowerCase())
+          )
+        );
+      })
+      .slice(0, 10); // Limit to 10 suggestions
+
+    return suggested;
+  }, [currentList, allPlayers]);
+
+  const handleAddSuggestedPlayers = () => {
+    const playerIds = suggestedPlayers.map(player => 
+      player.isPrivatePlayer ? player.id : player.id.toString()
+    );
+    onAddPlayersToShortlist(playerIds);
   };
 
   return (
@@ -134,6 +200,42 @@ export const ShortlistsContent = ({
             </Select>
           </div>
         </div>
+
+        {/* Auto-suggestions section */}
+        {suggestedPlayers.length > 0 && (
+          <div className="mb-6 p-4 bg-muted/50 rounded-lg border">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <Wand2 className="h-4 w-4 text-primary" />
+                <h4 className="font-medium">Suggested Players</h4>
+                <Badge variant="secondary">{suggestedPlayers.length} found</Badge>
+              </div>
+              <Button 
+                size="sm" 
+                variant="outline"
+                onClick={handleAddSuggestedPlayers}
+              >
+                <Plus className="h-3 w-3 mr-1" />
+                Add All
+              </Button>
+            </div>
+            <p className="text-sm text-muted-foreground mb-3">
+              Based on your shortlist name "{currentList.name}", we found these matching players:
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {suggestedPlayers.map((player) => (
+                <Badge 
+                  key={player.id} 
+                  variant="outline" 
+                  className="cursor-pointer hover:bg-muted"
+                  onClick={() => onAddPlayersToShortlist([player.isPrivatePlayer ? player.id : player.id.toString()])}
+                >
+                  {player.name} ({player.positions?.[0]})
+                </Badge>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Players Table */}
         <div className="rounded-md border">
