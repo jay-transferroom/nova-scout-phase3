@@ -145,7 +145,7 @@ export const PlayerHeader = ({
           <div className="flex-shrink-0 flex gap-2 flex-wrap">
             <Button onClick={onCreateReport} size="sm" className="gap-1">
               <FileText className="h-3 w-3" />
-              Report
+              Create Report
             </Button>
             <Button onClick={onOpenNotes} variant="outline" size="sm" className="gap-1">
               <MessageSquare className="h-3 w-3" />

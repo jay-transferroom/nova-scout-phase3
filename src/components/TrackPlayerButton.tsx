@@ -32,7 +32,7 @@ const TrackPlayerButton = ({ playerId, playerName }: TrackPlayerButtonProps) => 
     return (
       <Button variant="outline" disabled size="sm" className="gap-1">
         <Bell className="h-3 w-3" />
-        Notify
+        Track
       </Button>
     );
   }
@@ -53,7 +53,7 @@ const TrackPlayerButton = ({ playerId, playerName }: TrackPlayerButtonProps) => 
       ) : (
         <>
           <BellOff className="h-3 w-3" />
-          Notify
+          Track
         </>
       )}
     </Button>
