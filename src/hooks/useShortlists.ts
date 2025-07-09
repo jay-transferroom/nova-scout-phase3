@@ -14,7 +14,16 @@ export interface Shortlist {
 // Mock shortlist storage - in a real app this would be in a database
 const SHORTLISTS_STORAGE_KEY = 'chelsea_shortlists';
 
-const getDefaultShortlists = (): Shortlist[] => [];
+const getDefaultShortlists = (): Shortlist[] => [
+  {
+    id: 'strikers-shortlist',
+    name: 'strikers',
+    description: 'Striker targets for the first team',
+    color: 'bg-blue-500',
+    playerIds: [], // Will be populated with striker players
+    filter: () => false
+  }
+];
 
 export const useShortlists = () => {
   const { toast } = useToast();

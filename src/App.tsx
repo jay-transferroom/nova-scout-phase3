@@ -31,7 +31,8 @@ import SquadView from "@/pages/SquadView";
 import TransfersIn from "@/pages/TransfersIn";
 import TransfersLayout from "@/pages/transfers/TransfersLayout";
 import RequirementsList from "@/pages/transfers/RequirementsList";
-import RequirementDetails from "@/pages/transfers/RequirementDetails";
+import TransfersRequirementDetails from "@/pages/transfers/RequirementDetails";
+import RequirementDetailsPage from "@/pages/RequirementDetails";
 import ScoutingTasks from "@/pages/transfers/ScoutingTasks";
 import UpcomingMatches from "@/pages/transfers/UpcomingMatches";
 import PlayerPitches from "@/pages/transfers/PlayerPitches";
@@ -77,9 +78,10 @@ function App() {
                 <Route path="/shortlists" element={<ProtectedRoute><Shortlists /></ProtectedRoute>} />
                 <Route path="/squad-view" element={<ProtectedRoute><SquadView /></ProtectedRoute>} />
                 <Route path="/transfers-in" element={<ProtectedRoute><TransfersIn /></ProtectedRoute>} />
+                <Route path="/transfers-in/requirement/:requirementName" element={<ProtectedRoute><RequirementDetailsPage /></ProtectedRoute>} />
                 <Route path="/transfers" element={<ProtectedRoute><TransfersLayout /></ProtectedRoute>}>
                   <Route index element={<RequirementsList />} />
-                  <Route path="requirements/:id" element={<RequirementDetails />} />  
+                  <Route path="requirements/:id" element={<TransfersRequirementDetails />} />
                   <Route path="scouting-tasks" element={<ScoutingTasks />} />
                   <Route path="upcoming-matches" element={<UpcomingMatches />} />
                   <Route path="player-pitches" element={<PlayerPitches />} />

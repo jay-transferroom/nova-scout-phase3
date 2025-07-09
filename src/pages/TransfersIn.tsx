@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -11,6 +12,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 const TransfersIn = () => {
   const { profile } = useAuth();
   const { data: players = [], isLoading } = usePlayersData();
+  const navigate = useNavigate();
 
   // Filter for high-rated players that could be potential transfers
   const potentialTransfers = useMemo(() => {
@@ -30,6 +32,7 @@ const TransfersIn = () => {
 
   // Sample requirements data
   const requirements = [
+    { position: "Strikers", abbr: "ST", status: "Active", firstTeam: true, pitches: 45, expiring: 0, posted: "12 days ago", shortlistName: "strikers" },
     { position: "Goalkeeper", abbr: "GK", status: "Active", firstTeam: true, pitches: 45, expiring: 0, posted: "12 days ago" },
     { position: "Left back", abbr: "LB", status: "Active", firstTeam: true, pitches: 32, expiring: 5, posted: "12 days ago" },
     { position: "Left back", abbr: "LB", status: "Paused", firstTeam: false, pitches: 17, expiring: 5, posted: "3 months ago" },
@@ -191,7 +194,15 @@ const TransfersIn = () => {
 
           <div className="space-y-3">
             {requirements.map((req, index) => (
-              <Card key={index} className="hover:shadow-sm transition-shadow">
+              <Card 
+                key={index} 
+                className="hover:shadow-sm transition-shadow cursor-pointer"
+                onClick={() => {
+                  if (req.shortlistName) {
+                    navigate(`/transfers-in/requirement/${req.shortlistName}`);
+                  }
+                }}
+              >
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-4">
