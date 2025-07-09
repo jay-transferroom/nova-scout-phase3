@@ -12,6 +12,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { MoreHorizontal, Eye, FileText, UserPlus, Bookmark, Trash2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { PlayerSearchDialog } from "./PlayerSearchDialog";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface ShortlistsContentProps {
   currentList: any;
@@ -57,6 +58,10 @@ export const ShortlistsContent = ({
   onAddPlayersToShortlist
 }: ShortlistsContentProps) => {
   const [isSearchDialogOpen, setIsSearchDialogOpen] = useState(false);
+  const { profile } = useAuth();
+
+  // Check if user is director
+  const isDirector = profile?.role === 'director';
 
   if (!currentList) {
     return (
@@ -147,10 +152,12 @@ export const ShortlistsContent = ({
               <Download className="h-4 w-4 mr-2" />
               Export
             </Button>
-            <Button size="sm" onClick={() => setIsSearchDialogOpen(true)}>
-              <Plus className="h-4 w-4 mr-2" />
-              Add Player
-            </Button>
+            {isDirector && (
+              <Button size="sm" onClick={() => setIsSearchDialogOpen(true)}>
+                <Plus className="h-4 w-4 mr-2" />
+                Add Player
+              </Button>
+            )}
           </div>
         </div>
       </CardHeader>
@@ -205,7 +212,7 @@ export const ShortlistsContent = ({
         </div>
 
         {/* Auto-suggestions section */}
-        {suggestedPlayers.length > 0 && (
+        {isDirector && suggestedPlayers.length > 0 && (
           <div className="mb-6 p-4 bg-muted/50 rounded-lg border">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
@@ -374,13 +381,15 @@ export const ShortlistsContent = ({
                               <Bookmark className="h-4 w-4 mr-2" />
                               Move to list
                             </DropdownMenuItem>
-                            <DropdownMenuItem 
-                              className="text-destructive"
-                              onClick={() => onRemovePlayer(player.id.toString())}
-                            >
-                              <Trash2 className="h-4 w-4 mr-2" />
-                              Remove from list
-                            </DropdownMenuItem>
+                            {isDirector && (
+                              <DropdownMenuItem 
+                                className="text-destructive"
+                                onClick={() => onRemovePlayer(player.id.toString())}
+                              >
+                                <Trash2 className="h-4 w-4 mr-2" />
+                                Remove from list
+                              </DropdownMenuItem>
+                            )}
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </TableCell>
@@ -400,12 +409,14 @@ export const ShortlistsContent = ({
       </CardContent>
 
       {/* Player Search Dialog */}
-      <PlayerSearchDialog
-        open={isSearchDialogOpen}
-        onOpenChange={setIsSearchDialogOpen}
-        onAddPlayers={onAddPlayersToShortlist}
-        excludePlayerIds={sortedPlayers.map(p => p.id.toString())}
-      />
+      {isDirector && (
+        <PlayerSearchDialog
+          open={isSearchDialogOpen}
+          onOpenChange={setIsSearchDialogOpen}
+          onAddPlayers={onAddPlayersToShortlist}
+          excludePlayerIds={sortedPlayers.map(p => p.id.toString())}
+        />
+      )}
     </Card>
   );
 };

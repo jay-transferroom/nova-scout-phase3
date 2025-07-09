@@ -12,6 +12,7 @@ import { Plus, Users, MoreHorizontal, Edit2, Trash2 } from "lucide-react";
 import { Player } from "@/types/player";
 import AddPrivatePlayerDialog from "@/components/AddPrivatePlayerDialog";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface ShortlistsSidebarProps {
   shortlists: any[];
@@ -40,6 +41,10 @@ export const ShortlistsSidebar = ({
   const [editingShortlist, setEditingShortlist] = useState<any>(null);
   const [editShortlistName, setEditShortlistName] = useState("");
   const navigate = useNavigate();
+  const { profile } = useAuth();
+
+  // Check if user is director
+  const isDirector = profile?.role === 'director';
 
   const handlePlayerClick = (player: Player) => {
     console.log('ShortlistsSidebar - Player clicked:', player);
@@ -89,39 +94,41 @@ export const ShortlistsSidebar = ({
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle className="text-base font-semibold">Shortlists</CardTitle>
-            <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-              <DialogTrigger asChild>
-                <Button variant="ghost" size="sm">
-                  <Plus className="mr-2 h-4 w-4" />
-                  Create
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Create New Shortlist</DialogTitle>
-                </DialogHeader>
-                <div className="space-y-4 py-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="shortlist-name">Shortlist Name</Label>
-                    <Input
-                      id="shortlist-name"
-                      value={newShortlistName}
-                      onChange={(e) => setNewShortlistName(e.target.value)}
-                      placeholder="Enter shortlist name..."
-                      onKeyDown={(e) => e.key === 'Enter' && handleCreateShortlist()}
-                    />
+            {isDirector && (
+              <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button variant="ghost" size="sm">
+                    <Plus className="mr-2 h-4 w-4" />
+                    Create
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Create New Shortlist</DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-4 py-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="shortlist-name">Shortlist Name</Label>
+                      <Input
+                        id="shortlist-name"
+                        value={newShortlistName}
+                        onChange={(e) => setNewShortlistName(e.target.value)}
+                        placeholder="Enter shortlist name..."
+                        onKeyDown={(e) => e.key === 'Enter' && handleCreateShortlist()}
+                      />
+                    </div>
+                    <div className="flex justify-end space-x-2">
+                      <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
+                        Cancel
+                      </Button>
+                      <Button onClick={handleCreateShortlist} disabled={!newShortlistName.trim()}>
+                        Create Shortlist
+                      </Button>
+                    </div>
                   </div>
-                  <div className="flex justify-end space-x-2">
-                    <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
-                      Cancel
-                    </Button>
-                    <Button onClick={handleCreateShortlist} disabled={!newShortlistName.trim()}>
-                      Create Shortlist
-                    </Button>
-                  </div>
-                </div>
-              </DialogContent>
-            </Dialog>
+                </DialogContent>
+              </Dialog>
+            )}
           </div>
         </CardHeader>
       </Card>
@@ -155,44 +162,46 @@ export const ShortlistsSidebar = ({
                     <Badge variant="secondary" className="text-xs">
                       {totalPlayers}
                     </Badge>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
-                          <MoreHorizontal className="h-3 w-3" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => handleEditShortlist(list)}>
-                          <Edit2 className="h-4 w-4 mr-2" />
-                          Rename
-                        </DropdownMenuItem>
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                              <Trash2 className="h-4 w-4 mr-2" />
-                              Delete
-                            </DropdownMenuItem>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>Delete Shortlist</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                Are you sure you want to delete "{list.name}"? This action cannot be undone.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Cancel</AlertDialogCancel>
-                              <AlertDialogAction 
-                                onClick={() => handleDeleteShortlist(list)}
-                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                              >
+                    {isDirector && (
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+                            <MoreHorizontal className="h-3 w-3" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => handleEditShortlist(list)}>
+                            <Edit2 className="h-4 w-4 mr-2" />
+                            Rename
+                          </DropdownMenuItem>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                                <Trash2 className="h-4 w-4 mr-2" />
                                 Delete
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                              </DropdownMenuItem>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Delete Shortlist</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  Are you sure you want to delete "{list.name}"? This action cannot be undone.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction 
+                                  onClick={() => handleDeleteShortlist(list)}
+                                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                >
+                                  Delete
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    )}
                   </div>
                 </div>
               </CardHeader>
@@ -240,42 +249,46 @@ export const ShortlistsSidebar = ({
       </div>
 
       {/* Edit Shortlist Dialog */}
-      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Rename Shortlist</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="edit-shortlist-name">Shortlist Name</Label>
-              <Input
-                id="edit-shortlist-name"
-                value={editShortlistName}
-                onChange={(e) => setEditShortlistName(e.target.value)}
-                placeholder="Enter new shortlist name..."
-                onKeyDown={(e) => e.key === "Enter" && handleUpdateShortlist()}
-              />
+      {isDirector && (
+        <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Rename Shortlist</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label htmlFor="edit-shortlist-name">Shortlist Name</Label>
+                <Input
+                  id="edit-shortlist-name"
+                  value={editShortlistName}
+                  onChange={(e) => setEditShortlistName(e.target.value)}
+                  placeholder="Enter new shortlist name..."
+                  onKeyDown={(e) => e.key === "Enter" && handleUpdateShortlist()}
+                />
+              </div>
+              <div className="flex justify-end space-x-2">
+                <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
+                  Cancel
+                </Button>
+                <Button onClick={handleUpdateShortlist} disabled={!editShortlistName.trim()}>
+                  Update
+                </Button>
+              </div>
             </div>
-            <div className="flex justify-end space-x-2">
-              <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
-                Cancel
-              </Button>
-              <Button onClick={handleUpdateShortlist} disabled={!editShortlistName.trim()}>
-                Update
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+          </DialogContent>
+        </Dialog>
+      )}
 
-      <AddPrivatePlayerDialog
-        trigger={
-          <Button variant="outline" className="w-full">
-            <Plus className="mr-2 h-4 w-4" />
-            Add Private Player
-          </Button>
-        }
-      />
+      {isDirector && (
+        <AddPrivatePlayerDialog
+          trigger={
+            <Button variant="outline" className="w-full">
+              <Plus className="mr-2 h-4 w-4" />
+              Add Private Player
+            </Button>
+          }
+        />
+      )}
     </div>
   );
 };
