@@ -46,6 +46,13 @@ const MainNavigation = () => {
       permission: "dashboard"
     },
     {
+      title: "Transfers In",
+      url: "/transfers-in",
+      icon: UserCheck,
+      permission: "dashboard",
+      allowedRoles: ['director'] // Only for director
+    },
+    {
       title: "Scout Management",
       url: "/scout-management",
       icon: Kanban,
@@ -86,13 +93,6 @@ const MainNavigation = () => {
       icon: FileText,
       permission: "reports",
       allowedRoles: ['scout', 'recruitment', 'director'] // For all roles
-    },
-    {
-      title: "Transfers In",
-      url: "/transfers-in",
-      icon: UserCheck,
-      permission: "dashboard",
-      allowedRoles: ['director'] // Only for director
     }
   ];
 

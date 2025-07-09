@@ -28,6 +28,7 @@ import NotificationsList from "@/pages/NotificationsList";
 import AISearch from "@/pages/AISearch";
 import Shortlists from "@/pages/Shortlists";
 import SquadView from "@/pages/SquadView";
+import TransfersIn from "@/pages/TransfersIn";
 import TransfersLayout from "@/pages/transfers/TransfersLayout";
 import RequirementsList from "@/pages/transfers/RequirementsList";
 import RequirementDetails from "@/pages/transfers/RequirementDetails";
@@ -75,6 +76,7 @@ function App() {
                 <Route path="/ai-search" element={<ProtectedRoute><AISearch /></ProtectedRoute>} />
                 <Route path="/shortlists" element={<ProtectedRoute><Shortlists /></ProtectedRoute>} />
                 <Route path="/squad-view" element={<ProtectedRoute><SquadView /></ProtectedRoute>} />
+                <Route path="/transfers-in" element={<ProtectedRoute><TransfersIn /></ProtectedRoute>} />
                 <Route path="/transfers" element={<ProtectedRoute><TransfersLayout /></ProtectedRoute>}>
                   <Route index element={<RequirementsList />} />
                   <Route path="requirements/:id" element={<RequirementDetails />} />  
