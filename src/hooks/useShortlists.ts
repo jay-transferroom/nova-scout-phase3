@@ -20,7 +20,7 @@ const getDefaultShortlists = (): Shortlist[] => [
     name: 'strikers',
     description: 'Striker targets for the first team',
     color: 'bg-blue-500',
-    playerIds: [], // Will be populated with striker players
+    playerIds: ['1', '2', '3', '4', '5'], // Sample striker player IDs
     filter: () => false
   }
 ];
