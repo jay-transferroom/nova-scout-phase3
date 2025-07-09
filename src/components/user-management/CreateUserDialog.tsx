@@ -23,7 +23,7 @@ export const CreateUserDialog = ({ onUserCreated }: CreateUserDialogProps) => {
   const [newUserPassword, setNewUserPassword] = useState('');
   const [newUserFirstName, setNewUserFirstName] = useState('');
   const [newUserLastName, setNewUserLastName] = useState('');
-  const [newUserRole, setNewUserRole] = useState<'scout' | 'recruitment'>('scout');
+  const [newUserRole, setNewUserRole] = useState<'scout' | 'recruitment' | 'director'>('scout');
   const [isCreatingUser, setIsCreatingUser] = useState(false);
 
   const createUser = async () => {
@@ -61,6 +61,11 @@ export const CreateUserDialog = ({ onUserCreated }: CreateUserDialogProps) => {
         ];
 
         if (newUserRole === 'recruitment') {
+          defaultPermissions.push('templates', 'user_management');
+        }
+
+        if (newUserRole === 'director') {
+          // Directors get a different set of permissions
           defaultPermissions.push('templates', 'user_management');
         }
 
@@ -137,13 +142,14 @@ export const CreateUserDialog = ({ onUserCreated }: CreateUserDialogProps) => {
         </div>
         <div>
           <Label htmlFor="role">Role</Label>
-          <Select value={newUserRole} onValueChange={(value: 'scout' | 'recruitment') => setNewUserRole(value)}>
+          <Select value={newUserRole} onValueChange={(value: 'scout' | 'recruitment' | 'director') => setNewUserRole(value)}>
             <SelectTrigger>
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="scout">Scout</SelectItem>
               <SelectItem value="recruitment">Recruitment</SelectItem>
+              <SelectItem value="director">Director</SelectItem>
             </SelectContent>
           </Select>
         </div>

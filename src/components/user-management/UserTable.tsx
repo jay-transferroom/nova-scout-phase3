@@ -108,7 +108,11 @@ export const UserTable = ({
             </TableCell>
             <TableCell>{user.email}</TableCell>
             <TableCell>
-              <Badge variant={user.role === 'recruitment' ? 'default' : 'secondary'}>
+              <Badge variant={
+                user.role === 'recruitment' ? 'default' : 
+                user.role === 'director' ? 'destructive' : 
+                'secondary'
+              }>
                 {user.role}
               </Badge>
             </TableCell>
@@ -134,6 +138,12 @@ export const UserTable = ({
                     disabled={user.role === 'recruitment'}
                   >
                     Make Recruitment
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => onUpdateRole(user.id, 'director')}
+                    disabled={user.role === 'director'}
+                  >
+                    Make Director
                   </DropdownMenuItem>
                   <Dialog>
                     <DialogTrigger asChild>
