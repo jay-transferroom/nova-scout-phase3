@@ -83,10 +83,28 @@ const UnifiedPlayerSearch = ({
     }
     
     let results = [...players];
+    const lowercaseQuery = searchQuery.toLowerCase().trim();
+    let isPositionSearch = false;
     
     if (searchQuery.trim()) {
-      const lowercaseQuery = searchQuery.toLowerCase().trim();
       console.log('Filtering players for query:', lowercaseQuery);
+      
+      // Common position abbreviations and full names
+      const positionKeywords = [
+        'st', 'cf', 'striker', 'forward',
+        'lw', 'rw', 'winger', 'wing',
+        'lm', 'rm', 'midfielder', 'mid',
+        'cm', 'cam', 'cdm', 'dm',
+        'cb', 'defender', 'defence', 'defense',
+        'lb', 'rb', 'fullback', 'full-back',
+        'lwb', 'rwb', 'wingback', 'wing-back',
+        'gk', 'goalkeeper', 'keeper'
+      ];
+      
+      // Check if this is primarily a position search
+      isPositionSearch = positionKeywords.some(keyword => 
+        lowercaseQuery === keyword || lowercaseQuery.includes(keyword)
+      );
       
       results = results.filter(player => {
         const nameMatch = player.name.toLowerCase().includes(lowercaseQuery);
@@ -105,6 +123,16 @@ const UnifiedPlayerSearch = ({
       });
       
       console.log('Filtered results count:', results.length);
+      
+      // If this is a position search, sort by rating (highest first)
+      if (isPositionSearch) {
+        results.sort((a, b) => {
+          const ratingA = a.transferroomRating || a.futureRating || 0;
+          const ratingB = b.transferroomRating || b.futureRating || 0;
+          return ratingB - ratingA; // Descending order (highest first)
+        });
+        console.log('Position search detected - sorted by rating');
+      }
     }
     
     if (ageFilter !== "all") {
