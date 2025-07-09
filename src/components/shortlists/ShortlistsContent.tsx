@@ -75,7 +75,7 @@ export const ShortlistsContent = ({
 
   // Auto-suggest players based on shortlist name
   const suggestedPlayers = useMemo(() => {
-    if (!currentList || !allPlayers.length) return [];
+    if (!currentList || !allPlayers || allPlayers.length === 0) return [];
 
     const listName = currentList.name.toLowerCase();
     const positionKeywords = {
