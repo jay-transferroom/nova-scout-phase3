@@ -206,41 +206,8 @@ export const ShortlistsSidebar = ({
                 </div>
               </CardHeader>
               <CardContent className="pt-0" onClick={() => onSelectList(list.id)}>
-                <div className="space-y-1">
-                  {/* Show first few public players as preview */}
-                  {publicPlayersForList.slice(0, 2).map((player) => (
-                    <div 
-                      key={player.id} 
-                      className="text-xs text-gray-600 hover:text-blue-600 cursor-pointer"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handlePlayerClick(player);
-                      }}
-                    >
-                      {player.name} ({player.club})
-                    </div>
-                  ))}
-                  
-                  {/* Show private players */}
-                  {privatePlayersForList.slice(0, 2).map((player) => (
-                    <div 
-                      key={player.id} 
-                      className="text-xs text-gray-600 hover:text-blue-600 cursor-pointer flex items-center gap-1"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handlePlayerClick({...player, isPrivatePlayer: true, privatePlayerData: player});
-                      }}
-                    >
-                      {player.name} ({player.club})
-                      <Badge variant="outline" className="text-xs px-1 py-0">Private</Badge>
-                    </div>
-                  ))}
-                  
-                  {totalPlayers > 2 && (
-                    <div className="text-xs text-gray-400">
-                      +{totalPlayers - 2} more
-                    </div>
-                  )}
+                <div className="text-xs text-muted-foreground">
+                  Click to view players
                 </div>
               </CardContent>
             </Card>
