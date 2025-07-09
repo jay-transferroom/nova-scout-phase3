@@ -6,7 +6,7 @@ import { useMyPermissions } from '@/hooks/useUserPermissions';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
-  requiredRole?: 'scout' | 'recruitment';
+  requiredRole?: 'scout' | 'recruitment' | 'director';
   allowedRoles?: string[];
   requiredPermission?: string;
 }

@@ -50,38 +50,49 @@ const MainNavigation = () => {
       url: "/scout-management",
       icon: Kanban,
       permission: "user_management",
-      restricted: true // Only for Scout Managers
+      allowedRoles: ['recruitment'] // Only for recruitment
     },
     {
       title: "Squad View",
       url: "/squad-view",
       icon: Users,
       permission: "dashboard",
-      restricted: true // Only for Scout Managers
+      allowedRoles: ['recruitment', 'director'] // For recruitment and director
     },
     {
       title: "Calendar",
       url: "/calendar",
       icon: Calendar,
-      permission: "dashboard"
+      permission: "dashboard",
+      allowedRoles: ['scout', 'recruitment'] // Not for director
     },
     {
       title: "Assigned Players",
       url: "/assigned-players",
       icon: UserCheck,
-      permission: "dashboard"
+      permission: "dashboard",
+      allowedRoles: ['scout', 'recruitment'] // Not for director
     },
     {
       title: "Shortlists",
       url: "/shortlists",
       icon: Bookmark,
-      permission: "dashboard"
+      permission: "dashboard",
+      allowedRoles: ['recruitment', 'director'] // For recruitment and director
     },
     {
       title: "Reports",
       url: "/reports",
       icon: FileText,
-      permission: "reports"
+      permission: "reports",
+      allowedRoles: ['scout', 'recruitment', 'director'] // For all roles
+    },
+    {
+      title: "Transfers In",
+      url: "/transfers-in",
+      icon: UserCheck,
+      permission: "dashboard",
+      allowedRoles: ['director'] // Only for director
     }
   ];
 
@@ -107,7 +118,8 @@ const MainNavigation = () => {
             <SidebarMenu>
               {mainItems
                 .filter(item => {
-                  if (item.restricted && profile?.role !== 'recruitment') {
+                  // Check if user's role is allowed for this item
+                  if (item.allowedRoles && profile?.role && !item.allowedRoles.includes(profile.role)) {
                     return false;
                   }
                   return hasPermission(item.permission);

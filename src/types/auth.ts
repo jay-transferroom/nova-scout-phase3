@@ -14,7 +14,7 @@ export interface Profile {
   email: string;
   first_name?: string;
   last_name?: string;
-  role: 'scout' | 'recruitment';
+  role: 'scout' | 'recruitment' | 'director';
   club_id?: string;
   club?: Club;
   created_at: string;

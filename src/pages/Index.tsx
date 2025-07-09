@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { FileText, Users, Calendar, Target, Plus, TrendingUp, AlertCircle, UserPlus, Search, List, User, Eye, Star } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useReports } from "@/hooks/useReports";
+import DirectorDashboard from "./DirectorDashboard";
 import { Badge } from "@/components/ui/badge";
 import AddPrivatePlayerDialog from "@/components/AddPrivatePlayerDialog";
 import { TrackedPlayersSection } from "@/components/TrackedPlayersSection";
@@ -15,6 +16,11 @@ const Index = () => {
   const navigate = useNavigate();
   const { user, profile } = useAuth();
   const { reports, loading } = useReports();
+
+  // Route to appropriate dashboard based on user role
+  if (profile?.role === 'director') {
+    return <DirectorDashboard />;
+  }
 
   const myReports = reports.filter(report => report.scoutId === user?.id);
   const draftReports = myReports.filter(report => report.status === 'draft');
