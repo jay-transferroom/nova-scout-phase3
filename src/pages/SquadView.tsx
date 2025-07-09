@@ -23,8 +23,8 @@ const SquadView = () => {
   const [selectedPosition, setSelectedPosition] = useState<string | null>(null);
   const [currentView, setCurrentView] = useState<'pitch' | 'list'>('pitch');
 
-  // Redirect if not recruitment role
-  if (profile?.role !== 'recruitment') {
+  // Redirect if not recruitment or director role
+  if (profile?.role !== 'recruitment' && profile?.role !== 'director') {
     navigate('/');
     return null;
   }
