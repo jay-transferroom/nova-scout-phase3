@@ -14,7 +14,44 @@ export interface Shortlist {
 // Mock shortlist storage - in a real app this would be in a database
 const SHORTLISTS_STORAGE_KEY = 'chelsea_shortlists';
 
-const getDefaultShortlists = (): Shortlist[] => [];
+const getDefaultShortlists = (): Shortlist[] => [
+  {
+    id: 'striker-targets',
+    name: 'Striker Targets',
+    description: 'Potential striker signings',
+    color: 'bg-red-500',
+    playerIds: [],
+    filter: (player: any) => player.positions?.some((pos: string) => 
+      ['ST', 'CF'].includes(pos.toUpperCase())
+    )
+  },
+  {
+    id: 'cb-reinforcements', 
+    name: 'CB Reinforcements',
+    description: 'Center-back options',
+    color: 'bg-blue-500',
+    playerIds: [],
+    filter: (player: any) => player.positions?.some((pos: string) => 
+      pos.toUpperCase() === 'CB'
+    )
+  },
+  {
+    id: 'young-prospects',
+    name: 'Young Prospects',
+    description: 'Players under 23',
+    color: 'bg-green-500', 
+    playerIds: [],
+    filter: (player: any) => player.age && player.age < 23
+  },
+  {
+    id: 'free-agents',
+    name: 'Free Agents',
+    description: 'Available on free transfer',
+    color: 'bg-purple-500',
+    playerIds: [],
+    filter: (player: any) => player.contractStatus === 'Free Agent'
+  }
+];
 
 export const useShortlists = () => {
   const { toast } = useToast();
@@ -25,13 +62,11 @@ export const useShortlists = () => {
       const stored = localStorage.getItem(SHORTLISTS_STORAGE_KEY);
       if (stored) {
         const parsed = JSON.parse(stored);
-        // Filter out any old default shortlists and ensure all shortlists have the required properties
-        return parsed
-          .filter((shortlist: any) => !['striker-targets', 'cb-reinforcements', 'loan-prospects', 'bargain-deals'].includes(shortlist.id))
-          .map((shortlist: any) => ({
-            ...shortlist,
-            playerIds: shortlist.playerIds || []
-          }));
+        // Ensure all shortlists have the required properties
+        return parsed.map((shortlist: any) => ({
+          ...shortlist,
+          playerIds: shortlist.playerIds || []
+        }));
       }
     } catch (error) {
       console.error('Error loading shortlists:', error);

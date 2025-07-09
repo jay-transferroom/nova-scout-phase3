@@ -28,7 +28,7 @@ const Shortlists = () => {
   const { data: assignments = [], refetch: refetchAssignments } = useScoutingAssignments();
   const { reports = [] } = useReports();
   const { privatePlayers } = usePrivatePlayers();
-  const { shortlists, createShortlist, updateShortlist, deleteShortlist, addPlayerToShortlist, getPlayerShortlists } = useShortlists();
+  const { shortlists, createShortlist, updateShortlist, deleteShortlist, addPlayerToShortlist, removePlayerFromShortlist, getPlayerShortlists } = useShortlists();
   const queryClient = useQueryClient();
 
   const shortlistsLogic = useShortlistsLogic({
@@ -86,7 +86,9 @@ const Shortlists = () => {
   };
 
   const handleRemovePlayer = (playerId: string) => {
-    console.log("Removing player from list:", playerId);
+    if (selectedList) {
+      removePlayerFromShortlist(selectedList, playerId);
+    }
   };
 
   const handleCreateShortlist = async (name: string, playerIds: string[]) => {

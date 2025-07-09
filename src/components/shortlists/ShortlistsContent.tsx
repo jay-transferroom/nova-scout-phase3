@@ -11,6 +11,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { MoreHorizontal, Eye, FileText, UserPlus, Bookmark, Trash2 } from "lucide-react";
 import { Link } from "react-router-dom";
+import { PlayerSearchDialog } from "./PlayerSearchDialog";
 
 interface ShortlistsContentProps {
   currentList: any;
@@ -55,6 +56,8 @@ export const ShortlistsContent = ({
   onExportList,
   onAddPlayersToShortlist
 }: ShortlistsContentProps) => {
+  const [isSearchDialogOpen, setIsSearchDialogOpen] = useState(false);
+
   if (!currentList) {
     return (
       <Card>
@@ -144,7 +147,7 @@ export const ShortlistsContent = ({
               <Download className="h-4 w-4 mr-2" />
               Export
             </Button>
-            <Button size="sm">
+            <Button size="sm" onClick={() => setIsSearchDialogOpen(true)}>
               <Plus className="h-4 w-4 mr-2" />
               Add Player
             </Button>
@@ -395,6 +398,14 @@ export const ShortlistsContent = ({
           </Table>
         </div>
       </CardContent>
+
+      {/* Player Search Dialog */}
+      <PlayerSearchDialog
+        open={isSearchDialogOpen}
+        onOpenChange={setIsSearchDialogOpen}
+        onAddPlayers={onAddPlayersToShortlist}
+        excludePlayerIds={sortedPlayers.map(p => p.id.toString())}
+      />
     </Card>
   );
 };
