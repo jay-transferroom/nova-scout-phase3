@@ -63,22 +63,7 @@ export const ShortlistsContent = ({
   // Check if user is director
   const isDirector = profile?.role === 'director';
 
-  if (!currentList) {
-    return (
-      <Card>
-        <CardContent className="p-8 text-center">
-          <p className="text-muted-foreground">Select a shortlist to view players</p>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  const handleCreateReport = (player: any) => {
-    // This will be handled by the parent component
-    console.log("Creating report for:", player);
-  };
-
-  // Auto-suggest players based on shortlist name
+  // Auto-suggest players based on shortlist name - moved before early return
   const suggestedPlayers = useMemo(() => {
     if (!currentList || !allPlayers || allPlayers.length === 0) return [];
 
@@ -138,6 +123,21 @@ export const ShortlistsContent = ({
     );
     onAddPlayersToShortlist(playerIds);
   };
+
+  const handleCreateReport = (player: any) => {
+    // This will be handled by the parent component
+    console.log("Creating report for:", player);
+  };
+
+  if (!currentList) {
+    return (
+      <Card>
+        <CardContent className="p-8 text-center">
+          <p className="text-muted-foreground">Select a shortlist to view players</p>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card>
