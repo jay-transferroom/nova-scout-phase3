@@ -12,6 +12,7 @@ export interface Shortlist {
   playerIds: string[]; // For compatibility with existing code
   created_at?: string;
   updated_at?: string;
+  requirement_id?: string; // For director users
 }
 
 export const useShortlists = () => {
@@ -29,11 +30,10 @@ export const useShortlists = () => {
     }
 
     try {
-      // Fetch shortlists for the current user
+      // Fetch all shortlists (visible to everyone)
       const { data: shortlistsData, error: shortlistsError } = await supabase
         .from('shortlists')
         .select('*')
-        .eq('user_id', user.id)
         .order('created_at', { ascending: true });
 
       if (shortlistsError) throw shortlistsError;
@@ -85,7 +85,7 @@ export const useShortlists = () => {
     loadShortlists();
   }, [loadShortlists]);
 
-  const createShortlist = useCallback(async (name: string, playerIds: string[] = []) => {
+  const createShortlist = useCallback(async (name: string, playerIds: string[] = [], requirementId?: string) => {
     if (!user) {
       toast({
         title: "Error",
@@ -103,7 +103,8 @@ export const useShortlists = () => {
           user_id: user.id,
           name,
           description: `Custom shortlist: ${name}`,
-          color: "bg-gray-500"
+          color: "bg-gray-500",
+          requirement_id: requirementId
         })
         .select()
         .single();
@@ -248,7 +249,8 @@ export const useShortlists = () => {
         .update({
           name: updates.name,
           description: updates.description,
-          color: updates.color
+          color: updates.color,
+          requirement_id: updates.requirement_id
         })
         .eq('id', id);
 
