@@ -1,118 +1,238 @@
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 
 export interface Shortlist {
   id: string;
   name: string;
   description: string;
   color: string;
-  filter: (player: any) => boolean;
-  playerIds: string[]; // Track manually added players
+  playerIds: string[]; // For compatibility with existing code
+  created_at?: string;
+  updated_at?: string;
 }
-
-// Mock shortlist storage - in a real app this would be in a database
-const SHORTLISTS_STORAGE_KEY = 'chelsea_shortlists';
-
-const getDefaultShortlists = (): Shortlist[] => [
-  {
-    id: 'strikers-shortlist',
-    name: 'strikers',
-    description: 'Striker targets for the first team',
-    color: 'bg-blue-500',
-    playerIds: ['1', '2', '3', '4', '5'], // Sample striker player IDs
-    filter: () => false
-  }
-];
 
 export const useShortlists = () => {
   const { toast } = useToast();
-  
-  // Load shortlists from localStorage or use defaults
-  const loadShortlists = useCallback((): Shortlist[] => {
+  const { user } = useAuth();
+  const [shortlists, setShortlists] = useState<Shortlist[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Load shortlists from database
+  const loadShortlists = useCallback(async () => {
+    if (!user) {
+      setShortlists([]);
+      setLoading(false);
+      return;
+    }
+
     try {
-      const stored = localStorage.getItem(SHORTLISTS_STORAGE_KEY);
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        // Ensure all shortlists have the required properties
-        return parsed.map((shortlist: any) => ({
-          ...shortlist,
-          playerIds: shortlist.playerIds || []
-        }));
+      // Fetch shortlists for the current user
+      const { data: shortlistsData, error: shortlistsError } = await supabase
+        .from('shortlists')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: true });
+
+      if (shortlistsError) throw shortlistsError;
+
+      if (!shortlistsData || shortlistsData.length === 0) {
+        setShortlists([]);
+        setLoading(false);
+        return;
       }
+
+      // Fetch player IDs for each shortlist
+      const shortlistsWithPlayers = await Promise.all(
+        shortlistsData.map(async (shortlist) => {
+          const { data: playersData, error: playersError } = await supabase
+            .from('shortlist_players')
+            .select('player_id')
+            .eq('shortlist_id', shortlist.id);
+
+          if (playersError) {
+            console.error('Error fetching players for shortlist:', playersError);
+            return {
+              ...shortlist,
+              playerIds: []
+            };
+          }
+
+          return {
+            ...shortlist,
+            playerIds: playersData?.map(p => p.player_id) || []
+          };
+        })
+      );
+
+      setShortlists(shortlistsWithPlayers);
     } catch (error) {
       console.error('Error loading shortlists:', error);
-    }
-    return getDefaultShortlists();
-  }, []);
-
-  const [shortlists, setShortlists] = useState<Shortlist[]>(loadShortlists);
-
-  // Save shortlists to localStorage
-  const saveShortlists = useCallback((newShortlists: Shortlist[]) => {
-    try {
-      localStorage.setItem(SHORTLISTS_STORAGE_KEY, JSON.stringify(newShortlists));
-      setShortlists(newShortlists);
-    } catch (error) {
-      console.error('Error saving shortlists:', error);
       toast({
         title: "Error",
-        description: "Failed to save shortlists",
+        description: "Failed to load shortlists",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
+  }, [user, toast]);
+
+  // Load shortlists when user changes
+  useEffect(() => {
+    loadShortlists();
+  }, [loadShortlists]);
+
+  const createShortlist = useCallback(async (name: string, playerIds: string[] = []) => {
+    if (!user) {
+      toast({
+        title: "Error",
+        description: "You must be logged in to create shortlists",
+        variant: "destructive"
+      });
+      return null;
+    }
+
+    try {
+      // Create the shortlist
+      const { data: shortlistData, error: shortlistError } = await supabase
+        .from('shortlists')
+        .insert({
+          user_id: user.id,
+          name,
+          description: `Custom shortlist: ${name}`,
+          color: "bg-gray-500"
+        })
+        .select()
+        .single();
+
+      if (shortlistError) throw shortlistError;
+
+      // Add players to the shortlist if provided
+      if (playerIds.length > 0) {
+        const playerInserts = playerIds.map(playerId => ({
+          shortlist_id: shortlistData.id,
+          player_id: playerId
+        }));
+
+        const { error: playersError } = await supabase
+          .from('shortlist_players')
+          .insert(playerInserts);
+
+        if (playersError) throw playersError;
+      }
+
+      const newShortlist: Shortlist = {
+        ...shortlistData,
+        playerIds
+      };
+
+      setShortlists(prev => [...prev, newShortlist]);
+      
+      toast({
+        title: "Shortlist Created",
+        description: `"${name}" has been created successfully`,
+      });
+
+      return newShortlist;
+    } catch (error) {
+      console.error('Error creating shortlist:', error);
+      toast({
+        title: "Error",
+        description: "Failed to create shortlist",
+        variant: "destructive"
+      });
+      return null;
+    }
+  }, [user, toast]);
+
+  const addPlayerToShortlist = useCallback(async (shortlistId: string, playerId: string) => {
+    try {
+      const { error } = await supabase
+        .from('shortlist_players')
+        .insert({
+          shortlist_id: shortlistId,
+          player_id: playerId
+        });
+
+      if (error) {
+        // Check if it's a duplicate key error
+        if (error.code === '23505') {
+          toast({
+            title: "Player Already Added",
+            description: "This player is already in the shortlist",
+            variant: "destructive"
+          });
+          return;
+        }
+        throw error;
+      }
+
+      // Update local state
+      setShortlists(prev => prev.map(shortlist => {
+        if (shortlist.id === shortlistId) {
+          const playerIds = shortlist.playerIds || [];
+          if (!playerIds.includes(playerId)) {
+            return {
+              ...shortlist,
+              playerIds: [...playerIds, playerId]
+            };
+          }
+        }
+        return shortlist;
+      }));
+
+      toast({
+        title: "Player Added",
+        description: "Player has been added to the shortlist",
+      });
+    } catch (error) {
+      console.error('Error adding player to shortlist:', error);
+      toast({
+        title: "Error",
+        description: "Failed to add player to shortlist",
         variant: "destructive"
       });
     }
   }, [toast]);
 
-  const createShortlist = useCallback(async (name: string, playerIds: string[]) => {
-    const newShortlist: Shortlist = {
-      id: `shortlist-${Date.now()}`,
-      name,
-      description: `Custom shortlist: ${name}`,
-      color: "bg-gray-500", // Default color
-      playerIds: playerIds || [],
-      filter: () => false // Custom shortlists don't have auto-filters
-    };
+  const removePlayerFromShortlist = useCallback(async (shortlistId: string, playerId: string) => {
+    try {
+      const { error } = await supabase
+        .from('shortlist_players')
+        .delete()
+        .eq('shortlist_id', shortlistId)
+        .eq('player_id', playerId);
 
-    const updatedShortlists = [...shortlists, newShortlist];
-    saveShortlists(updatedShortlists);
-    
-    toast({
-      title: "Shortlist Created",
-      description: `"${name}" has been created successfully`,
-    });
+      if (error) throw error;
 
-    return newShortlist;
-  }, [shortlists, saveShortlists, toast]);
-
-  const addPlayerToShortlist = useCallback((shortlistId: string, playerId: string) => {
-    const updatedShortlists = shortlists.map(shortlist => {
-      if (shortlist.id === shortlistId) {
-        const playerIds = shortlist.playerIds || [];
-        if (!playerIds.includes(playerId)) {
+      // Update local state
+      setShortlists(prev => prev.map(shortlist => {
+        if (shortlist.id === shortlistId) {
+          const playerIds = shortlist.playerIds || [];
           return {
             ...shortlist,
-            playerIds: [...playerIds, playerId]
+            playerIds: playerIds.filter(id => id !== playerId)
           };
         }
-      }
-      return shortlist;
-    });
-    saveShortlists(updatedShortlists);
-  }, [shortlists, saveShortlists]);
+        return shortlist;
+      }));
 
-  const removePlayerFromShortlist = useCallback((shortlistId: string, playerId: string) => {
-    const updatedShortlists = shortlists.map(shortlist => {
-      if (shortlist.id === shortlistId) {
-        const playerIds = shortlist.playerIds || [];
-        return {
-          ...shortlist,
-          playerIds: playerIds.filter(id => id !== playerId)
-        };
-      }
-      return shortlist;
-    });
-    saveShortlists(updatedShortlists);
-  }, [shortlists, saveShortlists]);
+      toast({
+        title: "Player Removed",
+        description: "Player has been removed from the shortlist",
+      });
+    } catch (error) {
+      console.error('Error removing player from shortlist:', error);
+      toast({
+        title: "Error",
+        description: "Failed to remove player from shortlist",
+        variant: "destructive"
+      });
+    }
+  }, [toast]);
 
   const getPlayerShortlists = useCallback((playerId: string) => {
     return shortlists.filter(shortlist => {
@@ -121,25 +241,73 @@ export const useShortlists = () => {
     });
   }, [shortlists]);
 
-  const updateShortlist = useCallback((id: string, updates: Partial<Shortlist>) => {
-    const updatedShortlists = shortlists.map(shortlist => 
-      shortlist.id === id ? { ...shortlist, ...updates } : shortlist
-    );
-    saveShortlists(updatedShortlists);
-  }, [shortlists, saveShortlists]);
+  const updateShortlist = useCallback(async (id: string, updates: Partial<Shortlist>) => {
+    try {
+      const { error } = await supabase
+        .from('shortlists')
+        .update({
+          name: updates.name,
+          description: updates.description,
+          color: updates.color
+        })
+        .eq('id', id);
 
-  const deleteShortlist = useCallback((id: string) => {
-    const updatedShortlists = shortlists.filter(shortlist => shortlist.id !== id);
-    saveShortlists(updatedShortlists);
-  }, [shortlists, saveShortlists]);
+      if (error) throw error;
+
+      // Update local state
+      setShortlists(prev => prev.map(shortlist => 
+        shortlist.id === id ? { ...shortlist, ...updates } : shortlist
+      ));
+
+      toast({
+        title: "Shortlist Updated",
+        description: "Shortlist has been updated successfully",
+      });
+    } catch (error) {
+      console.error('Error updating shortlist:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update shortlist",
+        variant: "destructive"
+      });
+    }
+  }, [toast]);
+
+  const deleteShortlist = useCallback(async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('shortlists')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+
+      // Update local state
+      setShortlists(prev => prev.filter(shortlist => shortlist.id !== id));
+
+      toast({
+        title: "Shortlist Deleted",
+        description: "Shortlist has been deleted successfully",
+      });
+    } catch (error) {
+      console.error('Error deleting shortlist:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete shortlist",
+        variant: "destructive"
+      });
+    }
+  }, [toast]);
 
   return {
     shortlists,
+    loading,
     createShortlist,
     updateShortlist,
     deleteShortlist,
     addPlayerToShortlist,
     removePlayerFromShortlist,
-    getPlayerShortlists
+    getPlayerShortlists,
+    refreshShortlists: loadShortlists
   };
 };

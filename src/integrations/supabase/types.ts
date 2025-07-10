@@ -598,6 +598,65 @@ export type Database = {
           },
         ]
       }
+      shortlist_players: {
+        Row: {
+          added_at: string
+          id: string
+          player_id: string
+          shortlist_id: string
+        }
+        Insert: {
+          added_at?: string
+          id?: string
+          player_id: string
+          shortlist_id: string
+        }
+        Update: {
+          added_at?: string
+          id?: string
+          player_id?: string
+          shortlist_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shortlist_players_shortlist_id_fkey"
+            columns: ["shortlist_id"]
+            isOneToOne: false
+            referencedRelation: "shortlists"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      shortlists: {
+        Row: {
+          color: string
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          color?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          color?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       teams: {
         Row: {
           country: string
