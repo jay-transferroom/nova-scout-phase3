@@ -17,7 +17,7 @@ const Settings = () => {
   const { profile } = useAuth();
   const [activeTab, setActiveTab] = useState("preferences");
 
-  const isAdmin = profile?.role === 'recruitment';
+  const isAdmin = profile?.role === 'recruitment' || profile?.role === 'director';
 
   return (
     <div className="container mx-auto pt-8 pb-16 max-w-7xl">
