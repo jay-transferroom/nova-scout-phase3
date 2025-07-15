@@ -26,7 +26,7 @@ const UserManagement = () => {
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [isDeletingUser, setIsDeletingUser] = useState(false);
 
-  if (profile?.role !== 'recruitment') {
+  if (profile?.role !== 'recruitment' && profile?.role !== 'director') {
     return <Navigate to="/" replace />;
   }
 
