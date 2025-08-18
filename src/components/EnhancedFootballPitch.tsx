@@ -29,49 +29,43 @@ const FORMATION_POSITIONS = {
 
 const EnhancedFootballPitch = ({ players, squadType, onPositionClick, selectedPosition }: EnhancedFootballPitchProps) => {
   const getPlayersForPosition = (position: string) => {
-    // Create a comprehensive position mapping to get ALL players for each position
-    const getPositionPriorities = (pos: string) => {
+    // Map formation positions to player position names
+    const getPositionMapping = (pos: string) => {
       switch (pos) {
         case 'GK': 
-          return [['GK']];
+          return ['GK'];
         case 'LB': 
-          return [['LB', 'LWB'], ['LM'], ['CB']];
+          return ['LB', 'LWB'];
         case 'CB1': 
         case 'CB2': 
-          return [['CB'], ['CDM']];
+          return ['CB'];
         case 'RB': 
-          return [['RB', 'RWB'], ['RM'], ['CB']];
+          return ['RB', 'RWB'];
         case 'CDM': 
-          return [['CDM'], ['CM'], ['CB']];
+          return ['CDM'];
         case 'CM1': 
         case 'CM2': 
-          return [['CM'], ['CAM', 'CDM'], ['LM', 'RM']];
+          return ['CM', 'CAM'];
         case 'LW': 
-          return [['LW'], ['LM'], ['ST', 'CF'], ['CAM']];
+          return ['LW', 'LM'];
         case 'ST': 
-          return [['ST', 'CF'], ['CAM'], ['LW', 'RW']];
+          return ['ST', 'CF'];
         case 'RW': 
-          return [['RW'], ['RM'], ['ST', 'CF'], ['CAM']];
+          return ['RW', 'RM'];
         default: 
-          return [[]];
+          return [];
       }
     };
 
-    const priorities = getPositionPriorities(position);
-    let allPlayersForPosition: Player[] = [];
+    const allowedPositions = getPositionMapping(position);
     
-    // Collect ALL players that can play in this position across all priority levels
-    for (const priorityGroup of priorities) {
-      const matchingPlayers = players.filter(player => 
-        player.positions.some(playerPos => priorityGroup.includes(playerPos))
-      );
-      allPlayersForPosition = [...allPlayersForPosition, ...matchingPlayers];
-    }
+    // Filter players who have this position as their PRIMARY position (first in their positions array)
+    const positionPlayers = players.filter(player => 
+      player.positions.length > 0 && allowedPositions.includes(player.positions[0])
+    );
     
-    // Remove duplicates and sort by rating
-    const uniquePlayers = Array.from(new Map(allPlayersForPosition.map(p => [p.id, p])).values());
-    
-    return uniquePlayers.sort((a, b) => {
+    // Sort by rating
+    return positionPlayers.sort((a, b) => {
       const ratingA = a.transferroomRating || a.xtvScore || 0;
       const ratingB = b.transferroomRating || b.xtvScore || 0;
       return ratingB - ratingA;
