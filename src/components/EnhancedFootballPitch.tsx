@@ -15,16 +15,16 @@ interface EnhancedFootballPitchProps {
 
 const FORMATION_POSITIONS = {
   GK: { x: 50, y: 8, label: 'Goalkeeper' },
-  LB: { x: 15, y: 22, label: 'Full Back' },
+  LB: { x: 85, y: 22, label: 'Full Back' },
   CB1: { x: 35, y: 22, label: 'Centre Back' },
   CB2: { x: 65, y: 22, label: 'Centre Back' },
-  RB: { x: 85, y: 22, label: 'Full Back' },
+  RB: { x: 15, y: 22, label: 'Full Back' },
   CDM: { x: 50, y: 40, label: 'Central Midfield' },
   CM1: { x: 30, y: 52, label: 'Central Midfield' },
   CM2: { x: 70, y: 52, label: 'Central Midfield' },
-  LW: { x: 20, y: 72, label: 'Winger' },
+  LW: { x: 80, y: 72, label: 'Winger' },
   ST: { x: 50, y: 82, label: 'Striker' },
-  RW: { x: 80, y: 72, label: 'Winger' },
+  RW: { x: 20, y: 72, label: 'Winger' },
 };
 
 const EnhancedFootballPitch = ({ players, squadType, onPositionClick, selectedPosition }: EnhancedFootballPitchProps) => {
