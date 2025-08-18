@@ -28,72 +28,54 @@ const FORMATION_POSITIONS = {
 };
 
 const EnhancedFootballPitch = ({ players, squadType, onPositionClick, selectedPosition }: EnhancedFootballPitchProps) => {
-  // Track used players to avoid duplicates across positions
-  const usedPlayerIds = new Set<string>();
-
   const getPlayersForPosition = (position: string) => {
-    // Create a more comprehensive position mapping with multiple fallback levels
+    // Create a comprehensive position mapping to get ALL players for each position
     const getPositionPriorities = (pos: string) => {
       switch (pos) {
         case 'GK': 
-          return [['GK'], ['CB'], ['CDM']]; // Goalkeepers first, then defensive players as emergency
+          return [['GK']];
         case 'LB': 
-          return [['LB', 'LWB'], ['LM', 'LW'], ['CB'], ['CM']];
+          return [['LB', 'LWB'], ['LM'], ['CB']];
         case 'CB1': 
         case 'CB2': 
-          return [['CB'], ['CDM'], ['LB', 'RB', 'LWB', 'RWB'], ['CM']];
+          return [['CB'], ['CDM']];
         case 'RB': 
-          return [['RB', 'RWB'], ['RM', 'RW'], ['CB'], ['CM']];
+          return [['RB', 'RWB'], ['RM'], ['CB']];
         case 'CDM': 
-          return [['CDM'], ['CM'], ['CB'], ['CAM']];
+          return [['CDM'], ['CM'], ['CB']];
         case 'CM1': 
         case 'CM2': 
-          return [['CM'], ['CAM', 'CDM'], ['LM', 'RM'], ['LW', 'RW']];
+          return [['CM'], ['CAM', 'CDM'], ['LM', 'RM']];
         case 'LW': 
-          return [['LW'], ['LM'], ['LB', 'LWB'], ['ST', 'CF'], ['CAM']];
+          return [['LW'], ['LM'], ['ST', 'CF'], ['CAM']];
         case 'ST': 
-          return [['ST', 'CF'], ['CAM'], ['LW', 'RW'], ['CM']];
+          return [['ST', 'CF'], ['CAM'], ['LW', 'RW']];
         case 'RW': 
-          return [['RW'], ['RM'], ['RB', 'RWB'], ['ST', 'CF'], ['CAM']];
+          return [['RW'], ['RM'], ['ST', 'CF'], ['CAM']];
         default: 
           return [[]];
       }
     };
 
     const priorities = getPositionPriorities(position);
+    let allPlayersForPosition: Player[] = [];
     
-    // Try each priority level until we find available players
+    // Collect ALL players that can play in this position across all priority levels
     for (const priorityGroup of priorities) {
-      const availablePlayers = players.filter(player => 
-        !usedPlayerIds.has(player.id) &&
+      const matchingPlayers = players.filter(player => 
         player.positions.some(playerPos => priorityGroup.includes(playerPos))
       );
-      
-      if (availablePlayers.length > 0) {
-        // Sort by rating and take the best available
-        const sortedPlayers = availablePlayers.sort((a, b) => {
-          const ratingA = a.transferroomRating || a.xtvScore || 0;
-          const ratingB = b.transferroomRating || b.xtvScore || 0;
-          return ratingB - ratingA;
-        });
-        
-        // Mark the best player as used
-        const selectedPlayer = sortedPlayers[0];
-        usedPlayerIds.add(selectedPlayer.id);
-        return [selectedPlayer];
-      }
+      allPlayersForPosition = [...allPlayersForPosition, ...matchingPlayers];
     }
-
-    // Ultimate fallback: if no players found with position matching, 
-    // just take any available player (this ensures every position gets filled)
-    const anyAvailablePlayer = players.find(player => !usedPlayerIds.has(player.id));
-    if (anyAvailablePlayer) {
-      usedPlayerIds.add(anyAvailablePlayer.id);
-      return [anyAvailablePlayer];
-    }
-
-    // If we somehow run out of players entirely, return empty array
-    return [];
+    
+    // Remove duplicates and sort by rating
+    const uniquePlayers = Array.from(new Map(allPlayersForPosition.map(p => [p.id, p])).values());
+    
+    return uniquePlayers.sort((a, b) => {
+      const ratingA = a.transferroomRating || a.xtvScore || 0;
+      const ratingB = b.transferroomRating || b.xtvScore || 0;
+      return ratingB - ratingA;
+    });
   };
 
   const handlePositionClick = (position: string, label: string) => {
@@ -123,16 +105,18 @@ const EnhancedFootballPitch = ({ players, squadType, onPositionClick, selectedPo
     }
 
     return (
-      <div className="p-2 max-w-xs">
+      <div className="p-2 max-w-sm max-h-96 overflow-y-auto">
         <div className="space-y-2">
+          <div className="text-xs font-semibold text-gray-700 mb-2">
+            {positionPlayers.length} player{positionPlayers.length > 1 ? 's' : ''} available
+          </div>
           {positionPlayers.map((player, index) => {
             const contractRisk = getContractRiskLevel(player);
-            const isInjured = Math.random() < 0.1; // Mock injury status
-            const mockValue = Math.floor(Math.random() * 80) + 5; // Mock transfer value
-            const mockHeight = Math.floor(Math.random() * 20) + 170; // Mock height
+            const isPrimary = index === 0;
+            const yearsLeft = player.contractExpiry ? Math.max(0, Math.floor((new Date(player.contractExpiry).getTime() - Date.now()) / (365 * 24 * 60 * 60 * 1000))) : null;
 
             return (
-              <div key={player.id} className="flex items-center gap-2 text-sm">
+              <div key={player.id} className={`flex items-center gap-2 text-sm p-2 rounded ${isPrimary ? 'bg-blue-50 border border-blue-200' : 'bg-gray-50'}`}>
                 <Avatar className="w-6 h-6">
                   <AvatarImage 
                     src={player.image || `https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&crop=face&fit=crop`} 
@@ -143,9 +127,13 @@ const EnhancedFootballPitch = ({ players, squadType, onPositionClick, selectedPo
                   </AvatarFallback>
                 </Avatar>
                 <div className="flex-1 min-w-0">
-                  <div className="font-medium truncate">{player.name}</div>
+                  <div className="font-medium truncate flex items-center gap-1">
+                    {player.name}
+                    {isPrimary && <Badge variant="default" className="text-xs px-1 py-0">1st</Badge>}
+                  </div>
                   <div className="text-xs text-gray-500">
-                    Age {player.age} • {mockHeight}cm • €{mockValue}M
+                    Age {player.age} • Rating: {player.transferroomRating || player.xtvScore || 'N/A'}
+                    {yearsLeft !== null && ` • +${yearsLeft}`}
                   </div>
                   <div className="flex gap-1 mt-1">
                     {contractRisk === 'high' && (
@@ -156,11 +144,6 @@ const EnhancedFootballPitch = ({ players, squadType, onPositionClick, selectedPo
                     {contractRisk === 'medium' && (
                       <div className="w-3 h-3 bg-amber-500 rounded-full flex items-center justify-center">
                         <Clock className="h-1.5 w-1.5 text-white" />
-                      </div>
-                    )}
-                    {isInjured && (
-                      <div className="w-3 h-3 bg-red-600 rounded-full flex items-center justify-center">
-                        <AlertTriangle className="h-1.5 w-1.5 text-white" />
                       </div>
                     )}
                   </div>
@@ -193,7 +176,7 @@ const EnhancedFootballPitch = ({ players, squadType, onPositionClick, selectedPo
               onClick={() => handlePositionClick(position, coords.label)}
             >
               {primaryPlayer ? (
-                <div className="bg-white rounded-lg shadow-lg p-2 min-w-28 border hover:shadow-xl transition-shadow">
+                <div className="bg-white rounded-lg shadow-lg p-2 min-w-32 border hover:shadow-xl transition-shadow">
                   <div className="flex items-center gap-1 mb-1">
                     <Avatar className="w-6 h-6">
                       <AvatarImage 
@@ -214,11 +197,31 @@ const EnhancedFootballPitch = ({ players, squadType, onPositionClick, selectedPo
                     {primaryPlayer.transferroomRating || primaryPlayer.xtvScore || 'N/A'}
                   </div>
                   
-                  {positionPlayers.length > 1 && (
-                    <div className="text-xs text-center text-blue-600 font-medium">
-                      +{positionPlayers.length - 1} more
+                  <div className="flex justify-center items-center gap-1">
+                    <div className="text-xs text-center font-semibold text-blue-600">
+                      {positionPlayers.length} player{positionPlayers.length > 1 ? 's' : ''}
                     </div>
-                  )}
+                    {positionPlayers.length > 1 && (
+                      <div className="flex -space-x-1">
+                        {positionPlayers.slice(1, 4).map((player, index) => (
+                          <Avatar key={player.id} className="w-3 h-3 border border-white">
+                            <AvatarImage 
+                              src={player.image || `https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&crop=face&fit=crop`} 
+                              alt={player.name}
+                            />
+                            <AvatarFallback className="bg-gray-400 text-white text-xs">
+                              {player.name.split(' ').map(n => n[0]).join('').slice(0, 1)}
+                            </AvatarFallback>
+                          </Avatar>
+                        ))}
+                        {positionPlayers.length > 4 && (
+                          <div className="w-3 h-3 bg-gray-500 text-white rounded-full flex items-center justify-center text-xs font-bold">
+                            +
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
                 </div>
               ) : (
                 <div className="bg-white rounded-lg shadow-lg p-2 min-w-28 border border-dashed border-gray-300">
