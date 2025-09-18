@@ -71,22 +71,25 @@ const Auth = () => {
 
   const demoAccounts = [
     {
-      name: "Jay Hughes",
-      email: "jay.hughes@transferroom.com",
+      name: "Oliver Smith - Scout",
+      email: "scout@demo.com",
+      password: "demo123",
       role: "Scout",
       icon: User,
       color: "text-blue-500"
     },
     {
-      name: "Bobby Chucas", 
-      email: "bobby.chucas@transferroom.com",
+      name: "James Wilson - Manager", 
+      email: "manager@demo.com",
+      password: "demo123",
       role: "Recruitment Manager",
       icon: Shield,
       color: "text-green-500"
     },
     {
-      name: "Marc Edees",
-      email: "marc.edees@transferroom.com", 
+      name: "Sarah Mitchell - Director",
+      email: "director@demo.com", 
+      password: "demo123",
       role: "Director",
       icon: Star,
       color: "text-purple-500"
@@ -94,7 +97,21 @@ const Auth = () => {
   ];
 
   const handleDemoLogin = async (demoAccount: typeof demoAccounts[0]) => {
-    toast.error(`Please contact ${demoAccount.name} for their password, or create your own test account using the signup form.`);
+    setLoading(true);
+    try {
+      const { error } = await signIn(demoAccount.email, demoAccount.password);
+      
+      if (error) {
+        toast.error(error.message);
+      } else {
+        toast.success(`Signed in as ${demoAccount.role}!`);
+        navigate('/');
+      }
+    } catch (error) {
+      toast.error('An unexpected error occurred');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -221,25 +238,26 @@ const Auth = () => {
 
       <Card className="flex-1 max-w-md">
         <CardHeader>
-          <CardTitle>Existing User Roles</CardTitle>
-          <CardDescription>These accounts exist in the system with different roles</CardDescription>
+          <CardTitle>Demo Accounts</CardTitle>
+          <CardDescription>Click any account below to sign in instantly</CardDescription>
         </CardHeader>
         <CardContent className="space-y-3">
           {demoAccounts.map((account, index) => {
             const Icon = account.icon;
             return (
-              <div
+              <Button
                 key={index}
-                className="w-full p-4 border rounded-lg bg-muted/20 flex items-start gap-3"
+                variant="outline"
+                className="w-full p-4 h-auto justify-start gap-3 hover:bg-muted/50"
+                onClick={() => handleDemoLogin(account)}
+                disabled={loading}
               >
-                <Icon className={`h-5 w-5 ${account.color} mt-0.5`} />
-                <div className="text-left flex-1">
+                <Icon className={`h-5 w-5 ${account.color}`} />
+                <div className="text-left">
                   <div className="font-medium">{account.name}</div>
-                  <div className="text-sm text-muted-foreground mb-1">{account.email}</div>
-                  <div className="text-xs text-muted-foreground">Role: {account.role}</div>
-                  <div className="text-xs text-orange-600 mt-1">Contact user for password or create new account</div>
+                  <div className="text-sm text-muted-foreground">{account.email}</div>
                 </div>
-              </div>
+              </Button>
             );
           })}
         </CardContent>
