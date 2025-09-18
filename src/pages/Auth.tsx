@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
-import { Loader2 } from 'lucide-react';
+import { Loader2, User, Shield, Star } from 'lucide-react';
 import PasswordResetDialog from '@/components/PasswordResetDialog';
 
 const Auth = () => {
@@ -69,9 +69,55 @@ const Auth = () => {
     }
   };
 
+  const demoAccounts = [
+    {
+      name: "Oliver Smith - Scout",
+      email: "scout@demo.com",
+      password: "demo123",
+      role: "Scout",
+      icon: User,
+      color: "text-blue-500"
+    },
+    {
+      name: "James Wilson - Manager", 
+      email: "manager@demo.com",
+      password: "demo123",
+      role: "Recruitment Manager",
+      icon: Shield,
+      color: "text-green-500"
+    },
+    {
+      name: "Sarah Mitchell - Director",
+      email: "director@demo.com", 
+      password: "demo123",
+      role: "Director",
+      icon: Star,
+      color: "text-purple-500"
+    }
+  ];
+
+  const handleDemoLogin = async (demoAccount: typeof demoAccounts[0]) => {
+    setLoading(true);
+    try {
+      const { error } = await signIn(demoAccount.email, demoAccount.password);
+      
+      if (error) {
+        toast.error(error.message);
+      } else {
+        toast.success(`Signed in as ${demoAccount.role}!`);
+        navigate('/');
+      }
+    } catch (error) {
+      toast.error('An unexpected error occurred');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
-      <Card className="w-full max-w-md">
+      <div className="w-full max-w-4xl flex gap-8">
+        <Card className="flex-1 max-w-md">
         <CardHeader>
           <CardTitle>TransferRoom</CardTitle>
           <CardDescription>Sign in to your account or create a new one</CardDescription>
@@ -190,10 +236,38 @@ const Auth = () => {
         </CardContent>
       </Card>
 
+      <Card className="flex-1 max-w-md">
+        <CardHeader>
+          <CardTitle>Demo Accounts</CardTitle>
+          <CardDescription>Click any account below to sign in instantly</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {demoAccounts.map((account, index) => {
+            const Icon = account.icon;
+            return (
+              <Button
+                key={index}
+                variant="outline"
+                className="w-full p-4 h-auto justify-start gap-3 hover:bg-muted/50"
+                onClick={() => handleDemoLogin(account)}
+                disabled={loading}
+              >
+                <Icon className={`h-5 w-5 ${account.color}`} />
+                <div className="text-left">
+                  <div className="font-medium">{account.name}</div>
+                  <div className="text-sm text-muted-foreground">{account.email}</div>
+                </div>
+              </Button>
+            );
+          })}
+        </CardContent>
+      </Card>
+
       <PasswordResetDialog 
         open={resetDialogOpen} 
         onOpenChange={setResetDialogOpen} 
       />
+      </div>
     </div>
   );
 };
