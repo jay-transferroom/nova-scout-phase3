@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import ReportsTabNavigation from "@/components/reports/ReportsTabNavigation";
 import ReportsTable from "@/components/reports/ReportsTable";
 
+// Reports List Component
 const ReportsList = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
