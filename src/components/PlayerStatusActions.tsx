@@ -194,7 +194,7 @@ const PlayerStatusActions = ({ playerId, playerName, playerReports }: PlayerStat
               {isAssignedForScouting && (
                 <div className="flex items-center gap-1 text-blue-600">
                   <UserCheck className="w-4 h-4" />
-                  <span>Assigned for Scouting</span>
+                  <span>On Watchlist</span>
                 </div>
               )}
             </div>
@@ -219,7 +219,7 @@ const PlayerStatusActions = ({ playerId, playerName, playerReports }: PlayerStat
             {!playerAssignment && canAssignScout && (
               <Button variant="outline" size="sm" onClick={handleAssignScout} className="gap-2">
                 <UserPlus className="w-4 h-4" />
-                Assign Scout
+                Assign to Scout
               </Button>
             )}
 
@@ -235,12 +235,12 @@ const PlayerStatusActions = ({ playerId, playerName, playerReports }: PlayerStat
                 {isAssignedForScouting ? (
                   <>
                     <UserMinus className="w-4 h-4" />
-                    Remove from Scouting
+                    Remove from Watchlist
                   </>
                 ) : (
                   <>
                     <UserCheck className="w-4 h-4" />
-                    Assign for Scouting
+                    Add to Watchlist
                   </>
                 )}
               </Button>
@@ -257,12 +257,12 @@ const PlayerStatusActions = ({ playerId, playerName, playerReports }: PlayerStat
               {isTracking ? (
                 <>
                   <HeartOff className="w-4 h-4" />
-                  Untrack
+                  Stop Following
                 </>
               ) : (
                 <>
                   <Heart className="w-4 h-4" />
-                  Track
+                  Follow
                 </>
               )}
             </Button>
