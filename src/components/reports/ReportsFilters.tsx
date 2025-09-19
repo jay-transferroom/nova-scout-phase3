@@ -227,7 +227,7 @@ const ReportsFilters = ({ filters, onFiltersChange, availableVerdicts, available
         {hasActiveFilters && (
           <div className="flex flex-wrap gap-2">
             {filters.searchTerm && (
-              <Badge variant="secondary" className="flex items-center gap-1 text-base">
+              <Badge variant="secondary" className="flex items-center gap-1 font-normal" style={{fontSize: '0.9rem'}}>
                 Search: "{filters.searchTerm}"
                 <X 
                   className="h-4 w-4 cursor-pointer" 
@@ -236,7 +236,7 @@ const ReportsFilters = ({ filters, onFiltersChange, availableVerdicts, available
               </Badge>
             )}
             {filters.playerName && (
-              <Badge variant="secondary" className="flex items-center gap-1 text-base">
+              <Badge variant="secondary" className="flex items-center gap-1 font-normal" style={{fontSize: '0.9rem'}}>
                 Player: {filters.playerName}
                 <X 
                   className="h-4 w-4 cursor-pointer" 
@@ -245,7 +245,7 @@ const ReportsFilters = ({ filters, onFiltersChange, availableVerdicts, available
               </Badge>
             )}
             {filters.club && (
-              <Badge variant="secondary" className="flex items-center gap-1 text-base">
+              <Badge variant="secondary" className="flex items-center gap-1 font-normal" style={{fontSize: '0.9rem'}}>
                 Club: {filters.club}
                 <X 
                   className="h-4 w-4 cursor-pointer" 
@@ -254,7 +254,7 @@ const ReportsFilters = ({ filters, onFiltersChange, availableVerdicts, available
               </Badge>
             )}
             {filters.positions && (
-              <Badge variant="secondary" className="flex items-center gap-1 text-base">
+              <Badge variant="secondary" className="flex items-center gap-1 font-normal" style={{fontSize: '0.9rem'}}>
                 Position: {filters.positions}
                 <X 
                   className="h-4 w-4 cursor-pointer" 
@@ -263,7 +263,7 @@ const ReportsFilters = ({ filters, onFiltersChange, availableVerdicts, available
               </Badge>
             )}
             {filters.verdict && (
-              <Badge variant="secondary" className="flex items-center gap-1 text-base">
+              <Badge variant="secondary" className="flex items-center gap-1 font-normal" style={{fontSize: '0.9rem'}}>
                 Verdict: {filters.verdict}
                 <X 
                   className="h-4 w-4 cursor-pointer" 
@@ -272,7 +272,7 @@ const ReportsFilters = ({ filters, onFiltersChange, availableVerdicts, available
               </Badge>
             )}
             {filters.status && (
-              <Badge variant="secondary" className="flex items-center gap-1 text-base">
+              <Badge variant="secondary" className="flex items-center gap-1 font-normal" style={{fontSize: '0.9rem'}}>
                 Status: {filters.status}
                 <X 
                   className="h-4 w-4 cursor-pointer" 
@@ -281,7 +281,7 @@ const ReportsFilters = ({ filters, onFiltersChange, availableVerdicts, available
               </Badge>
             )}
             {filters.scout && (
-              <Badge variant="secondary" className="flex items-center gap-1 text-base">
+              <Badge variant="secondary" className="flex items-center gap-1 font-normal" style={{fontSize: '0.9rem'}}>
                 Scout: {availableScouts.find(s => s.id === filters.scout)?.name || filters.scout}
                 <X 
                   className="h-4 w-4 cursor-pointer" 
@@ -290,7 +290,7 @@ const ReportsFilters = ({ filters, onFiltersChange, availableVerdicts, available
               </Badge>
             )}
             {filters.dateRange && (
-              <Badge variant="secondary" className="flex items-center gap-1 text-base">
+              <Badge variant="secondary" className="flex items-center gap-1 font-normal" style={{fontSize: '0.9rem'}}>
                 Date: {filters.dateRange}
                 <X 
                   className="h-4 w-4 cursor-pointer" 
