@@ -147,8 +147,27 @@ const Index = () => {
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           {stats.map((stat, index) => {
             const Icon = stat.icon;
+            const getReportsRoute = () => {
+              switch (stat.title) {
+                case "Total Reports":
+                  return "/reports?tab=all-reports";
+                case "Draft Reports":
+                  return "/reports?tab=my-drafts";
+                case "Submitted Reports":
+                  return "/reports?tab=my-reports";
+                case "Players Scouted":
+                  return "/reports?tab=all-reports";
+                default:
+                  return "/reports";
+              }
+            };
+            
             return (
-              <Card key={index}>
+              <Card 
+                key={index} 
+                className="cursor-pointer hover:bg-accent transition-colors"
+                onClick={() => navigate(getReportsRoute())}
+              >
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">
                     {stat.title}
