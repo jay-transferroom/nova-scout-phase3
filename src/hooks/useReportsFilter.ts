@@ -60,18 +60,18 @@ export const useReportsFilter = (reports: ReportWithPlayer[], activeTab: string,
     // Apply additional search filters if provided
     if (searchFilters) {
       filtered = filtered.filter(report => {
-        // Search term filter (searches in player ID, scout name, report content)
+        // Search term filter (searches in player name, club, positions, status)
         if (searchFilters.searchTerm && searchFilters.searchTerm.trim() !== '') {
           const searchTerm = searchFilters.searchTerm.toLowerCase();
-          const playerId = report.playerId?.toLowerCase() || '';
-          const scoutName = `${report.scoutProfile?.first_name || ''} ${report.scoutProfile?.last_name || ''}`.toLowerCase();
+          const playerName = report.player?.name?.toLowerCase() || '';
+          const playerClub = report.player?.club?.toLowerCase() || '';
+          const playerPositions = report.player?.positions?.join(' ').toLowerCase() || '';
+          const reportStatus = report.status?.toLowerCase() || '';
           
-          // Search through report sections content
-          const sectionContent = JSON.stringify(report.sections).toLowerCase();
-          
-          if (!playerId.includes(searchTerm) && 
-              !scoutName.includes(searchTerm) &&
-              !sectionContent.includes(searchTerm)) {
+          if (!playerName.includes(searchTerm) && 
+              !playerClub.includes(searchTerm) &&
+              !playerPositions.includes(searchTerm) &&
+              !reportStatus.includes(searchTerm)) {
             return false;
           }
         }

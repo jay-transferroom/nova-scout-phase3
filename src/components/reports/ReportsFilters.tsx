@@ -65,7 +65,7 @@ const ReportsFilters = ({ filters, onFiltersChange, availableVerdicts, available
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
             <Input
-              placeholder="Search by player ID, scout name, or report content..."
+              placeholder="Search by player name, club, position, or status..."
               value={filters.searchTerm}
               onChange={(e) => updateFilter('searchTerm', e.target.value)}
               className="pl-10"
