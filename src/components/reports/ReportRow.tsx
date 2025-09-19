@@ -12,6 +12,7 @@ import VerdictBadge from "@/components/VerdictBadge";
 import { useNavigate } from "react-router-dom";
 import { PlayerAvatar } from "@/components/ui/player-avatar";
 import { ClubBadge } from "@/components/ui/club-badge";
+import { ScoutingGrade } from "@/components/ui/scouting-grade";
 
 interface ReportRowProps {
   report: ReportWithPlayer;
@@ -122,9 +123,7 @@ const ReportRow = ({ report, onViewReport, onEditReport, onDeleteReport, canEdit
       </TableCell>
       <TableCell>
         {overallRating !== null && overallRating !== undefined ? (
-          <Badge variant="rating" className="font-bold">
-            {overallRating}
-          </Badge>
+          <ScoutingGrade grade={overallRating} />
         ) : (
           <span className="text-grey-400 text-sm">-</span>
         )}
