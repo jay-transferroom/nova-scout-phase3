@@ -117,24 +117,23 @@ const ScoutManagement = () => {
 
     console.log('Player reports map size:', playerReportsMap.size);
 
-    // Get all players from shortlists instead of just showing random unassigned players
-    const shortlistedPlayerIds = new Set<string>();
-    shortlists.forEach(shortlist => {
-      if (shortlist.playerIds) {
-        shortlist.playerIds.forEach(id => shortlistedPlayerIds.add(id));
-      }
-    });
+    // Get all players from the scouting assignment list instead of regular shortlists
+    const scoutingAssignmentList = shortlists.find(shortlist => shortlist.is_scouting_assignment_list);
+    const scoutingAssignmentPlayerIds = new Set<string>(
+      scoutingAssignmentList?.playerIds || []
+    );
 
-    console.log('Shortlisted player IDs:', Array.from(shortlistedPlayerIds));
+    console.log('Scouting assignment list:', scoutingAssignmentList);
+    console.log('Scouting assignment player IDs:', Array.from(scoutingAssignmentPlayerIds));
 
-    // Create shortlisted players from actual shortlists
-    const actualShortlistedPlayers = allPlayers
+    // Create assigned for scouting players from the dedicated list
+    const scoutingAssignmentPlayers = allPlayers
       .filter(player => {
         const playerId = player.isPrivatePlayer ? player.id : player.id.toString();
-        return shortlistedPlayerIds.has(playerId) && !assignedPlayerIds.has(playerId);
+        return scoutingAssignmentPlayerIds.has(playerId) && !assignedPlayerIds.has(playerId);
       })
       .map(player => ({
-        id: `shortlisted-${player.id}`,
+        id: `scouting-assignment-${player.id}`,
         playerName: player.name,
         club: player.club,
         position: player.positions?.[0] || 'Unknown',
@@ -150,15 +149,15 @@ const ScoutManagement = () => {
         playerId: player.isPrivatePlayer ? player.id : player.id.toString()
       }));
 
-    // Apply search filter to shortlisted players
-    const filteredShortlisted = searchTerm 
-      ? actualShortlistedPlayers.filter(player => 
+    // Apply search filter to scouting assignment players
+    const filteredScoutingAssignment = searchTerm 
+      ? scoutingAssignmentPlayers.filter(player => 
           player.playerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
           player.club.toLowerCase().includes(searchTerm.toLowerCase())
         )
-      : actualShortlistedPlayers;
+      : scoutingAssignmentPlayers;
 
-    newKanbanData.shortlisted = filteredShortlisted;
+    newKanbanData.shortlisted = filteredScoutingAssignment;
 
     // Process assigned players using consolidated data
     assignments.forEach((assignment) => {
@@ -259,7 +258,7 @@ const ScoutManagement = () => {
   };
 
   const columns = [
-    { id: 'shortlisted', title: 'Shortlisted Players', color: 'bg-blue-500', count: kanbanData.shortlisted.length },
+    { id: 'shortlisted', title: 'Assigned for Scouting', color: 'bg-orange-500', count: kanbanData.shortlisted.length },
     { id: 'assigned', title: 'Assigned', color: 'bg-orange-500', count: kanbanData.assigned.length },
     { id: 'completed', title: 'Completed', color: 'bg-green-500', count: kanbanData.completed.length },
   ];

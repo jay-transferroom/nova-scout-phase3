@@ -1,4 +1,3 @@
-
 import { useState, useCallback, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -13,6 +12,7 @@ export interface Shortlist {
   created_at?: string;
   updated_at?: string;
   requirement_id?: string; // For director users
+  is_scouting_assignment_list?: boolean; // For the dedicated scouting assignment list
 }
 
 export const useShortlists = () => {
@@ -301,6 +301,84 @@ export const useShortlists = () => {
     }
   }, [toast]);
 
+  const getScoutingAssignmentList = useCallback(async () => {
+    if (!user) return null;
+
+    try {
+      const { data, error } = await supabase
+        .from('shortlists')
+        .select(`
+          *,
+          shortlist_players(player_id)
+        `)
+        .eq('is_scouting_assignment_list', true)
+        .single();
+
+      if (error) {
+        if (error.code === 'PGRST116') {
+          // No scouting assignment list found, create it
+          const { data: newList, error: createError } = await supabase
+            .from('shortlists')
+            .insert({
+              user_id: user.id,
+              name: 'Assigned for Scouting',
+              description: 'Players assigned by scout managers for scouting assessment',
+              color: 'bg-orange-500',
+              is_scouting_assignment_list: true
+            })
+            .select()
+            .single();
+
+          if (createError) throw createError;
+          
+          return {
+            ...newList,
+            playerIds: []
+          };
+        }
+        throw error;
+      }
+
+      return {
+        ...data,
+        playerIds: data.shortlist_players?.map(sp => sp.player_id) || []
+      };
+    } catch (error) {
+      console.error('Error getting scouting assignment list:', error);
+      return null;
+    }
+  }, [user]);
+
+  const addPlayerToScoutingAssignment = useCallback(async (playerId: string) => {
+    const scoutingList = await getScoutingAssignmentList();
+    if (!scoutingList) {
+      toast({
+        title: "Error",
+        description: "Could not find scouting assignment list",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    await addPlayerToShortlist(scoutingList.id, playerId);
+    await loadShortlists(); // Refresh to update UI
+  }, [getScoutingAssignmentList, addPlayerToShortlist, loadShortlists, toast]);
+
+  const removePlayerFromScoutingAssignment = useCallback(async (playerId: string) => {
+    const scoutingList = await getScoutingAssignmentList();
+    if (!scoutingList) {
+      toast({
+        title: "Error", 
+        description: "Could not find scouting assignment list",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    await removePlayerFromShortlist(scoutingList.id, playerId);
+    await loadShortlists(); // Refresh to update UI
+  }, [getScoutingAssignmentList, removePlayerFromShortlist, loadShortlists, toast]);
+
   return {
     shortlists,
     loading,
@@ -310,6 +388,9 @@ export const useShortlists = () => {
     addPlayerToShortlist,
     removePlayerFromShortlist,
     getPlayerShortlists,
-    refreshShortlists: loadShortlists
+    refreshShortlists: loadShortlists,
+    getScoutingAssignmentList,
+    addPlayerToScoutingAssignment,
+    removePlayerFromScoutingAssignment,
   };
 };

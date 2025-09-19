@@ -30,6 +30,7 @@ import { PlayerPlayingStyleTab } from "@/components/player-profile/PlayerPlaying
 import { PlayerInjuriesTab } from "@/components/player-profile/PlayerInjuriesTab";
 import { PlayerMatchHistoryTab } from "@/components/player-profile/PlayerMatchHistoryTab";
 import { PlayerAlternativesTab } from "@/components/player-profile/PlayerAlternativesTab";
+import AssignForScoutingButton from "@/components/AssignForScoutingButton";
 
 const PlayerProfile = () => {
   const { id } = useParams<{ id: string }>();
@@ -220,6 +221,10 @@ const PlayerProfile = () => {
 
                 {/* Actions Section */}
                 <div className="flex items-center gap-2">
+                  <AssignForScoutingButton 
+                    playerId={player.id} 
+                    playerName={player.name}
+                  />
                   <Button variant="outline" size="sm" onClick={handleViewReports} className="gap-2">
                     <Eye className="w-4 h-4" />
                     View Reports ({playerStatus.reportCount})
