@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -7,6 +7,8 @@ import { useReportsFilter } from "@/hooks/useReportsFilter";
 import { toast } from "sonner";
 import ReportsTabNavigation from "@/components/reports/ReportsTabNavigation";
 import ReportsTable from "@/components/reports/ReportsTable";
+import ReportsFilters, { ReportsFilterCriteria } from "@/components/reports/ReportsFilters";
+import { getRecommendation } from "@/utils/reportDataExtraction";
 
 // Reports List Component
 const ReportsList = () => {
@@ -14,6 +16,13 @@ const ReportsList = () => {
   const [searchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState("all-reports");
   const [currentPage, setCurrentPage] = useState(1);
+  const [searchFilters, setSearchFilters] = useState<ReportsFilterCriteria>({
+    searchTerm: '',
+    verdict: '',
+    status: '',
+    scout: '',
+    dateRange: ''
+  });
   
   const itemsPerPage = 10;
   
@@ -26,7 +35,32 @@ const ReportsList = () => {
   }, [searchParams]);
   
   const { reports, loading, deleteReport } = useReports();
-  const filteredReports = useReportsFilter(reports, activeTab);
+  const filteredReports = useReportsFilter(reports, activeTab, searchFilters);
+
+  // Extract available filter options from reports
+  const { availableVerdicts, availableScouts } = useMemo(() => {
+    const verdicts = new Set<string>();
+    const scouts = new Map<string, string>();
+
+    reports.forEach(report => {
+      // Collect verdicts
+      const verdict = getRecommendation(report);
+      if (verdict) {
+        verdicts.add(verdict);
+      }
+
+      // Collect scouts
+      if (report.scoutId && report.scoutProfile) {
+        const scoutName = `${report.scoutProfile.first_name || ''} ${report.scoutProfile.last_name || ''}`.trim() || 'Scout';
+        scouts.set(report.scoutId, scoutName);
+      }
+    });
+
+    return {
+      availableVerdicts: Array.from(verdicts).sort(),
+      availableScouts: Array.from(scouts.entries()).map(([id, name]) => ({ id, name })).sort((a, b) => a.name.localeCompare(b.name))
+    };
+  }, [reports]);
   
   // Pagination logic
   const totalItems = filteredReports.length;
@@ -35,10 +69,10 @@ const ReportsList = () => {
   const endIndex = startIndex + itemsPerPage;
   const paginatedReports = filteredReports.slice(startIndex, endIndex);
   
-  // Reset to first page when tab changes
+  // Reset to first page when tab changes or filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [activeTab]);
+  }, [activeTab, searchFilters]);
   
   const handleViewReport = (reportId: string) => {
     navigate(`/report/${reportId}`);
@@ -82,6 +116,13 @@ const ReportsList = () => {
       </div>
 
       <ReportsTabNavigation onTabChange={setActiveTab} activeTab={activeTab} />
+
+      <ReportsFilters 
+        filters={searchFilters}
+        onFiltersChange={setSearchFilters}
+        availableVerdicts={availableVerdicts}
+        availableScouts={availableScouts}
+      />
 
       <Card>
         <CardHeader className="pb-3">
