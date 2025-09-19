@@ -78,6 +78,12 @@ const Index = () => {
     },
   ];
 
+  const recommendForSigningReports = (profile?.role === 'recruitment' ? reports : myReports)
+    .filter(report => {
+      const verdict = getRecommendation(report);
+      return verdict === 'recommend-signing' || verdict === 'Recommend for signing';
+    });
+
   const stats = [
     {
       title: "Total Reports",
@@ -101,11 +107,11 @@ const Index = () => {
       trend: loading ? "Loading..." : `${profile?.role === 'recruitment' ? reports.filter(r => r.status === 'submitted').length : submittedReports.length} completed`,
     },
     {
-      title: "Players Scouted",
-      value: loading ? 0 : new Set((profile?.role === 'recruitment' ? reports : myReports).map(r => r.playerId)).size,
-      description: "Unique players",
-      icon: Users,
-      trend: loading ? "Loading..." : `${new Set((profile?.role === 'recruitment' ? reports : myReports).map(r => r.playerId)).size} unique players`,
+      title: "Recommend for Signing",
+      value: loading ? 0 : recommendForSigningReports.length,
+      description: "Players to sign",
+      icon: Star,
+      trend: loading ? "Loading..." : `${recommendForSigningReports.length} recommended players`,
     },
   ];
 
@@ -155,8 +161,8 @@ const Index = () => {
                   return "/reports?tab=my-drafts";
                 case "Submitted Reports":
                   return "/reports?tab=my-reports";
-                case "Players Scouted":
-                  return "/reports?tab=all-reports";
+                case "Recommend for Signing":
+                  return "/reports?tab=all-reports&verdict=recommend-signing";
                 default:
                   return "/reports";
               }

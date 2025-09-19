@@ -29,11 +29,20 @@ const ReportsList = () => {
   
   const itemsPerPage = 10;
   
-  // Set initial tab from URL parameters
+  // Set initial tab and filters from URL parameters
   useEffect(() => {
     const tabParam = searchParams.get("tab");
     if (tabParam && ["all-reports", "my-reports", "my-drafts"].includes(tabParam)) {
       setActiveTab(tabParam);
+    }
+    
+    // Handle verdict filter from URL
+    const verdictParam = searchParams.get("verdict");
+    if (verdictParam) {
+      setSearchFilters(prev => ({
+        ...prev,
+        verdict: verdictParam.includes(',') ? verdictParam.split(',')[0] : verdictParam
+      }));
     }
   }, [searchParams]);
   
