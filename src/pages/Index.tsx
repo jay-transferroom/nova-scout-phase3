@@ -169,65 +169,6 @@ const Index = () => {
           })}
         </div>
 
-        {/* Quick Actions */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Quick Actions</CardTitle>
-            <CardDescription>
-              Common tasks to get you started
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
-              {quickActions.map((action, index) => {
-                const Icon = action.icon;
-                
-                if (action.isDialog) {
-                  return (
-                    <AddPrivatePlayerDialog
-                      key={index}
-                      trigger={
-                        <Button
-                          variant={action.variant}
-                          className={`h-20 flex flex-col items-center gap-2 p-4 ${
-                            action.primary ? 'bg-primary text-primary-foreground hover:bg-primary/90' : ''
-                          }`}
-                        >
-                          <Icon className="h-5 w-5" />
-                          <div className="text-center">
-                            <div className="font-medium text-sm">{action.title}</div>
-                            <div className="text-xs opacity-80">
-                              {action.description}
-                            </div>
-                          </div>
-                        </Button>
-                      }
-                    />
-                  );
-                }
-                
-                return (
-                  <Button
-                    key={index}
-                    variant={action.variant}
-                    className={`h-20 flex flex-col items-center gap-2 p-4 ${
-                      action.primary ? 'bg-primary text-primary-foreground hover:bg-primary/90' : ''
-                    }`}
-                    onClick={action.action}
-                  >
-                    <Icon className="h-5 w-5" />
-                    <div className="text-center">
-                      <div className="font-medium text-sm">{action.title}</div>
-                      <div className="text-xs opacity-80">
-                        {action.description}
-                      </div>
-                    </div>
-                  </Button>
-                );
-              })}
-            </div>
-          </CardContent>
-        </Card>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Tracked Players Section */}
