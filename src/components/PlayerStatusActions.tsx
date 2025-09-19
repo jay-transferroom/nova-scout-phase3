@@ -235,12 +235,12 @@ const PlayerStatusActions = ({ playerId, playerName, playerReports }: PlayerStat
                 {isAssignedForScouting ? (
                   <>
                     <UserMinus className="w-4 h-4" />
-                    Remove from Watchlist
+                    Remove from Shortlist
                   </>
                 ) : (
                   <>
                     <UserCheck className="w-4 h-4" />
-                    Add to Watchlist
+                    Add to Shortlist
                   </>
                 )}
               </Button>
