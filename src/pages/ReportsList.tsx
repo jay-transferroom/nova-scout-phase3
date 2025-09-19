@@ -152,11 +152,8 @@ const ReportsList = () => {
         />
 
       <div>
-        <div className="pb-3">
-          <h3 className="text-lg font-semibold">{getCardTitle()}</h3>
-        </div>
         <div>
-          <ReportsTable 
+          <ReportsTable
             reports={paginatedReports}
             onViewReport={handleViewReport}
             onEditReport={handleEditReport}
