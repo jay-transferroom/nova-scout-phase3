@@ -5,21 +5,13 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Separator } from "@/components/ui/separator";
 import { 
   ArrowLeft, 
   Sparkles, 
   Info, 
   TrendingUp, 
   Users, 
-  FileText, 
-  UserPlus, 
-  Heart, 
-  Clock, 
-  CheckCircle, 
-  AlertCircle,
-  Plus,
-  Eye
+  FileText
 } from "lucide-react";
 import { usePlayerProfile } from "@/hooks/usePlayerProfile";
 import { calculateAge } from "@/utils/playerProfileUtils";
@@ -30,42 +22,17 @@ import { PlayerPlayingStyleTab } from "@/components/player-profile/PlayerPlaying
 import { PlayerInjuriesTab } from "@/components/player-profile/PlayerInjuriesTab";
 import { PlayerMatchHistoryTab } from "@/components/player-profile/PlayerMatchHistoryTab";
 import { PlayerAlternativesTab } from "@/components/player-profile/PlayerAlternativesTab";
-import AssignForScoutingButton from "@/components/AssignForScoutingButton";
+import PlayerStatusActions from "@/components/PlayerStatusActions";
 
 const PlayerProfile = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("career");
 
-  const { player, isLoading, error } = usePlayerProfile(id);
-
-  // Mock assignment/report status data
-  const playerStatus = {
-    assignmentStatus: 'assigned', // 'unassigned' | 'assigned' | 'in_progress' | 'completed' | 'reviewed'
-    reportCount: 3,
-    lastReportDate: '2025-09-15',
-    assignedScout: 'Oliver Smith',
-    priority: 'high', // 'low' | 'medium' | 'high'
-    isTracked: true,
-    shortlists: 2
-  };
+  const { player, isLoading, error, playerReports } = usePlayerProfile(id);
 
   const handleCreateReport = () => {
     navigate('/report-builder', { state: { selectedPlayerId: id } });
-  };
-
-  const handleAssignScout = () => {
-    // Handle scout assignment
-    console.log('Assign scout to player', id);
-  };
-
-  const handleAddToShortlist = () => {
-    // Handle add to shortlist
-    console.log('Add player to shortlist', id);
-  };
-
-  const handleViewReports = () => {
-    navigate(`/reports?player=${id}`);
   };
 
   if (isLoading) {
@@ -172,75 +139,11 @@ const PlayerProfile = () => {
           </div>
 
           {/* Player Status and Actions Bar */}
-          <Card className="mb-6">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                {/* Status Section */}
-                <div className="flex items-center gap-6">
-                  {/* Assignment Status */}
-                  <div className="flex items-center gap-2">
-                    <div className="flex items-center gap-2">
-                      {playerStatus.assignmentStatus === 'assigned' && (
-                        <>
-                          <Clock className="w-4 h-4 text-orange-500" />
-                          <span className="text-sm font-medium">Assigned to {playerStatus.assignedScout}</span>
-                        </>
-                      )}
-                      {playerStatus.assignmentStatus === 'in_progress' && (
-                        <>
-                          <AlertCircle className="w-4 h-4 text-blue-500" />
-                          <span className="text-sm font-medium">Report in Progress</span>
-                        </>
-                      )}
-                      {playerStatus.assignmentStatus === 'completed' && (
-                        <>
-                          <CheckCircle className="w-4 h-4 text-green-500" />
-                          <span className="text-sm font-medium">Report Completed</span>
-                        </>
-                      )}
-                    </div>
-                    <Badge variant={playerStatus.priority === 'high' ? 'destructive' : playerStatus.priority === 'medium' ? 'default' : 'secondary'} className="text-xs">
-                      {playerStatus.priority.toUpperCase()} PRIORITY
-                    </Badge>
-                  </div>
-
-                  <Separator orientation="vertical" className="h-6" />
-
-                  {/* Reports & Tracking Status */}
-                  <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                    <span>{playerStatus.reportCount} Reports</span>
-                    <span>{playerStatus.shortlists} Shortlists</span>
-                    {playerStatus.isTracked && (
-                      <div className="flex items-center gap-1 text-green-600">
-                        <Heart className="w-4 h-4 fill-current" />
-                        <span>Tracked</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* Actions Section */}
-                <div className="flex items-center gap-2">
-                  <AssignForScoutingButton 
-                    playerId={player.id} 
-                    playerName={player.name}
-                  />
-                  <Button variant="outline" size="sm" onClick={handleViewReports} className="gap-2">
-                    <Eye className="w-4 h-4" />
-                    View Reports ({playerStatus.reportCount})
-                  </Button>
-                  <Button variant="outline" size="sm" onClick={handleAssignScout} className="gap-2">
-                    <UserPlus className="w-4 h-4" />
-                    Assign Scout
-                  </Button>
-                  <Button variant="outline" size="sm" onClick={handleAddToShortlist} className="gap-2">
-                    <Plus className="w-4 h-4" />
-                    Add to Shortlist
-                  </Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          <PlayerStatusActions 
+            playerId={player.id}
+            playerName={player.name}
+            playerReports={playerReports}
+          />
 
           {/* Info Badges */}
           <div className="flex gap-4 mb-8">
