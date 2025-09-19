@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import { useReports } from "@/hooks/useReports";
 import { useReportsFilter } from "@/hooks/useReportsFilter";
 import { toast } from "sonner";
@@ -17,11 +16,14 @@ const ReportsList = () => {
   const [searchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState("all-reports");
   const [viewMode, setViewMode] = useState<"grouped" | "individual">("grouped");
+  const [currentPage, setCurrentPage] = useState(1);
   const [selectedPlayerReports, setSelectedPlayerReports] = useState<{
     playerId: string;
     playerName: string;
     reports: any[];
   } | null>(null);
+  
+  const itemsPerPage = 10;
   
   // Set initial tab from URL parameters
   useEffect(() => {
@@ -33,7 +35,19 @@ const ReportsList = () => {
   
   const { reports, loading, deleteReport } = useReports();
   const filteredReports = useReportsFilter(reports, activeTab);
-
+  
+  // Pagination logic
+  const totalItems = filteredReports.length;
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedReports = filteredReports.slice(startIndex, endIndex);
+  
+  // Reset to first page when tab changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [activeTab]);
+  
   const handleViewReport = (reportId: string) => {
     navigate(`/report/${reportId}`);
   };
@@ -112,39 +126,73 @@ const ReportsList = () => {
         <CardContent>
           {viewMode === "grouped" ? (
             <GroupedReportsTable 
-              reports={filteredReports}
+              reports={paginatedReports}
               onViewReport={handleViewReport}
               onEditReport={handleEditReport}
               onViewAllReports={handleViewAllReports}
             />
           ) : (
             <ReportsTable 
-              reports={filteredReports}
+              reports={paginatedReports}
               onViewReport={handleViewReport}
               onEditReport={handleEditReport}
               onDeleteReport={handleDeleteReport}
             />
           )}
 
-          <Pagination className="mt-6">
-            <PaginationContent>
-              <PaginationItem>
-                <PaginationPrevious href="#" />
-              </PaginationItem>
-              <PaginationItem>
-                <PaginationLink href="#" isActive>1</PaginationLink>
-              </PaginationItem>
-              <PaginationItem>
-                <PaginationLink href="#">2</PaginationLink>
-              </PaginationItem>
-              <PaginationItem>
-                <PaginationLink href="#">3</PaginationLink>
-              </PaginationItem>
-              <PaginationItem>
-                <PaginationNext href="#" />
-              </PaginationItem>
-            </PaginationContent>
-          </Pagination>
+          {totalPages > 1 && (
+            <div className="mt-6 flex justify-center">
+              <div className="flex items-center space-x-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                  disabled={currentPage === 1}
+                >
+                  Previous
+                </Button>
+                
+                <div className="flex items-center space-x-1">
+                  {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                    let pageNum;
+                    if (totalPages <= 5) {
+                      pageNum = i + 1;
+                    } else if (currentPage <= 3) {
+                      pageNum = i + 1;
+                    } else if (currentPage >= totalPages - 2) {
+                      pageNum = totalPages - 4 + i;
+                    } else {
+                      pageNum = currentPage - 2 + i;
+                    }
+                    
+                    return (
+                      <Button
+                        key={pageNum}
+                        variant={currentPage === pageNum ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setCurrentPage(pageNum)}
+                      >
+                        {pageNum}
+                      </Button>
+                    );
+                  })}
+                </div>
+                
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                  disabled={currentPage === totalPages}
+                >
+                  Next
+                </Button>
+              </div>
+            </div>
+          )}
+
+          <div className="mt-4 text-sm text-muted-foreground text-center">
+            Showing {startIndex + 1}-{Math.min(endIndex, totalItems)} of {totalItems} reports
+          </div>
         </CardContent>
       </Card>
 

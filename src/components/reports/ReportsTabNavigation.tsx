@@ -26,7 +26,8 @@ const ReportsTabNavigation = ({ onTabChange, activeTab }: ReportsTabNavigationPr
     submittedCount,
     allCount,
     userRole: profile?.role,
-    userId: user?.id
+    userId: user?.id,
+    reportsData: reports.map(r => ({ id: r.id, status: r.status, scoutId: r.scoutId }))
   });
 
   return (
