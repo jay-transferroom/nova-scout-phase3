@@ -81,31 +81,31 @@ const Index = () => {
   const stats = [
     {
       title: "Total Reports",
-      value: profile?.role === 'recruitment' ? reports.length : myReports.length,
+      value: loading ? 0 : (profile?.role === 'recruitment' ? reports.length : myReports.length),
       description: profile?.role === 'recruitment' ? "All reports in system" : "Reports created by you",
       icon: FileText,
-      trend: profile?.role === 'recruitment' ? `${reports.length} total` : "+2 this week",
+      trend: loading ? "Loading..." : `${profile?.role === 'recruitment' ? reports.length : myReports.length} total`,
     },
     {
       title: "Draft Reports",
-      value: profile?.role === 'recruitment' ? reports.filter(r => r.status === 'draft').length : draftReports.length,
+      value: loading ? 0 : (profile?.role === 'recruitment' ? reports.filter(r => r.status === 'draft').length : draftReports.length),
       description: "Pending completion",
       icon: AlertCircle,
       trend: loading ? "Loading..." : `${profile?.role === 'recruitment' ? reports.filter(r => r.status === 'draft').length : draftReports.length} pending`,
     },
     {
       title: "Submitted Reports", 
-      value: profile?.role === 'recruitment' ? reports.filter(r => r.status === 'submitted').length : submittedReports.length,
+      value: loading ? 0 : (profile?.role === 'recruitment' ? reports.filter(r => r.status === 'submitted').length : submittedReports.length),
       description: "Completed reports",
       icon: TrendingUp,
       trend: loading ? "Loading..." : `${profile?.role === 'recruitment' ? reports.filter(r => r.status === 'submitted').length : submittedReports.length} completed`,
     },
     {
       title: "Players Scouted",
-      value: new Set((profile?.role === 'recruitment' ? reports : myReports).map(r => r.playerId)).size,
+      value: loading ? 0 : new Set((profile?.role === 'recruitment' ? reports : myReports).map(r => r.playerId)).size,
       description: "Unique players",
       icon: Users,
-      trend: loading ? "Loading..." : "Across all reports",
+      trend: loading ? "Loading..." : `${new Set((profile?.role === 'recruitment' ? reports : myReports).map(r => r.playerId)).size} unique players`,
     },
   ];
 
