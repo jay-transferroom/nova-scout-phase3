@@ -5,23 +5,14 @@ import { Button } from "@/components/ui/button";
 import { useReports } from "@/hooks/useReports";
 import { useReportsFilter } from "@/hooks/useReportsFilter";
 import { toast } from "sonner";
-import { Users, List } from "lucide-react";
 import ReportsTabNavigation from "@/components/reports/ReportsTabNavigation";
 import ReportsTable from "@/components/reports/ReportsTable";
-import GroupedReportsTable from "@/components/reports/GroupedReportsTable";
-import PlayerReportsModal from "@/components/reports/PlayerReportsModal";
 
 const ReportsList = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState("all-reports");
-  const [viewMode, setViewMode] = useState<"grouped" | "individual">("grouped");
   const [currentPage, setCurrentPage] = useState(1);
-  const [selectedPlayerReports, setSelectedPlayerReports] = useState<{
-    playerId: string;
-    playerName: string;
-    reports: any[];
-  } | null>(null);
   
   const itemsPerPage = 10;
   
@@ -67,14 +58,6 @@ const ReportsList = () => {
     }
   };
 
-  const handleViewAllReports = (playerId: string, playerName: string) => {
-    const playerReports = filteredReports.filter(report => report.playerId === playerId);
-    setSelectedPlayerReports({
-      playerId,
-      playerName,
-      reports: playerReports
-    });
-  };
 
   const getCardTitle = () => {
     if (activeTab === "all-reports") return "All Scouting Reports";
@@ -101,44 +84,15 @@ const ReportsList = () => {
 
       <Card>
         <CardHeader className="pb-3">
-          <div className="flex justify-between items-center">
-            <CardTitle>{getCardTitle()}</CardTitle>
-            <div className="flex gap-2">
-              <Button
-                variant={viewMode === "grouped" ? "default" : "outline"}
-                size="sm"
-                onClick={() => setViewMode("grouped")}
-              >
-                <Users className="h-4 w-4 mr-1" />
-                Grouped by Player
-              </Button>
-              <Button
-                variant={viewMode === "individual" ? "default" : "outline"}
-                size="sm"
-                onClick={() => setViewMode("individual")}
-              >
-                <List className="h-4 w-4 mr-1" />
-                Individual Reports
-              </Button>
-            </div>
-          </div>
+          <CardTitle>{getCardTitle()}</CardTitle>
         </CardHeader>
         <CardContent>
-          {viewMode === "grouped" ? (
-            <GroupedReportsTable 
-              reports={paginatedReports}
-              onViewReport={handleViewReport}
-              onEditReport={handleEditReport}
-              onViewAllReports={handleViewAllReports}
-            />
-          ) : (
-            <ReportsTable 
-              reports={paginatedReports}
-              onViewReport={handleViewReport}
-              onEditReport={handleEditReport}
-              onDeleteReport={handleDeleteReport}
-            />
-          )}
+          <ReportsTable 
+            reports={paginatedReports}
+            onViewReport={handleViewReport}
+            onEditReport={handleEditReport}
+            onDeleteReport={handleDeleteReport}
+          />
 
           {totalPages > 1 && (
             <div className="mt-6 flex justify-center">
@@ -195,18 +149,6 @@ const ReportsList = () => {
           </div>
         </CardContent>
       </Card>
-
-      {selectedPlayerReports && (
-        <PlayerReportsModal
-          isOpen={!!selectedPlayerReports}
-          onClose={() => setSelectedPlayerReports(null)}
-          playerName={selectedPlayerReports.playerName}
-          reports={selectedPlayerReports.reports}
-          onViewReport={handleViewReport}
-          onEditReport={handleEditReport}
-          onDeleteReport={handleDeleteReport}
-        />
-      )}
     </div>
   );
 };

@@ -26,8 +26,6 @@ const ReportRow = ({ report, onViewReport, onEditReport, onDeleteReport, canEdit
   const overallRating = getOverallRating(report);
   const verdict = getRecommendation(report);
 
-  console.log(`Report ${report.id} - Player ID: ${report.playerId}, Player Data:`, playerData, 'Loading:', playerLoading, 'Error:', playerError);
-
   // Display loading state while fetching player data
   const playerName = playerLoading ? 'Loading...' : 
                      playerError ? `Error loading player` :
@@ -109,7 +107,9 @@ const ReportRow = ({ report, onViewReport, onEditReport, onDeleteReport, canEdit
         )}
       </TableCell>
       <TableCell>
-        {report.scoutProfile?.first_name || "Scout"}
+        {report.scoutProfile?.first_name && report.scoutProfile?.last_name 
+          ? `${report.scoutProfile.first_name} ${report.scoutProfile.last_name}`
+          : report.scoutProfile?.first_name || "Scout"}
       </TableCell>
       <TableCell className="text-right">
         <div className="flex gap-1 justify-end flex-wrap">
