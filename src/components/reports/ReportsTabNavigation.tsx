@@ -16,8 +16,10 @@ const ReportsTabNavigation = ({ onTabChange, activeTab }: ReportsTabNavigationPr
   // Count reports for current user
   const myReports = reports.filter(report => report.scoutId === user?.id);
   const draftCount = myReports.filter(report => report.status === 'draft').length;
-  const submittedCount = myReports.filter(report => report.status === 'submitted').length;
-  const allCount = profile?.role === 'recruitment' ? reports.length : myReports.length;
+  const submittedCount = (profile?.role === 'recruitment' || profile?.role === 'director')
+    ? reports.filter(r => r.status === 'submitted').length
+    : myReports.filter(report => report.status === 'submitted').length;
+  const allCount = (profile?.role === 'recruitment' || profile?.role === 'director') ? reports.length : myReports.length;
   
   console.log('Tab Navigation Debug:', {
     totalReports: reports.length,

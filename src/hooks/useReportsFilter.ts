@@ -27,9 +27,12 @@ export const useReportsFilter = (reports: ReportWithPlayer[], activeTab: string)
       });
       
       if (activeTab === "my-reports") {
-        // Show submitted reports by the current user
-        const shouldShow = report.status === "submitted" && report.scoutId === user?.id;
-        console.log(`My-reports filter for ${report.id}:`, shouldShow);
+        // For managers/directors, show all submitted reports. For scouts, show their own submitted reports.
+        const isManager = profile?.role === 'recruitment' || profile?.role === 'director';
+        const shouldShow = isManager
+          ? report.status === "submitted"
+          : report.status === "submitted" && report.scoutId === user?.id;
+        console.log(`My-reports filter for ${report.id}:`, { shouldShow, isManager });
         return shouldShow;
       } else if (activeTab === "my-drafts") {
         // Show draft reports by the current user
