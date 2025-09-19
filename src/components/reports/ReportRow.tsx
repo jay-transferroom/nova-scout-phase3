@@ -115,7 +115,7 @@ const ReportRow = ({ report, onViewReport, onEditReport, onDeleteReport, canEdit
           {report.status === "submitted" && (
             <Check className="h-4 w-4 text-success-500" />
           )}
-          <Badge variant={report.status === "submitted" ? "success" : "neutral"}>
+          <Badge variant={report.status === "submitted" ? "success" : "neutral"} className="text-xs font-medium">
             {report.status === "draft" ? "Draft" : "Submitted"}
           </Badge>
         </div>
