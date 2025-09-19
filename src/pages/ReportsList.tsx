@@ -18,6 +18,9 @@ const ReportsList = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [searchFilters, setSearchFilters] = useState<ReportsFilterCriteria>({
     searchTerm: '',
+    playerName: '',
+    club: '',
+    positions: '',
     verdict: '',
     status: '',
     scout: '',
@@ -38,9 +41,12 @@ const ReportsList = () => {
   const filteredReports = useReportsFilter(reports, activeTab, searchFilters);
 
   // Extract available filter options from reports
-  const { availableVerdicts, availableScouts } = useMemo(() => {
+  const { availableVerdicts, availableScouts, availableClubs, availablePositions, availablePlayerNames } = useMemo(() => {
     const verdicts = new Set<string>();
     const scouts = new Map<string, string>();
+    const clubs = new Set<string>();
+    const positions = new Set<string>();
+    const playerNames = new Set<string>();
 
     reports.forEach(report => {
       // Collect verdicts
@@ -54,11 +60,29 @@ const ReportsList = () => {
         const scoutName = `${report.scoutProfile.first_name || ''} ${report.scoutProfile.last_name || ''}`.trim() || 'Scout';
         scouts.set(report.scoutId, scoutName);
       }
+
+      // Collect clubs
+      if (report.player?.club) {
+        clubs.add(report.player.club);
+      }
+
+      // Collect positions
+      if (report.player?.positions) {
+        report.player.positions.forEach(pos => positions.add(pos));
+      }
+
+      // Collect player names
+      if (report.player?.name) {
+        playerNames.add(report.player.name);
+      }
     });
 
     return {
       availableVerdicts: Array.from(verdicts).sort(),
-      availableScouts: Array.from(scouts.entries()).map(([id, name]) => ({ id, name })).sort((a, b) => a.name.localeCompare(b.name))
+      availableScouts: Array.from(scouts.entries()).map(([id, name]) => ({ id, name })).sort((a, b) => a.name.localeCompare(b.name)),
+      availableClubs: Array.from(clubs).map(club => ({ id: club, name: club })).sort((a, b) => a.name.localeCompare(b.name)),
+      availablePositions: Array.from(positions).sort(),
+      availablePlayerNames: Array.from(playerNames).sort()
     };
   }, [reports]);
   
@@ -117,12 +141,15 @@ const ReportsList = () => {
 
       <ReportsTabNavigation onTabChange={setActiveTab} activeTab={activeTab} />
 
-      <ReportsFilters 
-        filters={searchFilters}
-        onFiltersChange={setSearchFilters}
-        availableVerdicts={availableVerdicts}
-        availableScouts={availableScouts}
-      />
+        <ReportsFilters 
+          filters={searchFilters}
+          onFiltersChange={setSearchFilters}
+          availableVerdicts={availableVerdicts}
+          availableScouts={availableScouts}
+          availableClubs={availableClubs}
+          availablePositions={availablePositions}
+          availablePlayerNames={availablePlayerNames}
+        />
 
       <Card>
         <CardHeader className="pb-3">

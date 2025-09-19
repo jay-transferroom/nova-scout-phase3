@@ -9,6 +9,9 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 
 export interface ReportsFilterCriteria {
   searchTerm: string;
+  playerName: string;
+  club: string;
+  positions: string;
   verdict: string;
   status: string;
   scout: string;
@@ -20,9 +23,12 @@ interface ReportsFiltersProps {
   onFiltersChange: (filters: ReportsFilterCriteria) => void;
   availableVerdicts: string[];
   availableScouts: Array<{ id: string; name: string }>;
+  availableClubs: Array<{ id: string; name: string }>;
+  availablePositions: string[];
+  availablePlayerNames: string[];
 }
 
-const ReportsFilters = ({ filters, onFiltersChange, availableVerdicts, availableScouts }: ReportsFiltersProps) => {
+const ReportsFilters = ({ filters, onFiltersChange, availableVerdicts, availableScouts, availableClubs, availablePositions, availablePlayerNames }: ReportsFiltersProps) => {
   const [isOpen, setIsOpen] = useState(false);
 
   const updateFilter = (key: keyof ReportsFilterCriteria, value: string) => {
@@ -35,6 +41,9 @@ const ReportsFilters = ({ filters, onFiltersChange, availableVerdicts, available
   const clearFilters = () => {
     onFiltersChange({
       searchTerm: '',
+      playerName: '',
+      club: '',
+      positions: '',
       verdict: '',
       status: '',
       scout: '',
@@ -78,7 +87,61 @@ const ReportsFilters = ({ filters, onFiltersChange, availableVerdicts, available
             </CollapsibleTrigger>
             
             <CollapsibleContent className="mt-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {/* Player Name Filter */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Player Name</label>
+                  <Select value={filters.playerName} onValueChange={(value) => updateFilter('playerName', value === 'all' ? '' : value)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="All players" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All players</SelectItem>
+                      {availablePlayerNames.map((playerName) => (
+                        <SelectItem key={playerName} value={playerName}>
+                          {playerName}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Club Filter */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Club</label>
+                  <Select value={filters.club} onValueChange={(value) => updateFilter('club', value === 'all' ? '' : value)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="All clubs" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All clubs</SelectItem>
+                      {availableClubs.map((club) => (
+                        <SelectItem key={club.id} value={club.name}>
+                          {club.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Positions Filter */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Position</label>
+                  <Select value={filters.positions} onValueChange={(value) => updateFilter('positions', value === 'all' ? '' : value)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="All positions" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All positions</SelectItem>
+                      {availablePositions.map((position) => (
+                        <SelectItem key={position} value={position}>
+                          {position}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
                 {/* Verdict Filter */}
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Verdict</label>
@@ -170,6 +233,33 @@ const ReportsFilters = ({ filters, onFiltersChange, availableVerdicts, available
                 <X 
                   className="h-3 w-3 cursor-pointer" 
                   onClick={() => updateFilter('searchTerm', '')}
+                />
+              </Badge>
+            )}
+            {filters.playerName && (
+              <Badge variant="secondary" className="flex items-center gap-1">
+                Player: {filters.playerName}
+                <X 
+                  className="h-3 w-3 cursor-pointer" 
+                  onClick={() => updateFilter('playerName', '')}
+                />
+              </Badge>
+            )}
+            {filters.club && (
+              <Badge variant="secondary" className="flex items-center gap-1">
+                Club: {filters.club}
+                <X 
+                  className="h-3 w-3 cursor-pointer" 
+                  onClick={() => updateFilter('club', '')}
+                />
+              </Badge>
+            )}
+            {filters.positions && (
+              <Badge variant="secondary" className="flex items-center gap-1">
+                Position: {filters.positions}
+                <X 
+                  className="h-3 w-3 cursor-pointer" 
+                  onClick={() => updateFilter('positions', '')}
                 />
               </Badge>
             )}

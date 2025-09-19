@@ -76,6 +76,30 @@ export const useReportsFilter = (reports: ReportWithPlayer[], activeTab: string,
           }
         }
 
+        // Player name filter
+        if (searchFilters.playerName && searchFilters.playerName.trim() !== '') {
+          const playerName = report.player?.name?.toLowerCase() || '';
+          if (!playerName.includes(searchFilters.playerName.toLowerCase())) {
+            return false;
+          }
+        }
+
+        // Club filter
+        if (searchFilters.club && searchFilters.club.trim() !== '') {
+          const playerClub = report.player?.club?.toLowerCase() || '';
+          if (!playerClub.includes(searchFilters.club.toLowerCase())) {
+            return false;
+          }
+        }
+
+        // Positions filter
+        if (searchFilters.positions && searchFilters.positions.trim() !== '') {
+          const playerPositions = report.player?.positions?.join(' ').toLowerCase() || '';
+          if (!playerPositions.includes(searchFilters.positions.toLowerCase())) {
+            return false;
+          }
+        }
+
         // Verdict filter
         if (searchFilters.verdict && searchFilters.verdict.trim() !== '') {
           const reportVerdict = getRecommendation(report);
