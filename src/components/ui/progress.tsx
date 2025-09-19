@@ -5,21 +5,31 @@ import { cn } from "@/lib/utils"
 
 const Progress = React.forwardRef<
   React.ElementRef<typeof ProgressPrimitive.Root>,
-  React.ComponentPropsWithoutRef<typeof ProgressPrimitive.Root>
->(({ className, value, ...props }, ref) => (
-  <ProgressPrimitive.Root
-    ref={ref}
-    className={cn(
-      "relative h-4 w-full overflow-hidden rounded-full bg-secondary",
-      className
+  React.ComponentPropsWithoutRef<typeof ProgressPrimitive.Root> & {
+    showValue?: boolean;
+    valueClassName?: string;
+  }
+>(({ className, value, showValue, valueClassName, ...props }, ref) => (
+  <div className="flex items-center gap-2">
+    <ProgressPrimitive.Root
+      ref={ref}
+      className={cn(
+        "relative h-2 w-full overflow-hidden rounded-full bg-grey-200",
+        className
+      )}
+      {...props}
+    >
+      <ProgressPrimitive.Indicator
+        className="h-full w-full flex-1 bg-success-500 transition-all"
+        style={{ transform: `translateX(-${100 - (value || 0)}%)` }}
+      />
+    </ProgressPrimitive.Root>
+    {showValue && (
+      <span className={cn("text-sm text-grey-600 min-w-[3rem]", valueClassName)}>
+        {value}%
+      </span>
     )}
-    {...props}
-  >
-    <ProgressPrimitive.Indicator
-      className="h-full w-full flex-1 bg-primary transition-all"
-      style={{ transform: `translateX(-${100 - (value || 0)}%)` }}
-    />
-  </ProgressPrimitive.Root>
+  </div>
 ))
 Progress.displayName = ProgressPrimitive.Root.displayName
 

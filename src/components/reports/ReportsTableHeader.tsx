@@ -5,7 +5,7 @@ import { Award } from "lucide-react";
 const ReportsTableHeader = () => {
   return (
     <TableHeader>
-      <TableRow>
+      <TableRow className="hover:bg-transparent">
         <TableHead>Player</TableHead>
         <TableHead>Club</TableHead>
         <TableHead>Positions</TableHead>

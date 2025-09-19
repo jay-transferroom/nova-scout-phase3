@@ -1,7 +1,7 @@
 
 import { TableCell, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Edit, Eye, User, FileText, UserCheck, Trash2 } from "lucide-react";
+import { Edit, Eye, User, FileText, UserCheck, Trash2, Check } from "lucide-react";
 import { ReportWithPlayer } from "@/types/report";
 import { getRatingColor, formatDate } from "@/utils/reportFormatting";
 import { getOverallRating, getRecommendation } from "@/utils/reportDataExtraction";
@@ -10,6 +10,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useReportPlayerData } from "@/hooks/useReportPlayerData";
 import VerdictBadge from "@/components/VerdictBadge";
 import { useNavigate } from "react-router-dom";
+import { PlayerAvatar } from "@/components/ui/player-avatar";
+import { ClubBadge } from "@/components/ui/club-badge";
 
 interface ReportRowProps {
   report: ReportWithPlayer;
@@ -79,37 +81,67 @@ const ReportRow = ({ report, onViewReport, onEditReport, onDeleteReport, canEdit
 
   return (
     <TableRow key={report.id}>
-      <TableCell className="font-medium">
-        {playerName}
-      </TableCell>
-      <TableCell>{playerClub}</TableCell>
-      <TableCell>{playerPositions}</TableCell>
-      <TableCell>{formatDate(report.createdAt)}</TableCell>
       <TableCell>
-        <Badge variant={report.status === "submitted" ? "secondary" : "outline"}>
-          {report.status === "draft" ? "Draft" : "Submitted"}
-        </Badge>
+        <div className="flex items-center gap-3">
+          <PlayerAvatar 
+            playerName={playerName}
+            avatarUrl={playerData?.image}
+            size="sm"
+          />
+          <span className="font-medium text-grey-900">{playerName}</span>
+        </div>
+      </TableCell>
+      <TableCell>
+        <ClubBadge 
+          clubName={playerClub}
+        />
+      </TableCell>
+      <TableCell>
+        <div className="flex flex-wrap gap-1">
+          {playerPositions.split(", ").map((position, index) => (
+            <Badge key={index} variant="neutral" className="text-xs">
+              {position}
+            </Badge>
+          ))}
+        </div>
+      </TableCell>
+      <TableCell>
+        <div className="text-sm text-grey-600">
+          {formatDate(report.createdAt)}
+        </div>
+      </TableCell>
+      <TableCell>
+        <div className="flex items-center gap-2">
+          {report.status === "submitted" && (
+            <Check className="h-4 w-4 text-success-500" />
+          )}
+          <Badge variant={report.status === "submitted" ? "success" : "neutral"}>
+            {report.status === "draft" ? "Draft" : "Submitted"}
+          </Badge>
+        </div>
       </TableCell>
       <TableCell>
         {overallRating !== null && overallRating !== undefined ? (
-          <span className={`font-semibold text-base ${getRatingColor(overallRating)}`}>
+          <Badge variant="rating" className="font-bold">
             {overallRating}
-          </span>
+          </Badge>
         ) : (
-          <span className="text-muted-foreground text-sm">-</span>
+          <span className="text-grey-400 text-sm">-</span>
         )}
       </TableCell>
       <TableCell>
         {verdict ? (
           <VerdictBadge verdict={verdict} />
         ) : (
-          <span className="text-muted-foreground text-sm">-</span>
+          <span className="text-grey-400 text-sm">-</span>
         )}
       </TableCell>
       <TableCell>
-        {report.scoutProfile?.first_name && report.scoutProfile?.last_name 
-          ? `${report.scoutProfile.first_name} ${report.scoutProfile.last_name}`
-          : report.scoutProfile?.first_name || "Scout"}
+        <div className="text-sm text-grey-700">
+          {report.scoutProfile?.first_name && report.scoutProfile?.last_name 
+            ? `${report.scoutProfile.first_name} ${report.scoutProfile.last_name}`
+            : report.scoutProfile?.first_name || "Scout"}
+        </div>
       </TableCell>
       <TableCell className="text-right">
         <div className="flex gap-1 justify-end flex-wrap">
@@ -118,6 +150,7 @@ const ReportRow = ({ report, onViewReport, onEditReport, onDeleteReport, canEdit
             size="sm" 
             onClick={() => onViewReport(report.id)}
             title="View report"
+            className="border-grey-300 text-grey-700 hover:bg-grey-50"
           >
             <Eye className="h-4 w-4" />
           </Button>
@@ -127,6 +160,7 @@ const ReportRow = ({ report, onViewReport, onEditReport, onDeleteReport, canEdit
             onClick={handleViewPlayerProfile}
             title="View player profile"
             disabled={isDisabled}
+            className="border-grey-300 text-grey-700 hover:bg-grey-50"
           >
             <User className="h-4 w-4" />
           </Button>
@@ -136,6 +170,7 @@ const ReportRow = ({ report, onViewReport, onEditReport, onDeleteReport, canEdit
             onClick={handleCreateReport}
             title="Create new report for this player"
             disabled={isDisabled}
+            className="border-grey-300 text-grey-700 hover:bg-grey-50"
           >
             <FileText className="h-4 w-4" />
           </Button>
@@ -146,6 +181,7 @@ const ReportRow = ({ report, onViewReport, onEditReport, onDeleteReport, canEdit
               onClick={handleScoutManagerVerdict}
               title="Add scout manager verdict"
               disabled={isDisabled}
+              className="border-grey-300 text-grey-700 hover:bg-grey-50"
             >
               <UserCheck className="h-4 w-4" />
             </Button>
@@ -156,6 +192,7 @@ const ReportRow = ({ report, onViewReport, onEditReport, onDeleteReport, canEdit
               size="sm"
               onClick={() => onEditReport(report.id)}
               title="Edit report"
+              className="border-grey-300 text-grey-700 hover:bg-grey-50"
             >
               <Edit className="h-4 w-4" />
             </Button>
@@ -166,6 +203,7 @@ const ReportRow = ({ report, onViewReport, onEditReport, onDeleteReport, canEdit
               size="sm"
               onClick={() => onDeleteReport(report.id, playerName)}
               title="Delete report"
+              className="border-grey-300 text-grey-700 hover:bg-grey-50"
             >
               <Trash2 className="h-4 w-4" />
             </Button>
