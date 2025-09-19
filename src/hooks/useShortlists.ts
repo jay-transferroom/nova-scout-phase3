@@ -365,18 +365,27 @@ export const useShortlists = () => {
   }, [getScoutingAssignmentList, addPlayerToShortlist, loadShortlists, toast]);
 
   const removePlayerFromScoutingAssignment = useCallback(async (playerId: string) => {
-    const scoutingList = await getScoutingAssignmentList();
-    if (!scoutingList) {
+    try {
+      const scoutingList = await getScoutingAssignmentList();
+      if (!scoutingList) {
+        toast({
+          title: "Error", 
+          description: "Could not find scouting assignment list",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      await removePlayerFromShortlist(scoutingList.id, playerId);
+      await loadShortlists(); // Refresh to update UI
+    } catch (error) {
+      console.error('Error removing player from scouting assignment:', error);
       toast({
-        title: "Error", 
-        description: "Could not find scouting assignment list",
+        title: "Error",
+        description: "Failed to remove player from scouting assignment",
         variant: "destructive"
       });
-      return;
     }
-
-    await removePlayerFromShortlist(scoutingList.id, playerId);
-    await loadShortlists(); // Refresh to update UI
   }, [getScoutingAssignmentList, removePlayerFromShortlist, loadShortlists, toast]);
 
   return {
