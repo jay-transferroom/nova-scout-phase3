@@ -12,14 +12,15 @@ interface ReportsTabNavigationProps {
 const ReportsTabNavigation = ({ onTabChange, activeTab }: ReportsTabNavigationProps) => {
   const { reports } = useReports();
   const { user, profile } = useAuth();
+  const isManager = profile?.role !== 'scout';
   
   // Count reports for current user
   const myReports = reports.filter(report => report.scoutId === user?.id);
   const draftCount = myReports.filter(report => report.status === 'draft').length;
-  const submittedCount = (profile?.role === 'recruitment' || profile?.role === 'director')
+  const submittedCount = isManager
     ? reports.filter(r => r.status === 'submitted').length
     : myReports.filter(report => report.status === 'submitted').length;
-  const allCount = (profile?.role === 'recruitment' || profile?.role === 'director') ? reports.length : myReports.length;
+  const allCount = isManager ? reports.length : myReports.length;
   
   console.log('Tab Navigation Debug:', {
     totalReports: reports.length,
