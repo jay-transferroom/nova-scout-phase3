@@ -58,9 +58,8 @@ const ReportsFilters = ({ filters, onFiltersChange, availableVerdicts, available
   const hasActiveFilters = getActiveFiltersCount() > 0;
 
   return (
-    <Card className="mb-6">
-      <CardContent className="pt-6">
-        {/* Search Bar - Always Visible */}
+    <div className="mb-6">
+      {/* Search Bar - Always Visible */}
         <div className="flex gap-4 items-center mb-4">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
@@ -228,81 +227,80 @@ const ReportsFilters = ({ filters, onFiltersChange, availableVerdicts, available
         {hasActiveFilters && (
           <div className="flex flex-wrap gap-2">
             {filters.searchTerm && (
-              <Badge variant="secondary" className="flex items-center gap-1">
+              <Badge variant="secondary" className="flex items-center gap-1 text-base">
                 Search: "{filters.searchTerm}"
                 <X 
-                  className="h-3 w-3 cursor-pointer" 
+                  className="h-4 w-4 cursor-pointer" 
                   onClick={() => updateFilter('searchTerm', '')}
                 />
               </Badge>
             )}
             {filters.playerName && (
-              <Badge variant="secondary" className="flex items-center gap-1">
+              <Badge variant="secondary" className="flex items-center gap-1 text-base">
                 Player: {filters.playerName}
                 <X 
-                  className="h-3 w-3 cursor-pointer" 
+                  className="h-4 w-4 cursor-pointer" 
                   onClick={() => updateFilter('playerName', '')}
                 />
               </Badge>
             )}
             {filters.club && (
-              <Badge variant="secondary" className="flex items-center gap-1">
+              <Badge variant="secondary" className="flex items-center gap-1 text-base">
                 Club: {filters.club}
                 <X 
-                  className="h-3 w-3 cursor-pointer" 
+                  className="h-4 w-4 cursor-pointer" 
                   onClick={() => updateFilter('club', '')}
                 />
               </Badge>
             )}
             {filters.positions && (
-              <Badge variant="secondary" className="flex items-center gap-1">
+              <Badge variant="secondary" className="flex items-center gap-1 text-base">
                 Position: {filters.positions}
                 <X 
-                  className="h-3 w-3 cursor-pointer" 
+                  className="h-4 w-4 cursor-pointer" 
                   onClick={() => updateFilter('positions', '')}
                 />
               </Badge>
             )}
             {filters.verdict && (
-              <Badge variant="secondary" className="flex items-center gap-1">
+              <Badge variant="secondary" className="flex items-center gap-1 text-base">
                 Verdict: {filters.verdict}
                 <X 
-                  className="h-3 w-3 cursor-pointer" 
+                  className="h-4 w-4 cursor-pointer" 
                   onClick={() => updateFilter('verdict', '')}
                 />
               </Badge>
             )}
             {filters.status && (
-              <Badge variant="secondary" className="flex items-center gap-1">
+              <Badge variant="secondary" className="flex items-center gap-1 text-base">
                 Status: {filters.status}
                 <X 
-                  className="h-3 w-3 cursor-pointer" 
+                  className="h-4 w-4 cursor-pointer" 
                   onClick={() => updateFilter('status', '')}
                 />
               </Badge>
             )}
             {filters.scout && (
-              <Badge variant="secondary" className="flex items-center gap-1">
+              <Badge variant="secondary" className="flex items-center gap-1 text-base">
                 Scout: {availableScouts.find(s => s.id === filters.scout)?.name || filters.scout}
                 <X 
-                  className="h-3 w-3 cursor-pointer" 
+                  className="h-4 w-4 cursor-pointer" 
                   onClick={() => updateFilter('scout', '')}
                 />
               </Badge>
             )}
             {filters.dateRange && (
-              <Badge variant="secondary" className="flex items-center gap-1">
+              <Badge variant="secondary" className="flex items-center gap-1 text-base">
                 Date: {filters.dateRange}
                 <X 
-                  className="h-3 w-3 cursor-pointer" 
+                  className="h-4 w-4 cursor-pointer" 
                   onClick={() => updateFilter('dateRange', '')}
                 />
               </Badge>
             )}
           </div>
         )}
-      </CardContent>
-    </Card>
+    </div>
   );
 };
 
