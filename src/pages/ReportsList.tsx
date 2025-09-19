@@ -151,11 +151,11 @@ const ReportsList = () => {
           availablePlayerNames={availablePlayerNames}
         />
 
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle>{getCardTitle()}</CardTitle>
-        </CardHeader>
-        <CardContent>
+      <div>
+        <div className="pb-3">
+          <h3 className="text-lg font-semibold">{getCardTitle()}</h3>
+        </div>
+        <div>
           <ReportsTable 
             reports={paginatedReports}
             onViewReport={handleViewReport}
@@ -216,8 +216,8 @@ const ReportsList = () => {
           <div className="mt-4 text-sm text-muted-foreground text-center">
             Showing {startIndex + 1}-{Math.min(endIndex, totalItems)} of {totalItems} reports
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 };
