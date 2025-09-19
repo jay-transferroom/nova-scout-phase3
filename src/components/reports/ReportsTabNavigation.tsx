@@ -20,7 +20,7 @@ const ReportsTabNavigation = ({ onTabChange, activeTab }: ReportsTabNavigationPr
   const submittedCount = isManager
     ? reports.filter(r => r.status === 'submitted').length
     : myReports.filter(report => report.status === 'submitted').length;
-  const allCount = isManager ? submittedCount : myReports.length;
+  const allCount = isManager ? reports.length : myReports.length;
   
   console.log('Tab Navigation Debug:', {
     totalReports: reports.length,

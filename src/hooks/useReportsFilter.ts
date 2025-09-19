@@ -47,8 +47,8 @@ export const useReportsFilter = (reports: ReportWithPlayer[], activeTab: string)
           console.log(`All-reports filter for scout ${report.id}:`, shouldShow);
           return shouldShow;
         } else {
-          // Recruitment managers can see all submitted reports
-          const shouldShow = report.status === "submitted";
+          // Recruitment managers can see all reports (both submitted and draft)
+          const shouldShow = true;
           console.log(`All-reports filter for manager ${report.id}:`, shouldShow);
           return shouldShow;
         }
