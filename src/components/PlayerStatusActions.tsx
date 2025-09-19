@@ -4,6 +4,13 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { 
   Clock, 
   CheckCircle, 
@@ -16,7 +23,8 @@ import {
   HeartOff,
   UserCheck,
   UserMinus,
-  PlayCircle
+  PlayCircle,
+  MoreHorizontal
 } from "lucide-react";
 import { usePlayerAssignments } from "@/hooks/usePlayerAssignments";
 import { useShortlists } from "@/hooks/useShortlists";
@@ -215,63 +223,70 @@ const PlayerStatusActions = ({ playerId, playerName, playerReports }: PlayerStat
               </Button>
             )}
 
-            {/* Assignment actions */}
-            {!playerAssignment && canAssignScout && (
-              <Button variant="outline" size="sm" onClick={handleAssignScout} className="gap-2">
-                <UserPlus className="w-4 h-4" />
-                Assign to Scout
-              </Button>
-            )}
-
-            {/* Scouting assignment toggle */}
-            {canAssignForScouting && (
-              <Button
-                variant={isAssignedForScouting ? "secondary" : "outline"}
-                size="sm"
-                onClick={handleToggleScoutingAssignment}
-                disabled={isLoading}
-                className="gap-2"
-              >
-                {isAssignedForScouting ? (
+            {/* Secondary actions in dropdown menu */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm">
+                  <MoreHorizontal className="w-4 h-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                {/* Assignment actions */}
+                {!playerAssignment && canAssignScout && (
                   <>
-                    <UserMinus className="w-4 h-4" />
-                    Remove from Shortlist
-                  </>
-                ) : (
-                  <>
-                    <UserCheck className="w-4 h-4" />
-                    Add to Shortlist
+                    <DropdownMenuItem onClick={handleAssignScout}>
+                      <UserPlus className="w-4 h-4 mr-2" />
+                      Assign to Scout
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
                   </>
                 )}
-              </Button>
-            )}
 
-            {/* Tracking toggle */}
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleToggleTracking}
-              disabled={isTrackingPlayer || isUntrackingPlayer}
-              className="gap-2"
-            >
-              {isTracking ? (
-                <>
-                  <HeartOff className="w-4 h-4" />
-                  Stop Following
-                </>
-              ) : (
-                <>
-                  <Heart className="w-4 h-4" />
-                  Follow
-                </>
-              )}
-            </Button>
+                {/* Scouting assignment toggle */}
+                {canAssignForScouting && (
+                  <DropdownMenuItem
+                    onClick={handleToggleScoutingAssignment}
+                    disabled={isLoading}
+                  >
+                    {isAssignedForScouting ? (
+                      <>
+                        <UserMinus className="w-4 h-4 mr-2" />
+                        Remove from Shortlist
+                      </>
+                    ) : (
+                      <>
+                        <UserCheck className="w-4 h-4 mr-2" />
+                        Add to Shortlist
+                      </>
+                    )}
+                  </DropdownMenuItem>
+                )}
 
-            {/* Add to shortlist */}
-            <Button variant="outline" size="sm" onClick={handleAddToShortlist} className="gap-2">
-              <Plus className="w-4 h-4" />
-              Add to Shortlist
-            </Button>
+                {/* Tracking toggle */}
+                <DropdownMenuItem
+                  onClick={handleToggleTracking}
+                  disabled={isTrackingPlayer || isUntrackingPlayer}
+                >
+                  {isTracking ? (
+                    <>
+                      <HeartOff className="w-4 h-4 mr-2" />
+                      Stop Following
+                    </>
+                  ) : (
+                    <>
+                      <Heart className="w-4 h-4 mr-2" />
+                      Follow
+                    </>
+                  )}
+                </DropdownMenuItem>
+
+                {/* Add to shortlist */}
+                <DropdownMenuItem onClick={handleAddToShortlist}>
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add to Shortlist
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
       </CardContent>
