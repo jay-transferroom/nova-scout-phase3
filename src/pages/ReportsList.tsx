@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
@@ -14,6 +14,7 @@ import PlayerReportsModal from "@/components/reports/PlayerReportsModal";
 
 const ReportsList = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState("all-reports");
   const [viewMode, setViewMode] = useState<"grouped" | "individual">("grouped");
   const [selectedPlayerReports, setSelectedPlayerReports] = useState<{
@@ -21,6 +22,14 @@ const ReportsList = () => {
     playerName: string;
     reports: any[];
   } | null>(null);
+  
+  // Set initial tab from URL parameters
+  useEffect(() => {
+    const tabParam = searchParams.get("tab");
+    if (tabParam && ["all-reports", "my-reports", "my-drafts"].includes(tabParam)) {
+      setActiveTab(tabParam);
+    }
+  }, [searchParams]);
   
   const { reports, loading, deleteReport } = useReports();
   const filteredReports = useReportsFilter(reports, activeTab);
@@ -74,7 +83,7 @@ const ReportsList = () => {
         <p className="text-muted-foreground">View and manage scouting reports</p>
       </div>
 
-      <ReportsTabNavigation onTabChange={setActiveTab} />
+      <ReportsTabNavigation onTabChange={setActiveTab} activeTab={activeTab} />
 
       <Card>
         <CardHeader className="pb-3">

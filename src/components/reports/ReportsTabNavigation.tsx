@@ -6,9 +6,10 @@ import { useAuth } from "@/contexts/AuthContext";
 
 interface ReportsTabNavigationProps {
   onTabChange: (value: string) => void;
+  activeTab: string;
 }
 
-const ReportsTabNavigation = ({ onTabChange }: ReportsTabNavigationProps) => {
+const ReportsTabNavigation = ({ onTabChange, activeTab }: ReportsTabNavigationProps) => {
   const { reports } = useReports();
   const { user, profile } = useAuth();
   
@@ -29,7 +30,7 @@ const ReportsTabNavigation = ({ onTabChange }: ReportsTabNavigationProps) => {
   });
 
   return (
-    <Tabs defaultValue="all-reports" onValueChange={onTabChange} className="mb-6">
+    <Tabs value={activeTab} onValueChange={onTabChange} className="mb-6">
       <TabsList className="grid w-full max-w-md grid-cols-3">
         <TabsTrigger value="all-reports" className="flex items-center gap-2">
           <BookmarkCheck className="h-4 w-4" />
