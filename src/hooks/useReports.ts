@@ -35,45 +35,129 @@ export const useReports = () => {
       console.log('Current user ID:', user.id);
       console.log('User profile role:', profile?.role);
 
-      // Transform the data to match our ReportWithPlayer interface
-      const transformedReports: ReportWithPlayer[] = (data || []).map((report: any) => {
-        console.log(`Processing report ${report.id}:`, {
-          scoutId: report.scout_id,
-          status: report.status,
-          playerId: report.player_id,
-          sections: report.sections,
-          sectionsType: typeof report.sections,
-          isArray: Array.isArray(report.sections)
-        });
+      // Transform the data and fetch player data for each report
+      const transformedReports: ReportWithPlayer[] = await Promise.all(
+        (data || []).map(async (report: any) => {
+          console.log(`Processing report ${report.id}:`, {
+            scoutId: report.scout_id,
+            status: report.status,
+            playerId: report.player_id,
+            sections: report.sections,
+            sectionsType: typeof report.sections,
+            isArray: Array.isArray(report.sections)
+          });
 
-        // Parse sections if it's a string
-        let sections = report.sections;
-        if (typeof sections === 'string') {
-          try {
-            sections = JSON.parse(sections);
-            console.log(`Parsed sections for report ${report.id}:`, sections);
-          } catch (e) {
-            console.log(`Failed to parse sections for report ${report.id}:`, e);
-            sections = [];
+          // Parse sections if it's a string
+          let sections = report.sections;
+          if (typeof sections === 'string') {
+            try {
+              sections = JSON.parse(sections);
+              console.log(`Parsed sections for report ${report.id}:`, sections);
+            } catch (e) {
+              console.log(`Failed to parse sections for report ${report.id}:`, e);
+              sections = [];
+            }
           }
-        }
 
-        return {
-          id: report.id,
-          playerId: report.player_id,
-          templateId: report.template_id,
-          scoutId: report.scout_id,
-          createdAt: new Date(report.created_at),
-          updatedAt: new Date(report.updated_at),
-          status: report.status as 'draft' | 'submitted' | 'reviewed',
-          sections: Array.isArray(sections) ? sections : [],
-          matchContext: report.match_context,
-          tags: report.tags || [],
-          flaggedForReview: report.flagged_for_review || false,
-          player: null, // Player data will be fetched separately
-          scoutProfile: report.scout_profile,
-        };
-      });
+          // Fetch player data for this report
+          let playerData = null;
+          if (report.player_id) {
+            try {
+              // Check if the ID is numeric (from players_new table)
+              if (/^\d+$/.test(report.player_id)) {
+                const { data: playerNewData } = await supabase
+                  .from('players_new')
+                  .select('*')
+                  .eq('id', parseInt(report.player_id))
+                  .single();
+                
+                if (playerNewData) {
+                  playerData = {
+                    id: playerNewData.id.toString(),
+                    name: playerNewData.name,
+                    club: playerNewData.currentteam || playerNewData.parentteam || 'Unknown',
+                    age: playerNewData.age || 0,
+                    dateOfBirth: playerNewData.birthdate || '',
+                    positions: [playerNewData.firstposition, playerNewData.secondposition].filter(Boolean),
+                    dominantFoot: 'Right' as const,
+                    nationality: playerNewData.firstnationality || 'Unknown',
+                    contractStatus: 'Under Contract' as const,
+                    contractExpiry: playerNewData.contractexpiration,
+                    region: 'Europe',
+                    image: playerNewData.imageurl,
+                  };
+                }
+              } else {
+                // UUID format - check players table first, then private_players
+                const { data: playersData } = await supabase
+                  .from('players')
+                  .select('*')
+                  .eq('id', report.player_id)
+                  .maybeSingle();
+
+                if (playersData) {
+                  playerData = {
+                    id: playersData.id,
+                    name: playersData.name,
+                    club: playersData.club,
+                    age: playersData.age,
+                    dateOfBirth: playersData.date_of_birth,
+                    positions: playersData.positions,
+                    dominantFoot: playersData.dominant_foot,
+                    nationality: playersData.nationality,
+                    contractStatus: playersData.contract_status,
+                    contractExpiry: playersData.contract_expiry,
+                    region: playersData.region,
+                    image: playersData.image_url,
+                  };
+                } else {
+                  // Check private_players table
+                  const { data: privatePlayerData } = await supabase
+                    .from('private_players')
+                    .select('*')
+                    .eq('id', report.player_id)
+                    .maybeSingle();
+
+                  if (privatePlayerData) {
+                    playerData = {
+                      id: privatePlayerData.id,
+                      name: privatePlayerData.name,
+                      club: privatePlayerData.club || 'Unknown',
+                      age: privatePlayerData.age || 0,
+                      dateOfBirth: privatePlayerData.date_of_birth || '',
+                      positions: privatePlayerData.positions || [],
+                      dominantFoot: privatePlayerData.dominant_foot || 'Right',
+                      nationality: privatePlayerData.nationality || 'Unknown',
+                      contractStatus: 'Private Player' as any,
+                      contractExpiry: null,
+                      region: privatePlayerData.region || 'Unknown',
+                      isPrivatePlayer: true,
+                    };
+                  }
+                }
+              }
+            } catch (playerError) {
+              console.error(`Error fetching player data for report ${report.id}:`, playerError);
+            }
+          }
+
+          return {
+            id: report.id,
+            playerId: report.player_id,
+            templateId: report.template_id,
+            scoutId: report.scout_id,
+            createdAt: new Date(report.created_at),
+            updatedAt: new Date(report.updated_at),
+            status: report.status as 'draft' | 'submitted' | 'reviewed',
+            sections: Array.isArray(sections) ? sections : [],
+            matchContext: report.match_context,
+            tags: report.tags || [],
+            flaggedForReview: report.flagged_for_review || false,
+            player: playerData,
+            scoutProfile: report.scout_profile,
+          };
+        })
+      );
 
       console.log('Final transformed reports:', transformedReports);
       console.log('Reports by status:', {
