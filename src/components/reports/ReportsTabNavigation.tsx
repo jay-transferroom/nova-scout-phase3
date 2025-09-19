@@ -1,26 +1,47 @@
 
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { File, FileText, BookmarkCheck } from "lucide-react";
+import { useReports } from "@/hooks/useReports";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface ReportsTabNavigationProps {
   onTabChange: (value: string) => void;
 }
 
 const ReportsTabNavigation = ({ onTabChange }: ReportsTabNavigationProps) => {
+  const { reports } = useReports();
+  const { user, profile } = useAuth();
+  
+  // Count reports for current user
+  const myReports = reports.filter(report => report.scoutId === user?.id);
+  const draftCount = myReports.filter(report => report.status === 'draft').length;
+  const submittedCount = myReports.filter(report => report.status === 'submitted').length;
+  const allCount = profile?.role === 'recruitment' ? reports.length : myReports.length;
+  
+  console.log('Tab Navigation Debug:', {
+    totalReports: reports.length,
+    myReports: myReports.length,
+    draftCount,
+    submittedCount,
+    allCount,
+    userRole: profile?.role,
+    userId: user?.id
+  });
+
   return (
     <Tabs defaultValue="all-reports" onValueChange={onTabChange} className="mb-6">
       <TabsList className="grid w-full max-w-md grid-cols-3">
         <TabsTrigger value="all-reports" className="flex items-center gap-2">
           <BookmarkCheck className="h-4 w-4" />
-          <span>All Reports</span>
+          <span>All Reports ({allCount})</span>
         </TabsTrigger>
         <TabsTrigger value="my-reports" className="flex items-center gap-2">
           <FileText className="h-4 w-4" />
-          <span>Submitted</span>
+          <span>Submitted ({submittedCount})</span>
         </TabsTrigger>
         <TabsTrigger value="my-drafts" className="flex items-center gap-2">
           <File className="h-4 w-4" />
-          <span>Drafts</span>
+          <span>Drafts ({draftCount})</span>
         </TabsTrigger>
       </TabsList>
     </Tabs>
