@@ -406,7 +406,7 @@ const EnhancedFootballPitch = ({ players, squadType, formation = '4-3-3', positi
                 </Avatar>
                 
                 {/* Rating overlay */}
-                <div className="absolute -bottom-2 -right-2 bg-blue-600 text-white text-xs rounded-full w-7 h-7 flex items-center justify-center font-bold z-20 border-2 border-white shadow-md">
+                <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 bg-blue-600 text-white text-xs rounded-full w-7 h-7 flex items-center justify-center font-bold z-20 border-2 border-white shadow-md">
                   {Math.round(currentPlayer.transferroomRating || currentPlayer.xtvScore || 0)}
                 </div>
                 
