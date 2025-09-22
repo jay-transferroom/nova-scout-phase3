@@ -1,7 +1,7 @@
 
 import { TableCell, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Edit, Eye, User, Trash2, Check } from "lucide-react";
+import { Edit, Eye, User, Trash2 } from "lucide-react";
 import { ReportWithPlayer } from "@/types/report";
 import { getRatingColor, formatDate } from "@/utils/reportFormatting";
 import { getOverallRating, getRecommendation } from "@/utils/reportDataExtraction";
@@ -89,9 +89,6 @@ const ReportRow = ({ report, onViewReport, onEditReport, onDeleteReport, canEdit
       </TableCell>
       <TableCell>
         <div className="flex items-center gap-2">
-          {report.status === "submitted" && (
-            <Check className="h-4 w-4 text-success-500" />
-          )}
           <Badge variant={report.status === "submitted" ? "success" : "neutral"} className="text-xs font-medium">
             {report.status === "draft" ? "Draft" : "Submitted"}
           </Badge>
