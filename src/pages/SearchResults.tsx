@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { ArrowLeft, Search, Filter, Loader2 } from "lucide-react";
 import { useUnifiedPlayersData } from "@/hooks/useUnifiedPlayersData";
+import { usePlayerNameSearch } from "@/hooks/usePlayerNameSearch";
 import { useTeamsData } from "@/hooks/useTeamsData";
 import { Player } from "@/types/player";
 import {
@@ -19,9 +20,9 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 const SearchResults = () => {
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
-  const { data: players = [], isLoading } = useUnifiedPlayersData();
+  const { data: localPlayers = [], isLoading: localLoading } = useUnifiedPlayersData();
   const { data: teams = [] } = useTeamsData();
   
   const initialQuery = searchParams.get('q') || '';
@@ -30,6 +31,11 @@ const SearchResults = () => {
   const [ageFilter, setAgeFilter] = useState<string>("all");
   const [contractFilter, setContractFilter] = useState<string>("all");
   const [regionFilter, setRegionFilter] = useState<string>("all");
+
+  // Use server-side search for queries with 2+ characters
+  const { data: remotePlayers = [], isLoading: remoteLoading } = usePlayerNameSearch(searchQuery, 200);
+  
+  const isLoading = localLoading || (searchQuery.length >= 2 && remoteLoading);
 
   // Create a map of team names to team data for quick lookup
   const teamMap = teams.reduce((acc, team) => {
@@ -43,25 +49,34 @@ const SearchResults = () => {
     return team?.logo_url;
   };
 
-  // Filter players based on search query and filters
+  // Filter players based on search query and filters - Updated for server-side search
   useEffect(() => {
-    if (!players.length) {
-      setFilteredPlayers([]);
-      return;
-    }
+    let results: Player[] = [];
     
-    let results = [...players];
-    
-    if (searchQuery.trim()) {
+    // For queries with 2+ chars, use server-side search results and merge private players
+    if (searchQuery.trim().length >= 2) {
+      results = [...remotePlayers];
+      
+      // Add private players that match the query
+      const privateMatches = localPlayers.filter(
+        (p) => (p as any).isPrivatePlayer && p.name.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+      results = [...privateMatches, ...results];
+    } else if (searchQuery.trim().length === 1) {
+      // For single character queries, use local search only
       const lowercaseQuery = searchQuery.toLowerCase().trim();
-      results = results.filter(player => 
+      results = localPlayers.filter(player => 
         player.name.toLowerCase().includes(lowercaseQuery) || 
         player.club.toLowerCase().includes(lowercaseQuery) || 
         player.id.toLowerCase() === lowercaseQuery ||
         player.positions.some(pos => pos.toLowerCase().includes(lowercaseQuery))
       );
+    } else {
+      // No query - show recent/all players (limited for performance)
+      results = localPlayers.slice(0, 100);
     }
     
+    // Apply filters
     if (ageFilter !== "all") {
       if (ageFilter === "u21") {
         results = results.filter(player => player.age < 21);
@@ -81,7 +96,16 @@ const SearchResults = () => {
     }
     
     setFilteredPlayers(results);
-  }, [searchQuery, ageFilter, contractFilter, regionFilter, players]);
+  }, [searchQuery, ageFilter, contractFilter, regionFilter, localPlayers, remotePlayers]);
+
+  // Update URL when search query changes
+  useEffect(() => {
+    const params = new URLSearchParams();
+    if (searchQuery.trim()) {
+      params.set('q', searchQuery.trim());
+    }
+    setSearchParams(params, { replace: true });
+  }, [setSearchParams, searchQuery]);
 
   const handlePlayerClick = (player: Player) => {
     if (player.isPrivatePlayer) {
