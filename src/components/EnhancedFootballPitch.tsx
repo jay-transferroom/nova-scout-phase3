@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -354,12 +355,13 @@ const EnhancedFootballPitch = ({ players, squadType, formation = '4-3-3', positi
     const allEligiblePlayers = getAllPlayersForPosition(position);
     const isSelected = selectedPosition === coords.label;
     const currentPlayer = positionPlayers[0]; // The assigned player
+    const [showDropdown, setShowDropdown] = useState(false);
     
     return (
       <div
         key={position}
-        className={`absolute transform -translate-x-1/2 cursor-pointer transition-all z-10 ${
-          isSelected ? 'scale-105' : 'hover:scale-102'
+        className={`absolute transform -translate-x-1/2 transition-all z-10 ${
+          isSelected ? 'scale-110' : 'hover:scale-105'
         }`}
         style={{
           left: `${coords.x}%`,
@@ -368,10 +370,10 @@ const EnhancedFootballPitch = ({ players, squadType, formation = '4-3-3', positi
         }}
       >
         {/* Position label */}
-        <div className="mb-3 text-center">
+        <div className="mb-2 text-center">
           <Badge 
             variant={isSelected ? "default" : "secondary"} 
-            className={`text-sm px-3 py-1 font-semibold ${
+            className={`text-xs px-2 py-1 font-semibold ${
               isSelected ? 'bg-yellow-500 text-yellow-900' : 'bg-white/90 text-gray-700'
             }`}
           >
@@ -379,137 +381,160 @@ const EnhancedFootballPitch = ({ players, squadType, formation = '4-3-3', positi
           </Badge>
         </div>
 
-        {/* Player Card - Made Bigger */}
-        <div className="flex flex-col gap-2 items-center min-w-48">
+        {/* Player Circle */}
+        <div className="flex flex-col items-center min-w-24">
           {currentPlayer ? (
-            <div className="bg-white rounded-xl shadow-lg p-4 w-full border-2 border-blue-300 bg-blue-50 transition-all hover:shadow-xl">
-              <div className="flex flex-col items-center gap-3">
-                <Avatar className="w-12 h-12 shrink-0">
+            <div className="relative">
+              {/* Main Player Circle */}
+              <div 
+                className={`w-16 h-16 rounded-full border-4 transition-all cursor-pointer ${
+                  isSelected 
+                    ? 'border-yellow-500 shadow-lg shadow-yellow-500/50' 
+                    : 'border-blue-500 hover:border-blue-600 shadow-md'
+                } bg-white hover:shadow-lg animate-scale-in`}
+                onClick={() => setShowDropdown(!showDropdown)}
+              >
+                <Avatar className="w-full h-full">
                   <AvatarImage 
                     src={currentPlayer.image || `https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&crop=face&fit=crop`} 
                     alt={currentPlayer.name}
+                    className="rounded-full"
                   />
-                  <AvatarFallback className="bg-blue-600 text-white text-sm">
+                  <AvatarFallback className="bg-blue-600 text-white text-sm font-bold rounded-full">
                     {currentPlayer.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
                   </AvatarFallback>
                 </Avatar>
                 
-                <div className="text-center w-full">
-                  <div className="text-sm font-bold truncate mb-1">{currentPlayer.name}</div>
-                  <div className="text-xs text-gray-600 mb-2">
-                    Age {currentPlayer.age} • Rating: {currentPlayer.transferroomRating?.toFixed(1) || currentPlayer.xtvScore || 'N/A'}
-                  </div>
-                  
-                  {/* Player Selection Dropdown */}
-                  {onPlayerChange && allEligiblePlayers.length > 1 && (
-                    <Select 
-                      value={currentPlayer.id} 
-                      onValueChange={(playerId) => onPlayerChange(position, playerId)}
-                    >
-                      <SelectTrigger className="w-full text-xs h-8 bg-white border-gray-300 hover:bg-gray-50">
-                        <SelectValue>
-                          <div className="flex items-center gap-2">
-                            <span className="truncate">Change Player</span>
-                            <ChevronDown className="h-3 w-3" />
-                          </div>
-                        </SelectValue>
-                      </SelectTrigger>
-                      <SelectContent className="bg-white border shadow-lg max-h-60 overflow-y-auto z-50">
-                        {allEligiblePlayers.map((player) => (
-                          <SelectItem 
-                            key={player.id} 
-                            value={player.id}
-                            className="text-sm hover:bg-gray-100 focus:bg-gray-100"
-                          >
-                            <div className="flex items-center gap-2 w-full">
-                              <Avatar className="w-6 h-6">
-                                <AvatarImage 
-                                  src={player.image || `https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&crop=face&fit=crop`} 
-                                  alt={player.name}
-                                />
-                                <AvatarFallback className="bg-blue-600 text-white text-xs">
-                                  {player.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
-                                </AvatarFallback>
-                              </Avatar>
-                              <div className="flex flex-col">
-                                <span className="font-medium">{player.name}</span>
-                                <span className="text-xs text-gray-500">
-                                  Rating: {player.transferroomRating?.toFixed(1) || player.xtvScore || 'N/A'}
-                                </span>
-                              </div>
-                            </div>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  )}
+                {/* Rating overlay */}
+                <div className="absolute -bottom-1 -right-1 bg-blue-600 text-white text-xs rounded-full w-6 h-6 flex items-center justify-center font-bold">
+                  {Math.round(currentPlayer.transferroomRating || currentPlayer.xtvScore || 0)}
                 </div>
                 
                 {/* Contract risk indicator */}
-                <div className="flex items-center gap-1">
-                  {(() => {
-                    const contractRisk = getContractRiskLevel(currentPlayer);
-                    if (contractRisk === 'high') {
-                      return <div className="w-3 h-3 bg-red-500 rounded-full" title="Contract expires soon" />;
-                    }
-                    if (contractRisk === 'medium') {
-                      return <div className="w-3 h-3 bg-amber-500 rounded-full" title="Contract expires within a year" />;
-                    }
-                    return null;
-                  })()}
+                {(() => {
+                  const contractRisk = getContractRiskLevel(currentPlayer);
+                  if (contractRisk === 'high') {
+                    return <div className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full border-2 border-white" title="Contract expires soon" />;
+                  }
+                  if (contractRisk === 'medium') {
+                    return <div className="absolute -top-1 -right-1 w-4 h-4 bg-amber-500 rounded-full border-2 border-white" title="Contract expires within a year" />;
+                  }
+                  return null;
+                })()}
+              </div>
+              
+              {/* Player Name Below Circle */}
+              <div className="mt-2 text-center">
+                <div className="text-xs font-bold text-white drop-shadow-md bg-black/50 rounded px-2 py-1">
+                  {currentPlayer.name.split(' ').pop()} {/* Show last name only */}
                 </div>
               </div>
+
+              {/* Hidden Dropdown - Appears on Circle Click */}
+              {showDropdown && onPlayerChange && allEligiblePlayers.length > 1 && (
+                <div className="absolute top-20 left-1/2 transform -translate-x-1/2 z-50 animate-fade-in">
+                  <div className="bg-white border border-gray-300 rounded-lg shadow-xl p-2 min-w-48 max-h-60 overflow-y-auto">
+                    <div className="text-xs font-semibold text-gray-600 mb-2 px-2">
+                      Select Player for {position}
+                    </div>
+                    {allEligiblePlayers.map((player) => (
+                      <div
+                        key={player.id}
+                        className={`flex items-center gap-2 p-2 rounded cursor-pointer transition-colors ${
+                          player.id === currentPlayer.id 
+                            ? 'bg-blue-50 border border-blue-200' 
+                            : 'hover:bg-gray-50'
+                        }`}
+                        onClick={() => {
+                          onPlayerChange(position, player.id);
+                          setShowDropdown(false);
+                        }}
+                      >
+                        <Avatar className="w-8 h-8">
+                          <AvatarImage 
+                            src={player.image || `https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&crop=face&fit=crop`} 
+                            alt={player.name}
+                          />
+                          <AvatarFallback className="bg-blue-600 text-white text-xs">
+                            {player.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1">
+                          <div className="text-sm font-medium">{player.name}</div>
+                          <div className="text-xs text-gray-500">
+                            Rating: {player.transferroomRating?.toFixed(1) || player.xtvScore || 'N/A'}
+                          </div>
+                        </div>
+                        {player.id === currentPlayer.id && (
+                          <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           ) : (
-            <div className="bg-white rounded-xl shadow-lg p-4 w-full border border-dashed border-gray-300 transition-all hover:shadow-xl">
-              <div className="flex flex-col items-center gap-3">
-                <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center">
-                  <Plus className="h-6 w-6 text-gray-400" />
-                </div>
-                <div className="text-sm text-gray-500 text-center">No Player Assigned</div>
-                
-                {/* Player Selection Dropdown for Empty Position */}
-                {onPlayerChange && allEligiblePlayers.length > 0 && (
-                  <Select onValueChange={(playerId) => onPlayerChange(position, playerId)}>
-                    <SelectTrigger className="w-full text-xs h-8 bg-white border-gray-300 hover:bg-gray-50">
-                      <SelectValue placeholder="Select Player">
-                        <div className="flex items-center gap-2">
-                          <span className="truncate">Select Player</span>
-                          <ChevronDown className="h-3 w-3" />
-                        </div>
-                      </SelectValue>
-                    </SelectTrigger>
-                    <SelectContent className="bg-white border shadow-lg max-h-60 overflow-y-auto z-50">
-                      {allEligiblePlayers.map((player) => (
-                        <SelectItem 
-                          key={player.id} 
-                          value={player.id}
-                          className="text-sm hover:bg-gray-100 focus:bg-gray-100"
-                        >
-                          <div className="flex items-center gap-2 w-full">
-                            <Avatar className="w-6 h-6">
-                              <AvatarImage 
-                                src={player.image || `https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&crop=face&fit=crop`} 
-                                alt={player.name}
-                              />
-                              <AvatarFallback className="bg-blue-600 text-white text-xs">
-                                {player.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
-                              </AvatarFallback>
-                            </Avatar>
-                            <div className="flex flex-col">
-                              <span className="font-medium">{player.name}</span>
-                              <span className="text-xs text-gray-500">
-                                Rating: {player.transferroomRating?.toFixed(1) || player.xtvScore || 'N/A'}
-                              </span>
-                            </div>
-                          </div>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                )}
+            /* Empty Position Circle */
+            <div className="relative">
+              <div 
+                className="w-16 h-16 rounded-full border-4 border-dashed border-gray-400 bg-white/50 hover:border-gray-500 transition-all cursor-pointer flex items-center justify-center animate-scale-in"
+                onClick={() => setShowDropdown(!showDropdown)}
+              >
+                <Plus className="h-6 w-6 text-gray-400" />
               </div>
+              
+              <div className="mt-2 text-center">
+                <div className="text-xs font-bold text-white drop-shadow-md bg-black/50 rounded px-2 py-1">
+                  Empty
+                </div>
+              </div>
+
+              {/* Hidden Dropdown for Empty Position */}
+              {showDropdown && onPlayerChange && allEligiblePlayers.length > 0 && (
+                <div className="absolute top-20 left-1/2 transform -translate-x-1/2 z-50 animate-fade-in">
+                  <div className="bg-white border border-gray-300 rounded-lg shadow-xl p-2 min-w-48 max-h-60 overflow-y-auto">
+                    <div className="text-xs font-semibold text-gray-600 mb-2 px-2">
+                      Select Player for {position}
+                    </div>
+                    {allEligiblePlayers.map((player) => (
+                      <div
+                        key={player.id}
+                        className="flex items-center gap-2 p-2 rounded cursor-pointer hover:bg-gray-50 transition-colors"
+                        onClick={() => {
+                          onPlayerChange(position, player.id);
+                          setShowDropdown(false);
+                        }}
+                      >
+                        <Avatar className="w-8 h-8">
+                          <AvatarImage 
+                            src={player.image || `https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&crop=face&fit=crop`} 
+                            alt={player.name}
+                          />
+                          <AvatarFallback className="bg-blue-600 text-white text-xs">
+                            {player.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1">
+                          <div className="text-sm font-medium">{player.name}</div>
+                          <div className="text-xs text-gray-500">
+                            Rating: {player.transferroomRating?.toFixed(1) || player.xtvScore || 'N/A'}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
+          )}
+          
+          {/* Click outside to close dropdown */}
+          {showDropdown && (
+            <div 
+              className="fixed inset-0 z-40" 
+              onClick={() => setShowDropdown(false)}
+            />
           )}
         </div>
       </div>
