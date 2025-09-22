@@ -162,17 +162,15 @@ export const ShortlistsSidebar = ({
           return (
             <Card
               key={list.id}
-              className={`cursor-pointer transition-colors ${
-                selectedList === list.id ? "ring-2 ring-blue-500" : ""
+              className={`cursor-pointer transition-all hover:shadow-md ${
+                selectedList === list.id ? "ring-2 ring-blue-500 bg-blue-50/50" : "hover:bg-muted/20"
               }`}
+              onClick={() => onSelectList(list.id)}
             >
               <CardHeader className="pb-2">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <CardTitle 
-                      className="text-sm font-medium cursor-pointer"
-                      onClick={() => onSelectList(list.id)}
-                    >
+                    <CardTitle className="text-sm font-medium">
                       {list.name}
                     </CardTitle>
                   </div>
@@ -183,12 +181,22 @@ export const ShortlistsSidebar = ({
                     {canManageShortlists && (
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="h-6 w-6 p-0"
+                            onClick={(e) => e.stopPropagation()}
+                          >
                             <MoreHorizontal className="h-3 w-3" />
                           </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => handleEditShortlist(list)}>
+                        <DropdownMenuContent align="end" className="bg-background border shadow-md z-50">
+                          <DropdownMenuItem 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleEditShortlist(list);
+                            }}
+                          >
                             <Edit2 className="h-4 w-4 mr-2" />
                             Rename
                           </DropdownMenuItem>
@@ -223,9 +231,9 @@ export const ShortlistsSidebar = ({
                   </div>
                 </div>
               </CardHeader>
-              <CardContent className="pt-0" onClick={() => onSelectList(list.id)}>
+              <CardContent className="pt-0">
                 <div className="text-xs text-muted-foreground">
-                  Click to view players
+                  {totalPlayers} {totalPlayers === 1 ? 'player' : 'players'}
                 </div>
               </CardContent>
             </Card>
