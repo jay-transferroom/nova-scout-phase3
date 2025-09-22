@@ -47,11 +47,11 @@ const EnhancedFootballPitch = ({ players, squadType, onPositionClick, selectedPo
         case 'CM2': 
           return ['CM', 'CAM'];
         case 'LW': 
-          return ['LW', 'LM'];
+          return ['W', 'LW', 'LM'];
         case 'ST': 
-          return ['ST', 'CF'];
+          return ['FW', 'ST', 'CF'];
         case 'RW': 
-          return ['RW', 'RM'];
+          return ['W', 'RW', 'RM'];
         default: 
           return [];
       }
@@ -59,17 +59,24 @@ const EnhancedFootballPitch = ({ players, squadType, onPositionClick, selectedPo
 
     const allowedPositions = getPositionMapping(position);
     
-    // Filter players who have this position as their PRIMARY position (first in their positions array)
+    // Filter players who have this position in their positions array
     const positionPlayers = players.filter(player => 
-      player.positions.length > 0 && allowedPositions.includes(player.positions[0])
+      player.positions.some(pos => allowedPositions.includes(pos))
     );
     
-    // Sort by rating
-    return positionPlayers.sort((a, b) => {
+    // Sort by rating and return only the top player for first-team view
+    const sortedPlayers = positionPlayers.sort((a, b) => {
       const ratingA = a.transferroomRating || a.xtvScore || 0;
       const ratingB = b.transferroomRating || b.xtvScore || 0;
       return ratingB - ratingA;
     });
+    
+    // For first-team squad, only show the leading player per position
+    if (squadType === 'first-team') {
+      return sortedPlayers.slice(0, 1);
+    }
+    
+    return sortedPlayers;
   };
 
   const handlePositionClick = (position: string, label: string) => {
