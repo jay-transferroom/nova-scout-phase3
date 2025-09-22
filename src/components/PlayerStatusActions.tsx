@@ -36,6 +36,7 @@ import { ReportWithPlayer } from "@/types/report";
 import AssignScoutDialog from "@/components/AssignScoutDialog";
 import { PlayerNotes } from "@/components/PlayerNotes";
 import { usePlayerProfile } from "@/hooks/usePlayerProfile";
+import { getOverallRating } from "@/utils/reportDataExtraction";
 
 interface PlayerStatusActionsProps {
   playerId: string;
@@ -180,6 +181,21 @@ const PlayerStatusActions = ({ playerId, playerName, playerReports }: PlayerStat
   const assignmentStatus = getAssignmentStatus();
   const reportCount = playerReports.length;
 
+  // Calculate average rating from player reports
+  const calculateAverageRating = () => {
+    if (reportCount === 0) return null;
+    
+    const ratings = playerReports
+      .map(report => getOverallRating(report))
+      .filter(rating => rating !== null && rating !== undefined && typeof rating === "number") as number[];
+    
+    return ratings.length > 0 
+      ? Math.round((ratings.reduce((sum, rating) => sum + rating, 0) / ratings.length) * 10) / 10
+      : null;
+  };
+
+  const averageRating = calculateAverageRating();
+
   return (
     <Card className="mb-6">
       <CardContent className="p-4">
@@ -209,9 +225,16 @@ const PlayerStatusActions = ({ playerId, playerName, playerReports }: PlayerStat
 
             {/* Reports & Tracking Status */}
             <div className="flex items-center gap-4 text-sm text-muted-foreground">
-              <span className={reportCount === 0 ? "text-orange-600 font-medium" : ""}>
-                {reportCount} Report{reportCount !== 1 ? 's' : ''}
-              </span>
+              <div className="flex items-center gap-2">
+                <span className={reportCount === 0 ? "text-orange-600 font-medium" : ""}>
+                  {reportCount} Report{reportCount !== 1 ? 's' : ''}
+                </span>
+                {averageRating !== null && reportCount > 0 && (
+                  <Badge variant="outline" className="text-xs px-2 py-0.5">
+                    Avg: {averageRating}/10
+                  </Badge>
+                )}
+              </div>
               <span>{playerShortlists.length} Shortlist{playerShortlists.length !== 1 ? 's' : ''}</span>
               {isTracking && (
                 <div className="flex items-center gap-1 text-green-600">
