@@ -28,7 +28,7 @@ const Shortlists = () => {
   const { data: assignments = [], refetch: refetchAssignments } = useScoutingAssignments();
   const { reports = [] } = useReports();
   const { privatePlayers } = usePrivatePlayers();
-  const { shortlists, createShortlist, updateShortlist, deleteShortlist, addPlayerToShortlist, removePlayerFromShortlist, getPlayerShortlists } = useShortlists();
+  const { shortlists, createShortlist, updateShortlist, deleteShortlist, addPlayerToShortlist, removePlayerFromShortlist, getPlayerShortlists, refreshShortlists } = useShortlists();
   const queryClient = useQueryClient();
 
   const shortlistsLogic = useShortlistsLogic({
@@ -76,7 +76,8 @@ const Shortlists = () => {
     // Force comprehensive refresh of all assignment-related data
     await Promise.all([
       queryClient.invalidateQueries({ queryKey: ['scouting-assignments'] }),
-      refetchAssignments()
+      refetchAssignments(),
+      refreshShortlists()
     ]);
     
     // Add a small delay to ensure all data is refreshed
