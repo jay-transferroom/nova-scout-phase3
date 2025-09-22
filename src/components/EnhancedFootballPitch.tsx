@@ -394,11 +394,11 @@ const EnhancedFootballPitch = ({ players, squadType, formation = '4-3-3', positi
                 } bg-white hover:shadow-lg animate-scale-in`}
                 onClick={() => setShowDropdown(!showDropdown)}
               >
-                <Avatar className="w-full h-full">
+                <Avatar className="w-full h-full flex items-center justify-center">
                   <AvatarImage 
                     src={currentPlayer.image || `https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&crop=face&fit=crop`} 
                     alt={currentPlayer.name}
-                    className="rounded-full"
+                    className="rounded-full object-center object-cover"
                   />
                   <AvatarFallback className="bg-blue-600 text-white text-sm font-bold rounded-full">
                     {currentPlayer.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
@@ -406,7 +406,7 @@ const EnhancedFootballPitch = ({ players, squadType, formation = '4-3-3', positi
                 </Avatar>
                 
                 {/* Rating overlay */}
-                <div className="absolute -bottom-1 -right-1 bg-blue-600 text-white text-xs rounded-full w-6 h-6 flex items-center justify-center font-bold">
+                <div className="absolute -bottom-2 -right-2 bg-blue-600 text-white text-xs rounded-full w-7 h-7 flex items-center justify-center font-bold z-20 border-2 border-white shadow-md">
                   {Math.round(currentPlayer.transferroomRating || currentPlayer.xtvScore || 0)}
                 </div>
                 
@@ -414,18 +414,18 @@ const EnhancedFootballPitch = ({ players, squadType, formation = '4-3-3', positi
                 {(() => {
                   const contractRisk = getContractRiskLevel(currentPlayer);
                   if (contractRisk === 'high') {
-                    return <div className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full border-2 border-white" title="Contract expires soon" />;
+                    return <div className="absolute -top-2 -left-2 w-4 h-4 bg-red-500 rounded-full border-2 border-white z-20" title="Contract expires soon" />;
                   }
                   if (contractRisk === 'medium') {
-                    return <div className="absolute -top-1 -right-1 w-4 h-4 bg-amber-500 rounded-full border-2 border-white" title="Contract expires within a year" />;
+                    return <div className="absolute -top-2 -left-2 w-4 h-4 bg-amber-500 rounded-full border-2 border-white z-20" title="Contract expires within a year" />;
                   }
                   return null;
                 })()}
               </div>
               
               {/* Player Name Below Circle */}
-              <div className="mt-2 text-center">
-                <div className="text-xs font-bold text-white drop-shadow-md bg-black/50 rounded px-2 py-1">
+              <div className="mt-3 text-center z-10 relative">
+                <div className="text-xs font-bold text-white drop-shadow-md bg-black/60 rounded px-2 py-1 max-w-20 truncate">
                   {currentPlayer.name} {/* Show full name */}
                 </div>
               </div>
