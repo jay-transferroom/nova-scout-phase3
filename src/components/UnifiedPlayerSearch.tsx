@@ -75,15 +75,16 @@ const UnifiedPlayerSearch = ({
     if (lowercaseQuery.length >= 2) {
       let results: Player[] = [...remotePlayers];
 
-      const privateMatches = players.filter(
-        (p) => (p as any).isPrivatePlayer && p.name.toLowerCase().includes(lowercaseQuery)
+      // Enhanced team matching for remote search results
+      const teamMatches = players.filter(
+        (p) => p.club.toLowerCase().includes(lowercaseQuery) && !results.some(r => r.id === p.id)
       );
-      results = [...privateMatches, ...results];
+      results = [...results, ...teamMatches];
 
       // Detect position-like searches for better sorting
       const positionKeywords = [
-        'st', 'cf', 'striker', 'forward',
-        'lw', 'rw', 'winger', 'wing',
+        'st', 'cf', 'striker', 'forward', 'f', 'fw',
+        'lw', 'rw', 'winger', 'wing', 'w',
         'lm', 'rm', 'midfielder', 'mid',
         'cm', 'cam', 'cdm', 'dm',
         'cb', 'defender', 'defence', 'defense',
@@ -91,8 +92,33 @@ const UnifiedPlayerSearch = ({
         'lwb', 'rwb', 'wingback', 'wing-back',
         'gk', 'goalkeeper', 'keeper'
       ];
+      
+      // Common team name keywords for better detection
+      const teamKeywords = [
+        'chelsea', 'arsenal', 'manchester', 'liverpool', 'tottenham', 'city', 'united',
+        'fc', 'afc', 'lfc', 'thfc', 'mcfc', 'mufc', 'everton', 'newcastle', 'brighton',
+        'westham', 'villa', 'wolves', 'palace', 'leicester', 'leeds', 'southampton',
+        'burnley', 'norwich', 'watford', 'brentford', 'fulham'
+      ];
+      
       const isPositionSearch = positionKeywords.some((k) => lowercaseQuery === k || lowercaseQuery.includes(k));
-      if (isPositionSearch) {
+      const isTeamSearch = teamKeywords.some((k) => lowercaseQuery.includes(k)) || 
+                           results.length > 5 && results.every(p => p.club.toLowerCase().includes(lowercaseQuery));
+      if (isTeamSearch) {
+        // Sort team search results: exact team matches first, then by rating
+        results.sort((a, b) => {
+          const aExactMatch = a.club.toLowerCase() === lowercaseQuery;
+          const bExactMatch = b.club.toLowerCase() === lowercaseQuery;
+          
+          if (aExactMatch && !bExactMatch) return -1;
+          if (!aExactMatch && bExactMatch) return 1;
+          
+          // If both or neither are exact matches, sort by rating
+          const ratingA = a.transferroomRating || a.futureRating || 0;
+          const ratingB = b.transferroomRating || b.futureRating || 0;
+          return ratingB - ratingA;
+        });
+      } else if (isPositionSearch) {
         results.sort((a, b) => (b.transferroomRating || b.futureRating || 0) - (a.transferroomRating || a.futureRating || 0));
       }
 
@@ -156,18 +182,36 @@ const UnifiedPlayerSearch = ({
       const positionMatch = player.positions.some((pos) => pos.toLowerCase().includes(lowercaseQuery));
       const nationalityMatch = player.nationality?.toLowerCase().includes(lowercaseQuery);
 
-      const matches = nameMatch || clubMatch || idMatch || positionMatch || nationalityMatch;
+      // Enhanced team matching - prioritize exact team name matches
+      const isExactTeamMatch = player.club.toLowerCase() === lowercaseQuery;
+      const isPartialTeamMatch = player.club.toLowerCase().includes(lowercaseQuery);
 
-      if (lowercaseQuery.includes('james')) {
-        console.log(`Player ${player.name}: name=${nameMatch}, club=${clubMatch}, id=${idMatch}, position=${positionMatch}, nationality=${nationalityMatch}, matches=${matches}`);
-      }
+      const matches = nameMatch || clubMatch || idMatch || positionMatch || nationalityMatch;
 
       return matches;
     });
 
     console.log('Filtered results count:', results.length);
 
-    if (isPositionSearch) {
+    // Enhanced sorting logic for team searches
+    const isTeamSearch = results.length > 1 && results.some(p => p.club.toLowerCase().includes(lowercaseQuery));
+    
+    if (isTeamSearch) {
+      // Sort team search results: exact team matches first, then by rating
+      results.sort((a, b) => {
+        const aExactMatch = a.club.toLowerCase() === lowercaseQuery;
+        const bExactMatch = b.club.toLowerCase() === lowercaseQuery;
+        
+        if (aExactMatch && !bExactMatch) return -1;
+        if (!aExactMatch && bExactMatch) return 1;
+        
+        // If both or neither are exact matches, sort by rating
+        const ratingA = a.transferroomRating || a.futureRating || 0;
+        const ratingB = b.transferroomRating || b.futureRating || 0;
+        return ratingB - ratingA;
+      });
+      console.log('Team search detected - sorted by team match priority and rating');
+    } else if (isPositionSearch) {
       results.sort((a, b) => {
         const ratingA = a.transferroomRating || a.futureRating || 0;
         const ratingB = b.transferroomRating || b.futureRating || 0;
