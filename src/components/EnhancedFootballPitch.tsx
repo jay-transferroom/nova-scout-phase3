@@ -84,6 +84,21 @@ const EnhancedFootballPitch = ({ players, squadType, formation = '4-3-3', positi
   // Track assigned players to prevent duplicates across positions
   const assignedPlayers = new Set<string>();
 
+  // Get all currently displayed players across all positions
+  const getAllCurrentlyAssignedPlayers = () => {
+    const assignedPlayerIds = new Set<string>();
+    
+    // Get players for each position in the current formation
+    Object.keys(currentFormation).forEach(pos => {
+      const positionPlayers = getPlayersForPosition(pos);
+      if (positionPlayers.length > 0) {
+        assignedPlayerIds.add(positionPlayers[0].id);
+      }
+    });
+    
+    return assignedPlayerIds;
+  };
+
   // Get all eligible players for a position (not just assigned ones), excluding already assigned players
   const getAllPlayersForPosition = (position: string) => {
     const getPositionMapping = (pos: string) => {
@@ -132,11 +147,13 @@ const EnhancedFootballPitch = ({ players, squadType, formation = '4-3-3', positi
     const allowedPositions = getPositionMapping(position);
     
     // Get all currently assigned player IDs except for the current position
-    const assignedPlayerIds = new Set(
-      positionAssignments
-        .filter(assignment => assignment.position !== position)
-        .map(assignment => assignment.player_id)
-    );
+    const assignedPlayerIds = getAllCurrentlyAssignedPlayers();
+    const currentPositionPlayer = getPlayersForPosition(position)[0];
+    
+    // Remove the current position's player from the assigned set so they can still appear in their own dropdown
+    if (currentPositionPlayer) {
+      assignedPlayerIds.delete(currentPositionPlayer.id);
+    }
     
     // Return all players that can play this position and aren't assigned elsewhere
     return players.filter(player => 
