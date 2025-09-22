@@ -395,13 +395,14 @@ const ScoutManagement = () => {
       <div className="flex justify-between items-center mb-6">
         <div className="flex items-center gap-4">
           <h2 className="text-xl font-semibold">Assignment Status</h2>
-          {/* Show view toggle when there are 10+ players total */}
-          {(kanbanData.shortlisted.length + kanbanData.assigned.length + kanbanData.completed.length) >= 10 && (
-            <ScoutManagementViewToggle 
-              currentView={currentView} 
-              onViewChange={handleViewChange} 
-            />
-          )}
+          {/* Show view toggle - temporarily always show for debugging */}
+          <ScoutManagementViewToggle 
+            currentView={currentView} 
+            onViewChange={handleViewChange} 
+          />
+          <span className="text-sm text-muted-foreground">
+            ({kanbanData.shortlisted.length + kanbanData.assigned.length + kanbanData.completed.length} total)
+          </span>
         </div>
         <Button 
           variant="outline" 
