@@ -38,6 +38,9 @@ export const useShortlists = () => {
 
       if (shortlistsError) throw shortlistsError;
 
+      console.log('=== LOADING SHORTLISTS ===');
+      console.log('Loaded shortlists from DB:', shortlistsData?.length || 0);
+
       if (!shortlistsData || shortlistsData.length === 0) {
         setShortlists([]);
         setLoading(false);
@@ -66,6 +69,12 @@ export const useShortlists = () => {
           };
         })
       );
+
+      console.log('Shortlists with players loaded:', shortlistsWithPlayers.map(s => ({ 
+        name: s.name, 
+        id: s.id, 
+        playerCount: s.playerIds?.length || 0 
+      })));
 
       setShortlists(shortlistsWithPlayers);
     } catch (error) {
@@ -201,7 +210,10 @@ export const useShortlists = () => {
 
   const removePlayerFromShortlist = useCallback(async (shortlistId: string, playerId: string) => {
     try {
-      console.log('Removing player from shortlist:', { shortlistId, playerId });
+      console.log('=== REMOVING PLAYER FROM SHORTLIST ===');
+      console.log('Shortlist ID:', shortlistId);
+      console.log('Player ID:', playerId);
+      console.log('Before removal - shortlists state:', shortlists.map(s => ({ id: s.id, name: s.name, playerCount: s.playerIds?.length || 0 })));
       
       const { error } = await supabase
         .from('shortlist_players')
@@ -211,8 +223,12 @@ export const useShortlists = () => {
 
       if (error) throw error;
 
+      console.log('Database deletion successful, refreshing shortlists...');
+      
       // Refresh shortlists from database to ensure UI updates
       await loadShortlists();
+      
+      console.log('After refresh - shortlists reloaded');
 
       toast({
         title: "Player Removed",

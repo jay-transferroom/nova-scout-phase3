@@ -47,6 +47,11 @@ export const useShortlistsLogic = ({
 
   const currentList = shortlists.find(list => list.id === selectedList);
   
+  console.log('=== SHORTLISTS LOGIC DEBUG ===');
+  console.log('Selected list ID:', selectedList);
+  console.log('Current list found:', currentList ? `${currentList.name} (${currentList.playerIds?.length || 0} players)` : 'None');
+  console.log('All shortlists:', shortlists.map(s => ({ id: s.id, name: s.name, playerCount: s.playerIds?.length || 0 })));
+  
   // Get players based on list type - FIXED LOGIC
   let currentPublicPlayers: any[] = [];
   let currentPrivatePlayers: any[] = [];
@@ -99,6 +104,9 @@ export const useShortlistsLogic = ({
     ...currentPublicPlayers.map(p => ({ ...p, isPrivate: false, profilePath: `/player/${p.id}` })),
     ...currentPrivatePlayers
   ];
+  
+  console.log('Total players for current list:', allCurrentPlayers.length);
+  console.log('Public players:', currentPublicPlayers.length, 'Private players:', currentPrivatePlayers.length);
   
   // Apply search filter
   const searchFilteredPlayers = allCurrentPlayers.filter(player =>
