@@ -1,7 +1,7 @@
 
 import { TableCell, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Edit, Eye, User, FileText, UserCheck, Trash2, Check } from "lucide-react";
+import { Edit, Eye, User, Trash2, Check } from "lucide-react";
 import { ReportWithPlayer } from "@/types/report";
 import { getRatingColor, formatDate } from "@/utils/reportFormatting";
 import { getOverallRating, getRecommendation } from "@/utils/reportDataExtraction";
@@ -53,30 +53,6 @@ const ReportRow = ({ report, onViewReport, onEditReport, onDeleteReport, canEdit
     }
   };
 
-  const handleCreateReport = () => {
-    if (playerData) {
-      if (playerData.isPrivatePlayer) {
-        // For private players
-        navigate('/report-builder', { 
-          state: { selectedPrivatePlayer: playerData } 
-        });
-      } else {
-        // For public players
-        navigate('/report-builder', { 
-          state: { selectedPlayer: playerData } 
-        });
-      }
-    }
-  };
-
-  const handleScoutManagerVerdict = () => {
-    // Navigate to player profile where scout manager verdict can be added
-    handleViewPlayerProfile();
-  };
-
-  // Only show scout manager verdict button for recruitment users
-  const canAddVerdict = profile?.role === 'recruitment';
-  
   // Convert error to boolean for disabled prop
   const isDisabled = playerLoading || !!playerError;
 
@@ -163,28 +139,6 @@ const ReportRow = ({ report, onViewReport, onEditReport, onDeleteReport, canEdit
           >
             <User className="h-4 w-4" />
           </Button>
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={handleCreateReport}
-            title="Create new report for this player"
-            disabled={isDisabled}
-            className="border-grey-300 text-grey-700 hover:bg-grey-50"
-          >
-            <FileText className="h-4 w-4" />
-          </Button>
-          {canAddVerdict && (
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={handleScoutManagerVerdict}
-              title="Add scout manager verdict"
-              disabled={isDisabled}
-              className="border-grey-300 text-grey-700 hover:bg-grey-50"
-            >
-              <UserCheck className="h-4 w-4" />
-            </Button>
-          )}
           {canEdit && onEditReport && (
             <Button 
               variant="outline" 
