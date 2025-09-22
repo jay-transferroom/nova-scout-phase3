@@ -224,7 +224,7 @@ const PlayerStatusActions = ({ playerId, playerName, playerReports }: PlayerStat
 
             {/* Reports Status */}
             <div className="flex items-center gap-2 px-6">
-              <span className={reportCount === 0 ? "text-orange-600 font-medium" : "text-base text-muted-foreground"}>
+              <span className={reportCount > 0 ? "text-green-600 font-medium" : "text-base text-muted-foreground"}>
                 {reportCount} Report{reportCount !== 1 ? 's' : ''}
               </span>
               {averageRating !== null && reportCount > 0 && (
@@ -237,7 +237,9 @@ const PlayerStatusActions = ({ playerId, playerName, playerReports }: PlayerStat
             
             {/* Shortlists Status */}
             <div className="px-6">
-              <span className="text-base text-muted-foreground">{playerShortlists.length} Shortlist{playerShortlists.length !== 1 ? 's' : ''}</span>
+              <span className={playerShortlists.length > 0 ? "text-green-600 font-medium" : "text-base text-muted-foreground"}>
+                {playerShortlists.length} Shortlist{playerShortlists.length !== 1 ? 's' : ''}
+              </span>
             </div>
             
             {/* Tracking Status */}
