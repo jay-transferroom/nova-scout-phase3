@@ -3,15 +3,17 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Player } from "@/types/player";
-import { Eye, Star } from "lucide-react";
+import { Eye, Star, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
 
 interface PlayerSearchTableProps {
   players: Player[];
   onPlayerClick: (player: Player) => void;
   getTeamLogo: (clubName: string) => string | undefined;
+  currentSort: string;
+  onSort: (sortBy: string) => void;
 }
 
-const PlayerSearchTable = ({ players, onPlayerClick, getTeamLogo }: PlayerSearchTableProps) => {
+const PlayerSearchTable = ({ players, onPlayerClick, getTeamLogo, currentSort, onSort }: PlayerSearchTableProps) => {
   const formatRating = (rating: number | undefined) => {
     if (!rating) return '-';
     return rating.toFixed(1);
@@ -34,6 +36,23 @@ const PlayerSearchTable = ({ players, onPlayerClick, getTeamLogo }: PlayerSearch
     }
   };
 
+  const getSortIcon = (column: string) => {
+    if (currentSort !== column) return <ArrowUpDown className="h-3 w-3" />;
+    return <ArrowDown className="h-3 w-3" />; // Since we sort descending by default for rating/potential
+  };
+
+  const SortableHeader = ({ column, children }: { column: string; children: React.ReactNode }) => (
+    <TableHead 
+      className="text-sm cursor-pointer hover:bg-muted/50 select-none"
+      onClick={() => onSort(column)}
+    >
+      <div className="flex items-center gap-1">
+        {children}
+        {getSortIcon(column)}
+      </div>
+    </TableHead>
+  );
+
   return (
     <Table>
       <TableHeader>
@@ -44,8 +63,13 @@ const PlayerSearchTable = ({ players, onPlayerClick, getTeamLogo }: PlayerSearch
           <TableHead className="text-sm">Age</TableHead>
           <TableHead className="text-sm">Nationality</TableHead>
           <TableHead className="text-sm">Contract Status</TableHead>
-          <TableHead className="text-sm">Rating</TableHead>
-          <TableHead className="text-sm">Potential</TableHead>
+          <SortableHeader column="rating">
+            <div className="flex items-center gap-1">
+              <Star className="h-3 w-3 text-yellow-500" />
+              <span>Rating</span>
+            </div>
+          </SortableHeader>
+          <SortableHeader column="potential">Potential</SortableHeader>
           <TableHead className="w-[100px] text-right text-sm">Actions</TableHead>
         </TableRow>
       </TableHeader>

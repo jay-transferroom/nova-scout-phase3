@@ -202,6 +202,8 @@ const SearchResults = () => {
         players={paginatedPlayers}
         onPlayerClick={handlePlayerClick}
         getTeamLogo={getTeamLogo}
+        currentSort={searchFilters.sortBy}
+        onSort={(sortBy) => setSearchFilters({ ...searchFilters, sortBy })}
       />
 
       {totalPages > 1 && (
