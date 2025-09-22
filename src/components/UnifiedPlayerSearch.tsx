@@ -297,6 +297,12 @@ const UnifiedPlayerSearch = ({
           getTeamLogo={getTeamLogo}
           onSelectPlayer={handleSelectPlayer}
           onViewMore={handleViewMore}
+          ageFilter={ageFilter}
+          contractFilter={contractFilter}
+          regionFilter={regionFilter}
+          onAgeFilterChange={setAgeFilter}
+          onContractFilterChange={setContractFilter}
+          onRegionFilterChange={setRegionFilter}
         />
       </>
     );

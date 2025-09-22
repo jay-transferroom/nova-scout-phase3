@@ -35,7 +35,7 @@ const SearchFilters = ({
           <Filter className="h-4 w-4" />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-56">
+      <DropdownMenuContent align="end" className="w-56 z-50 bg-background">
         <DropdownMenuLabel>Filter Players</DropdownMenuLabel>
         <DropdownMenuSeparator />
         

@@ -10,6 +10,7 @@ import {
 import { ArrowRight } from "lucide-react";
 import { Player } from "@/types/player";
 import PlayerCommandItem from "./PlayerCommandItem";
+import SearchFilters from "./SearchFilters";
 
 interface HeaderSearchDialogProps {
   open: boolean;
@@ -24,6 +25,12 @@ interface HeaderSearchDialogProps {
   getTeamLogo: (clubName: string) => string | undefined;
   onSelectPlayer: (player: Player) => void;
   onViewMore: () => void;
+  ageFilter: string;
+  contractFilter: string;
+  regionFilter: string;
+  onAgeFilterChange: (value: string) => void;
+  onContractFilterChange: (value: string) => void;
+  onRegionFilterChange: (value: string) => void;
 }
 
 const HeaderSearchDialog = ({
@@ -38,7 +45,13 @@ const HeaderSearchDialog = ({
   maxDisplayResults,
   getTeamLogo,
   onSelectPlayer,
-  onViewMore
+  onViewMore,
+  ageFilter,
+  contractFilter,
+  regionFilter,
+  onAgeFilterChange,
+  onContractFilterChange,
+  onRegionFilterChange,
 }: HeaderSearchDialogProps) => {
   // HeaderSearchDialog render
 
@@ -49,6 +62,16 @@ const HeaderSearchDialog = ({
         value={searchQuery}
         onValueChange={onSearchQueryChange}
       />
+      <div className="px-2 py-2 flex justify-end border-b">
+        <SearchFilters
+          ageFilter={ageFilter}
+          contractFilter={contractFilter}
+          regionFilter={regionFilter}
+          onAgeFilterChange={onAgeFilterChange}
+          onContractFilterChange={onContractFilterChange}
+          onRegionFilterChange={onRegionFilterChange}
+        />
+      </div>
       <CommandList>
         {searchQuery.trim() ? (
           filteredPlayers.length > 0 ? (
