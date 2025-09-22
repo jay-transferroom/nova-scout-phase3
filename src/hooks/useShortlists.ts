@@ -360,6 +360,19 @@ export const useShortlists = () => {
       return;
     }
 
+    // When adding to scouting assignment, remove any existing assignments for this player
+    try {
+      await supabase
+        .from('scouting_assignments')
+        .delete()
+        .eq('player_id', playerId);
+      
+      console.log(`Removed existing assignments for player ${playerId} when marking for scouting`);
+    } catch (error) {
+      console.error('Error removing existing assignments:', error);
+      // Continue anyway, this is not critical
+    }
+
     await addPlayerToShortlist(scoutingList.id, playerId);
     await loadShortlists(); // Refresh to update UI
   }, [getScoutingAssignmentList, addPlayerToShortlist, loadShortlists, toast]);

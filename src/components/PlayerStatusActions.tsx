@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -108,6 +109,15 @@ const PlayerStatusActions = ({ playerId, playerName, playerReports }: PlayerStat
       if (isAssignedForScouting) {
         await removePlayerFromScoutingAssignment(playerId);
       } else {
+        // When marking for scouting, remove any completed assignments first
+        if (playerAssignment && playerAssignment.status === 'completed') {
+          console.log('Removing completed assignment before marking for scouting');
+          await supabase
+            .from('scouting_assignments')
+            .delete()
+            .eq('player_id', playerId)
+            .eq('status', 'completed');
+        }
         await addPlayerToScoutingAssignment(playerId);
       }
     } catch (error) {

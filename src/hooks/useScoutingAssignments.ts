@@ -186,6 +186,30 @@ export const useCreateAssignment = () => {
       console.log('Creating/updating assignment for player:', assignment.player_id);
       console.log('Assigning to scout:', assignment.assigned_to_scout_id);
       
+      // When creating an assignment, remove the player from scouting assignment list
+      try {
+        // Find the scouting assignment list
+        const { data: scoutingList, error: scoutingListError } = await supabase
+          .from('shortlists')
+          .select('id')
+          .eq('is_scouting_assignment_list', true)
+          .single();
+
+        if (!scoutingListError && scoutingList) {
+          // Remove player from scouting assignment list
+          await supabase
+            .from('shortlist_players')
+            .delete()
+            .eq('shortlist_id', scoutingList.id)
+            .eq('player_id', assignment.player_id);
+          
+          console.log(`Removed player ${assignment.player_id} from scouting assignment list when assigning to scout`);
+        }
+      } catch (error) {
+        console.warn('Could not remove player from scouting assignment list:', error);
+        // Continue with assignment creation
+      }
+      
       // Check if assignments already exist for this player
       const { data: existingAssignments, error: checkError } = await supabase
         .from('scouting_assignments')
