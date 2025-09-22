@@ -65,7 +65,7 @@ const ReportRow = ({ report, onViewReport, onEditReport, onDeleteReport, canEdit
             avatarUrl={playerData?.image}
             size="sm"
           />
-          <span className="font-medium text-grey-900">{playerName}</span>
+          <span className="font-medium text-grey-900 text-sm">{playerName}</span>
         </div>
       </TableCell>
       <TableCell>
@@ -76,7 +76,7 @@ const ReportRow = ({ report, onViewReport, onEditReport, onDeleteReport, canEdit
       <TableCell>
         <div className="flex flex-wrap gap-1">
           {playerPositions.split(", ").map((position, index) => (
-            <Badge key={index} variant="neutral" className="text-xs">
+            <Badge key={index} variant="neutral" className="text-sm">
               {position}
             </Badge>
           ))}
@@ -89,7 +89,7 @@ const ReportRow = ({ report, onViewReport, onEditReport, onDeleteReport, canEdit
       </TableCell>
       <TableCell>
         <div className="flex items-center gap-2">
-          <Badge variant={report.status === "submitted" ? "success" : "neutral"} className="text-xs font-medium">
+          <Badge variant={report.status === "submitted" ? "success" : "neutral"} className="text-sm font-medium">
             {report.status === "draft" ? "Draft" : "Submitted"}
           </Badge>
         </div>
