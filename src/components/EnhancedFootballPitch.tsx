@@ -338,7 +338,7 @@ const EnhancedFootballPitch = ({ players, squadType, formation = '4-3-3', positi
               <div key={player.id} className={`flex items-center gap-2 text-sm p-2 rounded ${isPrimary ? 'bg-blue-50 border border-blue-200' : 'bg-gray-50'}`}>
                 <Avatar className="w-6 h-6">
                   <AvatarImage 
-                    src={player.image || `https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&crop=face&fit=crop`} 
+                    src={player.image} 
                     alt={player.name}
                   />
                   <AvatarFallback className="bg-blue-600 text-white text-xs">
@@ -421,7 +421,7 @@ const EnhancedFootballPitch = ({ players, squadType, formation = '4-3-3', positi
               >
                 <Avatar className="w-full h-full flex items-center justify-center">
                   <AvatarImage 
-                    src={currentPlayer.image || `https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&crop=face&fit=crop`} 
+                    src={currentPlayer.image} 
                     alt={currentPlayer.name}
                     className="rounded-full object-center object-cover"
                   />
@@ -550,7 +550,7 @@ const EnhancedFootballPitch = ({ players, squadType, formation = '4-3-3', positi
                         >
                           <Avatar className="w-8 h-8">
                             <AvatarImage 
-                              src={player.image || `https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&crop=face&fit=crop`} 
+                              src={player.image} 
                               alt={player.name}
                             />
                             <AvatarFallback className="bg-blue-600 text-white text-xs">
