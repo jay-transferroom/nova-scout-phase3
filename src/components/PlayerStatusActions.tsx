@@ -24,14 +24,17 @@ import {
   UserCheck,
   UserMinus,
   PlayCircle,
-  MoreHorizontal
+  MoreHorizontal,
+  MessageSquare
 } from "lucide-react";
 import { usePlayerAssignments } from "@/hooks/usePlayerAssignments";
 import { useShortlists } from "@/hooks/useShortlists";
 import { usePlayerTracking } from "@/hooks/usePlayerTracking";
+import { usePlayerNotes } from "@/hooks/usePlayerNotes";
 import { useAuth } from "@/contexts/AuthContext";
 import { ReportWithPlayer } from "@/types/report";
 import AssignScoutDialog from "@/components/AssignScoutDialog";
+import { PlayerNotes } from "@/components/PlayerNotes";
 import { usePlayerProfile } from "@/hooks/usePlayerProfile";
 
 interface PlayerStatusActionsProps {
@@ -45,6 +48,7 @@ const PlayerStatusActions = ({ playerId, playerName, playerReports }: PlayerStat
   const { profile } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [isAssignDialogOpen, setIsAssignDialogOpen] = useState(false);
+  const [isNotesOpen, setIsNotesOpen] = useState(false);
 
   // Get player data
   const { player } = usePlayerProfile(playerId);
@@ -53,6 +57,7 @@ const PlayerStatusActions = ({ playerId, playerName, playerReports }: PlayerStat
   const { data: assignments = [] } = usePlayerAssignments();
   const { shortlists, getPlayerShortlists, addPlayerToScoutingAssignment, removePlayerFromScoutingAssignment } = useShortlists();
   const { isTracking, trackPlayer, untrackPlayer, isTrackingPlayer, isUntrackingPlayer } = usePlayerTracking(playerId);
+  const { notesCount, refetch: refetchNotes } = usePlayerNotes(playerId);
 
   // Find assignment for this player
   const playerAssignment = assignments.find(assignment => assignment.player_id === playerId);
@@ -108,6 +113,15 @@ const PlayerStatusActions = ({ playerId, playerName, playerReports }: PlayerStat
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleNotesAction = () => {
+    setIsNotesOpen(true);
+  };
+
+  const handleNotesClose = () => {
+    setIsNotesOpen(false);
+    refetchNotes(); // Refresh notes count when closing
   };
 
   // Status indicators
@@ -251,6 +265,12 @@ const PlayerStatusActions = ({ playerId, playerName, playerReports }: PlayerStat
                   Add to Shortlist
                 </DropdownMenuItem>
 
+                {/* Notes action */}
+                <DropdownMenuItem onClick={handleNotesAction}>
+                  <MessageSquare className="w-4 h-4 mr-2" />
+                  {notesCount > 0 ? 'View Notes' : 'Add a Note'}
+                </DropdownMenuItem>
+
                 {/* Scouting assignment toggle */}
                 {canAssignForScouting && (
                   <DropdownMenuItem
@@ -286,6 +306,14 @@ const PlayerStatusActions = ({ playerId, playerName, playerReports }: PlayerStat
           club: player.club || '',
           positions: player.positions || []
         } : null}
+      />
+
+      {/* Player Notes Sheet */}
+      <PlayerNotes
+        playerId={playerId}
+        playerName={playerName}
+        open={isNotesOpen}
+        onOpenChange={handleNotesClose}
       />
     </Card>
   );
