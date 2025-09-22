@@ -202,7 +202,7 @@ const PlayerStatusActions = ({ playerId, playerName, playerReports }: PlayerStat
               {isAssignedForScouting && (
                 <div className="flex items-center gap-1 text-blue-600">
                   <UserCheck className="w-4 h-4" />
-                  <span>On Watchlist</span>
+                  <span>Marked for Scouting</span>
                 </div>
               )}
             </div>
