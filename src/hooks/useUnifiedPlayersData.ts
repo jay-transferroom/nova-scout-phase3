@@ -39,9 +39,5 @@ export const useUnifiedPlayersData = () => {
   const isLoading = publicLoading || privateLoading;
   const error = publicError || privateError;
 
-  console.log('useUnifiedPlayersData - Total players:', data.length);
-  console.log('useUnifiedPlayersData - Private players:', privatePlayers.length);
-  console.log('useUnifiedPlayersData - Public players:', publicPlayers.length);
-
   return { data, isLoading, error };
 };

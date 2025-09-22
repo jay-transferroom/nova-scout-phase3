@@ -56,7 +56,6 @@ const UnifiedPlayerSearch = ({
   // Initialize recent players from localStorage
   useEffect(() => {
     const recentPlayerIds = JSON.parse(localStorage.getItem('recentPlayers') || '[]');
-    console.log('Loading recent player IDs from localStorage:', recentPlayerIds);
     
     if (players.length > 0) {
       const recent = recentPlayerIds
@@ -64,7 +63,6 @@ const UnifiedPlayerSearch = ({
         .filter((player: Player | undefined): player is Player => player !== undefined)
         .slice(0, 3);
       
-      console.log('Found recent players:', recent.map(p => p.name));
       setRecentPlayers(recent);
     }
   }, [players]);
@@ -139,12 +137,6 @@ const UnifiedPlayerSearch = ({
     let results = [...players];
     let isPositionSearch = false;
 
-    console.log('Filtering players for query:', lowercaseQuery);
-    console.log('Total players to filter:', results.length);
-
-    const jamesPlayers = results.filter((p) => p.name.toLowerCase().includes('james'));
-    console.log('James players found:', jamesPlayers.map((p) => p.name));
-
     const positionKeywords = [
       'st', 'cf', 'striker', 'forward',
       'lw', 'rw', 'winger', 'wing',
@@ -206,12 +198,9 @@ const UnifiedPlayerSearch = ({
     if (regionFilter !== 'all') results = results.filter((p) => p.region === regionFilter);
 
     setFilteredPlayers(results);
-  }, [searchQuery, ageFilter, contractFilter, regionFilter, players, remotePlayers]);
+  }, [searchQuery, ageFilter, contractFilter, regionFilter, players.length, remotePlayers.length]); // Use .length to avoid array reference changes
 
-  // Handle player selection
   const handleSelectPlayer = (player: Player) => {
-    console.log('Selecting player:', player.name);
-    
     if (onSelectPlayer) {
       onSelectPlayer(player);
     } else {
