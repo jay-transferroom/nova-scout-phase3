@@ -68,9 +68,12 @@ const PlayerStatusActions = ({ playerId, playerName, playerReports }: PlayerStat
   // Get shortlists this player is in
   const playerShortlists = getPlayerShortlists(playerId);
   
-  // Check if player is in scouting assignment list
+  // Check if player is in scouting assignment list, but NOT if they have an active assignment
   const scoutingList = shortlists.find(list => list.is_scouting_assignment_list);
-  const isAssignedForScouting = scoutingList?.playerIds?.includes(playerId) || false;
+  const isInScoutingList = scoutingList?.playerIds?.includes(playerId) || false;
+  
+  // Player is "assigned for scouting" only if they're in the scouting list AND don't have an active assignment
+  const isAssignedForScouting = isInScoutingList && !playerAssignment;
 
   // Check permissions
   const canAssignScout = profile?.role === 'recruitment' || profile?.role === 'director';
