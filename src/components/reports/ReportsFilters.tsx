@@ -5,7 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Search, Filter, X } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 export interface ReportsFilterCriteria {
   searchTerm: string;
@@ -72,8 +72,8 @@ const ReportsFilters = ({ filters, onFiltersChange, availableVerdicts, available
           </div>
           
           {/* Filter Toggle */}
-          <Collapsible open={isOpen} onOpenChange={setIsOpen}>
-            <CollapsibleTrigger asChild>
+          <Popover open={isOpen} onOpenChange={setIsOpen}>
+            <PopoverTrigger asChild>
               <Button variant="outline" className="relative">
                 <Filter className="h-4 w-4 mr-2" />
                 Filters
@@ -83,9 +83,9 @@ const ReportsFilters = ({ filters, onFiltersChange, availableVerdicts, available
                   </Badge>
                 )}
               </Button>
-            </CollapsibleTrigger>
+            </PopoverTrigger>
             
-            <CollapsibleContent className="mt-4">
+            <PopoverContent className="w-[800px] p-6 z-50 bg-background border shadow-lg" align="end">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {/* Player Name Filter */}
                 <div className="space-y-2">
@@ -219,8 +219,8 @@ const ReportsFilters = ({ filters, onFiltersChange, availableVerdicts, available
                   </Button>
                 </div>
               )}
-            </CollapsibleContent>
-          </Collapsible>
+            </PopoverContent>
+          </Popover>
         </div>
 
         {/* Active Filters Display */}
