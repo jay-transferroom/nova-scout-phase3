@@ -53,7 +53,7 @@ const HeaderSearchDialog = ({
         value={searchQuery}
         onValueChange={onSearchQueryChange}
       />
-      <CommandList>
+      <CommandList className="max-h-[600px]">
         {searchQuery.trim() ? (
           filteredPlayers.length > 0 ? (
             <CommandGroup heading={`Players (${totalResults})`}>
@@ -95,39 +95,43 @@ const HeaderSearchDialog = ({
               </CommandGroup>
             )}
             
-            <div className="p-4 space-y-4">
+            <div className="p-6 space-y-6">
               <div>
-                <h4 className="text-sm font-medium mb-3">Featured</h4>
+                <h4 className="text-sm font-medium mb-4 text-foreground">Featured</h4>
                 <div className="flex flex-wrap gap-2">
                   <Button
-                    variant="outline"
+                    variant="secondary"
                     size="sm"
                     onClick={() => onFilterSearch('all', '')}
-                    className="h-8"
+                    className="h-9 px-4 text-sm bg-muted hover:bg-muted/80 text-muted-foreground border-0"
+                    style={{ fontSize: '14px' }}
                   >
                     All Players
                   </Button>
                   <Button
-                    variant="outline"
+                    variant="secondary"
                     size="sm"
                     onClick={() => onFilterSearch('contractFilter', 'Free Agent')}
-                    className="h-8"
+                    className="h-9 px-4 text-sm bg-muted hover:bg-muted/80 text-muted-foreground border-0"
+                    style={{ fontSize: '14px' }}
                   >
                     Free Agents
                   </Button>
                   <Button
-                    variant="outline"
+                    variant="secondary"
                     size="sm"
                     onClick={() => onFilterSearch('contractFilter', 'Expiring')}
-                    className="h-8"
+                    className="h-9 px-4 text-sm bg-muted hover:bg-muted/80 text-muted-foreground border-0"
+                    style={{ fontSize: '14px' }}
                   >
                     Contract expiring
                   </Button>
                   <Button
-                    variant="outline"
+                    variant="secondary"
                     size="sm"
                     onClick={() => onFilterSearch('contractFilter', 'Under Contract')}
-                    className="h-8"
+                    className="h-9 px-4 text-sm bg-muted hover:bg-muted/80 text-muted-foreground border-0"
+                    style={{ fontSize: '14px' }}
                   >
                     Available
                   </Button>
@@ -135,37 +139,41 @@ const HeaderSearchDialog = ({
               </div>
               
               <div>
-                <h4 className="text-sm font-medium mb-3">Positions</h4>
+                <h4 className="text-sm font-medium mb-4 text-foreground">Positions</h4>
                 <div className="flex flex-wrap gap-2">
                   <Button
-                    variant="outline"
+                    variant="secondary"
                     size="sm"
                     onClick={() => onFilterSearch('positionFilter', 'gk')}
-                    className="h-8"
+                    className="h-9 px-4 text-sm bg-muted hover:bg-muted/80 text-muted-foreground border-0"
+                    style={{ fontSize: '14px' }}
                   >
                     Goalkeeper
                   </Button>
                   <Button
-                    variant="outline"
+                    variant="secondary"
                     size="sm"
                     onClick={() => onFilterSearch('positionFilter', 'def')}
-                    className="h-8"
+                    className="h-9 px-4 text-sm bg-muted hover:bg-muted/80 text-muted-foreground border-0"
+                    style={{ fontSize: '14px' }}
                   >
                     Defender
                   </Button>
                   <Button
-                    variant="outline"
+                    variant="secondary"
                     size="sm"
                     onClick={() => onFilterSearch('positionFilter', 'mid')}
-                    className="h-8"
+                    className="h-9 px-4 text-sm bg-muted hover:bg-muted/80 text-muted-foreground border-0"
+                    style={{ fontSize: '14px' }}
                   >
                     Midfielder
                   </Button>
                   <Button
-                    variant="outline"
+                    variant="secondary"
                     size="sm"
                     onClick={() => onFilterSearch('positionFilter', 'att')}
-                    className="h-8"
+                    className="h-9 px-4 text-sm bg-muted hover:bg-muted/80 text-muted-foreground border-0"
+                    style={{ fontSize: '14px' }}
                   >
                     Forward
                   </Button>
@@ -173,29 +181,32 @@ const HeaderSearchDialog = ({
               </div>
               
               <div>
-                <h4 className="text-sm font-medium mb-3">Age Groups</h4>
+                <h4 className="text-sm font-medium mb-4 text-foreground">Age Groups</h4>
                 <div className="flex flex-wrap gap-2">
                   <Button
-                    variant="outline"
+                    variant="secondary"
                     size="sm"
                     onClick={() => onFilterSearch('ageFilter', 'u21')}
-                    className="h-8"
+                    className="h-9 px-4 text-sm bg-muted hover:bg-muted/80 text-muted-foreground border-0"
+                    style={{ fontSize: '14px' }}
                   >
                     Under 21
                   </Button>
                   <Button
-                    variant="outline"
+                    variant="secondary"
                     size="sm"
                     onClick={() => onFilterSearch('ageFilter', '21-25')}
-                    className="h-8"
+                    className="h-9 px-4 text-sm bg-muted hover:bg-muted/80 text-muted-foreground border-0"
+                    style={{ fontSize: '14px' }}
                   >
                     21-25 years
                   </Button>
                   <Button
-                    variant="outline"
+                    variant="secondary"
                     size="sm"
                     onClick={() => onFilterSearch('ageFilter', '26+')}
-                    className="h-8"
+                    className="h-9 px-4 text-sm bg-muted hover:bg-muted/80 text-muted-foreground border-0"
+                    style={{ fontSize: '14px' }}
                   >
                     26+ years
                   </Button>
