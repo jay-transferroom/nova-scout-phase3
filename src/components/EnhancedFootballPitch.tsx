@@ -460,11 +460,14 @@ const EnhancedFootballPitch = ({ players, squadType, formation = '4-3-3', positi
                 <>
                   {/* Click outside to close dropdown */}
                   <div 
-                    className="fixed inset-0 z-40" 
-                    onClick={() => setShowDropdown(false)}
+                    className="fixed inset-0 z-[100]" 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowDropdown(false);
+                    }}
                   />
-                  <div className="absolute top-20 left-1/2 transform -translate-x-1/2 z-50 animate-fade-in">
-                    <div className="bg-white border border-gray-300 rounded-lg shadow-xl p-2 min-w-48 max-h-60 overflow-y-auto">
+                  <div className="absolute top-20 left-1/2 transform -translate-x-1/2 z-[101] animate-fade-in">
+                    <div className="bg-white border border-gray-300 rounded-lg shadow-2xl p-2 min-w-48 max-h-60 overflow-y-auto">
                       <div className="text-xs font-semibold text-gray-600 mb-2 px-2">
                         Select Player for {position}
                       </div>
@@ -476,7 +479,8 @@ const EnhancedFootballPitch = ({ players, squadType, formation = '4-3-3', positi
                               ? 'bg-blue-50 border border-blue-200' 
                               : 'hover:bg-gray-50'
                           }`}
-                          onClick={() => {
+                          onClick={(e) => {
+                            e.stopPropagation();
                             onPlayerChange(position, player.id);
                             setShowDropdown(false);
                           }}
@@ -574,9 +578,9 @@ const EnhancedFootballPitch = ({ players, squadType, formation = '4-3-3', positi
 
   return (
     <Card className="p-6 bg-green-50">
-      <div className="relative w-full h-[1000px] bg-green-600 rounded-lg overflow-hidden">
+      <div className="relative w-full h-[1000px] bg-green-600 rounded-lg overflow-visible">
         {/* Pitch markings */}
-        <div className="absolute inset-0">
+        <div className="absolute inset-0 overflow-hidden rounded-lg">
           <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-20 h-20 border-2 border-white rounded-full"></div>
           <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-1 h-1 bg-white rounded-full"></div>
           <div className="absolute top-1/2 left-0 right-0 h-0.5 bg-white"></div>
