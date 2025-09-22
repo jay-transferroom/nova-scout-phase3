@@ -31,11 +31,13 @@ const ScoutManagement = () => {
   });
 
   // Using the consolidated data source
-  const { data: assignments = [], refetch: refetchAssignments } = useScoutingAssignments();
+  const { data: assignments = [], refetch: refetchAssignments, isLoading: assignmentsLoading } = useScoutingAssignments();
   const { data: scouts = [] } = useScoutUsers();
-  const { data: allPlayers = [], isLoading } = useUnifiedPlayersData();
-  const { reports = [] } = useReports();
-  const { shortlists } = useShortlists();
+  const { data: allPlayers = [], isLoading: playersLoading } = useUnifiedPlayersData();
+  const { reports = [], loading: reportsLoading } = useReports();
+  const { shortlists, loading: shortlistsLoading } = useShortlists();
+
+  const isLoading = assignmentsLoading || playersLoading || reportsLoading || shortlistsLoading;
 
   // Fetch reviewed assignments
   useEffect(() => {
@@ -353,7 +355,7 @@ const ScoutManagement = () => {
   if (isLoading) {
     return (
       <div className="container mx-auto py-8 max-w-7xl">
-        <div className="text-center">Loading players...</div>
+        <div className="text-center">Loading assignments...</div>
       </div>
     );
   }
