@@ -89,6 +89,9 @@ const ScoutManagement = () => {
     }
   }, [assignments, allPlayers, isLoading]);
 
+  // Move scoutingAssignmentList outside useEffect to avoid dependency issues
+  const scoutingAssignmentList = shortlists.find(shortlist => shortlist.is_scouting_assignment_list);
+
   // Transform assignments and shortlisted players into kanban format
   useEffect(() => {
     if (isLoading) return;
@@ -117,8 +120,6 @@ const ScoutManagement = () => {
 
     console.log('Player reports map size:', playerReportsMap.size);
 
-    // Get all players from the scouting assignment list instead of regular shortlists
-    const scoutingAssignmentList = shortlists.find(shortlist => shortlist.is_scouting_assignment_list);
     const scoutingAssignmentPlayerIds = new Set<string>(
       scoutingAssignmentList?.playerIds || []
     );
@@ -221,7 +222,7 @@ const ScoutManagement = () => {
     });
 
     setKanbanData(newKanbanData);
-  }, [assignments, scouts, allPlayers, reports, selectedScout, searchTerm, isLoading, shortlists]);
+  }, [assignments, scouts, allPlayers, reports, selectedScout, searchTerm, isLoading, scoutingAssignmentList?.playerIds]);
 
   const getUpdatedTime = (status: string) => {
     const times = {

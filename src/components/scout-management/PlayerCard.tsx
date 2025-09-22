@@ -34,9 +34,16 @@ const PlayerCard = ({ player, onAssignScout, onViewReport, onMarkAsReviewed }: P
     <Card className={`mb-3 hover:shadow-md transition-all duration-200 border-2 ${getStatusColor(player.status)}`}>
       <CardContent className="p-4">
         <div className="flex items-start gap-3">
-          <Avatar className="h-10 w-10">
-            <AvatarImage src={player.avatar} alt={player.playerName} />
-            <AvatarFallback>{player.playerName.split(' ').map((n: string) => n[0]).join('')}</AvatarFallback>
+          <Avatar className="h-10 w-10 flex-shrink-0">
+            <AvatarImage 
+              src={player.avatar} 
+              alt={player.playerName}
+              className="object-cover"
+              loading="lazy"
+            />
+            <AvatarFallback className="h-10 w-10 flex items-center justify-center">
+              {player.playerName.split(' ').map((n: string) => n[0]).join('')}
+            </AvatarFallback>
           </Avatar>
           
           <div className="flex-1 min-w-0">
