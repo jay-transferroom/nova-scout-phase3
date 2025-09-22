@@ -9,6 +9,7 @@ import SearchFilters from "./unified-search/SearchFilters";
 import SearchResultsList from "./unified-search/SearchResultsList";
 import PlayerRecentList from "./player-search/PlayerRecentList";
 import HeaderSearchDialog from "./unified-search/HeaderSearchDialog";
+import { usePlayerNameSearch } from "@/hooks/usePlayerNameSearch";
 
 interface UnifiedPlayerSearchProps {
   onSelectPlayer?: (player: Player) => void;
@@ -33,6 +34,8 @@ const UnifiedPlayerSearch = ({
   const [ageFilter, setAgeFilter] = useState<string>("all");
   const [contractFilter, setContractFilter] = useState<string>("all");
   const [regionFilter, setRegionFilter] = useState<string>("all");
+
+  const { data: remotePlayers = [], isLoading: remoteLoading } = usePlayerNameSearch(searchQuery, 50);
 
   const MAX_DISPLAY_RESULTS = 8; // Increased to show more results like in the reference
 
@@ -75,26 +78,20 @@ const UnifiedPlayerSearch = ({
     }
   }, [players]);
 
-  // Filter players based on search query and filters - IMPROVED SEARCH LOGIC
+  // Filter players based on search query and filters - Remote-first for scalability
   useEffect(() => {
-    if (!players.length) {
-      setFilteredPlayers([]);
-      return;
-    }
-    
-    let results = [...players];
     const lowercaseQuery = searchQuery.toLowerCase().trim();
-    let isPositionSearch = false;
-    
-    if (searchQuery.trim()) {
-      console.log('Filtering players for query:', lowercaseQuery);
-      console.log('Total players to filter:', results.length);
-      
-      // Debug: Check if James players exist
-      const jamesPlayers = results.filter(p => p.name.toLowerCase().includes('james'));
-      console.log('James players found:', jamesPlayers.map(p => p.name));
-      
-      // Common position abbreviations and full names
+
+    // For queries with 2+ chars, use server-side search results and merge private players
+    if (lowercaseQuery.length >= 2) {
+      let results: Player[] = [...remotePlayers];
+
+      const privateMatches = players.filter(
+        (p) => (p as any).isPrivatePlayer && p.name.toLowerCase().includes(lowercaseQuery)
+      );
+      results = [...privateMatches, ...results];
+
+      // Detect position-like searches for better sorting
       const positionKeywords = [
         'st', 'cf', 'striker', 'forward',
         'lw', 'rw', 'winger', 'wing',
@@ -105,62 +102,94 @@ const UnifiedPlayerSearch = ({
         'lwb', 'rwb', 'wingback', 'wing-back',
         'gk', 'goalkeeper', 'keeper'
       ];
-      
-      // Check if this is primarily a position search
-      isPositionSearch = positionKeywords.some(keyword => 
-        lowercaseQuery === keyword || lowercaseQuery.includes(keyword)
-      );
-      
-      results = results.filter(player => {
-        const nameMatch = player.name.toLowerCase().includes(lowercaseQuery);
-        const clubMatch = player.club.toLowerCase().includes(lowercaseQuery);
-        const idMatch = player.id.toLowerCase() === lowercaseQuery;
-        const positionMatch = player.positions.some(pos => pos.toLowerCase().includes(lowercaseQuery));
-        const nationalityMatch = player.nationality?.toLowerCase().includes(lowercaseQuery);
-        
-        const matches = nameMatch || clubMatch || idMatch || positionMatch || nationalityMatch;
-        
-        // Debug logging for James searches
-        if (lowercaseQuery.includes('james')) {
-          console.log(`Player ${player.name}: name=${nameMatch}, club=${clubMatch}, id=${idMatch}, position=${positionMatch}, nationality=${nationalityMatch}, matches=${matches}`);
-        }
-        
-        return matches;
-      });
-      
-      console.log('Filtered results count:', results.length);
-      
-      // If this is a position search, sort by rating (highest first)
+      const isPositionSearch = positionKeywords.some((k) => lowercaseQuery === k || lowercaseQuery.includes(k));
       if (isPositionSearch) {
-        results.sort((a, b) => {
-          const ratingA = a.transferroomRating || a.futureRating || 0;
-          const ratingB = b.transferroomRating || b.futureRating || 0;
-          return ratingB - ratingA; // Descending order (highest first)
-        });
-        console.log('Position search detected - sorted by rating');
+        results.sort((a, b) => (b.transferroomRating || b.futureRating || 0) - (a.transferroomRating || a.futureRating || 0));
       }
-    }
-    
-    if (ageFilter !== "all") {
-      if (ageFilter === "u21") {
-        results = results.filter(player => player.age < 21);
-      } else if (ageFilter === "21-25") {
-        results = results.filter(player => player.age >= 21 && player.age <= 25);
-      } else if (ageFilter === "26+") {
-        results = results.filter(player => player.age > 25);
+
+      // Apply filters
+      if (ageFilter !== 'all') {
+        if (ageFilter === 'u21') results = results.filter((p) => p.age < 21);
+        else if (ageFilter === '21-25') results = results.filter((p) => p.age >= 21 && p.age <= 25);
+        else if (ageFilter === '26+') results = results.filter((p) => p.age > 25);
       }
+      if (contractFilter !== 'all') results = results.filter((p) => p.contractStatus === contractFilter);
+      if (regionFilter !== 'all') results = results.filter((p) => p.region === regionFilter);
+
+      setFilteredPlayers(results);
+      return;
     }
-    
-    if (contractFilter !== "all") {
-      results = results.filter(player => player.contractStatus === contractFilter);
+
+    // No/short query: clear results (recent list is shown elsewhere)
+    if (!searchQuery.trim()) {
+      setFilteredPlayers([]);
+      return;
     }
-    
-    if (regionFilter !== "all") {
-      results = results.filter(player => player.region === regionFilter);
+
+    // Fallback local filtering for tiny datasets
+    if (!players.length) {
+      setFilteredPlayers([]);
+      return;
     }
-    
+
+    let results = [...players];
+    let isPositionSearch = false;
+
+    console.log('Filtering players for query:', lowercaseQuery);
+    console.log('Total players to filter:', results.length);
+
+    const jamesPlayers = results.filter((p) => p.name.toLowerCase().includes('james'));
+    console.log('James players found:', jamesPlayers.map((p) => p.name));
+
+    const positionKeywords = [
+      'st', 'cf', 'striker', 'forward',
+      'lw', 'rw', 'winger', 'wing',
+      'lm', 'rm', 'midfielder', 'mid',
+      'cm', 'cam', 'cdm', 'dm',
+      'cb', 'defender', 'defence', 'defense',
+      'lb', 'rb', 'fullback', 'full-back',
+      'lwb', 'rwb', 'wingback', 'wing-back',
+      'gk', 'goalkeeper', 'keeper'
+    ];
+    isPositionSearch = positionKeywords.some((keyword) => lowercaseQuery === keyword || lowercaseQuery.includes(keyword));
+
+    results = results.filter((player) => {
+      const nameMatch = player.name.toLowerCase().includes(lowercaseQuery);
+      const clubMatch = player.club.toLowerCase().includes(lowercaseQuery);
+      const idMatch = player.id.toLowerCase() === lowercaseQuery;
+      const positionMatch = player.positions.some((pos) => pos.toLowerCase().includes(lowercaseQuery));
+      const nationalityMatch = player.nationality?.toLowerCase().includes(lowercaseQuery);
+
+      const matches = nameMatch || clubMatch || idMatch || positionMatch || nationalityMatch;
+
+      if (lowercaseQuery.includes('james')) {
+        console.log(`Player ${player.name}: name=${nameMatch}, club=${clubMatch}, id=${idMatch}, position=${positionMatch}, nationality=${nationalityMatch}, matches=${matches}`);
+      }
+
+      return matches;
+    });
+
+    console.log('Filtered results count:', results.length);
+
+    if (isPositionSearch) {
+      results.sort((a, b) => {
+        const ratingA = a.transferroomRating || a.futureRating || 0;
+        const ratingB = b.transferroomRating || b.futureRating || 0;
+        return ratingB - ratingA;
+      });
+      console.log('Position search detected - sorted by rating');
+    }
+
+    if (ageFilter !== 'all') {
+      if (ageFilter === 'u21') results = results.filter((p) => p.age < 21);
+      else if (ageFilter === '21-25') results = results.filter((p) => p.age >= 21 && p.age <= 25);
+      else if (ageFilter === '26+') results = results.filter((p) => p.age > 25);
+    }
+    if (contractFilter !== 'all') results = results.filter((p) => p.contractStatus === contractFilter);
+    if (regionFilter !== 'all') results = results.filter((p) => p.region === regionFilter);
+
     setFilteredPlayers(results);
-  }, [searchQuery, ageFilter, contractFilter, regionFilter, players]);
+  }, [searchQuery, ageFilter, contractFilter, regionFilter, players, remotePlayers]);
 
   // Handle player selection
   const handleSelectPlayer = (player: Player) => {
