@@ -102,11 +102,35 @@ const HeaderSearchDialog = ({
                   <Button
                     variant="secondary"
                     size="sm"
-                    onClick={() => onFilterSearch('all', '')}
+                    onClick={() => onFilterSearch('contractFilter', 'Under Contract')}
                     className="h-9 px-4 text-sm bg-muted hover:bg-muted/80 text-muted-foreground border-0"
                     style={{ fontSize: '14px' }}
                   >
-                    All Players
+                    Available
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => onFilterSearch('all', 'shortlisted')}
+                    className="h-9 px-4 text-sm bg-muted hover:bg-muted/80 text-muted-foreground border-0"
+                    style={{ fontSize: '14px' }}
+                  >
+                    Shortlisted
+                  </Button>
+                </div>
+              </div>
+              
+              <div>
+                <h4 className="text-sm font-medium mb-4 text-foreground">Contract</h4>
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => onFilterSearch('contractFilter', 'Expiring')}
+                    className="h-9 px-4 text-sm bg-muted hover:bg-muted/80 text-muted-foreground border-0"
+                    style={{ fontSize: '14px' }}
+                  >
+                    Expiring
                   </Button>
                   <Button
                     variant="secondary"
@@ -115,25 +139,58 @@ const HeaderSearchDialog = ({
                     className="h-9 px-4 text-sm bg-muted hover:bg-muted/80 text-muted-foreground border-0"
                     style={{ fontSize: '14px' }}
                   >
-                    Free Agents
+                    Free Agent
+                  </Button>
+                </div>
+              </div>
+              
+              <div>
+                <h4 className="text-sm font-medium mb-4 text-foreground">Nationality</h4>
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => onFilterSearch('regionFilter', 'Europe')}
+                    className="h-9 px-4 text-sm bg-muted hover:bg-muted/80 text-muted-foreground border-0"
+                    style={{ fontSize: '14px' }}
+                  >
+                    Europe
                   </Button>
                   <Button
                     variant="secondary"
                     size="sm"
-                    onClick={() => onFilterSearch('contractFilter', 'Expiring')}
+                    onClick={() => onFilterSearch('regionFilter', 'South America')}
                     className="h-9 px-4 text-sm bg-muted hover:bg-muted/80 text-muted-foreground border-0"
                     style={{ fontSize: '14px' }}
                   >
-                    Contract expiring
+                    South America
                   </Button>
                   <Button
                     variant="secondary"
                     size="sm"
-                    onClick={() => onFilterSearch('contractFilter', 'Under Contract')}
+                    onClick={() => onFilterSearch('regionFilter', 'Africa')}
                     className="h-9 px-4 text-sm bg-muted hover:bg-muted/80 text-muted-foreground border-0"
                     style={{ fontSize: '14px' }}
                   >
-                    Available
+                    Africa
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => onFilterSearch('regionFilter', 'North America')}
+                    className="h-9 px-4 text-sm bg-muted hover:bg-muted/80 text-muted-foreground border-0"
+                    style={{ fontSize: '14px' }}
+                  >
+                    North America
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => onFilterSearch('regionFilter', 'Asia')}
+                    className="h-9 px-4 text-sm bg-muted hover:bg-muted/80 text-muted-foreground border-0"
+                    style={{ fontSize: '14px' }}
+                  >
+                    Asia
                   </Button>
                 </div>
               </div>
