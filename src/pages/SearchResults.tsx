@@ -28,9 +28,12 @@ const SearchResults = () => {
   const initialQuery = searchParams.get('q') || '';
   const [searchQuery, setSearchQuery] = useState(initialQuery);
   const [filteredPlayers, setFilteredPlayers] = useState<Player[]>([]);
+  const [sortBy, setSortBy] = useState<string>("name");
   const [ageFilter, setAgeFilter] = useState<string>("all");
   const [contractFilter, setContractFilter] = useState<string>("all");
-  const [regionFilter, setRegionFilter] = useState<string>("all");
+  const [regionalityFilter, setRegionalityFilter] = useState<string>("all");
+  const [nationalityFilter, setNationalityFilter] = useState<string>("all");
+  const [positionFilter, setPositionFilter] = useState<string>("all");
 
   // Use server-side search for queries with 2+ characters
   const { data: remotePlayers = [], isLoading: remoteLoading } = usePlayerNameSearch(searchQuery, 200);
@@ -91,12 +94,40 @@ const SearchResults = () => {
       results = results.filter(player => player.contractStatus === contractFilter);
     }
     
-    if (regionFilter !== "all") {
-      results = results.filter(player => player.region === regionFilter);
+    if (regionalityFilter !== "all") {
+      results = results.filter(player => player.region === regionalityFilter);
     }
     
+    if (nationalityFilter !== "all") {
+      results = results.filter(player => player.nationality === nationalityFilter);
+    }
+    
+    if (positionFilter !== "all") {
+      results = results.filter(player => player.positions.some(pos => pos.toLowerCase().includes(positionFilter.toLowerCase())));
+    }
+    
+    // Apply sorting
+    results.sort((a, b) => {
+      switch (sortBy) {
+        case "rating":
+          return (b.transferroomRating || 0) - (a.transferroomRating || 0);
+        case "potential":
+          return (b.futureRating || 0) - (a.futureRating || 0);
+        case "contract-expiry":
+          if (!a.contractExpiry && !b.contractExpiry) return 0;
+          if (!a.contractExpiry) return 1;
+          if (!b.contractExpiry) return -1;
+          return new Date(a.contractExpiry).getTime() - new Date(b.contractExpiry).getTime();
+        case "age":
+          return a.age - b.age;
+        case "name":
+        default:
+          return a.name.localeCompare(b.name);
+      }
+    });
+    
     setFilteredPlayers(results);
-  }, [searchQuery, ageFilter, contractFilter, regionFilter, localPlayers, remotePlayers]);
+  }, [searchQuery, sortBy, ageFilter, contractFilter, regionalityFilter, nationalityFilter, positionFilter, localPlayers, remotePlayers]);
 
   // Update URL when search query changes
   useEffect(() => {
@@ -159,7 +190,28 @@ const SearchResults = () => {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56">
-            <DropdownMenuLabel>Filter Players</DropdownMenuLabel>
+            <DropdownMenuLabel>Sort & Filter</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            
+            <DropdownMenuGroup>
+              <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">Sort by</DropdownMenuLabel>
+              <DropdownMenuItem onClick={() => setSortBy("name")} className={sortBy === "name" ? "bg-accent" : ""}>
+                Name
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setSortBy("rating")} className={sortBy === "rating" ? "bg-accent" : ""}>
+                Rating
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setSortBy("potential")} className={sortBy === "potential" ? "bg-accent" : ""}>
+                Potential
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setSortBy("age")} className={sortBy === "age" ? "bg-accent" : ""}>
+                Age
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setSortBy("contract-expiry")} className={sortBy === "contract-expiry" ? "bg-accent" : ""}>
+                Contract expiry
+              </DropdownMenuItem>
+            </DropdownMenuGroup>
+            
             <DropdownMenuSeparator />
             
             <DropdownMenuGroup>
@@ -175,6 +227,27 @@ const SearchResults = () => {
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => setAgeFilter("26+")} className={ageFilter === "26+" ? "bg-accent" : ""}>
                 26+ years
+              </DropdownMenuItem>
+            </DropdownMenuGroup>
+            
+            <DropdownMenuSeparator />
+            
+            <DropdownMenuGroup>
+              <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">Position</DropdownMenuLabel>
+              <DropdownMenuItem onClick={() => setPositionFilter("all")} className={positionFilter === "all" ? "bg-accent" : ""}>
+                All positions
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setPositionFilter("gk")} className={positionFilter === "gk" ? "bg-accent" : ""}>
+                Goalkeeper
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setPositionFilter("def")} className={positionFilter === "def" ? "bg-accent" : ""}>
+                Defender
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setPositionFilter("mid")} className={positionFilter === "mid" ? "bg-accent" : ""}>
+                Midfielder
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setPositionFilter("att")} className={positionFilter === "att" ? "bg-accent" : ""}>
+                Forward
               </DropdownMenuItem>
             </DropdownMenuGroup>
             
@@ -197,33 +270,55 @@ const SearchResults = () => {
               <DropdownMenuItem onClick={() => setContractFilter("Youth Contract")} className={contractFilter === "Youth Contract" ? "bg-accent" : ""}>
                 Youth Contract
               </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setContractFilter("Private Player")} className={contractFilter === "Private Player" ? "bg-accent" : ""}>
+                Private Player
+              </DropdownMenuItem>
             </DropdownMenuGroup>
             
             <DropdownMenuSeparator />
             
             <DropdownMenuGroup>
-              <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">Region</DropdownMenuLabel>
-              <DropdownMenuItem onClick={() => setRegionFilter("all")} className={regionFilter === "all" ? "bg-accent" : ""}>
+              <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">Regionality</DropdownMenuLabel>
+              <DropdownMenuItem onClick={() => setRegionalityFilter("all")} className={regionalityFilter === "all" ? "bg-accent" : ""}>
                 All regions
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setRegionFilter("Europe")} className={regionFilter === "Europe" ? "bg-accent" : ""}>
+              <DropdownMenuItem onClick={() => setRegionalityFilter("Europe")} className={regionalityFilter === "Europe" ? "bg-accent" : ""}>
                 Europe
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setRegionFilter("South America")} className={regionFilter === "South America" ? "bg-accent" : ""}>
+              <DropdownMenuItem onClick={() => setRegionalityFilter("South America")} className={regionalityFilter === "South America" ? "bg-accent" : ""}>
                 South America
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setRegionFilter("North America")} className={regionFilter === "North America" ? "bg-accent" : ""}>
+              <DropdownMenuItem onClick={() => setRegionalityFilter("North America")} className={regionalityFilter === "North America" ? "bg-accent" : ""}>
                 North America
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setRegionFilter("Africa")} className={regionFilter === "Africa" ? "bg-accent" : ""}>
+              <DropdownMenuItem onClick={() => setRegionalityFilter("Africa")} className={regionalityFilter === "Africa" ? "bg-accent" : ""}>
                 Africa
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setRegionFilter("Asia")} className={regionFilter === "Asia" ? "bg-accent" : ""}>
+              <DropdownMenuItem onClick={() => setRegionalityFilter("Asia")} className={regionalityFilter === "Asia" ? "bg-accent" : ""}>
                 Asia
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setRegionFilter("Oceania")} className={regionFilter === "Oceania" ? "bg-accent" : ""}>
+              <DropdownMenuItem onClick={() => setRegionalityFilter("Oceania")} className={regionalityFilter === "Oceania" ? "bg-accent" : ""}>
                 Oceania
               </DropdownMenuItem>
+            </DropdownMenuGroup>
+            
+            <DropdownMenuSeparator />
+            
+            <DropdownMenuGroup>
+              <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">Nationality</DropdownMenuLabel>
+              <DropdownMenuItem onClick={() => setNationalityFilter("all")} className={nationalityFilter === "all" ? "bg-accent" : ""}>
+                All nationalities
+              </DropdownMenuItem>
+              {/* Get unique nationalities from filtered results */}
+              {Array.from(new Set(localPlayers.concat(remotePlayers).map(p => p.nationality))).slice(0, 10).map(nationality => (
+                <DropdownMenuItem 
+                  key={nationality} 
+                  onClick={() => setNationalityFilter(nationality)} 
+                  className={nationalityFilter === nationality ? "bg-accent" : ""}
+                >
+                  {nationality}
+                </DropdownMenuItem>
+              ))}
             </DropdownMenuGroup>
           </DropdownMenuContent>
         </DropdownMenu>
