@@ -120,7 +120,24 @@ const SearchResults = () => {
     }
     
     if (searchFilters.positionFilter !== "all") {
-      results = results.filter(player => player.positions.some(pos => pos.toLowerCase().includes(searchFilters.positionFilter.toLowerCase())));
+      if (searchFilters.positionFilter === "gk") {
+        results = results.filter(player => player.positions.some(pos => pos.toLowerCase() === "gk"));
+      } else if (searchFilters.positionFilter === "def") {
+        results = results.filter(player => player.positions.some(pos => 
+          ["cb", "lb", "rb", "lwb", "rwb"].includes(pos.toLowerCase())
+        ));
+      } else if (searchFilters.positionFilter === "mid") {
+        results = results.filter(player => player.positions.some(pos => 
+          ["cdm", "cm", "cam", "lm", "rm"].includes(pos.toLowerCase())
+        ));
+      } else if (searchFilters.positionFilter === "att") {
+        results = results.filter(player => player.positions.some(pos => 
+          ["lw", "rw", "st", "cf"].includes(pos.toLowerCase())
+        ));
+      } else {
+        // Fallback to original logic for other filters
+        results = results.filter(player => player.positions.some(pos => pos.toLowerCase().includes(searchFilters.positionFilter.toLowerCase())));
+      }
     }
     
     // Apply sorting (High to Low for rating/potential by default)
