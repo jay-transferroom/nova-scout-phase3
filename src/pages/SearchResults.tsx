@@ -31,7 +31,7 @@ const SearchResults = () => {
   const [sortBy, setSortBy] = useState<string>("name");
   const [ageFilter, setAgeFilter] = useState<string>("all");
   const [contractFilter, setContractFilter] = useState<string>("all");
-  const [regionalityFilter, setRegionalityFilter] = useState<string>("all");
+  const [regionFilter, setRegionFilter] = useState<string>("all");
   const [nationalityFilter, setNationalityFilter] = useState<string>("all");
   const [positionFilter, setPositionFilter] = useState<string>("all");
 
@@ -54,6 +54,15 @@ const SearchResults = () => {
 
   // Filter players based on search query and filters - Updated for server-side search
   useEffect(() => {
+    console.log('SearchResults useEffect - filters:', { 
+      sortBy, 
+      ageFilter, 
+      contractFilter, 
+      regionFilter, 
+      nationalityFilter, 
+      positionFilter 
+    });
+    
     let results: Player[] = [];
     
     // For queries with 2+ chars, use server-side search results and merge private players
@@ -94,8 +103,8 @@ const SearchResults = () => {
       results = results.filter(player => player.contractStatus === contractFilter);
     }
     
-    if (regionalityFilter !== "all") {
-      results = results.filter(player => player.region === regionalityFilter);
+    if (regionFilter !== "all") {
+      results = results.filter(player => player.region === regionFilter);
     }
     
     if (nationalityFilter !== "all") {
@@ -127,7 +136,7 @@ const SearchResults = () => {
     });
     
     setFilteredPlayers(results);
-  }, [searchQuery, sortBy, ageFilter, contractFilter, regionalityFilter, nationalityFilter, positionFilter, localPlayers, remotePlayers]);
+  }, [searchQuery, sortBy, ageFilter, contractFilter, regionFilter, nationalityFilter, positionFilter, localPlayers, remotePlayers]);
 
   // Update URL when search query changes
   useEffect(() => {
@@ -278,26 +287,26 @@ const SearchResults = () => {
             <DropdownMenuSeparator />
             
             <DropdownMenuGroup>
-              <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">Regionality</DropdownMenuLabel>
-              <DropdownMenuItem onClick={() => setRegionalityFilter("all")} className={regionalityFilter === "all" ? "bg-accent" : ""}>
+              <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">Region</DropdownMenuLabel>
+              <DropdownMenuItem onClick={() => setRegionFilter("all")} className={regionFilter === "all" ? "bg-accent" : ""}>
                 All regions
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setRegionalityFilter("Europe")} className={regionalityFilter === "Europe" ? "bg-accent" : ""}>
+              <DropdownMenuItem onClick={() => setRegionFilter("Europe")} className={regionFilter === "Europe" ? "bg-accent" : ""}>
                 Europe
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setRegionalityFilter("South America")} className={regionalityFilter === "South America" ? "bg-accent" : ""}>
+              <DropdownMenuItem onClick={() => setRegionFilter("South America")} className={regionFilter === "South America" ? "bg-accent" : ""}>
                 South America
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setRegionalityFilter("North America")} className={regionalityFilter === "North America" ? "bg-accent" : ""}>
+              <DropdownMenuItem onClick={() => setRegionFilter("North America")} className={regionFilter === "North America" ? "bg-accent" : ""}>
                 North America
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setRegionalityFilter("Africa")} className={regionalityFilter === "Africa" ? "bg-accent" : ""}>
+              <DropdownMenuItem onClick={() => setRegionFilter("Africa")} className={regionFilter === "Africa" ? "bg-accent" : ""}>
                 Africa
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setRegionalityFilter("Asia")} className={regionalityFilter === "Asia" ? "bg-accent" : ""}>
+              <DropdownMenuItem onClick={() => setRegionFilter("Asia")} className={regionFilter === "Asia" ? "bg-accent" : ""}>
                 Asia
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setRegionalityFilter("Oceania")} className={regionalityFilter === "Oceania" ? "bg-accent" : ""}>
+              <DropdownMenuItem onClick={() => setRegionFilter("Oceania")} className={regionFilter === "Oceania" ? "bg-accent" : ""}>
                 Oceania
               </DropdownMenuItem>
             </DropdownMenuGroup>
