@@ -144,7 +144,7 @@ const PlayerStatusActions = ({ playerId, playerName, playerReports }: PlayerStat
       case 'assigned':
         return {
           icon: <Clock className="w-4 h-4 text-orange-500" />,
-          text: `Assigned to ${playerAssignment.assigned_to_scout?.first_name || 'Scout'}`,
+          text: `Assigned to ${playerAssignment.assigned_to_scout?.first_name || ''} ${playerAssignment.assigned_to_scout?.last_name || ''}`.trim() || 'Scout',
           variant: "secondary" as const,
           priority
         };
