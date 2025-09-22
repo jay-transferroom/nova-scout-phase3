@@ -148,14 +148,22 @@ const SearchResults = () => {
     setCurrentPage(1); // Reset to first page when filters change
   }, [searchFilters, localPlayers, remotePlayers]);
 
-  // Update URL when search query changes
+  // Initialize filters from URL parameters
   useEffect(() => {
-    const params = new URLSearchParams();
-    if (searchFilters.searchTerm.trim()) {
-      params.set('q', searchFilters.searchTerm.trim());
+    const contractParam = searchParams.get('contract');
+    const positionParam = searchParams.get('position');
+    const ageParam = searchParams.get('age');
+    
+    if (contractParam) {
+      setSearchFilters(prev => ({ ...prev, contractFilter: contractParam }));
     }
-    setSearchParams(params, { replace: true });
-  }, [setSearchParams, searchFilters.searchTerm]);
+    if (positionParam) {
+      setSearchFilters(prev => ({ ...prev, positionFilter: positionParam }));
+    }
+    if (ageParam) {
+      setSearchFilters(prev => ({ ...prev, ageFilter: ageParam }));
+    }
+  }, [searchParams]);
 
   const handlePlayerClick = (player: Player) => {
     if (player.isPrivatePlayer) {

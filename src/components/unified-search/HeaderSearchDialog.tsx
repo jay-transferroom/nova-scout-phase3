@@ -10,7 +10,8 @@ import {
 import { ArrowRight } from "lucide-react";
 import { Player } from "@/types/player";
 import PlayerCommandItem from "./PlayerCommandItem";
-import SearchFilters from "./SearchFilters";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 
 interface HeaderSearchDialogProps {
   open: boolean;
@@ -25,12 +26,7 @@ interface HeaderSearchDialogProps {
   getTeamLogo: (clubName: string) => string | undefined;
   onSelectPlayer: (player: Player) => void;
   onViewMore: () => void;
-  ageFilter: string;
-  contractFilter: string;
-  regionFilter: string;
-  onAgeFilterChange: (value: string) => void;
-  onContractFilterChange: (value: string) => void;
-  onRegionFilterChange: (value: string) => void;
+  onFilterSearch: (filterType: string, filterValue: string) => void;
 }
 
 const HeaderSearchDialog = ({
@@ -46,12 +42,7 @@ const HeaderSearchDialog = ({
   getTeamLogo,
   onSelectPlayer,
   onViewMore,
-  ageFilter,
-  contractFilter,
-  regionFilter,
-  onAgeFilterChange,
-  onContractFilterChange,
-  onRegionFilterChange,
+  onFilterSearch,
 }: HeaderSearchDialogProps) => {
   // HeaderSearchDialog render
 
@@ -62,16 +53,6 @@ const HeaderSearchDialog = ({
         value={searchQuery}
         onValueChange={onSearchQueryChange}
       />
-      <div className="px-2 py-2 flex justify-end border-b">
-        <SearchFilters
-          ageFilter={ageFilter}
-          contractFilter={contractFilter}
-          regionFilter={regionFilter}
-          onAgeFilterChange={onAgeFilterChange}
-          onContractFilterChange={onContractFilterChange}
-          onRegionFilterChange={onRegionFilterChange}
-        />
-      </div>
       <CommandList>
         {searchQuery.trim() ? (
           filteredPlayers.length > 0 ? (
@@ -100,18 +81,128 @@ const HeaderSearchDialog = ({
             <CommandEmpty>No players found for "{searchQuery}"</CommandEmpty>
           )
         ) : (
-          recentPlayers.length > 0 && (
-            <CommandGroup heading="Recently Viewed">
-              {recentPlayers.map((player) => (
-                <PlayerCommandItem
-                  key={player.id}
-                  player={player}
-                  teamLogo={getTeamLogo(player.club)}
-                  onSelect={() => onSelectPlayer(player)}
-                />
-              ))}
-            </CommandGroup>
-          )
+          <>
+            {recentPlayers.length > 0 && (
+              <CommandGroup heading="Recently Viewed">
+                {recentPlayers.map((player) => (
+                  <PlayerCommandItem
+                    key={player.id}
+                    player={player}
+                    teamLogo={getTeamLogo(player.club)}
+                    onSelect={() => onSelectPlayer(player)}
+                  />
+                ))}
+              </CommandGroup>
+            )}
+            
+            <div className="p-4 space-y-4">
+              <div>
+                <h4 className="text-sm font-medium mb-3">Featured</h4>
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => onFilterSearch('all', '')}
+                    className="h-8"
+                  >
+                    All Players
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => onFilterSearch('contractFilter', 'Free Agent')}
+                    className="h-8"
+                  >
+                    Free Agents
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => onFilterSearch('contractFilter', 'Expiring')}
+                    className="h-8"
+                  >
+                    Contract expiring
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => onFilterSearch('contractFilter', 'Under Contract')}
+                    className="h-8"
+                  >
+                    Available
+                  </Button>
+                </div>
+              </div>
+              
+              <div>
+                <h4 className="text-sm font-medium mb-3">Positions</h4>
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => onFilterSearch('positionFilter', 'gk')}
+                    className="h-8"
+                  >
+                    Goalkeeper
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => onFilterSearch('positionFilter', 'def')}
+                    className="h-8"
+                  >
+                    Defender
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => onFilterSearch('positionFilter', 'mid')}
+                    className="h-8"
+                  >
+                    Midfielder
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => onFilterSearch('positionFilter', 'att')}
+                    className="h-8"
+                  >
+                    Forward
+                  </Button>
+                </div>
+              </div>
+              
+              <div>
+                <h4 className="text-sm font-medium mb-3">Age Groups</h4>
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => onFilterSearch('ageFilter', 'u21')}
+                    className="h-8"
+                  >
+                    Under 21
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => onFilterSearch('ageFilter', '21-25')}
+                    className="h-8"
+                  >
+                    21-25 years
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => onFilterSearch('ageFilter', '26+')}
+                    className="h-8"
+                  >
+                    26+ years
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </>
         )}
       </CommandList>
     </CommandDialog>

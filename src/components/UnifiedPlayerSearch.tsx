@@ -240,6 +240,25 @@ const UnifiedPlayerSearch = ({
     }
   };
 
+  // Handle filter searches that navigate to search results page
+  const handleFilterSearch = (filterType: string, filterValue: string) => {
+    const params = new URLSearchParams();
+    
+    if (filterType === 'all') {
+      // All players - no filters
+    } else if (filterType === 'contractFilter') {
+      params.set('contract', filterValue);
+    } else if (filterType === 'positionFilter') {
+      params.set('position', filterValue);
+    } else if (filterType === 'ageFilter') {
+      params.set('age', filterValue);
+    }
+    
+    navigate(`/search?${params.toString()}`);
+    setOpen(false);
+    setSearchQuery("");
+  };
+
   const handleViewMore = () => {
     const params = new URLSearchParams();
     if (searchQuery.trim()) {
@@ -297,12 +316,7 @@ const UnifiedPlayerSearch = ({
           getTeamLogo={getTeamLogo}
           onSelectPlayer={handleSelectPlayer}
           onViewMore={handleViewMore}
-          ageFilter={ageFilter}
-          contractFilter={contractFilter}
-          regionFilter={regionFilter}
-          onAgeFilterChange={setAgeFilter}
-          onContractFilterChange={setContractFilter}
-          onRegionFilterChange={setRegionFilter}
+          onFilterSearch={handleFilterSearch}
         />
       </>
     );
