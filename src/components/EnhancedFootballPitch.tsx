@@ -84,7 +84,7 @@ const EnhancedFootballPitch = ({ players, squadType, formation = '4-3-3', positi
   // Track assigned players to prevent duplicates across positions
   const assignedPlayers = new Set<string>();
 
-  // Get all eligible players for a position (not just assigned ones)
+  // Get all eligible players for a position (not just assigned ones), excluding already assigned players
   const getAllPlayersForPosition = (position: string) => {
     const getPositionMapping = (pos: string) => {
       switch (pos) {
@@ -131,9 +131,17 @@ const EnhancedFootballPitch = ({ players, squadType, formation = '4-3-3', positi
 
     const allowedPositions = getPositionMapping(position);
     
-    // Return all players that can play this position
+    // Get all currently assigned player IDs except for the current position
+    const assignedPlayerIds = new Set(
+      positionAssignments
+        .filter(assignment => assignment.position !== position)
+        .map(assignment => assignment.player_id)
+    );
+    
+    // Return all players that can play this position and aren't assigned elsewhere
     return players.filter(player => 
-      player.positions.some(pos => allowedPositions.includes(pos))
+      player.positions.some(pos => allowedPositions.includes(pos)) &&
+      !assignedPlayerIds.has(player.id)
     ).sort((a, b) => {
       const ratingA = a.transferroomRating || a.xtvScore || 0;
       const ratingB = b.transferroomRating || b.xtvScore || 0;
