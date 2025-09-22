@@ -65,6 +65,7 @@ const HeaderSearch = () => {
     
     const lowercaseQuery = searchQuery.toLowerCase().trim();
     console.log('HeaderSearch - Filtering players for query:', lowercaseQuery);
+    console.log('HeaderSearch - Total players to search:', players.length);
     
     const results = players.filter(player => {
       const nameMatch = player.name.toLowerCase().includes(lowercaseQuery);
@@ -72,6 +73,11 @@ const HeaderSearch = () => {
       const idMatch = player.id.toLowerCase() === lowercaseQuery;
       const positionMatch = player.positions.some(pos => pos.toLowerCase().includes(lowercaseQuery));
       const nationalityMatch = player.nationality?.toLowerCase().includes(lowercaseQuery);
+      
+      // Debug logging for James searches
+      if (lowercaseQuery.includes('james')) {
+        console.log(`HeaderSearch - Player ${player.name}: name=${nameMatch}, club=${clubMatch}, matches=${nameMatch || clubMatch || idMatch || positionMatch || nationalityMatch}`);
+      }
       
       return nameMatch || clubMatch || idMatch || positionMatch || nationalityMatch;
     });

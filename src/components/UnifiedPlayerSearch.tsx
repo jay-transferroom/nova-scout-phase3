@@ -88,6 +88,11 @@ const UnifiedPlayerSearch = ({
     
     if (searchQuery.trim()) {
       console.log('Filtering players for query:', lowercaseQuery);
+      console.log('Total players to filter:', results.length);
+      
+      // Debug: Check if James players exist
+      const jamesPlayers = results.filter(p => p.name.toLowerCase().includes('james'));
+      console.log('James players found:', jamesPlayers.map(p => p.name));
       
       // Common position abbreviations and full names
       const positionKeywords = [
@@ -115,8 +120,9 @@ const UnifiedPlayerSearch = ({
         
         const matches = nameMatch || clubMatch || idMatch || positionMatch || nationalityMatch;
         
-        if (lowercaseQuery.includes('james') || lowercaseQuery.includes('maddison')) {
-          console.log(`Player ${player.name}: name=${nameMatch}, club=${clubMatch}, matches=${matches}`);
+        // Debug logging for James searches
+        if (lowercaseQuery.includes('james')) {
+          console.log(`Player ${player.name}: name=${nameMatch}, club=${clubMatch}, id=${idMatch}, position=${positionMatch}, nationality=${nationalityMatch}, matches=${matches}`);
         }
         
         return matches;
