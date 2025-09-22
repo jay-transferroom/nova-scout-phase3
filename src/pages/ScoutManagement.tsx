@@ -123,9 +123,11 @@ const ScoutManagement = () => {
       completed: [] as any[]
     };
 
-    // Get scouting assignment player IDs
+    // Get scouting assignment player IDs - exclude players who have active assignments
     const scoutingAssignmentPlayerIds = new Set<string>(
-      scoutingAssignmentList?.playerIds || []
+      (scoutingAssignmentList?.playerIds || [])
+        .filter((id): id is string => typeof id === 'string')
+        .filter(id => !assignments.some(a => a.player_id === id))
     );
 
     console.log('Scouting assignment list:', scoutingAssignmentList);

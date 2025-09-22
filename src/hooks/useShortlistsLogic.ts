@@ -177,14 +177,29 @@ export const useShortlistsLogic = ({
   const getAssignmentBadge = (playerId: string) => {
     const assignment = getPlayerAssignment(playerId);
     
-    // Use unified status determination
+    // Clean up: if player has active assignment but is still in scouting shortlist, remove them
+    const scoutingShortlist = shortlists.find(list => list.is_scouting_assignment_list);
+    const isInScoutingList = scoutingShortlist?.playerIds?.includes(playerId);
+    
+    if (assignment && isInScoutingList) {
+      // Player has assignment but is still in scouting list - this is inconsistent
+      // The player should have been removed when assigned, but let's handle this case
+      console.log(`Player ${playerId} has assignment but is still in scouting list - data cleanup needed`);
+    }
+    
+    // Use unified status determination - but override scoutingAssignmentPlayerIds
+    // to exclude players who have active assignments (they shouldn't be "marked for scouting")
+    const cleanScoutingAssignmentPlayerIds = new Set<string>(
+      (scoutingShortlist?.playerIds || [])
+        .filter((id): id is string => typeof id === 'string')
+        .filter(id => !assignments.some(a => a.player_id === id))
+    );
+    
     const statusInfo = determinePlayerStatus({
       playerId,
       assignments,
       reports,
-      scoutingAssignmentPlayerIds: new Set(
-        shortlists.find(list => list.is_scouting_assignment_list)?.playerIds || []
-      )
+      scoutingAssignmentPlayerIds: cleanScoutingAssignmentPlayerIds
     });
     
     return getStatusBadgeProps(statusInfo);
