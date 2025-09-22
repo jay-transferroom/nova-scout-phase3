@@ -258,7 +258,7 @@ const ScoutManagement = () => {
   };
 
   const columns = [
-    { id: 'shortlisted', title: 'Assigned for Scouting', color: 'bg-orange-500', count: kanbanData.shortlisted.length },
+    { id: 'shortlisted', title: 'Marked for Scouting', color: 'bg-orange-500', count: kanbanData.shortlisted.length },
     { id: 'assigned', title: 'Assigned', color: 'bg-orange-500', count: kanbanData.assigned.length },
     { id: 'completed', title: 'Completed', color: 'bg-green-500', count: kanbanData.completed.length },
   ];

@@ -321,7 +321,7 @@ export const useShortlists = () => {
             .from('shortlists')
             .insert({
               user_id: user.id,
-              name: 'Assigned for Scouting',
+              name: 'Marked for Scouting',
               description: 'Players assigned by scout managers for scouting assessment',
               color: 'bg-orange-500',
               is_scouting_assignment_list: true
