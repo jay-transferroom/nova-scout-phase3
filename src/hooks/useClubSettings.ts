@@ -42,7 +42,9 @@ export const useUpdateClubSettings = () => {
       if (error) throw error;
     },
     onSuccess: (_, variables) => {
+      // Invalidate multiple queries to ensure the UI updates
       queryClient.invalidateQueries({ queryKey: ['club-settings', variables.club_name] });
+      queryClient.invalidateQueries({ queryKey: ['club-settings'] });
     },
   });
 };

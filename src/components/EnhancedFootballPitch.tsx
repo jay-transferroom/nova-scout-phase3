@@ -9,25 +9,71 @@ import { MoreHorizontal, Plus, AlertTriangle, Clock } from "lucide-react";
 interface EnhancedFootballPitchProps {
   players: Player[];
   squadType: string;
+  formation?: string;
   onPositionClick?: (position: string) => void;
   selectedPosition?: string | null;
 }
 
-const FORMATION_POSITIONS = {
-  GK: { x: 50, y: 8, label: 'Goalkeeper' },
-  LB: { x: 85, y: 22, label: 'Full Back' },
-  CB1: { x: 35, y: 22, label: 'Centre Back' },
-  CB2: { x: 65, y: 22, label: 'Centre Back' },
-  RB: { x: 15, y: 22, label: 'Full Back' },
-  CDM: { x: 50, y: 40, label: 'Central Midfield' },
-  CM1: { x: 30, y: 52, label: 'Central Midfield' },
-  CM2: { x: 70, y: 52, label: 'Central Midfield' },
-  LW: { x: 80, y: 72, label: 'Winger' },
-  ST: { x: 50, y: 82, label: 'Striker' },
-  RW: { x: 20, y: 72, label: 'Winger' },
+// Formation configurations
+const FORMATION_CONFIGS: Record<string, Record<string, { x: number; y: number; label: string }>> = {
+  '4-3-3': {
+    GK: { x: 50, y: 8, label: 'Goalkeeper' },
+    LB: { x: 85, y: 22, label: 'Full Back' },
+    CB1: { x: 35, y: 22, label: 'Centre Back' },
+    CB2: { x: 65, y: 22, label: 'Centre Back' },
+    RB: { x: 15, y: 22, label: 'Full Back' },
+    CDM: { x: 50, y: 40, label: 'Central Midfield' },
+    CM1: { x: 30, y: 52, label: 'Central Midfield' },
+    CM2: { x: 70, y: 52, label: 'Central Midfield' },
+    LW: { x: 80, y: 72, label: 'Winger' },
+    ST: { x: 50, y: 82, label: 'Striker' },
+    RW: { x: 20, y: 72, label: 'Winger' },
+  },
+  '4-2-3-1': {
+    GK: { x: 50, y: 8, label: 'Goalkeeper' },
+    LB: { x: 85, y: 22, label: 'Full Back' },
+    CB1: { x: 35, y: 22, label: 'Centre Back' },
+    CB2: { x: 65, y: 22, label: 'Centre Back' },
+    RB: { x: 15, y: 22, label: 'Full Back' },
+    CDM1: { x: 35, y: 40, label: 'Defensive Midfield' },
+    CDM2: { x: 65, y: 40, label: 'Defensive Midfield' },
+    LW: { x: 80, y: 60, label: 'Winger' },
+    CAM: { x: 50, y: 60, label: 'Attacking Midfield' },
+    RW: { x: 20, y: 60, label: 'Winger' },
+    ST: { x: 50, y: 82, label: 'Striker' },
+  },
+  '3-5-2': {
+    GK: { x: 50, y: 8, label: 'Goalkeeper' },
+    CB1: { x: 25, y: 22, label: 'Centre Back' },
+    CB2: { x: 50, y: 22, label: 'Centre Back' },
+    CB3: { x: 75, y: 22, label: 'Centre Back' },
+    LWB: { x: 85, y: 45, label: 'Wing Back' },
+    CM1: { x: 35, y: 45, label: 'Central Midfield' },
+    CM2: { x: 50, y: 45, label: 'Central Midfield' },
+    CM3: { x: 65, y: 45, label: 'Central Midfield' },
+    RWB: { x: 15, y: 45, label: 'Wing Back' },
+    ST1: { x: 40, y: 82, label: 'Striker' },
+    ST2: { x: 60, y: 82, label: 'Striker' },
+  },
+  '4-4-2': {
+    GK: { x: 50, y: 8, label: 'Goalkeeper' },
+    LB: { x: 85, y: 22, label: 'Full Back' },
+    CB1: { x: 35, y: 22, label: 'Centre Back' },
+    CB2: { x: 65, y: 22, label: 'Centre Back' },
+    RB: { x: 15, y: 22, label: 'Full Back' },
+    LM: { x: 85, y: 52, label: 'Left Midfield' },
+    CM1: { x: 35, y: 52, label: 'Central Midfield' },
+    CM2: { x: 65, y: 52, label: 'Central Midfield' },
+    RM: { x: 15, y: 52, label: 'Right Midfield' },
+    ST1: { x: 40, y: 82, label: 'Striker' },
+    ST2: { x: 60, y: 82, label: 'Striker' },
+  },
 };
 
-const EnhancedFootballPitch = ({ players, squadType, onPositionClick, selectedPosition }: EnhancedFootballPitchProps) => {
+const EnhancedFootballPitch = ({ players, squadType, formation = '4-3-3', onPositionClick, selectedPosition }: EnhancedFootballPitchProps) => {
+  // Get current formation positions
+  const currentFormation = FORMATION_CONFIGS[formation] || FORMATION_CONFIGS['4-3-3'];
+  
   // Track assigned players to prevent duplicates across positions
   const assignedPlayers = new Set<string>();
 
@@ -44,11 +90,28 @@ const EnhancedFootballPitch = ({ players, squadType, onPositionClick, selectedPo
           return ['CB'];
         case 'RB': 
           return ['RB', 'RWB'];
-        case 'CDM': 
+        case 'CDM1': 
+        case 'CDM2': 
           return ['CM', 'CDM'];
         case 'CM1': 
         case 'CM2': 
+        case 'CM3':
           return ['CM', 'CAM'];
+        case 'CAM':
+          return ['CAM', 'CM'];
+        case 'LM': 
+          return ['LM', 'W', 'LW'];
+        case 'RM': 
+          return ['RM', 'W', 'RW'];
+        case 'LWB': 
+          return ['LWB', 'LB'];
+        case 'RWB': 
+          return ['RWB', 'RB'];
+        case 'CB3': 
+          return ['CB'];
+        case 'ST1': 
+        case 'ST2': 
+          return ['F', 'FW', 'ST', 'CF'];
         case 'LW': 
           return ['W', 'LW', 'LM'];
         case 'ST': 
@@ -270,7 +333,7 @@ const EnhancedFootballPitch = ({ players, squadType, onPositionClick, selectedPo
         </div>
 
         {/* Players positioned around the pitch */}
-        {Object.entries(FORMATION_POSITIONS).map(([position, coords]) => {
+        {Object.entries(currentFormation).map(([position, coords]) => {
           // Reset assigned players for each render to ensure proper assignment order
           if (position === 'GK') assignedPlayers.clear();
           return renderPositionCard(position, coords);
@@ -279,7 +342,7 @@ const EnhancedFootballPitch = ({ players, squadType, onPositionClick, selectedPo
       
       <div className="mt-4 text-center">
         <p className="text-sm text-muted-foreground">
-          Formation: 4-3-3 • {players.length} players in squad • 
+          Formation: {formation} • {players.length} players in squad • 
           Players stacked by position depth
         </p>
       </div>

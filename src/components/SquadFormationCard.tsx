@@ -8,6 +8,7 @@ import EnhancedFootballPitch from "@/components/EnhancedFootballPitch";
 interface SquadFormationCardProps {
   squadPlayers: Player[];
   selectedSquad: string;
+  formation?: string;
   onPositionClick: (position: string) => void;
   selectedPosition: string | null;
 }
@@ -15,6 +16,7 @@ interface SquadFormationCardProps {
 const SquadFormationCard = ({ 
   squadPlayers, 
   selectedSquad, 
+  formation,
   onPositionClick, 
   selectedPosition 
 }: SquadFormationCardProps) => {
@@ -35,6 +37,7 @@ const SquadFormationCard = ({
         <EnhancedFootballPitch 
           players={squadPlayers} 
           squadType={selectedSquad}
+          formation={formation}
           onPositionClick={onPositionClick}
           selectedPosition={selectedPosition}
         />

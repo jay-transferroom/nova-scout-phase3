@@ -15,6 +15,7 @@ import ViewToggle from "@/components/ViewToggle";
 import ClubFormationSettings from "@/components/ClubFormationSettings";
 import { useSquadData } from "@/hooks/useSquadData";
 import { useSquadMetrics } from "@/hooks/useSquadMetrics";
+import { useClubSettings } from "@/hooks/useClubSettings";
 import { getSquadDisplayName } from "@/utils/squadUtils";
 
 const SquadView = () => {
@@ -33,8 +34,10 @@ const SquadView = () => {
   // Fetch real players data
   const { data: allPlayers = [], isLoading, error } = usePlayersData();
 
-  // All users work for Chelsea F.C.
   const userClub = "Chelsea F.C.";
+
+  // Get club settings including formation
+  const { data: clubSettings } = useClubSettings(userClub);
 
   // Filter players based on Chelsea F.C. (including all squads and loans)
   const clubPlayers = useMemo(() => {
@@ -116,6 +119,7 @@ const SquadView = () => {
           <SquadFormationCard
             squadPlayers={squadPlayers}
             selectedSquad={selectedSquad}
+            formation={clubSettings?.formation}
             onPositionClick={setSelectedPosition}
             selectedPosition={selectedPosition}
           />
