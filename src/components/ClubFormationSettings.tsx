@@ -42,10 +42,17 @@ const ClubFormationSettings = ({ clubName }: ClubFormationSettingsProps) => {
 
   const handleSave = async () => {
     try {
+      console.log('Attempting to save club settings:', {
+        club_name: clubName,
+        ...formData
+      });
+      
       await updateSettings.mutateAsync({
         club_name: clubName,
         ...formData
       });
+      
+      console.log('Club settings saved successfully');
       
       toast({
         title: "Settings Updated",
@@ -54,6 +61,7 @@ const ClubFormationSettings = ({ clubName }: ClubFormationSettingsProps) => {
       
       setIsEditing(false);
     } catch (error) {
+      console.error('Failed to save club settings:', error);
       toast({
         title: "Error",
         description: "Failed to update settings. Please try again.",

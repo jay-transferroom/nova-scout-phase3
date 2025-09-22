@@ -33,18 +33,31 @@ export const useUpdateClubSettings = () => {
   
   return useMutation({
     mutationFn: async (settings: Partial<ClubSettings> & { club_name: string }) => {
-      const { error } = await supabase
+      console.log('Mutation function called with:', settings);
+      
+      const { data, error } = await supabase
         .from('club_settings')
-        .upsert(settings)
+        .upsert(settings, { onConflict: 'club_name' })
         .select()
         .single();
       
-      if (error) throw error;
+      console.log('Supabase response:', { data, error });
+      
+      if (error) {
+        console.error('Supabase error:', error);
+        throw error;
+      }
+      
+      return data;
     },
     onSuccess: (_, variables) => {
+      console.log('Mutation successful, invalidating queries');
       // Invalidate multiple queries to ensure the UI updates
       queryClient.invalidateQueries({ queryKey: ['club-settings', variables.club_name] });
       queryClient.invalidateQueries({ queryKey: ['club-settings'] });
     },
+    onError: (error) => {
+      console.error('Mutation error:', error);
+    }
   });
 };
