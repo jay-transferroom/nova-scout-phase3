@@ -56,11 +56,15 @@ const UnifiedPlayerSearch = ({
   // Initialize recent players from localStorage
   useEffect(() => {
     const recentPlayerIds = JSON.parse(localStorage.getItem('recentPlayers') || '[]');
+    console.log('Loading recent player IDs from localStorage:', recentPlayerIds);
+    
     if (players.length > 0) {
       const recent = recentPlayerIds
         .map((id: string) => players.find(p => p.id === id))
         .filter((player: Player | undefined): player is Player => player !== undefined)
         .slice(0, 3);
+      
+      console.log('Found recent players:', recent.map(p => p.name));
       setRecentPlayers(recent);
     }
   }, [players]);
@@ -180,7 +184,7 @@ const UnifiedPlayerSearch = ({
 
   // Handle player selection
   const handleSelectPlayer = (player: Player) => {
-    console.log('Selecting player:', player);
+    console.log('Selecting player:', player.name);
     
     if (onSelectPlayer) {
       onSelectPlayer(player);
@@ -200,11 +204,13 @@ const UnifiedPlayerSearch = ({
     const recentPlayerIds = JSON.parse(localStorage.getItem('recentPlayers') || '[]');
     const updatedRecent = [player.id, ...recentPlayerIds.filter((id: string) => id !== player.id)].slice(0, 3);
     localStorage.setItem('recentPlayers', JSON.stringify(updatedRecent));
+    console.log('Updated recent players in localStorage:', updatedRecent);
     
     // Update local state
     const isAlreadyRecent = recentPlayers.some(p => p.id === player.id);
     if (!isAlreadyRecent) {
       setRecentPlayers(prev => [player, ...prev.slice(0, 2)]);
+      console.log('Updated recent players state');
     }
   };
 
