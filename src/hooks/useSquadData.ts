@@ -20,15 +20,15 @@ export const useSquadData = (clubPlayers: Player[], selectedSquad: string) => {
         );
         
         // Get the leading players for each position to exclude from shadow squad
-        const positions = ['GK', 'LB', 'CB', 'RB', 'CDM', 'CM', 'W', 'FW'];
+        const positions = ['GK', 'LB', 'CB', 'RB', 'CM', 'W', 'F'];
         const leadingPlayerIds = new Set();
         
         positions.forEach(position => {
           const positionPlayers = firstTeamPlayers.filter(player => 
             player.positions.some(pos => {
               if (position === 'W') return pos === 'W' || pos === 'LW' || pos === 'RW' || pos === 'LM' || pos === 'RM';
-              if (position === 'FW') return pos === 'FW' || pos === 'ST' || pos === 'CF';
-              return pos === position || (position === 'CB' && pos === 'CB');
+              if (position === 'F') return pos === 'F' || pos === 'FW' || pos === 'ST' || pos === 'CF';
+              return pos === position || (position === 'CB' && pos === 'CB') || (position === 'CM' && (pos === 'CM' || pos === 'CDM' || pos === 'CAM'));
             })
           );
           
@@ -38,9 +38,11 @@ export const useSquadData = (clubPlayers: Player[], selectedSquad: string) => {
             return ratingB - ratingA;
           });
           
-          if (sortedPosition.length > 0) {
-            leadingPlayerIds.add(sortedPosition[0].id);
-          }
+          // For CB, we need to exclude the top 2 players, for other positions just the top 1
+          const numToExclude = position === 'CB' ? 2 : 1;
+          sortedPosition.slice(0, numToExclude).forEach(player => {
+            leadingPlayerIds.add(player.id);
+          });
         });
         
         // Return all first team players except the leading ones

@@ -28,6 +28,9 @@ const FORMATION_POSITIONS = {
 };
 
 const EnhancedFootballPitch = ({ players, squadType, onPositionClick, selectedPosition }: EnhancedFootballPitchProps) => {
+  // Track assigned players to prevent duplicates across positions
+  const assignedPlayers = new Set<string>();
+
   const getPlayersForPosition = (position: string) => {
     // Map formation positions to player position names
     const getPositionMapping = (pos: string) => {
@@ -42,14 +45,14 @@ const EnhancedFootballPitch = ({ players, squadType, onPositionClick, selectedPo
         case 'RB': 
           return ['RB', 'RWB'];
         case 'CDM': 
-          return ['CDM'];
+          return ['CM', 'CDM'];
         case 'CM1': 
         case 'CM2': 
           return ['CM', 'CAM'];
         case 'LW': 
           return ['W', 'LW', 'LM'];
         case 'ST': 
-          return ['FW', 'ST', 'CF'];
+          return ['F', 'FW', 'ST', 'CF'];
         case 'RW': 
           return ['W', 'RW', 'RM'];
         default: 
@@ -59,12 +62,13 @@ const EnhancedFootballPitch = ({ players, squadType, onPositionClick, selectedPo
 
     const allowedPositions = getPositionMapping(position);
     
-    // Filter players who have this position in their positions array
+    // Filter players who have this position in their positions array and aren't already assigned
     const positionPlayers = players.filter(player => 
-      player.positions.some(pos => allowedPositions.includes(pos))
+      player.positions.some(pos => allowedPositions.includes(pos)) && 
+      !assignedPlayers.has(player.id)
     );
     
-    // Sort by rating and return only the top player for first-team view
+    // Sort by rating
     const sortedPlayers = positionPlayers.sort((a, b) => {
       const ratingA = a.transferroomRating || a.xtvScore || 0;
       const ratingB = b.transferroomRating || b.xtvScore || 0;
@@ -73,7 +77,12 @@ const EnhancedFootballPitch = ({ players, squadType, onPositionClick, selectedPo
     
     // For first-team squad, only show the leading player per position
     if (squadType === 'first-team') {
-      return sortedPlayers.slice(0, 1);
+      const selectedPlayer = sortedPlayers.slice(0, 1);
+      // Mark this player as assigned
+      if (selectedPlayer.length > 0) {
+        assignedPlayers.add(selectedPlayer[0].id);
+      }
+      return selectedPlayer;
     }
     
     return sortedPlayers;
@@ -261,9 +270,11 @@ const EnhancedFootballPitch = ({ players, squadType, onPositionClick, selectedPo
         </div>
 
         {/* Players positioned around the pitch */}
-        {Object.entries(FORMATION_POSITIONS).map(([position, coords]) => 
-          renderPositionCard(position, coords)
-        )}
+        {Object.entries(FORMATION_POSITIONS).map(([position, coords]) => {
+          // Reset assigned players for each render to ensure proper assignment order
+          if (position === 'GK') assignedPlayers.clear();
+          return renderPositionCard(position, coords);
+        })}
       </div>
       
       <div className="mt-4 text-center">
