@@ -237,18 +237,29 @@ const PlayerStatusActions = ({ playerId, playerName, playerReports }: PlayerStat
                   </div>
                 )}
               </div>
+              
+              <span className="text-muted-foreground">|</span>
+              
               <span>{playerShortlists.length} Shortlist{playerShortlists.length !== 1 ? 's' : ''}</span>
+              
               {isTracking && (
-                <div className="flex items-center gap-1 text-green-600 text-base">
-                  <Heart className="w-4 h-4 fill-current" />
-                  <span>Tracked</span>
-                </div>
+                <>
+                  <span className="text-muted-foreground">|</span>
+                  <div className="flex items-center gap-1 text-green-600 text-base">
+                    <Heart className="w-4 h-4 fill-current" />
+                    <span>Tracked</span>
+                  </div>
+                </>
               )}
+              
               {isAssignedForScouting && (
-                <div className="flex items-center gap-1 text-blue-600 text-base">
-                  <UserCheck className="w-4 h-4" />
-                  <span>Marked for Scouting</span>
-                </div>
+                <>
+                  <span className="text-muted-foreground">|</span>
+                  <div className="flex items-center gap-1 text-blue-600 text-base">
+                    <UserCheck className="w-4 h-4" />
+                    <span>Marked for Scouting</span>
+                  </div>
+                </>
               )}
             </div>
           </div>
