@@ -62,7 +62,7 @@ const HeaderSearchDialog = ({
                 />
               ))}
               
-              {totalResults > maxDisplayResults && (
+              {totalResults > 0 && (
                 <CommandItem onSelect={onViewMore} className="flex items-center justify-center gap-2 p-3 text-sm">
                   <ArrowRight className="h-4 w-4" />
                   View all {totalResults} results
