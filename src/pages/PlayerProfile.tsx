@@ -106,8 +106,12 @@ const PlayerProfile = () => {
                         <Info className="w-4 h-4 text-muted-foreground" />
                       </div>
                       <div className="flex items-baseline gap-2">
-                        <span className="text-3xl font-bold text-blue-600">95.0</span>
-                        <span className="text-xl text-muted-foreground">(95.0)</span>
+                        <span className="text-3xl font-bold text-blue-600">
+                          {player.transferroomRating?.toFixed(1) || 'N/A'}
+                        </span>
+                        <span className="text-xl text-muted-foreground">
+                          ({player.futureRating?.toFixed(1) || 'N/A'})
+                        </span>
                       </div>
                     </div>
                     
@@ -116,7 +120,9 @@ const PlayerProfile = () => {
                         <span className="text-sm text-muted-foreground">xTV</span>
                         <Info className="w-4 h-4 text-muted-foreground" />
                       </div>
-                      <span className="text-3xl font-bold text-blue-600">€87,000,000</span>
+                      <span className="text-3xl font-bold text-blue-600">
+                        {player.xtvScore ? `€${player.xtvScore.toLocaleString()}` : 'N/A'}
+                      </span>
                     </div>
                   </div>
                   
