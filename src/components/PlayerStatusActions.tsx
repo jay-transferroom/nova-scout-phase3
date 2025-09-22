@@ -233,14 +233,17 @@ const PlayerStatusActions = ({ playerId, playerName, playerReports }: PlayerStat
               <DropdownMenuContent align="end" className="w-48">
                 {/* Assignment actions */}
                 {!playerAssignment && canAssignScout && (
-                  <>
-                    <DropdownMenuItem onClick={handleAssignScout}>
-                      <UserPlus className="w-4 h-4 mr-2" />
-                      Assign to Scout
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                  </>
+                  <DropdownMenuItem onClick={handleAssignScout}>
+                    <UserPlus className="w-4 h-4 mr-2" />
+                    Assign to Scout
+                  </DropdownMenuItem>
                 )}
+
+                {/* Add to shortlist */}
+                <DropdownMenuItem onClick={handleAddToShortlist}>
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add to Shortlist
+                </DropdownMenuItem>
 
                 {/* Scouting assignment toggle */}
                 {canAssignForScouting && (
@@ -251,40 +254,16 @@ const PlayerStatusActions = ({ playerId, playerName, playerReports }: PlayerStat
                     {isAssignedForScouting ? (
                       <>
                         <UserMinus className="w-4 h-4 mr-2" />
-                        Remove from Shortlist
+                        Remove from Scouting
                       </>
                     ) : (
                       <>
                         <UserCheck className="w-4 h-4 mr-2" />
-                        Add to Shortlist
+                        Mark for Scouting
                       </>
                     )}
                   </DropdownMenuItem>
                 )}
-
-                {/* Tracking toggle */}
-                <DropdownMenuItem
-                  onClick={handleToggleTracking}
-                  disabled={isTrackingPlayer || isUntrackingPlayer}
-                >
-                  {isTracking ? (
-                    <>
-                      <HeartOff className="w-4 h-4 mr-2" />
-                      Stop Following
-                    </>
-                  ) : (
-                    <>
-                      <Heart className="w-4 h-4 mr-2" />
-                      Follow
-                    </>
-                  )}
-                </DropdownMenuItem>
-
-                {/* Add to shortlist */}
-                <DropdownMenuItem onClick={handleAddToShortlist}>
-                  <Plus className="w-4 h-4 mr-2" />
-                  Add to Shortlist
-                </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
