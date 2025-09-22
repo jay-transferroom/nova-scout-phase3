@@ -145,21 +145,6 @@ const PlayerProfile = () => {
             playerReports={playerReports}
           />
 
-          {/* Info Badges */}
-          <div className="flex gap-4 mb-8">
-            <Badge variant="secondary" className="px-4 py-2 text-sm bg-blue-50 text-blue-700 border-blue-200">
-              <TrendingUp className="w-4 h-4 mr-2" />
-              93% increase in xTV during the last 12 months
-            </Badge>
-            <Badge variant="secondary" className="px-4 py-2 text-sm bg-blue-50 text-blue-700 border-blue-200">
-              <Users className="w-4 h-4 mr-2" />
-              Higher rated than Alan Virginius
-            </Badge>
-            <Badge variant="secondary" className="px-4 py-2 text-sm bg-orange-50 text-orange-700 border-orange-200">
-              <Info className="w-4 h-4 mr-2" />
-              A club has just declared interest in this player
-            </Badge>
-          </div>
 
           {/* Summary Section */}
           <div className="grid grid-cols-2 gap-8 mb-8">
