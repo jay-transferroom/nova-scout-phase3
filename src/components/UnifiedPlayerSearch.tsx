@@ -39,20 +39,7 @@ const UnifiedPlayerSearch = ({
 
   const MAX_DISPLAY_RESULTS = 8; // Increased to show more results like in the reference
 
-  // Debug logging for search issues
-  useEffect(() => {
-    console.log('UnifiedPlayerSearch - Players loaded:', players?.length || 0);
-    console.log('UnifiedPlayerSearch - Search query:', searchQuery);
-    console.log('UnifiedPlayerSearch - Filtered results:', filteredPlayers?.length || 0);
-    if (searchQuery.toLowerCase().includes('herbie') || searchQuery.toLowerCase().includes('hughes')) {
-      console.log('UnifiedPlayerSearch - Searching for Herbie Hughes');
-      const matches = players.filter(p => 
-        p.name.toLowerCase().includes('herbie') || 
-        p.name.toLowerCase().includes('hughes')
-      );
-      console.log('UnifiedPlayerSearch - Found matches:', matches);
-    }
-  }, [players, searchQuery, filteredPlayers]);
+  // Debug logs removed to prevent noisy re-renders
 
   // Create a map of team names to team data for quick lookup
   const teamMap = teams.reduce((acc, team) => {

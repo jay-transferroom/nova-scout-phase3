@@ -12,6 +12,7 @@ interface PlayerCommandItemProps {
 const PlayerCommandItem = ({ player, teamLogo, onSelect }: PlayerCommandItemProps) => {
   return (
     <CommandItem
+      value={`${player.name} ${player.club} ${player.positions.join(", ")} ${player.nationality ?? ""}`}
       onSelect={onSelect}
       className="flex items-center gap-3 p-3"
     >

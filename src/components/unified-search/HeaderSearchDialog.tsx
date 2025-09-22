@@ -40,11 +40,7 @@ const HeaderSearchDialog = ({
   onSelectPlayer,
   onViewMore
 }: HeaderSearchDialogProps) => {
-  console.log('HeaderSearchDialog - Rendering with:', {
-    searchQuery,
-    filteredPlayersCount: filteredPlayers.length,
-    recentPlayersCount: recentPlayers.length
-  });
+  // HeaderSearchDialog render
 
   return (
     <CommandDialog open={open} onOpenChange={onOpenChange}>
