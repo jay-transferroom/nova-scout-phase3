@@ -273,10 +273,10 @@ const PlayerStatusActions = ({ playerId, playerName, playerReports }: PlayerStat
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" size="sm">
-                  <MoreHorizontal className="w-4 h-4" />
+                  Actions
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48">
+              <DropdownMenuContent align="end" className="w-48 text-sm">
                 {/* Assignment actions */}
                 {!playerAssignment && canAssignScout && (
                   <DropdownMenuItem onClick={handleAssignScout}>
