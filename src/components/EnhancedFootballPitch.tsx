@@ -154,6 +154,14 @@ const EnhancedFootballPitch = ({ players, squadType, formation = '4-3-3', positi
     if (currentPositionPlayer) {
       assignedPlayerIds.delete(currentPositionPlayer.id);
     }
+
+    // For shadow squad, also exclude first-team players
+    if (squadType === 'shadow') {
+      const firstTeamPlayerIds = new Set(
+        positionAssignments.map(assignment => assignment.player_id)
+      );
+      firstTeamPlayerIds.forEach(id => assignedPlayerIds.add(id));
+    }
     
     // Return all players that can play this position and aren't assigned elsewhere
     return players.filter(player => 
@@ -272,10 +280,20 @@ const EnhancedFootballPitch = ({ players, squadType, formation = '4-3-3', positi
     const allowedPositions = getPositionMapping(position);
     
     // Filter players who have this position in their positions array and aren't already assigned
-    const positionPlayers = players.filter(player => 
+    let positionPlayers = players.filter(player => 
       player.positions.some(pos => allowedPositions.includes(pos)) && 
       !assignedPlayers.has(player.id)
     );
+
+    // For shadow squad, exclude players who are assigned to first-team positions
+    if (squadType === 'shadow') {
+      const firstTeamPlayerIds = new Set(
+        positionAssignments.map(assignment => assignment.player_id)
+      );
+      positionPlayers = positionPlayers.filter(player => 
+        !firstTeamPlayerIds.has(player.id)
+      );
+    }
     
     // Sort by rating
     const sortedPlayers = positionPlayers.sort((a, b) => {
