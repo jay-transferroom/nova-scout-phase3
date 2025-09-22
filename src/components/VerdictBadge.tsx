@@ -16,9 +16,8 @@ const VerdictBadge = ({ verdict, className = "" }: VerdictBadgeProps) => {
   return (
     <Badge 
       variant="outline" 
-      className={`${option.color} ${className}`}
+      className={`${option.color} ${className} font-normal`}
     >
-      <span className="mr-1">{option.icon}</span>
       {option.label}
     </Badge>
   );
