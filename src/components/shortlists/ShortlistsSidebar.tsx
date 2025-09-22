@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Plus, Users, MoreHorizontal, Edit2, Trash2 } from "lucide-react";
+import { Plus, Users, MoreHorizontal, Edit2, Trash2, UserCheck } from "lucide-react";
 import { Player } from "@/types/player";
 import AddPrivatePlayerDialog from "@/components/AddPrivatePlayerDialog";
 import { useNavigate } from "react-router-dom";
@@ -148,16 +148,32 @@ export const ShortlistsSidebar = ({
               key={list.id}
               className={`cursor-pointer transition-colors ${
                 selectedList === list.id ? "ring-2 ring-blue-500" : ""
+              } ${
+                list.is_scouting_assignment_list 
+                  ? "border-2 border-dashed border-blue-400 bg-blue-50/50 dark:bg-blue-950/20" 
+                  : ""
               }`}
             >
               <CardHeader className="pb-2">
                 <div className="flex items-center justify-between">
-                  <CardTitle 
-                    className="text-sm font-medium cursor-pointer"
-                    onClick={() => onSelectList(list.id)}
-                  >
-                    {list.is_scouting_assignment_list ? 'Marked for Scouting' : list.name}
-                  </CardTitle>
+                  <div className="flex items-center gap-2">
+                    {list.is_scouting_assignment_list && (
+                      <UserCheck className="h-4 w-4 text-blue-600" />
+                    )}
+                    <CardTitle 
+                      className={`text-sm font-medium cursor-pointer ${
+                        list.is_scouting_assignment_list ? "text-blue-700 dark:text-blue-300" : ""
+                      }`}
+                      onClick={() => onSelectList(list.id)}
+                    >
+                      {list.is_scouting_assignment_list ? 'Marked for Scouting' : list.name}
+                    </CardTitle>
+                    {list.is_scouting_assignment_list && (
+                      <Badge variant="outline" className="text-xs border-blue-400 text-blue-600">
+                        SYSTEM
+                      </Badge>
+                    )}
+                  </div>
                   <div className="flex items-center gap-1">
                     <Badge variant="secondary" className="text-xs">
                       {totalPlayers}
