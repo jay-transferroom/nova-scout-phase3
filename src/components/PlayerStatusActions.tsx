@@ -202,9 +202,9 @@ const PlayerStatusActions = ({ playerId, playerName, playerReports }: PlayerStat
       <CardContent className="p-4">
         <div className="flex items-center justify-between">
           {/* Status Section */}
-          <div className="flex items-center gap-6">
+          <div className="flex items-center divide-x divide-border">
             {/* Assignment Status */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 pr-6">
               <div className="flex items-center gap-2">
                 {assignmentStatus.icon}
                 <span className="text-base font-medium">{assignmentStatus.text}</span>
@@ -222,46 +222,39 @@ const PlayerStatusActions = ({ playerId, playerName, playerReports }: PlayerStat
               )}
             </div>
 
-            <Separator orientation="vertical" className="h-6" />
-
-            {/* Reports & Tracking Status */}
-            <div className="flex items-center gap-4 text-base text-muted-foreground">
-              <div className="flex items-center gap-2">
-                <span className={reportCount === 0 ? "text-orange-600 font-medium" : ""}>
-                  {reportCount} Report{reportCount !== 1 ? 's' : ''}
-                </span>
-                {averageRating !== null && reportCount > 0 && (
-                  <div className="flex items-center gap-1">
-                    <span className="text-sm text-muted-foreground">Avg:</span>
-                    <ScoutingGrade grade={averageRating} className="text-sm" />
-                  </div>
-                )}
-              </div>
-              
-              <span className="text-muted-foreground">|</span>
-              
-              <span>{playerShortlists.length} Shortlist{playerShortlists.length !== 1 ? 's' : ''}</span>
-              
-              {isTracking && (
-                <>
-                  <span className="text-muted-foreground">|</span>
-                  <div className="flex items-center gap-1 text-green-600 text-base">
-                    <Heart className="w-4 h-4 fill-current" />
-                    <span>Tracked</span>
-                  </div>
-                </>
-              )}
-              
-              {isAssignedForScouting && (
-                <>
-                  <span className="text-muted-foreground">|</span>
-                  <div className="flex items-center gap-1 text-blue-600 text-base">
-                    <UserCheck className="w-4 h-4" />
-                    <span>Marked for Scouting</span>
-                  </div>
-                </>
+            {/* Reports Status */}
+            <div className="flex items-center gap-2 px-6">
+              <span className={reportCount === 0 ? "text-orange-600 font-medium" : "text-base text-muted-foreground"}>
+                {reportCount} Report{reportCount !== 1 ? 's' : ''}
+              </span>
+              {averageRating !== null && reportCount > 0 && (
+                <div className="flex items-center gap-1">
+                  <span className="text-sm text-muted-foreground">Avg:</span>
+                  <ScoutingGrade grade={averageRating} className="text-sm" />
+                </div>
               )}
             </div>
+            
+            {/* Shortlists Status */}
+            <div className="px-6">
+              <span className="text-base text-muted-foreground">{playerShortlists.length} Shortlist{playerShortlists.length !== 1 ? 's' : ''}</span>
+            </div>
+            
+            {/* Tracking Status */}
+            {isTracking && (
+              <div className="flex items-center gap-1 text-green-600 text-base px-6">
+                <Heart className="w-4 h-4 fill-current" />
+                <span>Tracked</span>
+              </div>
+            )}
+            
+            {/* Scouting Assignment Status */}
+            {isAssignedForScouting && (
+              <div className="flex items-center gap-1 text-blue-600 text-base px-6">
+                <UserCheck className="w-4 h-4" />
+                <span>Marked for Scouting</span>
+              </div>
+            )}
           </div>
 
           {/* Actions Section */}
