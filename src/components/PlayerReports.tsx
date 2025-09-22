@@ -181,16 +181,9 @@ export const PlayerReports = ({
               <div className="text-center py-8">
                 <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                 <p className="text-lg font-medium text-gray-900 mb-2">No reports yet</p>
-                <p className="text-muted-foreground mb-4">
-                  This player doesn't have any scouting reports. Create the first one to get started.
+                <p className="text-muted-foreground">
+                  This player doesn't have any scouting reports yet.
                 </p>
-                <Button 
-                  onClick={handleCreateReport}
-                  variant="outline"
-                >
-                  <Plus className="h-4 w-4 mr-2" />
-                  Create First Report
-                </Button>
               </div>
             )}
           </div>

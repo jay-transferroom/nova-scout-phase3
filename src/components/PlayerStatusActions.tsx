@@ -262,12 +262,7 @@ const PlayerStatusActions = ({ playerId, playerName, playerReports }: PlayerStat
           {/* Actions Section */}
           <div className="flex items-center gap-2">
             {/* Primary action based on state */}
-            {reportCount === 0 ? (
-              <Button onClick={handleCreateReport} className="gap-2">
-                <FileText className="w-4 h-4" />
-                Create First Report
-              </Button>
-            ) : (
+            {reportCount > 0 && (
               <Button variant="outline" onClick={handleViewReports} className="gap-2">
                 <Eye className="w-4 h-4" />
                 View Reports ({reportCount})
