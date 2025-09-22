@@ -44,13 +44,18 @@ const Shortlists = () => {
     privatePlayers
   });
 
-  // Handle URL parameters for selected shortlist
+  // Handle URL parameters for selected shortlist - exclude scouting assignment list
   useEffect(() => {
+    const filteredShortlists = shortlists.filter(list => !list.is_scouting_assignment_list);
     const selectedParam = searchParams.get('selected');
-    if (selectedParam && shortlists.find(list => list.id === selectedParam)) {
+    
+    if (selectedParam && filteredShortlists.find(list => list.id === selectedParam)) {
       setSelectedList(selectedParam);
-    } else if (!selectedList && shortlists.length > 0) {
-      setSelectedList(shortlists[0].id);
+    } else if (!selectedList && filteredShortlists.length > 0) {
+      setSelectedList(filteredShortlists[0].id);
+    } else if (selectedList && !filteredShortlists.find(list => list.id === selectedList)) {
+      // If current selection is the scouting list, select first available list
+      setSelectedList(filteredShortlists.length > 0 ? filteredShortlists[0].id : null);
     }
   }, [searchParams, shortlists, selectedList]);
 

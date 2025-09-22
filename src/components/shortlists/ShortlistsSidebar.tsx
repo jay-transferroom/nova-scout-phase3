@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -41,10 +40,27 @@ export const ShortlistsSidebar = ({
   const [editingShortlist, setEditingShortlist] = useState<any>(null);
   const [editShortlistName, setEditShortlistName] = useState("");
   const navigate = useNavigate();
-  const { profile } = useAuth();
+  const { profile, user } = useAuth();
 
-  // Check if user is director
-  const isDirector = profile?.role === 'director';
+  // Check if user can manage shortlists (director or recruitment)
+  const canManageShortlists = profile?.role === 'director' || profile?.role === 'recruitment';
+
+  // Filter shortlists based on user role (exclude scouting assignment list)
+  const filteredShortlists = shortlists.filter(list => {
+    // Hide the scouting assignment list
+    if (list.is_scouting_assignment_list) {
+      return false;
+    }
+    
+    // For other lists, check user permissions
+    if (profile?.role === 'director') {
+      return true; // Directors can see all lists
+    } else if (profile?.role === 'recruitment') {
+      return true; // Recruitment can see all lists
+    } else {
+      return list.user_id === user?.id; // Other users see only their own lists
+    }
+  });
 
   const handlePlayerClick = (player: Player) => {
     console.log('ShortlistsSidebar - Player clicked:', player);
@@ -84,7 +100,7 @@ export const ShortlistsSidebar = ({
   const handleDeleteShortlist = async (shortlist: any) => {
     await onDeleteShortlist(shortlist.id);
     if (selectedList === shortlist.id) {
-      onSelectList(shortlists.find(s => s.id !== shortlist.id)?.id || "");
+      onSelectList(filteredShortlists.find(s => s.id !== shortlist.id)?.id || "");
     }
   };
 
@@ -94,7 +110,7 @@ export const ShortlistsSidebar = ({
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle className="text-base font-semibold">Shortlists</CardTitle>
-            {isDirector && (
+            {canManageShortlists && (
               <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
                 <DialogTrigger asChild>
                   <Button variant="ghost" size="sm">
@@ -134,7 +150,7 @@ export const ShortlistsSidebar = ({
       </Card>
       
       <div className="space-y-2">
-        {shortlists.map((list) => {
+        {filteredShortlists.map((list) => {
           const privatePlayersForList = privatePlayers.filter(player => 
             list.playerIds?.includes(player.id)
           );
@@ -148,10 +164,6 @@ export const ShortlistsSidebar = ({
               key={list.id}
               className={`cursor-pointer transition-colors ${
                 selectedList === list.id ? "ring-2 ring-blue-500" : ""
-              } ${
-                list.is_scouting_assignment_list 
-                  ? "border-2 border-green-500" 
-                  : ""
               }`}
             >
               <CardHeader className="pb-2">
@@ -161,14 +173,14 @@ export const ShortlistsSidebar = ({
                       className="text-sm font-medium cursor-pointer"
                       onClick={() => onSelectList(list.id)}
                     >
-                      {list.is_scouting_assignment_list ? 'Marked for Scouting' : list.name}
+                      {list.name}
                     </CardTitle>
                   </div>
                   <div className="flex items-center gap-1">
                     <Badge variant="secondary" className="text-xs">
                       {totalPlayers}
                     </Badge>
-                    {isDirector && (
+                    {canManageShortlists && (
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
@@ -222,7 +234,7 @@ export const ShortlistsSidebar = ({
       </div>
 
       {/* Edit Shortlist Dialog */}
-      {isDirector && (
+      {canManageShortlists && (
         <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
           <DialogContent>
             <DialogHeader>
@@ -252,7 +264,7 @@ export const ShortlistsSidebar = ({
         </Dialog>
       )}
 
-      {isDirector && (
+      {canManageShortlists && (
         <AddPrivatePlayerDialog
           trigger={
             <Button variant="outline" className="w-full">

@@ -60,8 +60,8 @@ export const ShortlistsContent = ({
   const [isSearchDialogOpen, setIsSearchDialogOpen] = useState(false);
   const { profile } = useAuth();
 
-  // Check if user is director
-  const isDirector = profile?.role === 'director';
+  // Check if user can manage shortlists (director or recruitment)
+  const canManageShortlists = profile?.role === 'director' || profile?.role === 'recruitment';
 
   // Auto-suggest players based on shortlist name - moved before early return
   const suggestedPlayers = useMemo(() => {
@@ -152,7 +152,7 @@ export const ShortlistsContent = ({
               <Download className="h-4 w-4 mr-2" />
               Export
             </Button>
-            {isDirector && (
+            {canManageShortlists && (
               <Button size="sm" onClick={() => setIsSearchDialogOpen(true)}>
                 <Plus className="h-4 w-4 mr-2" />
                 Add Player
@@ -212,7 +212,7 @@ export const ShortlistsContent = ({
         </div>
 
         {/* Auto-suggestions section */}
-        {isDirector && suggestedPlayers.length > 0 && (
+        {canManageShortlists && suggestedPlayers.length > 0 && (
           <div className="mb-6 p-4 bg-muted/50 rounded-lg border">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
@@ -294,7 +294,7 @@ export const ShortlistsContent = ({
                 <TableHead>Potential</TableHead>
                 <TableHead>XTV (£M)</TableHead>
                 <TableHead>EU/GBE</TableHead>
-                <TableHead>Assignment</TableHead>
+                <TableHead>Status</TableHead>
                 <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -346,7 +346,20 @@ export const ShortlistsContent = ({
                         {!player.isPrivate && <Badge {...euGbeBadgeProps} />}
                       </TableCell>
                       <TableCell>
-                        {!player.isPrivate && <Badge {...assignmentBadgeProps} />}
+                        {!player.isPrivate ? (
+                          <div className="flex flex-col gap-1">
+                            <Badge {...assignmentBadgeProps} className="text-xs font-medium" />
+                            {assignmentBadgeProps.children.includes('completed') && (
+                              <span className="text-xs text-muted-foreground">
+                                Report submitted
+                              </span>
+                            )}
+                          </div>
+                        ) : (
+                          <Badge variant="outline" className="text-xs bg-purple-50 text-purple-700 border-purple-200">
+                            Private Player
+                          </Badge>
+                        )}
                       </TableCell>
                       <TableCell>
                         <DropdownMenu>
@@ -381,7 +394,7 @@ export const ShortlistsContent = ({
                               <Bookmark className="h-4 w-4 mr-2" />
                               Move to list
                             </DropdownMenuItem>
-                            {isDirector && (
+                            {canManageShortlists && (
                               <DropdownMenuItem 
                                 className="text-destructive"
                                 onClick={() => onRemovePlayer(player.id.toString())}
@@ -409,7 +422,7 @@ export const ShortlistsContent = ({
       </CardContent>
 
       {/* Player Search Dialog */}
-      {isDirector && (
+      {canManageShortlists && (
         <PlayerSearchDialog
           open={isSearchDialogOpen}
           onOpenChange={setIsSearchDialogOpen}
