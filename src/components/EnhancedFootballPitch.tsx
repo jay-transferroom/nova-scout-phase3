@@ -11,6 +11,10 @@ interface EnhancedFootballPitchProps {
   players: Player[];
   squadType: string;
   formation?: string;
+  positionAssignments?: Array<{
+    position: string;
+    player_id: string;
+  }>;
   onPositionClick?: (position: string) => void;
   selectedPosition?: string | null;
   onPlayerChange?: (position: string, playerId: string) => void;
@@ -72,7 +76,7 @@ const FORMATION_CONFIGS: Record<string, Record<string, { x: number; y: number; l
   },
 };
 
-const EnhancedFootballPitch = ({ players, squadType, formation = '4-3-3', onPositionClick, selectedPosition, onPlayerChange }: EnhancedFootballPitchProps) => {
+const EnhancedFootballPitch = ({ players, squadType, formation = '4-3-3', positionAssignments = [], onPositionClick, selectedPosition, onPlayerChange }: EnhancedFootballPitchProps) => {
   // Get current formation positions
   const currentFormation = FORMATION_CONFIGS[formation] || FORMATION_CONFIGS['4-3-3'];
   
@@ -180,7 +184,22 @@ const EnhancedFootballPitch = ({ players, squadType, formation = '4-3-3', onPosi
       }
     };
 
+  // Get assigned player for a position
+  const getAssignedPlayer = (position: string): Player | null => {
+    const assignment = positionAssignments.find(a => a.position === position);
+    if (!assignment) return null;
+    
+    return players.find(p => p.id === assignment.player_id) || null;
+  };
+
   const getPlayersForPosition = (position: string) => {
+    // Check if there's a specific assignment for this position
+    const assignedPlayer = getAssignedPlayer(position);
+    if (assignedPlayer) {
+      return [assignedPlayer];
+    }
+
+    // Fallback to automatic assignment logic for positions without specific assignments
     const getPositionMapping = (pos: string) => {
       switch (pos) {
         case 'GK': 

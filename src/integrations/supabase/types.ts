@@ -227,6 +227,50 @@ export type Database = {
         }
         Relationships: []
       }
+      player_position_assignments: {
+        Row: {
+          assigned_by_user_id: string | null
+          club_name: string
+          created_at: string
+          formation: string
+          id: string
+          player_id: string
+          position: string
+          squad_type: string
+          updated_at: string
+        }
+        Insert: {
+          assigned_by_user_id?: string | null
+          club_name: string
+          created_at?: string
+          formation?: string
+          id?: string
+          player_id: string
+          position: string
+          squad_type?: string
+          updated_at?: string
+        }
+        Update: {
+          assigned_by_user_id?: string | null
+          club_name?: string
+          created_at?: string
+          formation?: string
+          id?: string
+          player_id?: string
+          position?: string
+          squad_type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "player_position_assignments_assigned_by_user_id_fkey"
+            columns: ["assigned_by_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       player_recent_form: {
         Row: {
           assists: number

@@ -5,6 +5,7 @@ import { ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePlayersData } from "@/hooks/usePlayersData";
+import { usePlayerPositionAssignments, useUpdatePlayerPositionAssignment } from "@/hooks/usePlayerPositionAssignments";
 import SquadSelector from "@/components/SquadSelector";
 import SquadRecommendations from "@/components/SquadRecommendations";
 import ProspectComparison from "@/components/ProspectComparison";
@@ -38,6 +39,11 @@ const SquadView = () => {
 
   // Get club settings including formation
   const { data: clubSettings } = useClubSettings(userClub);
+  const currentFormation = clubSettings?.formation || '4-3-3';
+  
+  // Get player position assignments
+  const { data: positionAssignments = [] } = usePlayerPositionAssignments(userClub, currentFormation, selectedSquad);
+  const updateAssignment = useUpdatePlayerPositionAssignment();
 
   // Filter players based on Chelsea F.C. (including all squads and loans)
   const clubPlayers = useMemo(() => {
@@ -76,10 +82,20 @@ const SquadView = () => {
     );
   }
 
-  const handlePlayerChange = (position: string, playerId: string) => {
+  const handlePlayerChange = async (position: string, playerId: string) => {
     console.log(`Player change requested: ${position} -> ${playerId}`);
-    // Here you could implement logic to update player assignments
-    // For now, just log the change
+    
+    try {
+      await updateAssignment.mutateAsync({
+        club_name: userClub,
+        position: position,
+        player_id: playerId,
+        formation: currentFormation,
+        squad_type: selectedSquad
+      });
+    } catch (error) {
+      console.error('Failed to update player assignment:', error);
+    }
   };
 
   return (
@@ -125,7 +141,8 @@ const SquadView = () => {
           <SquadFormationCard
             squadPlayers={squadPlayers}
             selectedSquad={selectedSquad}
-            formation={clubSettings?.formation}
+            formation={currentFormation}
+            positionAssignments={positionAssignments}
             onPositionClick={setSelectedPosition}
             selectedPosition={selectedPosition}
             onPlayerChange={handlePlayerChange}
