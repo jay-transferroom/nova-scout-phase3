@@ -468,8 +468,22 @@ const EnhancedFootballPitch = ({ players, squadType, formation = '4-3-3', positi
                   />
                   <div className="absolute top-20 left-1/2 transform -translate-x-1/2 z-[101] animate-fade-in">
                     <div className="bg-white border border-gray-300 rounded-lg shadow-2xl p-2 min-w-48 max-h-60 overflow-y-auto">
-                      <div className="text-xs font-semibold text-gray-600 mb-2 px-2">
-                        Select Player for {position}
+                      <div className="flex items-center justify-between mb-2 px-2">
+                        <div className="text-xs font-semibold text-gray-600">
+                          Select Player for {position}
+                        </div>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setShowDropdown(false);
+                          }}
+                          className="text-gray-400 hover:text-gray-600 transition-colors"
+                          aria-label="Close dropdown"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                        </button>
                       </div>
                       {allEligiblePlayers.map((player) => (
                         <div
