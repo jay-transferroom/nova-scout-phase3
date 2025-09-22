@@ -3,7 +3,7 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Player } from "@/types/player";
-import { Eye, Star, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
+import { Star, ArrowUpDown, ArrowDown } from "lucide-react";
 
 interface PlayerSearchTableProps {
   players: Player[];
@@ -70,7 +70,6 @@ const PlayerSearchTable = ({ players, onPlayerClick, getTeamLogo, currentSort, o
             </div>
           </SortableHeader>
           <SortableHeader column="potential">Potential</SortableHeader>
-          <TableHead className="w-[100px] text-right text-sm">Actions</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -155,25 +154,12 @@ const PlayerSearchTable = ({ players, onPlayerClick, getTeamLogo, currentSort, o
                 <TableCell>
                   <span>{formatRating(player.futureRating)}</span>
                 </TableCell>
-                
-                <TableCell className="text-right">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onPlayerClick(player);
-                    }}
-                  >
-                    <Eye className="h-4 w-4" />
-                  </Button>
-                </TableCell>
               </TableRow>
             );
           })
         ) : (
           <TableRow>
-            <TableCell colSpan={9} className="text-center py-6 text-muted-foreground">
+            <TableCell colSpan={8} className="text-center py-6 text-muted-foreground">
               No players found matching your criteria
             </TableCell>
           </TableRow>
