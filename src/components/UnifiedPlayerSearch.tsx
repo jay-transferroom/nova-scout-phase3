@@ -34,7 +34,7 @@ const UnifiedPlayerSearch = ({
   const [contractFilter, setContractFilter] = useState<string>("all");
   const [regionFilter, setRegionFilter] = useState<string>("all");
 
-  const MAX_DISPLAY_RESULTS = 5;
+  const MAX_DISPLAY_RESULTS = 8; // Increased to show more results like in the reference
 
   // Debug logging for search issues
   useEffect(() => {
@@ -237,6 +237,7 @@ const UnifiedPlayerSearch = ({
           onSearchQueryChange={setSearchQuery}
           placeholder={placeholder}
           filteredPlayers={filteredPlayers}
+          totalResults={filteredPlayers.length}
           recentPlayers={recentPlayers}
           maxDisplayResults={MAX_DISPLAY_RESULTS}
           getTeamLogo={getTeamLogo}

@@ -25,7 +25,7 @@ const HeaderSearch = () => {
   const [filteredPlayers, setFilteredPlayers] = useState<Player[]>([]);
   const [recentPlayers, setRecentPlayers] = useState<Player[]>([]);
 
-  const MAX_DISPLAY_RESULTS = 5;
+  const MAX_DISPLAY_RESULTS = 8; // Increased to show more results
 
   // Create a map of team names to team data for quick lookup
   const teamMap = teams.reduce((acc, team) => {
@@ -77,7 +77,7 @@ const HeaderSearch = () => {
     });
     
     console.log('HeaderSearch - Filtered results count:', results.length);
-    setFilteredPlayers(results.slice(0, MAX_DISPLAY_RESULTS));
+    setFilteredPlayers(results); // Keep all results for proper counting
   }, [searchQuery, players]);
 
   // Handle player selection - Updated to handle private players
@@ -146,8 +146,8 @@ const HeaderSearch = () => {
         <CommandList>
           {searchQuery.trim() ? (
             filteredPlayers.length > 0 ? (
-              <CommandGroup heading={`Players (${filteredPlayers.length})`}>
-                {filteredPlayers.map((player) => {
+            <CommandGroup heading={`Players (${filteredPlayers.length})`}>
+                {filteredPlayers.slice(0, MAX_DISPLAY_RESULTS).map((player) => {
                   const teamLogo = getTeamLogo(player.club);
                   
                   return (
@@ -199,16 +199,10 @@ const HeaderSearch = () => {
                   );
                 })}
                 
-                {players.filter(player => {
-                  const lowercaseQuery = searchQuery.toLowerCase().trim();
-                  return player.name.toLowerCase().includes(lowercaseQuery) || 
-                         player.club.toLowerCase().includes(lowercaseQuery) || 
-                         player.id.toLowerCase() === lowercaseQuery ||
-                         player.positions.some(pos => pos.toLowerCase().includes(lowercaseQuery));
-                }).length > MAX_DISPLAY_RESULTS && (
+                {filteredPlayers.length > MAX_DISPLAY_RESULTS && (
                   <CommandItem onSelect={handleViewMore} className="flex items-center justify-center gap-2 p-3 text-sm">
                     <ArrowRight className="h-4 w-4" />
-                    View all results
+                    View all {filteredPlayers.length} results
                   </CommandItem>
                 )}
               </CommandGroup>

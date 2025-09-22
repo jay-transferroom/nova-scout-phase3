@@ -18,6 +18,7 @@ interface HeaderSearchDialogProps {
   onSearchQueryChange: (query: string) => void;
   placeholder: string;
   filteredPlayers: Player[];
+  totalResults: number;
   recentPlayers: Player[];
   maxDisplayResults: number;
   getTeamLogo: (clubName: string) => string | undefined;
@@ -32,6 +33,7 @@ const HeaderSearchDialog = ({
   onSearchQueryChange,
   placeholder,
   filteredPlayers,
+  totalResults,
   recentPlayers,
   maxDisplayResults,
   getTeamLogo,
@@ -54,8 +56,8 @@ const HeaderSearchDialog = ({
       <CommandList>
         {searchQuery.trim() ? (
           filteredPlayers.length > 0 ? (
-            <CommandGroup heading={`Players (${filteredPlayers.length})`}>
-              {filteredPlayers.map((player) => (
+            <CommandGroup heading={`Players (${totalResults})`}>
+              {filteredPlayers.slice(0, maxDisplayResults).map((player) => (
                 <PlayerCommandItem
                   key={player.id}
                   player={player}
@@ -64,10 +66,10 @@ const HeaderSearchDialog = ({
                 />
               ))}
               
-              {filteredPlayers.length === maxDisplayResults && (
+              {totalResults > maxDisplayResults && (
                 <CommandItem onSelect={onViewMore} className="flex items-center justify-center gap-2 p-3 text-sm">
                   <ArrowRight className="h-4 w-4" />
-                  View all results
+                  View all {totalResults} results
                 </CommandItem>
               )}
             </CommandGroup>
