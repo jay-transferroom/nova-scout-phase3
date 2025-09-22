@@ -25,6 +25,15 @@ export const determinePlayerStatus = ({
   scoutingAssignmentPlayerIds
 }: StatusDeterminationParams): PlayerStatusInfo => {
   
+  // Debug logging
+  console.log(`[Status Debug] Player ${playerId}:`, {
+    hasReport: reports.some(report => report.playerId === playerId),
+    hasAssignment: assignments.some(a => a.player_id === playerId),
+    inScoutingList: scoutingAssignmentPlayerIds.has(playerId),
+    reportsCount: reports.length,
+    assignmentsCount: assignments.length
+  });
+  
   // Check if player has any reports (completed status takes priority)
   const hasReport = reports.some(report => report.playerId === playerId);
   
@@ -43,6 +52,7 @@ export const determinePlayerStatus = ({
       assignment.assigned_to_scout.email : 
       'Unknown Scout';
       
+    console.log(`[Status Debug] Player ${playerId}: COMPLETED (has report)`);
     return {
       status: 'completed',
       label: `${scoutName} (completed)`,
@@ -71,6 +81,7 @@ export const determinePlayerStatus = ({
       'reviewed': 'reviewed'
     };
     
+    console.log(`[Status Debug] Player ${playerId}: ASSIGNED TO SCOUT (${assignment.status})`);
     return {
       status: 'assigned_to_scout',
       label: `${scoutName} (${statusLabels[assignment.status] || 'assigned'})`,
@@ -82,6 +93,7 @@ export const determinePlayerStatus = ({
   
   // 3. If player is in scouting assignment list (but no active assignment), they are marked for scouting
   if (isInScoutingList) {
+    console.log(`[Status Debug] Player ${playerId}: MARKED FOR SCOUTING`);
     return {
       status: 'marked_for_scouting',
       label: 'Marked for Scouting',
@@ -91,6 +103,7 @@ export const determinePlayerStatus = ({
   }
   
   // 4. Otherwise, they are unassigned
+  console.log(`[Status Debug] Player ${playerId}: UNASSIGNED`);
   return {
     status: 'unassigned',
     label: 'Unassigned',
