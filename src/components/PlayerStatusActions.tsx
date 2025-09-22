@@ -37,6 +37,7 @@ import AssignScoutDialog from "@/components/AssignScoutDialog";
 import { PlayerNotes } from "@/components/PlayerNotes";
 import { usePlayerProfile } from "@/hooks/usePlayerProfile";
 import { getOverallRating } from "@/utils/reportDataExtraction";
+import { ScoutingGrade } from "@/components/ui/scouting-grade";
 
 interface PlayerStatusActionsProps {
   playerId: string;
@@ -230,9 +231,10 @@ const PlayerStatusActions = ({ playerId, playerName, playerReports }: PlayerStat
                   {reportCount} Report{reportCount !== 1 ? 's' : ''}
                 </span>
                 {averageRating !== null && reportCount > 0 && (
-                  <Badge variant="outline" className="text-xs px-2 py-0.5">
-                    Avg: {averageRating}/10
-                  </Badge>
+                  <div className="flex items-center gap-1">
+                    <span className="text-xs text-muted-foreground">Avg:</span>
+                    <ScoutingGrade grade={averageRating} className="text-xs" />
+                  </div>
                 )}
               </div>
               <span>{playerShortlists.length} Shortlist{playerShortlists.length !== 1 ? 's' : ''}</span>
