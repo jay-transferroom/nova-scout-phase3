@@ -156,7 +156,7 @@ export const ShortlistsSidebar = ({
                     className="text-sm font-medium cursor-pointer"
                     onClick={() => onSelectList(list.id)}
                   >
-                    {list.name}
+                    {list.is_scouting_assignment_list ? 'Marked for Scouting' : list.name}
                   </CardTitle>
                   <div className="flex items-center gap-1">
                     <Badge variant="secondary" className="text-xs">
