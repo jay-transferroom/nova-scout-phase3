@@ -12,6 +12,7 @@ import SquadValueOverview from "@/components/SquadValueOverview";
 import SquadFormationCard from "@/components/SquadFormationCard";
 import SquadListView from "@/components/SquadListView";
 import ViewToggle from "@/components/ViewToggle";
+import ClubFormationSettings from "@/components/ClubFormationSettings";
 import { useSquadData } from "@/hooks/useSquadData";
 import { useSquadMetrics } from "@/hooks/useSquadMetrics";
 import { getSquadDisplayName } from "@/utils/squadUtils";
@@ -19,7 +20,7 @@ import { getSquadDisplayName } from "@/utils/squadUtils";
 const SquadView = () => {
   const navigate = useNavigate();
   const { profile } = useAuth();
-  const [selectedSquad, setSelectedSquad] = useState<string>('first-xi');
+  const [selectedSquad, setSelectedSquad] = useState<string>('first-team');
   const [selectedPosition, setSelectedPosition] = useState<string | null>(null);
   const [currentView, setCurrentView] = useState<'pitch' | 'list'>('pitch');
 
@@ -35,14 +36,16 @@ const SquadView = () => {
   // All users work for Chelsea F.C.
   const userClub = "Chelsea F.C.";
 
-  // Filter players based on Chelsea F.C.
+  // Filter players based on Chelsea F.C. (including all squads and loans)
   const clubPlayers = useMemo(() => {
-    return allPlayers.filter(player => 
-      player.club === userClub || 
-      player.club === "Chelsea" ||
-      player.club?.toLowerCase().includes('chelsea')
-    );
-  }, [allPlayers, userClub]);
+    return allPlayers.filter(player => {
+      // Check if player belongs to Chelsea in any capacity
+      const club = player.club?.toLowerCase() || '';
+      return club.includes('chelsea') || 
+             club === 'chelsea fc' || 
+             club === 'chelsea';
+    });
+  }, [allPlayers]);
 
   // Use custom hooks for data management
   const { squadPlayers } = useSquadData(clubPlayers, selectedSquad);
@@ -102,6 +105,9 @@ const SquadView = () => {
         squadMetrics={squadMetrics}
         squadPlayersLength={squadPlayers.length}
       />
+
+      {/* Club Formation & Philosophy Settings */}
+      <ClubFormationSettings clubName={userClub} />
 
       {/* Conditional View Rendering */}
       {currentView === 'pitch' ? (

@@ -14,6 +14,39 @@ export type Database = {
   }
   public: {
     Tables: {
+      club_settings: {
+        Row: {
+          club_name: string
+          created_at: string | null
+          created_by_user_id: string | null
+          formation: string
+          id: string
+          philosophy: string | null
+          style_of_play: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          club_name: string
+          created_at?: string | null
+          created_by_user_id?: string | null
+          formation?: string
+          id?: string
+          philosophy?: string | null
+          style_of_play?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          club_name?: string
+          created_at?: string | null
+          created_by_user_id?: string | null
+          formation?: string
+          id?: string
+          philosophy?: string | null
+          style_of_play?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       fixtures: {
         Row: {
           away_score: number | null

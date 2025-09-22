@@ -3,54 +3,47 @@ import { useMemo } from "react";
 import { Player } from "@/types/player";
 
 export const useSquadData = (clubPlayers: Player[], selectedSquad: string) => {
-  // Get all players for full squad view, with proper first XI vs shadow squad logic
+  // Filter players based on squad selection
   const squadPlayers = useMemo(() => {
-    if (selectedSquad === 'first-xi') {
-      // Show all players for depth analysis
-      return clubPlayers;
-    } else if (selectedSquad === 'shadow-squad') {
-      // Shadow squad: exclude the primary player for each position
-      const primaryPlayerIds = new Set<string>();
+    switch (selectedSquad) {
+      case 'first-team':
+        return clubPlayers.filter(player => 
+          player.club === 'Chelsea FC' || 
+          (player.club?.includes('Chelsea') && !player.club?.includes('U21') && !player.club?.includes('U18'))
+        );
       
-      // Define position priorities to identify primary players
-      const positionGroups = [
-        ['GK'],
-        ['LB', 'LWB'],
-        ['CB'],
-        ['RB', 'RWB'], 
-        ['CDM'],
-        ['CM'],
-        ['CAM'],
-        ['LM'],
-        ['RM'],
-        ['LW'],
-        ['RW'],
-        ['ST', 'CF']
-      ];
-
-      // For each position group, find the best player and mark as primary
-      positionGroups.forEach(positions => {
-        const playersInPosition = clubPlayers.filter(player =>
-          player.positions.some(pos => positions.includes(pos))
+      case 'shadow-squad':
+        // Shadow squad: backup players from first team, excluding the top 11
+        const firstTeamPlayers = clubPlayers.filter(player => 
+          player.club === 'Chelsea FC' || 
+          (player.club?.includes('Chelsea') && !player.club?.includes('U21') && !player.club?.includes('U18'))
         );
         
-        if (playersInPosition.length > 0) {
-          // Sort by rating and take the best as primary
-          const bestPlayer = playersInPosition.sort((a, b) => {
-            const ratingA = a.transferroomRating || a.xtvScore || 0;
-            const ratingB = b.transferroomRating || b.xtvScore || 0;
-            return ratingB - ratingA;
-          })[0];
-          
-          primaryPlayerIds.add(bestPlayer.id);
-        }
-      });
-
-      // Return all players except the primary ones
-      return clubPlayers.filter(player => !primaryPlayerIds.has(player.id));
+        // Sort by rating and exclude top 11
+        const sortedPlayers = firstTeamPlayers.sort((a, b) => {
+          const ratingA = a.transferroomRating || a.xtvScore || 0;
+          const ratingB = b.transferroomRating || b.xtvScore || 0;
+          return ratingB - ratingA;
+        });
+        
+        return sortedPlayers.slice(11); // Return players beyond the top 11
+      
+      case 'u21':
+        return clubPlayers.filter(player => player.club?.includes('U21'));
+      
+      case 'u18':
+        return clubPlayers.filter(player => player.club?.includes('U18'));
+      
+      case 'on-loan':
+        return clubPlayers.filter(player => 
+          player.club !== 'Chelsea FC' && 
+          !player.club?.includes('Chelsea') &&
+          player.club !== 'Unknown'
+        );
+      
+      default:
+        return clubPlayers;
     }
-    
-    return clubPlayers;
   }, [clubPlayers, selectedSquad]);
 
   return { squadPlayers };

@@ -13,24 +13,37 @@ interface SquadSelectorProps {
 }
 
 const SQUAD_TYPES = [
-  { id: 'first-xi', label: 'First XI', icon: Trophy, color: 'bg-yellow-600' },
+  { id: 'first-team', label: 'First Team', icon: Trophy, color: 'bg-blue-600' },
   { id: 'shadow-squad', label: 'Shadow Squad', icon: Shield, color: 'bg-gray-600' },
+  { id: 'u21', label: 'Under 21s', icon: Users, color: 'bg-green-600' },
+  { id: 'u18', label: 'Under 18s', icon: Users, color: 'bg-purple-600' },
+  { id: 'on-loan', label: 'On Loan', icon: Shield, color: 'bg-orange-600' },
 ];
 
 const SquadSelector = ({ selectedSquad, onSquadSelect, club, players }: SquadSelectorProps) => {
   const getSquadPlayerCount = (squadType: string) => {
-    // Sort players by rating to get the best ones first
-    const sortedPlayers = [...players].sort((a, b) => {
-      const ratingA = a.transferroomRating || a.xtvScore || 0;
-      const ratingB = b.transferroomRating || b.xtvScore || 0;
-      return ratingB - ratingA;
-    });
-
     switch (squadType) {
-      case 'first-xi':
-        return Math.min(sortedPlayers.length, 11);
+      case 'first-team':
+        return players.filter(p => 
+          p.club === 'Chelsea FC' || 
+          (p.club?.includes('Chelsea') && !p.club?.includes('U21') && !p.club?.includes('U18'))
+        ).length;
       case 'shadow-squad':
-        return Math.min(Math.max(0, sortedPlayers.length - 11), 17);
+        // Shadow squad is backup/reserve players from first team
+        return Math.min(players.filter(p => 
+          p.club === 'Chelsea FC' || 
+          (p.club?.includes('Chelsea') && !p.club?.includes('U21') && !p.club?.includes('U18'))
+        ).length, 17);
+      case 'u21':
+        return players.filter(p => p.club?.includes('U21')).length;
+      case 'u18':
+        return players.filter(p => p.club?.includes('U18')).length;
+      case 'on-loan':
+        return players.filter(p => 
+          p.club !== 'Chelsea FC' && 
+          !p.club?.includes('Chelsea') &&
+          p.club !== 'Unknown'
+        ).length;
       default:
         return 0;
     }
@@ -77,10 +90,16 @@ const SquadSelector = ({ selectedSquad, onSquadSelect, club, players }: SquadSel
           })}
         </div>
         <p className="text-sm text-muted-foreground mt-2">
-          {selectedSquad === 'shadow-squad' 
-            ? 'Reserve players and squad depth (up to 17 players)'
-            : selectedSquad === 'first-xi'
-            ? 'Starting eleven - best rated players (11 players)'
+          {selectedSquad === 'first-team' 
+            ? 'Main senior squad players at Chelsea FC'
+            : selectedSquad === 'shadow-squad'
+            ? 'Reserve and backup players from the first team'
+            : selectedSquad === 'u21'
+            ? 'Under 21 development squad players'
+            : selectedSquad === 'u18'
+            ? 'Under 18 academy players'
+            : selectedSquad === 'on-loan'
+            ? 'Chelsea players currently on loan at other clubs'
             : 'Select squad to analyze formation and player assignments'
           }
         </p>
