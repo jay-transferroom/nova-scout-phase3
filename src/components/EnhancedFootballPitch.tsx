@@ -3,8 +3,9 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Player } from "@/types/player";
-import { MoreHorizontal, Plus, AlertTriangle, Clock } from "lucide-react";
+import { MoreHorizontal, Plus, AlertTriangle, Clock, ChevronDown } from "lucide-react";
 
 interface EnhancedFootballPitchProps {
   players: Player[];
@@ -12,6 +13,7 @@ interface EnhancedFootballPitchProps {
   formation?: string;
   onPositionClick?: (position: string) => void;
   selectedPosition?: string | null;
+  onPlayerChange?: (position: string, playerId: string) => void;
 }
 
 // Formation configurations
@@ -70,14 +72,69 @@ const FORMATION_CONFIGS: Record<string, Record<string, { x: number; y: number; l
   },
 };
 
-const EnhancedFootballPitch = ({ players, squadType, formation = '4-3-3', onPositionClick, selectedPosition }: EnhancedFootballPitchProps) => {
+const EnhancedFootballPitch = ({ players, squadType, formation = '4-3-3', onPositionClick, selectedPosition, onPlayerChange }: EnhancedFootballPitchProps) => {
   // Get current formation positions
   const currentFormation = FORMATION_CONFIGS[formation] || FORMATION_CONFIGS['4-3-3'];
   
   // Track assigned players to prevent duplicates across positions
   const assignedPlayers = new Set<string>();
 
-  const getPlayersForPosition = (position: string) => {
+  // Get all eligible players for a position (not just assigned ones)
+  const getAllPlayersForPosition = (position: string) => {
+    const getPositionMapping = (pos: string) => {
+      switch (pos) {
+        case 'GK': 
+          return ['GK'];
+        case 'LB': 
+          return ['LB', 'LWB'];
+        case 'CB1': 
+        case 'CB2': 
+        case 'CB3': 
+          return ['CB'];
+        case 'RB': 
+          return ['RB', 'RWB'];
+        case 'CDM': 
+        case 'CDM1': 
+        case 'CDM2': 
+          return ['CM', 'CDM'];
+        case 'CM1': 
+        case 'CM2': 
+        case 'CM3':
+          return ['CM', 'CAM'];
+        case 'CAM':
+          return ['CAM', 'CM'];
+        case 'LM': 
+          return ['LM', 'W', 'LW'];
+        case 'RM': 
+          return ['RM', 'W', 'RW'];
+        case 'LWB': 
+          return ['LWB', 'LB'];
+        case 'RWB': 
+          return ['RWB', 'RB'];
+        case 'LW': 
+          return ['W', 'LW', 'LM'];
+        case 'ST': 
+        case 'ST1': 
+        case 'ST2': 
+          return ['F', 'FW', 'ST', 'CF'];
+        case 'RW': 
+          return ['W', 'RW', 'RM'];
+        default: 
+          return [];
+      }
+    };
+
+    const allowedPositions = getPositionMapping(position);
+    
+    // Return all players that can play this position
+    return players.filter(player => 
+      player.positions.some(pos => allowedPositions.includes(pos))
+    ).sort((a, b) => {
+      const ratingA = a.transferroomRating || a.xtvScore || 0;
+      const ratingB = b.transferroomRating || b.xtvScore || 0;
+      return ratingB - ratingA;
+    });
+  };
     // Map formation positions to player position names
     const getPositionMapping = (pos: string) => {
       switch (pos) {
@@ -115,6 +172,50 @@ const EnhancedFootballPitch = ({ players, squadType, formation = '4-3-3', onPosi
         case 'LW': 
           return ['W', 'LW', 'LM'];
         case 'ST': 
+          return ['F', 'FW', 'ST', 'CF'];
+        case 'RW': 
+          return ['W', 'RW', 'RM'];
+        default: 
+          return [];
+      }
+    };
+
+  const getPlayersForPosition = (position: string) => {
+    const getPositionMapping = (pos: string) => {
+      switch (pos) {
+        case 'GK': 
+          return ['GK'];
+        case 'LB': 
+          return ['LB', 'LWB'];
+        case 'CB1': 
+        case 'CB2': 
+        case 'CB3': 
+          return ['CB'];
+        case 'RB': 
+          return ['RB', 'RWB'];
+        case 'CDM': 
+        case 'CDM1': 
+        case 'CDM2': 
+          return ['CM', 'CDM'];
+        case 'CM1': 
+        case 'CM2': 
+        case 'CM3':
+          return ['CM', 'CAM'];
+        case 'CAM':
+          return ['CAM', 'CM'];
+        case 'LM': 
+          return ['LM', 'W', 'LW'];
+        case 'RM': 
+          return ['RM', 'W', 'RW'];
+        case 'LWB': 
+          return ['LWB', 'LB'];
+        case 'RWB': 
+          return ['RWB', 'RB'];
+        case 'LW': 
+          return ['W', 'LW', 'LM'];
+        case 'ST': 
+        case 'ST1': 
+        case 'ST2': 
           return ['F', 'FW', 'ST', 'CF'];
         case 'RW': 
           return ['W', 'RW', 'RM'];
@@ -231,7 +332,9 @@ const EnhancedFootballPitch = ({ players, squadType, formation = '4-3-3', onPosi
 
   const renderPositionCard = (position: string, coords: { x: number; y: number; label: string }) => {
     const positionPlayers = getPlayersForPosition(position);
+    const allEligiblePlayers = getAllPlayersForPosition(position);
     const isSelected = selectedPosition === coords.label;
+    const currentPlayer = positionPlayers[0]; // The assigned player
     
     return (
       <div
@@ -244,13 +347,12 @@ const EnhancedFootballPitch = ({ players, squadType, formation = '4-3-3', onPosi
           top: `${coords.y}%`,
           transform: `translate(-50%, -50%)`,
         }}
-        onClick={() => handlePositionClick(position, coords.label)}
       >
         {/* Position label */}
-        <div className="mb-2 text-center">
+        <div className="mb-3 text-center">
           <Badge 
             variant={isSelected ? "default" : "secondary"} 
-            className={`text-xs px-2 py-1 font-semibold ${
+            className={`text-sm px-3 py-1 font-semibold ${
               isSelected ? 'bg-yellow-500 text-yellow-900' : 'bg-white/90 text-gray-700'
             }`}
           >
@@ -258,58 +360,135 @@ const EnhancedFootballPitch = ({ players, squadType, formation = '4-3-3', onPosi
           </Badge>
         </div>
 
-        {/* Players stack */}
-        <div className="flex flex-col gap-1 items-center min-w-36">
-          {positionPlayers.length > 0 ? (
-            positionPlayers.map((player, index) => {
-              const contractRisk = getContractRiskLevel(player);
-              const isPrimary = index === 0;
-              
-              return (
-                <div key={player.id} className={`bg-white rounded-lg shadow-md p-2 w-full border transition-all hover:shadow-lg ${
-                  isPrimary ? 'border-blue-300 bg-blue-50' : 'border-gray-200'
-                }`}>
-                  <div className="flex items-center gap-2">
-                    <Avatar className="w-6 h-6 shrink-0">
-                      <AvatarImage 
-                        src={player.image || `https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&crop=face&fit=crop`} 
-                        alt={player.name}
-                      />
-                      <AvatarFallback className="bg-blue-600 text-white text-xs">
-                        {player.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
-                      </AvatarFallback>
-                    </Avatar>
-                    
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-1">
-                        <div className="text-xs font-medium truncate">{player.name}</div>
-                        {isPrimary && <Badge variant="default" className="text-xs px-1 py-0 bg-blue-600">1st</Badge>}
-                      </div>
-                      <div className="text-xs text-gray-500">
-                        Age {player.age} • {player.transferroomRating || player.xtvScore || 'N/A'}
-                      </div>
-                    </div>
-                    
-                    {/* Contract risk indicator */}
-                    <div className="flex items-center gap-1">
-                      {contractRisk === 'high' && (
-                        <div className="w-2 h-2 bg-red-500 rounded-full" title="Contract expires soon" />
-                      )}
-                      {contractRisk === 'medium' && (
-                        <div className="w-2 h-2 bg-amber-500 rounded-full" title="Contract expires within a year" />
-                      )}
-                    </div>
+        {/* Player Card - Made Bigger */}
+        <div className="flex flex-col gap-2 items-center min-w-48">
+          {currentPlayer ? (
+            <div className="bg-white rounded-xl shadow-lg p-4 w-full border-2 border-blue-300 bg-blue-50 transition-all hover:shadow-xl">
+              <div className="flex flex-col items-center gap-3">
+                <Avatar className="w-12 h-12 shrink-0">
+                  <AvatarImage 
+                    src={currentPlayer.image || `https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&crop=face&fit=crop`} 
+                    alt={currentPlayer.name}
+                  />
+                  <AvatarFallback className="bg-blue-600 text-white text-sm">
+                    {currentPlayer.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
+                  </AvatarFallback>
+                </Avatar>
+                
+                <div className="text-center w-full">
+                  <div className="text-sm font-bold truncate mb-1">{currentPlayer.name}</div>
+                  <div className="text-xs text-gray-600 mb-2">
+                    Age {currentPlayer.age} • Rating: {currentPlayer.transferroomRating?.toFixed(1) || currentPlayer.xtvScore || 'N/A'}
                   </div>
+                  
+                  {/* Player Selection Dropdown */}
+                  {onPlayerChange && allEligiblePlayers.length > 1 && (
+                    <Select 
+                      value={currentPlayer.id} 
+                      onValueChange={(playerId) => onPlayerChange(position, playerId)}
+                    >
+                      <SelectTrigger className="w-full text-xs h-8 bg-white border-gray-300 hover:bg-gray-50">
+                        <SelectValue>
+                          <div className="flex items-center gap-2">
+                            <span className="truncate">Change Player</span>
+                            <ChevronDown className="h-3 w-3" />
+                          </div>
+                        </SelectValue>
+                      </SelectTrigger>
+                      <SelectContent className="bg-white border shadow-lg max-h-60 overflow-y-auto z-50">
+                        {allEligiblePlayers.map((player) => (
+                          <SelectItem 
+                            key={player.id} 
+                            value={player.id}
+                            className="text-sm hover:bg-gray-100 focus:bg-gray-100"
+                          >
+                            <div className="flex items-center gap-2 w-full">
+                              <Avatar className="w-6 h-6">
+                                <AvatarImage 
+                                  src={player.image || `https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&crop=face&fit=crop`} 
+                                  alt={player.name}
+                                />
+                                <AvatarFallback className="bg-blue-600 text-white text-xs">
+                                  {player.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
+                                </AvatarFallback>
+                              </Avatar>
+                              <div className="flex flex-col">
+                                <span className="font-medium">{player.name}</span>
+                                <span className="text-xs text-gray-500">
+                                  Rating: {player.transferroomRating?.toFixed(1) || player.xtvScore || 'N/A'}
+                                </span>
+                              </div>
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
                 </div>
-              );
-            })
+                
+                {/* Contract risk indicator */}
+                <div className="flex items-center gap-1">
+                  {(() => {
+                    const contractRisk = getContractRiskLevel(currentPlayer);
+                    if (contractRisk === 'high') {
+                      return <div className="w-3 h-3 bg-red-500 rounded-full" title="Contract expires soon" />;
+                    }
+                    if (contractRisk === 'medium') {
+                      return <div className="w-3 h-3 bg-amber-500 rounded-full" title="Contract expires within a year" />;
+                    }
+                    return null;
+                  })()}
+                </div>
+              </div>
+            </div>
           ) : (
-            <div className="bg-white rounded-lg shadow-md p-3 w-full border border-dashed border-gray-300">
-              <div className="flex flex-col items-center">
-                <div className="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center mb-1">
-                  <Plus className="h-3 w-3 text-gray-400" />
+            <div className="bg-white rounded-xl shadow-lg p-4 w-full border border-dashed border-gray-300 transition-all hover:shadow-xl">
+              <div className="flex flex-col items-center gap-3">
+                <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center">
+                  <Plus className="h-6 w-6 text-gray-400" />
                 </div>
-                <div className="text-xs text-gray-500 text-center">No Player</div>
+                <div className="text-sm text-gray-500 text-center">No Player Assigned</div>
+                
+                {/* Player Selection Dropdown for Empty Position */}
+                {onPlayerChange && allEligiblePlayers.length > 0 && (
+                  <Select onValueChange={(playerId) => onPlayerChange(position, playerId)}>
+                    <SelectTrigger className="w-full text-xs h-8 bg-white border-gray-300 hover:bg-gray-50">
+                      <SelectValue placeholder="Select Player">
+                        <div className="flex items-center gap-2">
+                          <span className="truncate">Select Player</span>
+                          <ChevronDown className="h-3 w-3" />
+                        </div>
+                      </SelectValue>
+                    </SelectTrigger>
+                    <SelectContent className="bg-white border shadow-lg max-h-60 overflow-y-auto z-50">
+                      {allEligiblePlayers.map((player) => (
+                        <SelectItem 
+                          key={player.id} 
+                          value={player.id}
+                          className="text-sm hover:bg-gray-100 focus:bg-gray-100"
+                        >
+                          <div className="flex items-center gap-2 w-full">
+                            <Avatar className="w-6 h-6">
+                              <AvatarImage 
+                                src={player.image || `https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&crop=face&fit=crop`} 
+                                alt={player.name}
+                              />
+                              <AvatarFallback className="bg-blue-600 text-white text-xs">
+                                {player.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div className="flex flex-col">
+                              <span className="font-medium">{player.name}</span>
+                              <span className="text-xs text-gray-500">
+                                Rating: {player.transferroomRating?.toFixed(1) || player.xtvScore || 'N/A'}
+                              </span>
+                            </div>
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
               </div>
             </div>
           )}

@@ -76,6 +76,12 @@ const SquadView = () => {
     );
   }
 
+  const handlePlayerChange = (position: string, playerId: string) => {
+    console.log(`Player change requested: ${position} -> ${playerId}`);
+    // Here you could implement logic to update player assignments
+    // For now, just log the change
+  };
+
   return (
     <div className="container mx-auto py-8 space-y-8">
       {/* Header */}
@@ -122,6 +128,7 @@ const SquadView = () => {
             formation={clubSettings?.formation}
             onPositionClick={setSelectedPosition}
             selectedPosition={selectedPosition}
+            onPlayerChange={handlePlayerChange}
           />
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">

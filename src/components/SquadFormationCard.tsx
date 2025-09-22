@@ -11,6 +11,7 @@ interface SquadFormationCardProps {
   formation?: string;
   onPositionClick: (position: string) => void;
   selectedPosition: string | null;
+  onPlayerChange?: (position: string, playerId: string) => void;
 }
 
 const SquadFormationCard = ({ 
@@ -18,7 +19,8 @@ const SquadFormationCard = ({
   selectedSquad, 
   formation,
   onPositionClick, 
-  selectedPosition 
+  selectedPosition,
+  onPlayerChange 
 }: SquadFormationCardProps) => {
   return (
     <Card>
@@ -40,6 +42,7 @@ const SquadFormationCard = ({
           formation={formation}
           onPositionClick={onPositionClick}
           selectedPosition={selectedPosition}
+          onPlayerChange={onPlayerChange}
         />
       </CardContent>
     </Card>
