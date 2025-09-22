@@ -12,6 +12,8 @@ import ScoutManagementFilters from "@/components/scout-management/ScoutManagemen
 import ScoutPerformanceGrid from "@/components/scout-management/ScoutPerformanceGrid";
 import KanbanColumn from "@/components/scout-management/KanbanColumn";
 import ReviewedAssignmentsModal from "@/components/scout-management/ReviewedAssignmentsModal";
+import ScoutManagementViewToggle from "@/components/scout-management/ScoutManagementViewToggle";
+import ScoutManagementTableView from "@/components/scout-management/ScoutManagementTableView";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
@@ -29,6 +31,17 @@ const ScoutManagement = () => {
     assigned: [] as any[],
     completed: [] as any[]
   });
+
+  // View toggle with localStorage persistence
+  const [currentView, setCurrentView] = useState<'kanban' | 'table'>(() => {
+    const saved = localStorage.getItem('scoutManagementView');
+    return (saved === 'table' || saved === 'kanban') ? saved : 'kanban';
+  });
+
+  const handleViewChange = (view: 'kanban' | 'table') => {
+    setCurrentView(view);
+    localStorage.setItem('scoutManagementView', view);
+  };
 
   // Using the consolidated data source
   const { data: assignments = [], refetch: refetchAssignments, isLoading: assignmentsLoading } = useScoutingAssignments();
@@ -380,7 +393,16 @@ const ScoutManagement = () => {
       />
 
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-xl font-semibold">Assignment Status</h2>
+        <div className="flex items-center gap-4">
+          <h2 className="text-xl font-semibold">Assignment Status</h2>
+          {/* Show view toggle when there are 10+ players total */}
+          {(kanbanData.shortlisted.length + kanbanData.assigned.length + kanbanData.completed.length) >= 10 && (
+            <ScoutManagementViewToggle 
+              currentView={currentView} 
+              onViewChange={handleViewChange} 
+            />
+          )}
+        </div>
         <Button 
           variant="outline" 
           onClick={handleViewReviewedAssignments}
@@ -390,21 +412,30 @@ const ScoutManagement = () => {
         </Button>
       </div>
 
-      {/* Status Board */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {columns.map((column) => (
-          <KanbanColumn
-            key={column.id}
-            column={column}
-            players={kanbanData[column.id as keyof typeof kanbanData]}
-            searchTerm={searchTerm}
-            selectedScout={selectedScout}
-            onAssignScout={column.id === 'shortlisted' ? handleAssignScout : undefined}
-            onViewReport={column.id === 'completed' ? handleViewReport : undefined}
-            onMarkAsReviewed={column.id === 'completed' ? handleMarkAsReviewed : undefined}
-          />
-        ))}
-      </div>
+      {/* Status Board or Table View */}
+      {currentView === 'kanban' ? (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {columns.map((column) => (
+            <KanbanColumn
+              key={column.id}
+              column={column}
+              players={kanbanData[column.id as keyof typeof kanbanData]}
+              searchTerm={searchTerm}
+              selectedScout={selectedScout}
+              onAssignScout={column.id === 'shortlisted' ? handleAssignScout : undefined}
+              onViewReport={column.id === 'completed' ? handleViewReport : undefined}
+              onMarkAsReviewed={column.id === 'completed' ? handleMarkAsReviewed : undefined}
+            />
+          ))}
+        </div>
+      ) : (
+        <ScoutManagementTableView
+          kanbanData={kanbanData}
+          onAssignScout={handleAssignScout}
+          onViewReport={handleViewReport}
+          onMarkAsReviewed={handleMarkAsReviewed}
+        />
+      )}
 
       {/* Assign Scout Dialog */}
       <AssignScoutDialog
