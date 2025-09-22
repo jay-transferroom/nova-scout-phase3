@@ -31,6 +31,8 @@ import { useShortlists } from "@/hooks/useShortlists";
 import { usePlayerTracking } from "@/hooks/usePlayerTracking";
 import { useAuth } from "@/contexts/AuthContext";
 import { ReportWithPlayer } from "@/types/report";
+import AssignScoutDialog from "@/components/AssignScoutDialog";
+import { usePlayerProfile } from "@/hooks/usePlayerProfile";
 
 interface PlayerStatusActionsProps {
   playerId: string;
@@ -42,6 +44,10 @@ const PlayerStatusActions = ({ playerId, playerName, playerReports }: PlayerStat
   const navigate = useNavigate();
   const { profile } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
+  const [isAssignDialogOpen, setIsAssignDialogOpen] = useState(false);
+
+  // Get player data
+  const { player } = usePlayerProfile(playerId);
 
   // Get player data from various hooks
   const { data: assignments = [] } = usePlayerAssignments();
@@ -72,8 +78,7 @@ const PlayerStatusActions = ({ playerId, playerName, playerReports }: PlayerStat
   };
 
   const handleAssignScout = () => {
-    // TODO: Open assign scout dialog
-    console.log('Assign scout to player', playerId);
+    setIsAssignDialogOpen(true);
   };
 
   const handleAddToShortlist = () => {
@@ -269,6 +274,18 @@ const PlayerStatusActions = ({ playerId, playerName, playerReports }: PlayerStat
           </div>
         </div>
       </CardContent>
+
+      {/* Assign Scout Dialog */}
+      <AssignScoutDialog
+        isOpen={isAssignDialogOpen}
+        onClose={() => setIsAssignDialogOpen(false)}
+        player={player ? {
+          id: playerId,
+          name: player.name,
+          club: player.club || '',
+          positions: player.positions || []
+        } : null}
+      />
     </Card>
   );
 };
