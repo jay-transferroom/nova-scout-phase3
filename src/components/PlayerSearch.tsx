@@ -5,7 +5,7 @@ import { Player } from "@/types/player";
 import { useUnifiedPlayersData } from "@/hooks/useUnifiedPlayersData";
 import { useTeamsData } from "@/hooks/useTeamsData";
 import { useNavigate } from "react-router-dom";
-import PlayerSearchFilters from "./player-search/PlayerSearchFilters";
+import SearchFilters from "@/components/unified-search/SearchFilters";
 import PlayerSearchResults from "./player-search/PlayerSearchResults";
 import PlayerRecentList from "./player-search/PlayerRecentList";
 
@@ -166,7 +166,7 @@ const PlayerSearch = ({ onSelectPlayer }: PlayerSearchProps) => {
           />
         </div>
         
-        <PlayerSearchFilters
+        <SearchFilters
           ageFilter={ageFilter}
           contractFilter={contractFilter}
           regionFilter={regionFilter}

@@ -1,23 +1,13 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { ArrowLeft, Search, Filter, Loader2 } from "lucide-react";
+import { ArrowLeft, Loader2 } from "lucide-react";
 import { useUnifiedPlayersData } from "@/hooks/useUnifiedPlayersData";
 import { usePlayerNameSearch } from "@/hooks/usePlayerNameSearch";
 import { useTeamsData } from "@/hooks/useTeamsData";
 import { Player } from "@/types/player";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger
-} from "@/components/ui/dropdown-menu";
+import PlayerSearchTableFilters, { PlayerSearchFilterCriteria } from "@/components/player-search/PlayerSearchTableFilters";
+import PlayerSearchTable from "@/components/player-search/PlayerSearchTable";
 
 const SearchResults = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -26,19 +16,24 @@ const SearchResults = () => {
   const { data: teams = [] } = useTeamsData();
   
   const initialQuery = searchParams.get('q') || '';
-  const [searchQuery, setSearchQuery] = useState(initialQuery);
+  const [currentPage, setCurrentPage] = useState(1);
   const [filteredPlayers, setFilteredPlayers] = useState<Player[]>([]);
-  const [sortBy, setSortBy] = useState<string>("name");
-  const [ageFilter, setAgeFilter] = useState<string>("all");
-  const [contractFilter, setContractFilter] = useState<string>("all");
-  const [regionFilter, setRegionFilter] = useState<string>("all");
-  const [nationalityFilter, setNationalityFilter] = useState<string>("all");
-  const [positionFilter, setPositionFilter] = useState<string>("all");
+  const [searchFilters, setSearchFilters] = useState<PlayerSearchFilterCriteria>({
+    searchTerm: initialQuery,
+    sortBy: 'name',
+    ageFilter: 'all',
+    contractFilter: 'all',
+    regionFilter: 'all',
+    nationalityFilter: 'all',
+    positionFilter: 'all'
+  });
+
+  const itemsPerPage = 20;
 
   // Use server-side search for queries with 2+ characters
-  const { data: remotePlayers = [], isLoading: remoteLoading } = usePlayerNameSearch(searchQuery, 200);
+  const { data: remotePlayers = [], isLoading: remoteLoading } = usePlayerNameSearch(searchFilters.searchTerm, 200);
   
-  const isLoading = localLoading || (searchQuery.length >= 2 && remoteLoading);
+  const isLoading = localLoading || (searchFilters.searchTerm.length >= 2 && remoteLoading);
 
   // Create a map of team names to team data for quick lookup
   const teamMap = teams.reduce((acc, team) => {
@@ -52,31 +47,33 @@ const SearchResults = () => {
     return team?.logo_url;
   };
 
-  // Filter players based on search query and filters - Updated for server-side search
-  useEffect(() => {
-    console.log('SearchResults useEffect - filters:', { 
-      sortBy, 
-      ageFilter, 
-      contractFilter, 
-      regionFilter, 
-      nationalityFilter, 
-      positionFilter 
+  // Extract available nationalities from all players
+  const availableNationalities = useMemo(() => {
+    const nationalities = new Set<string>();
+    [...localPlayers, ...remotePlayers].forEach(player => {
+      if (player.nationality) {
+        nationalities.add(player.nationality);
+      }
     });
-    
+    return Array.from(nationalities).sort();
+  }, [localPlayers, remotePlayers]);
+
+  // Filter and sort players based on search query and filters
+  useEffect(() => {
     let results: Player[] = [];
     
     // For queries with 2+ chars, use server-side search results and merge private players
-    if (searchQuery.trim().length >= 2) {
+    if (searchFilters.searchTerm.trim().length >= 2) {
       results = [...remotePlayers];
       
       // Add private players that match the query
       const privateMatches = localPlayers.filter(
-        (p) => (p as any).isPrivatePlayer && p.name.toLowerCase().includes(searchQuery.toLowerCase())
+        (p) => (p as any).isPrivatePlayer && p.name.toLowerCase().includes(searchFilters.searchTerm.toLowerCase())
       );
       results = [...privateMatches, ...results];
-    } else if (searchQuery.trim().length === 1) {
+    } else if (searchFilters.searchTerm.trim().length === 1) {
       // For single character queries, use local search only
-      const lowercaseQuery = searchQuery.toLowerCase().trim();
+      const lowercaseQuery = searchFilters.searchTerm.toLowerCase().trim();
       results = localPlayers.filter(player => 
         player.name.toLowerCase().includes(lowercaseQuery) || 
         player.club.toLowerCase().includes(lowercaseQuery) || 
@@ -85,39 +82,39 @@ const SearchResults = () => {
       );
     } else {
       // No query - show recent/all players (limited for performance)
-      results = localPlayers.slice(0, 100);
+      results = localPlayers.slice(0, 200);
     }
     
     // Apply filters
-    if (ageFilter !== "all") {
-      if (ageFilter === "u21") {
+    if (searchFilters.ageFilter !== "all") {
+      if (searchFilters.ageFilter === "u21") {
         results = results.filter(player => player.age < 21);
-      } else if (ageFilter === "21-25") {
+      } else if (searchFilters.ageFilter === "21-25") {
         results = results.filter(player => player.age >= 21 && player.age <= 25);
-      } else if (ageFilter === "26+") {
+      } else if (searchFilters.ageFilter === "26+") {
         results = results.filter(player => player.age > 25);
       }
     }
     
-    if (contractFilter !== "all") {
-      results = results.filter(player => player.contractStatus === contractFilter);
+    if (searchFilters.contractFilter !== "all") {
+      results = results.filter(player => player.contractStatus === searchFilters.contractFilter);
     }
     
-    if (regionFilter !== "all") {
-      results = results.filter(player => player.region === regionFilter);
+    if (searchFilters.regionFilter !== "all") {
+      results = results.filter(player => player.region === searchFilters.regionFilter);
     }
     
-    if (nationalityFilter !== "all") {
-      results = results.filter(player => player.nationality === nationalityFilter);
+    if (searchFilters.nationalityFilter !== "all") {
+      results = results.filter(player => player.nationality === searchFilters.nationalityFilter);
     }
     
-    if (positionFilter !== "all") {
-      results = results.filter(player => player.positions.some(pos => pos.toLowerCase().includes(positionFilter.toLowerCase())));
+    if (searchFilters.positionFilter !== "all") {
+      results = results.filter(player => player.positions.some(pos => pos.toLowerCase().includes(searchFilters.positionFilter.toLowerCase())));
     }
     
     // Apply sorting
     results.sort((a, b) => {
-      switch (sortBy) {
+      switch (searchFilters.sortBy) {
         case "rating":
           return (b.transferroomRating || 0) - (a.transferroomRating || 0);
         case "potential":
@@ -136,16 +133,17 @@ const SearchResults = () => {
     });
     
     setFilteredPlayers(results);
-  }, [searchQuery, sortBy, ageFilter, contractFilter, regionFilter, nationalityFilter, positionFilter, localPlayers, remotePlayers]);
+    setCurrentPage(1); // Reset to first page when filters change
+  }, [searchFilters, localPlayers, remotePlayers]);
 
   // Update URL when search query changes
   useEffect(() => {
     const params = new URLSearchParams();
-    if (searchQuery.trim()) {
-      params.set('q', searchQuery.trim());
+    if (searchFilters.searchTerm.trim()) {
+      params.set('q', searchFilters.searchTerm.trim());
     }
     setSearchParams(params, { replace: true });
-  }, [setSearchParams, searchQuery]);
+  }, [setSearchParams, searchFilters.searchTerm]);
 
   const handlePlayerClick = (player: Player) => {
     if (player.isPrivatePlayer) {
@@ -154,6 +152,13 @@ const SearchResults = () => {
       navigate(`/player/${player.id}`);
     }
   };
+
+  // Pagination logic
+  const totalItems = filteredPlayers.length;
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedPlayers = filteredPlayers.slice(startIndex, endIndex);
 
   if (isLoading) {
     return (
@@ -167,235 +172,91 @@ const SearchResults = () => {
   }
 
   return (
-    <div className="container mx-auto py-8">
+    <div className="container mx-auto py-8 max-w-7xl">
       <div className="flex items-center gap-4 mb-8">
         <Button variant="ghost" onClick={() => navigate(-1)} className="gap-2">
           <ArrowLeft size={16} />
           Back
         </Button>
         <div>
-          <h1 className="text-3xl font-bold">Search Results</h1>
+          <h1 className="text-3xl font-bold">Player Search</h1>
           <p className="text-muted-foreground mt-2">
-            {searchQuery ? `Results for "${searchQuery}"` : "All players"}
+            {searchFilters.searchTerm ? `Results for "${searchFilters.searchTerm}"` : "All players"}
           </p>
         </div>
       </div>
 
-      <div className="flex items-center space-x-2 mb-6">
-        <div className="relative flex-1">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search player name, club, position or ID"
-            className="pl-8"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-        </div>
-        
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="icon">
-              <Filter className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-56">
-            <DropdownMenuLabel>Sort & Filter</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            
-            <DropdownMenuGroup>
-              <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">Sort by</DropdownMenuLabel>
-              <DropdownMenuItem onClick={() => setSortBy("name")} className={sortBy === "name" ? "bg-accent" : ""}>
-                Name
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setSortBy("rating")} className={sortBy === "rating" ? "bg-accent" : ""}>
-                Rating
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setSortBy("potential")} className={sortBy === "potential" ? "bg-accent" : ""}>
-                Potential
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setSortBy("age")} className={sortBy === "age" ? "bg-accent" : ""}>
-                Age
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setSortBy("contract-expiry")} className={sortBy === "contract-expiry" ? "bg-accent" : ""}>
-                Contract expiry
-              </DropdownMenuItem>
-            </DropdownMenuGroup>
-            
-            <DropdownMenuSeparator />
-            
-            <DropdownMenuGroup>
-              <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">Age</DropdownMenuLabel>
-              <DropdownMenuItem onClick={() => setAgeFilter("all")} className={ageFilter === "all" ? "bg-accent" : ""}>
-                All ages
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setAgeFilter("u21")} className={ageFilter === "u21" ? "bg-accent" : ""}>
-                Under 21
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setAgeFilter("21-25")} className={ageFilter === "21-25" ? "bg-accent" : ""}>
-                21-25 years
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setAgeFilter("26+")} className={ageFilter === "26+" ? "bg-accent" : ""}>
-                26+ years
-              </DropdownMenuItem>
-            </DropdownMenuGroup>
-            
-            <DropdownMenuSeparator />
-            
-            <DropdownMenuGroup>
-              <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">Position</DropdownMenuLabel>
-              <DropdownMenuItem onClick={() => setPositionFilter("all")} className={positionFilter === "all" ? "bg-accent" : ""}>
-                All positions
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setPositionFilter("gk")} className={positionFilter === "gk" ? "bg-accent" : ""}>
-                Goalkeeper
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setPositionFilter("def")} className={positionFilter === "def" ? "bg-accent" : ""}>
-                Defender
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setPositionFilter("mid")} className={positionFilter === "mid" ? "bg-accent" : ""}>
-                Midfielder
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setPositionFilter("att")} className={positionFilter === "att" ? "bg-accent" : ""}>
-                Forward
-              </DropdownMenuItem>
-            </DropdownMenuGroup>
-            
-            <DropdownMenuSeparator />
-            
-            <DropdownMenuGroup>
-              <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">Contract Status</DropdownMenuLabel>
-              <DropdownMenuItem onClick={() => setContractFilter("all")} className={contractFilter === "all" ? "bg-accent" : ""}>
-                All statuses
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setContractFilter("Free Agent")} className={contractFilter === "Free Agent" ? "bg-accent" : ""}>
-                Free Agent
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setContractFilter("Under Contract")} className={contractFilter === "Under Contract" ? "bg-accent" : ""}>
-                Under Contract
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setContractFilter("Loan")} className={contractFilter === "Loan" ? "bg-accent" : ""}>
-                Loan
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setContractFilter("Youth Contract")} className={contractFilter === "Youth Contract" ? "bg-accent" : ""}>
-                Youth Contract
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setContractFilter("Private Player")} className={contractFilter === "Private Player" ? "bg-accent" : ""}>
-                Private Player
-              </DropdownMenuItem>
-            </DropdownMenuGroup>
-            
-            <DropdownMenuSeparator />
-            
-            <DropdownMenuGroup>
-              <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">Region</DropdownMenuLabel>
-              <DropdownMenuItem onClick={() => setRegionFilter("all")} className={regionFilter === "all" ? "bg-accent" : ""}>
-                All regions
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setRegionFilter("Europe")} className={regionFilter === "Europe" ? "bg-accent" : ""}>
-                Europe
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setRegionFilter("South America")} className={regionFilter === "South America" ? "bg-accent" : ""}>
-                South America
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setRegionFilter("North America")} className={regionFilter === "North America" ? "bg-accent" : ""}>
-                North America
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setRegionFilter("Africa")} className={regionFilter === "Africa" ? "bg-accent" : ""}>
-                Africa
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setRegionFilter("Asia")} className={regionFilter === "Asia" ? "bg-accent" : ""}>
-                Asia
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setRegionFilter("Oceania")} className={regionFilter === "Oceania" ? "bg-accent" : ""}>
-                Oceania
-              </DropdownMenuItem>
-            </DropdownMenuGroup>
-            
-            <DropdownMenuSeparator />
-            
-            <DropdownMenuGroup>
-              <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">Nationality</DropdownMenuLabel>
-              <DropdownMenuItem onClick={() => setNationalityFilter("all")} className={nationalityFilter === "all" ? "bg-accent" : ""}>
-                All nationalities
-              </DropdownMenuItem>
-              {/* Get unique nationalities from filtered results */}
-              {Array.from(new Set(localPlayers.concat(remotePlayers).map(p => p.nationality))).slice(0, 10).map(nationality => (
-                <DropdownMenuItem 
-                  key={nationality} 
-                  onClick={() => setNationalityFilter(nationality)} 
-                  className={nationalityFilter === nationality ? "bg-accent" : ""}
-                >
-                  {nationality}
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuGroup>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
+      <PlayerSearchTableFilters 
+        filters={searchFilters}
+        onFiltersChange={setSearchFilters}
+        availableNationalities={availableNationalities}
+      />
 
       <div className="mb-4">
         <p className="text-sm text-muted-foreground">
-          Found {filteredPlayers.length} players
+          Found {totalItems} players
         </p>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {filteredPlayers.map((player) => {
-          const teamLogo = getTeamLogo(player.club);
-          
-          return (
-            <Card 
-              key={player.id}
-              className="cursor-pointer hover:shadow-md transition-shadow"
-              onClick={() => handlePlayerClick(player)}
-            >
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <Avatar className="h-12 w-12">
-                    <AvatarImage 
-                      src={player.image} 
-                      alt={player.name}
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).style.display = 'none';
-                      }}
-                    />
-                    <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white font-semibold">
-                      {player.name.split(' ').map(n => n[0]).join('').toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
-                  
-                  <div className="flex-1">
-                    <p className="font-medium">{player.name}</p>
-                    <p className="text-sm text-muted-foreground">{player.club} • {player.positions.join(", ")}</p>
-                    <p className="text-sm text-muted-foreground">{player.age} yrs • {player.nationality}</p>
-                  </div>
-                  
-                  {teamLogo && (
-                    <Avatar className="h-8 w-8">
-                      <AvatarImage 
-                        src={teamLogo} 
-                        alt={`${player.club} logo`}
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).style.display = 'none';
-                        }}
-                      />
-                      <AvatarFallback className="bg-gradient-to-br from-green-500 to-blue-600 text-white text-xs font-semibold">
-                        {player.club.substring(0, 2).toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          );
-        })}
-      </div>
+      <PlayerSearchTable
+        players={paginatedPlayers}
+        onPlayerClick={handlePlayerClick}
+        getTeamLogo={getTeamLogo}
+      />
 
-      {filteredPlayers.length === 0 && (
-        <div className="text-center py-8">
-          <p className="text-muted-foreground">No players found matching your criteria</p>
+      {totalPages > 1 && (
+        <div className="mt-6 flex justify-center">
+          <div className="flex items-center space-x-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+              disabled={currentPage === 1}
+            >
+              Previous
+            </Button>
+            
+            <div className="flex items-center space-x-1">
+              {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                let pageNum;
+                if (totalPages <= 5) {
+                  pageNum = i + 1;
+                } else if (currentPage <= 3) {
+                  pageNum = i + 1;
+                } else if (currentPage >= totalPages - 2) {
+                  pageNum = totalPages - 4 + i;
+                } else {
+                  pageNum = currentPage - 2 + i;
+                }
+                
+                return (
+                  <Button
+                    key={pageNum}
+                    variant={currentPage === pageNum ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setCurrentPage(pageNum)}
+                  >
+                    {pageNum}
+                  </Button>
+                );
+              })}
+            </div>
+            
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+              disabled={currentPage === totalPages}
+            >
+              Next
+            </Button>
+          </div>
         </div>
       )}
+
+      <div className="mt-4 text-sm text-muted-foreground text-center">
+        Showing {startIndex + 1}-{Math.min(endIndex, totalItems)} of {totalItems} players
+      </div>
     </div>
   );
 };
