@@ -97,7 +97,18 @@ const SearchResults = () => {
     }
     
     if (searchFilters.contractFilter !== "all") {
-      results = results.filter(player => player.contractStatus === searchFilters.contractFilter);
+      if (searchFilters.contractFilter === "Expiring") {
+        // Filter for contracts expiring within the next 6 months
+        const sixMonthsFromNow = new Date();
+        sixMonthsFromNow.setMonth(sixMonthsFromNow.getMonth() + 6);
+        results = results.filter(player => {
+          if (!player.contractExpiry) return false;
+          const expiryDate = new Date(player.contractExpiry);
+          return expiryDate <= sixMonthsFromNow && expiryDate >= new Date();
+        });
+      } else {
+        results = results.filter(player => player.contractStatus === searchFilters.contractFilter);
+      }
     }
     
     if (searchFilters.regionFilter !== "all") {
@@ -112,23 +123,24 @@ const SearchResults = () => {
       results = results.filter(player => player.positions.some(pos => pos.toLowerCase().includes(searchFilters.positionFilter.toLowerCase())));
     }
     
-    // Apply sorting
+    // Apply sorting (High to Low for rating/potential by default)
     results.sort((a, b) => {
       switch (searchFilters.sortBy) {
         case "rating":
-          return (b.transferroomRating || 0) - (a.transferroomRating || 0);
+          return (b.transferroomRating || 0) - (a.transferroomRating || 0); // High to Low
         case "potential":
-          return (b.futureRating || 0) - (a.futureRating || 0);
+          return (b.futureRating || 0) - (a.futureRating || 0); // High to Low
         case "contract-expiry":
+          // Soonest first (ascending date order)
           if (!a.contractExpiry && !b.contractExpiry) return 0;
           if (!a.contractExpiry) return 1;
           if (!b.contractExpiry) return -1;
           return new Date(a.contractExpiry).getTime() - new Date(b.contractExpiry).getTime();
         case "age":
-          return a.age - b.age;
+          return a.age - b.age; // Low to High
         case "name":
         default:
-          return a.name.localeCompare(b.name);
+          return a.name.localeCompare(b.name); // A to Z
       }
     });
     

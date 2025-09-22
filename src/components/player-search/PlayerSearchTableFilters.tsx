@@ -146,6 +146,7 @@ const PlayerSearchFilters = ({ filters, onFiltersChange, availableNationalities 
                     <SelectItem value="Under Contract">Under Contract</SelectItem>
                     <SelectItem value="Loan">Loan</SelectItem>
                     <SelectItem value="Youth Contract">Youth Contract</SelectItem>
+                    <SelectItem value="Expiring">Expiring Soon</SelectItem>
                     <SelectItem value="Private Player">Private Player</SelectItem>
                   </SelectContent>
                 </Select>
@@ -225,7 +226,7 @@ const PlayerSearchFilters = ({ filters, onFiltersChange, availableNationalities 
           )}
           {filters.contractFilter !== 'all' && (
             <Badge variant="secondary" className="flex items-center gap-1 font-normal">
-              Contract: {filters.contractFilter}
+              Contract: {filters.contractFilter === 'Expiring' ? 'Expiring Soon' : filters.contractFilter}
               <X 
                 className="h-4 w-4 cursor-pointer" 
                 onClick={() => updateFilter('contractFilter', 'all')}
