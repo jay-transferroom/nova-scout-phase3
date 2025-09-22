@@ -44,6 +44,15 @@ const ReportsList = () => {
         verdict: verdictParam.includes(',') ? verdictParam.split(',')[0] : verdictParam
       }));
     }
+    
+    // Handle playerName filter from URL
+    const playerNameParam = searchParams.get("playerName");
+    if (playerNameParam) {
+      setSearchFilters(prev => ({
+        ...prev,
+        playerName: decodeURIComponent(playerNameParam)
+      }));
+    }
   }, [searchParams]);
   
   const { reports, loading, deleteReport } = useReports();

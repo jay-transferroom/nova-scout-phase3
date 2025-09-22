@@ -74,7 +74,8 @@ const PlayerStatusActions = ({ playerId, playerName, playerReports }: PlayerStat
   };
 
   const handleViewReports = () => {
-    navigate(`/reports?player=${playerId}`);
+    const name = player?.name || playerName;
+    navigate(`/reports?playerName=${encodeURIComponent(name)}`);
   };
 
   const handleAssignScout = () => {
