@@ -1,5 +1,10 @@
 
-import { useMemo } from "react";
+import { useState, useMemo } from "react";
+import { useAuth } from "@/contexts/AuthContext";
+import { useShortlists } from "@/hooks/useShortlists";
+import { useScoutingAssignments } from "@/hooks/useScoutingAssignments";
+import { useReports } from "@/hooks/useReports";
+import { determinePlayerStatus, getStatusBadgeProps } from "@/utils/playerStatusUtils";
 
 interface UseShortlistsLogicProps {
   allPlayers: any[];
@@ -171,41 +176,18 @@ export const useShortlistsLogic = ({
 
   const getAssignmentBadge = (playerId: string) => {
     const assignment = getPlayerAssignment(playerId);
-    if (!assignment) {
-      return {
-        variant: "secondary" as const,
-        children: "Unassigned"
-      };
-    }
-
-    // Check if there's a report for this player - if so, mark as completed
-    const hasReport = playerReportsMap.has(playerId);
-    const effectiveStatus = hasReport ? 'completed' : assignment.status;
-
-    const scoutName = assignment.assigned_to_scout ? 
-      `${assignment.assigned_to_scout.first_name || ''} ${assignment.assigned_to_scout.last_name || ''}`.trim() || 
-      assignment.assigned_to_scout.email : 
-      'Unknown Scout';
-
-    const statusColors: { [key: string]: string } = {
-      'assigned': 'bg-red-100 text-red-800',
-      'in_progress': 'bg-orange-100 text-orange-800', 
-      'completed': 'bg-green-100 text-green-800',
-      'reviewed': 'bg-blue-100 text-blue-800'
-    };
-
-    const statusLabels: { [key: string]: string } = {
-      'assigned': 'assigned',
-      'in_progress': 'in progress',
-      'completed': 'completed',
-      'reviewed': 'reviewed'
-    };
-
-    return {
-      variant: "outline" as const,
-      className: `${statusColors[effectiveStatus]} border-0`,
-      children: `${scoutName} (${statusLabels[effectiveStatus]})`
-    };
+    
+    // Use unified status determination
+    const statusInfo = determinePlayerStatus({
+      playerId,
+      assignments,
+      reports,
+      scoutingAssignmentPlayerIds: new Set(
+        shortlists.find(list => list.is_scouting_assignment_list)?.playerIds || []
+      )
+    });
+    
+    return getStatusBadgeProps(statusInfo);
   };
 
   const getEuGbeBadge = (status: string) => {

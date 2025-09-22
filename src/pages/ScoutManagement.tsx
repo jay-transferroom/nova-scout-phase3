@@ -16,6 +16,7 @@ import ScoutManagementViewToggle from "@/components/scout-management/ScoutManage
 import ScoutManagementTableView from "@/components/scout-management/ScoutManagementTableView";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { determinePlayerStatus, getPlayerKanbanStatus } from "@/utils/playerStatusUtils";
 
 const ScoutManagement = () => {
   const navigate = useNavigate();
@@ -107,7 +108,7 @@ const ScoutManagement = () => {
   // Move scoutingAssignmentList outside useEffect to avoid dependency issues
   const scoutingAssignmentList = shortlists.find(shortlist => shortlist.is_scouting_assignment_list);
 
-  // Transform assignments and shortlisted players into kanban format
+  // Transform assignments and shortlisted players into kanban format using unified status logic
   useEffect(() => {
     if (isLoading) return;
 
@@ -122,19 +123,7 @@ const ScoutManagement = () => {
       completed: [] as any[]
     };
 
-    // Get assigned player IDs from the consolidated source
-    const assignedPlayerIds = new Set(assignments.map(a => a.player_id));
-
-    // Create a map of player reports for quick lookup
-    const playerReportsMap = new Map();
-    reports.forEach(report => {
-      if (report.playerId) {
-        playerReportsMap.set(report.playerId, report);
-      }
-    });
-
-    console.log('Player reports map size:', playerReportsMap.size);
-
+    // Get scouting assignment player IDs
     const scoutingAssignmentPlayerIds = new Set<string>(
       scoutingAssignmentList?.playerIds || []
     );
@@ -142,92 +131,69 @@ const ScoutManagement = () => {
     console.log('Scouting assignment list:', scoutingAssignmentList);
     console.log('Scouting assignment player IDs:', Array.from(scoutingAssignmentPlayerIds));
 
-    // Create assigned for scouting players from the dedicated list
-    const scoutingAssignmentPlayers = allPlayers
-      .filter(player => {
-        const playerId = player.isPrivatePlayer ? player.id : player.id.toString();
-        return scoutingAssignmentPlayerIds.has(playerId) && !assignedPlayerIds.has(playerId);
-      })
-      .map(player => ({
-        id: `scouting-assignment-${player.id}`,
-        playerName: player.name,
-        club: player.club,
-        position: player.positions?.[0] || 'Unknown',
-        rating: player.transferroomRating?.toFixed(1) || 'N/A',
-        assignedTo: 'Unassigned',
-        updatedAt: 'Available for assignment',
-        lastStatusChange: 'Available for assignment',
-        avatar: player.image || `https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=48&h=48&fit=crop&crop=face&auto=format`,
-        priority: null,
-        deadline: null,
-        scoutId: null,
-        status: 'shortlisted',
-        playerId: player.isPrivatePlayer ? player.id : player.id.toString()
-      }));
+    // Process all players that are either in scouting list or have assignments
+    const allRelevantPlayerIds = new Set([
+      ...Array.from(scoutingAssignmentPlayerIds),
+      ...assignments.map(a => a.player_id)
+    ]);
 
-    // Apply search filter to scouting assignment players
-    const filteredScoutingAssignment = searchTerm 
-      ? scoutingAssignmentPlayers.filter(player => 
-          player.playerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          player.club.toLowerCase().includes(searchTerm.toLowerCase())
-        )
-      : scoutingAssignmentPlayers;
+    allRelevantPlayerIds.forEach(playerId => {
+      // Find player data
+      const playerData = allPlayers.find(p => {
+        const playerIdStr = p.isPrivatePlayer ? p.id : p.id.toString();
+        return playerIdStr === playerId;
+      });
 
-    newKanbanData.shortlisted = filteredScoutingAssignment;
+      if (!playerData) return;
 
-    // Process assigned players using consolidated data
-    assignments.forEach((assignment) => {
-      // Skip reviewed assignments - they shouldn't appear in the completed column
-      if (assignment.status === 'reviewed') {
+      // Find assignment for this player
+      const assignment = assignments.find(a => a.player_id === playerId);
+
+      // Apply filters
+      if (selectedScout !== "all" && assignment?.assigned_to_scout_id !== selectedScout) {
         return;
       }
 
-      const scoutName = assignment.assigned_to_scout?.first_name 
+      const playerName = playerData.name || 'Unknown Player';
+      const club = playerData.club || 'Unknown Club';
+
+      if (searchTerm && !playerName.toLowerCase().includes(searchTerm.toLowerCase()) && 
+          !club.toLowerCase().includes(searchTerm.toLowerCase())) {
+        return;
+      }
+
+      // Use unified status determination
+      const statusInfo = determinePlayerStatus({
+        playerId,
+        assignments,
+        reports,
+        scoutingAssignmentPlayerIds
+      });
+
+      const kanbanStatus = getPlayerKanbanStatus(statusInfo);
+
+      const scoutName = assignment?.assigned_to_scout?.first_name 
         ? `${assignment.assigned_to_scout.first_name} ${assignment.assigned_to_scout.last_name || ''}`.trim()
-        : assignment.assigned_to_scout?.email || 'Unknown Scout';
+        : assignment?.assigned_to_scout?.email || (kanbanStatus === 'shortlisted' ? 'Unassigned' : 'Unknown Scout');
 
-      // Apply scout filter
-      if (selectedScout !== "all" && assignment.assigned_to_scout_id !== selectedScout) {
-        return;
-      }
-
-      const playerName = assignment.players?.name || 'Unknown Player';
-      const club = assignment.players?.club || 'Unknown Club';
-
-      // Apply search filter
-      if (searchTerm && !playerName.toLowerCase().includes(searchTerm.toLowerCase()) && !club.toLowerCase().includes(searchTerm.toLowerCase())) {
-        return;
-      }
-
-      // Check if there's a report for this player - if so, mark as completed
-      const hasReport = playerReportsMap.has(assignment.player_id);
-      const effectiveStatus = hasReport ? 'completed' : assignment.status;
-
-      console.log(`Player ${playerName} (ID: ${assignment.player_id}): hasReport=${hasReport}, effectiveStatus=${effectiveStatus}`);
-
-      const playerData = {
-        id: assignment.id,
+      const playerKanbanData = {
+        id: assignment?.id || `scouting-assignment-${playerId}`,
         playerName,
         club,
-        position: assignment.players?.positions?.[0] || 'Unknown',
-        rating: (Math.random() * 20 + 70).toFixed(1), // Mock rating for now
+        position: playerData.positions?.[0] || 'Unknown',
+        rating: playerData.transferroomRating?.toFixed(1) || 'N/A',
         assignedTo: scoutName,
-        updatedAt: getUpdatedTime(effectiveStatus),
-        lastStatusChange: getLastStatusChange(effectiveStatus, assignment.updated_at),
-        avatar: assignment.players?.imageUrl || `https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=48&h=48&fit=crop&crop=face&auto=format`,
-        priority: assignment.priority,
-        deadline: assignment.deadline,
-        scoutId: assignment.assigned_to_scout_id,
-        status: effectiveStatus,
-        playerId: assignment.player_id
+        updatedAt: getUpdatedTime(statusInfo.status),
+        lastStatusChange: getLastStatusChange(statusInfo.status, assignment?.updated_at || new Date().toISOString()),
+        avatar: playerData.image || `https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=48&h=48&fit=crop&crop=face&auto=format`,
+        priority: assignment?.priority || null,
+        deadline: assignment?.deadline || null,
+        scoutId: assignment?.assigned_to_scout_id || null,
+        status: statusInfo.status,
+        playerId
       };
 
-      if (effectiveStatus === 'completed') {
-        newKanbanData.completed.push(playerData);
-      } else {
-        // All non-completed assignments go to 'assigned'
-        newKanbanData.assigned.push(playerData);
-      }
+      newKanbanData[kanbanStatus].push(playerKanbanData);
     });
 
     console.log('Final kanban data:', {
@@ -395,14 +361,13 @@ const ScoutManagement = () => {
       <div className="flex justify-between items-center mb-6">
         <div className="flex items-center gap-4">
           <h2 className="text-xl font-semibold">Assignment Status</h2>
-          {/* Show view toggle - temporarily always show for debugging */}
-          <ScoutManagementViewToggle 
-            currentView={currentView} 
-            onViewChange={handleViewChange} 
-          />
-          <span className="text-sm text-muted-foreground">
-            ({kanbanData.shortlisted.length + kanbanData.assigned.length + kanbanData.completed.length} total)
-          </span>
+          {/* Show view toggle when there are 10+ players total */}
+          {(kanbanData.shortlisted.length + kanbanData.assigned.length + kanbanData.completed.length) >= 10 && (
+            <ScoutManagementViewToggle 
+              currentView={currentView} 
+              onViewChange={handleViewChange} 
+            />
+          )}
         </div>
         <Button 
           variant="outline" 
