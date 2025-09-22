@@ -48,7 +48,7 @@ const Header = () => {
         <div className="flex-1 max-w-md mx-8">
           <UnifiedPlayerSearch 
             variant="header"
-            placeholder="Search players, reports..."
+            placeholder="Search players"
           />
         </div>
         
