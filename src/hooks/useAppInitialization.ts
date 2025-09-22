@@ -11,6 +11,9 @@ export const useAppInitialization = () => {
   useEffect(() => {
     const initializeApp = async () => {
       try {
+        console.log('Starting app initialization...');
+        setInitializationStatus('Checking existing data...');
+        
         // Check if we have any teams data
         const { data: existingTeams, error } = await supabase
           .from('teams')
@@ -18,9 +21,11 @@ export const useAppInitialization = () => {
           .eq('league', 'Premier League')
           .limit(1);
 
+        console.log('Teams query result:', { existingTeams, error });
+
         if (error) {
           console.error('Error checking existing data:', error);
-          setInitializationStatus('Error checking data');
+          setInitializationStatus('Error checking data - continuing anyway');
           setIsInitialized(true);
           return;
         }
@@ -30,27 +35,46 @@ export const useAppInitialization = () => {
           setInitializationStatus('No data found. Importing Premier League data...');
           console.log('No Premier League data found, starting import...');
           
-          const result = await importPremierLeagueData();
-          
-          if (result.success) {
-            setInitializationStatus(`Import complete! ${result.teams} teams, ${result.players} players imported.`);
-          } else {
+          try {
+            const result = await importPremierLeagueData();
+            
+            if (result.success) {
+              setInitializationStatus(`Import complete! ${result.teams} teams, ${result.players} players imported.`);
+              console.log('Import successful:', result);
+            } else {
+              setInitializationStatus('Import failed, but app will continue to work');
+              console.log('Import failed but continuing');
+            }
+          } catch (importError) {
+            console.error('Import error:', importError);
             setInitializationStatus('Import failed, but app will continue to work');
           }
         } else {
-          setInitializationStatus('Data already available');
           console.log('Premier League data already exists, skipping import');
+          setInitializationStatus('Data already available');
         }
 
       } catch (error) {
         console.error('App initialization error:', error);
         setInitializationStatus('Initialization failed, but app will continue');
       } finally {
+        console.log('App initialization complete, setting initialized to true');
         setIsInitialized(true);
       }
     };
 
-    initializeApp();
+    // Add a timeout to ensure app doesn't hang indefinitely
+    const timeoutId = setTimeout(() => {
+      console.log('Initialization timeout - forcing app to initialize');
+      setInitializationStatus('Initialization timeout - continuing anyway');
+      setIsInitialized(true);
+    }, 10000); // 10 second timeout
+
+    initializeApp().then(() => {
+      clearTimeout(timeoutId);
+    });
+
+    return () => clearTimeout(timeoutId);
   }, []);
 
   return {
