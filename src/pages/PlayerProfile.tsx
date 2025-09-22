@@ -91,9 +91,6 @@ const PlayerProfile = () => {
                 <div>
                   <h1 className="text-4xl font-bold text-foreground mb-2">{player.name}</h1>
                   <div className="flex items-center gap-3 mb-3">
-                    <div className="w-6 h-6 bg-red-600 rounded flex items-center justify-center">
-                      <span className="text-white text-xs font-bold">LFC</span>
-                    </div>
                     <span className="text-lg font-medium">{player.club}</span>
                   </div>
                   <p className="text-lg text-muted-foreground">

@@ -150,9 +150,6 @@ const Profile = () => {
                   Email: {profile?.email || user?.email}
                 </p>
                 <div className="flex items-center gap-2 mt-1">
-                  <div className="w-6 h-6 bg-blue-600 rounded flex items-center justify-center">
-                    <span className="text-white text-xs font-bold">CFC</span>
-                  </div>
                   <span className="text-sm font-medium text-blue-600">Chelsea F.C.</span>
                 </div>
               </div>
@@ -203,9 +200,6 @@ const Profile = () => {
               <div className="space-y-2">
                 <Label htmlFor="club">Club</Label>
                 <div className="flex items-center gap-3 p-3 bg-blue-50 border border-blue-200 rounded-md">
-                  <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center flex-shrink-0">
-                    <span className="text-white text-xs font-bold">CFC</span>
-                  </div>
                   <div>
                     <p className="font-medium text-blue-900">Chelsea F.C.</p>
                     <p className="text-sm text-blue-600">Premier League • England</p>
