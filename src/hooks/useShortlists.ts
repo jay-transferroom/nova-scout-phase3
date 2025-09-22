@@ -201,6 +201,8 @@ export const useShortlists = () => {
 
   const removePlayerFromShortlist = useCallback(async (shortlistId: string, playerId: string) => {
     try {
+      console.log('Removing player from shortlist:', { shortlistId, playerId });
+      
       const { error } = await supabase
         .from('shortlist_players')
         .delete()
@@ -209,17 +211,8 @@ export const useShortlists = () => {
 
       if (error) throw error;
 
-      // Update local state
-      setShortlists(prev => prev.map(shortlist => {
-        if (shortlist.id === shortlistId) {
-          const playerIds = shortlist.playerIds || [];
-          return {
-            ...shortlist,
-            playerIds: playerIds.filter(id => id !== playerId)
-          };
-        }
-        return shortlist;
-      }));
+      // Refresh shortlists from database to ensure UI updates
+      await loadShortlists();
 
       toast({
         title: "Player Removed",
@@ -233,7 +226,7 @@ export const useShortlists = () => {
         variant: "destructive"
       });
     }
-  }, [toast]);
+  }, [toast, loadShortlists]);
 
   const getPlayerShortlists = useCallback((playerId: string) => {
     return shortlists.filter(shortlist => {

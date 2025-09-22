@@ -91,9 +91,11 @@ const Shortlists = () => {
     }, 100);
   };
 
-  const handleRemovePlayer = (playerId: string) => {
+  const handleRemovePlayer = async (playerId: string) => {
     if (selectedList) {
-      removePlayerFromShortlist(selectedList, playerId);
+      await removePlayerFromShortlist(selectedList, playerId);
+      // Refresh shortlists data to ensure UI updates
+      await refreshShortlists();
     }
   };
 
