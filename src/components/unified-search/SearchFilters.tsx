@@ -74,6 +74,9 @@ const SearchFilters = ({
           <DropdownMenuItem onClick={() => onContractFilterChange("Youth Contract")} className={contractFilter === "Youth Contract" ? "bg-accent" : ""}>
             Youth Contract
           </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => onContractFilterChange("Expiring")} className={contractFilter === "Expiring" ? "bg-accent" : ""}>
+            Expiring Soon
+          </DropdownMenuItem>
         </DropdownMenuGroup>
         
         <DropdownMenuSeparator />

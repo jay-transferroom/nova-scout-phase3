@@ -104,7 +104,20 @@ const UnifiedPlayerSearch = ({
         else if (ageFilter === '21-25') results = results.filter((p) => p.age >= 21 && p.age <= 25);
         else if (ageFilter === '26+') results = results.filter((p) => p.age > 25);
       }
-      if (contractFilter !== 'all') results = results.filter((p) => p.contractStatus === contractFilter);
+      if (contractFilter !== 'all') {
+        if (contractFilter === "Expiring") {
+          // Filter for contracts expiring within the next 6 months
+          const sixMonthsFromNow = new Date();
+          sixMonthsFromNow.setMonth(sixMonthsFromNow.getMonth() + 6);
+          results = results.filter(player => {
+            if (!player.contractExpiry) return false;
+            const expiryDate = new Date(player.contractExpiry);
+            return expiryDate <= sixMonthsFromNow && expiryDate >= new Date();
+          });
+        } else {
+          results = results.filter((p) => p.contractStatus === contractFilter);
+        }
+      }
       if (regionFilter !== 'all') results = results.filter((p) => p.region === regionFilter);
 
       setFilteredPlayers(results);
@@ -176,7 +189,20 @@ const UnifiedPlayerSearch = ({
       else if (ageFilter === '21-25') results = results.filter((p) => p.age >= 21 && p.age <= 25);
       else if (ageFilter === '26+') results = results.filter((p) => p.age > 25);
     }
-    if (contractFilter !== 'all') results = results.filter((p) => p.contractStatus === contractFilter);
+    if (contractFilter !== 'all') {
+      if (contractFilter === "Expiring") {
+        // Filter for contracts expiring within the next 6 months
+        const sixMonthsFromNow = new Date();
+        sixMonthsFromNow.setMonth(sixMonthsFromNow.getMonth() + 6);
+        results = results.filter(player => {
+          if (!player.contractExpiry) return false;
+          const expiryDate = new Date(player.contractExpiry);
+          return expiryDate <= sixMonthsFromNow && expiryDate >= new Date();
+        });
+      } else {
+        results = results.filter((p) => p.contractStatus === contractFilter);
+      }
+    }
     if (regionFilter !== 'all') results = results.filter((p) => p.region === regionFilter);
 
     setFilteredPlayers(results);
