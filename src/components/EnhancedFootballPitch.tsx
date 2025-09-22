@@ -426,52 +426,59 @@ const EnhancedFootballPitch = ({ players, squadType, formation = '4-3-3', positi
               {/* Player Name Below Circle */}
               <div className="mt-2 text-center">
                 <div className="text-xs font-bold text-white drop-shadow-md bg-black/50 rounded px-2 py-1">
-                  {currentPlayer.name.split(' ').pop()} {/* Show last name only */}
+                  {currentPlayer.name} {/* Show full name */}
                 </div>
               </div>
 
               {/* Hidden Dropdown - Appears on Circle Click */}
               {showDropdown && onPlayerChange && allEligiblePlayers.length > 1 && (
-                <div className="absolute top-20 left-1/2 transform -translate-x-1/2 z-50 animate-fade-in">
-                  <div className="bg-white border border-gray-300 rounded-lg shadow-xl p-2 min-w-48 max-h-60 overflow-y-auto">
-                    <div className="text-xs font-semibold text-gray-600 mb-2 px-2">
-                      Select Player for {position}
-                    </div>
-                    {allEligiblePlayers.map((player) => (
-                      <div
-                        key={player.id}
-                        className={`flex items-center gap-2 p-2 rounded cursor-pointer transition-colors ${
-                          player.id === currentPlayer.id 
-                            ? 'bg-blue-50 border border-blue-200' 
-                            : 'hover:bg-gray-50'
-                        }`}
-                        onClick={() => {
-                          onPlayerChange(position, player.id);
-                          setShowDropdown(false);
-                        }}
-                      >
-                        <Avatar className="w-8 h-8">
-                          <AvatarImage 
-                            src={player.image || `https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&crop=face&fit=crop`} 
-                            alt={player.name}
-                          />
-                          <AvatarFallback className="bg-blue-600 text-white text-xs">
-                            {player.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div className="flex-1">
-                          <div className="text-sm font-medium">{player.name}</div>
-                          <div className="text-xs text-gray-500">
-                            Rating: {player.transferroomRating?.toFixed(1) || player.xtvScore || 'N/A'}
-                          </div>
-                        </div>
-                        {player.id === currentPlayer.id && (
-                          <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                        )}
+                <>
+                  {/* Click outside to close dropdown */}
+                  <div 
+                    className="fixed inset-0 z-40" 
+                    onClick={() => setShowDropdown(false)}
+                  />
+                  <div className="absolute top-20 left-1/2 transform -translate-x-1/2 z-50 animate-fade-in">
+                    <div className="bg-white border border-gray-300 rounded-lg shadow-xl p-2 min-w-48 max-h-60 overflow-y-auto">
+                      <div className="text-xs font-semibold text-gray-600 mb-2 px-2">
+                        Select Player for {position}
                       </div>
-                    ))}
+                      {allEligiblePlayers.map((player) => (
+                        <div
+                          key={player.id}
+                          className={`flex items-center gap-2 p-2 rounded cursor-pointer transition-colors ${
+                            player.id === currentPlayer.id 
+                              ? 'bg-blue-50 border border-blue-200' 
+                              : 'hover:bg-gray-50'
+                          }`}
+                          onClick={() => {
+                            onPlayerChange(position, player.id);
+                            setShowDropdown(false);
+                          }}
+                        >
+                          <Avatar className="w-8 h-8">
+                            <AvatarImage 
+                              src={player.image || `https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&crop=face&fit=crop`} 
+                              alt={player.name}
+                            />
+                            <AvatarFallback className="bg-blue-600 text-white text-xs">
+                              {player.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className="flex-1">
+                            <div className="text-sm font-medium">{player.name}</div>
+                            <div className="text-xs text-gray-500">
+                              Rating: {player.transferroomRating?.toFixed(1) || player.xtvScore || 'N/A'}
+                            </div>
+                          </div>
+                          {player.id === currentPlayer.id && (
+                            <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                </div>
+                </>
               )}
             </div>
           ) : (
@@ -486,55 +493,54 @@ const EnhancedFootballPitch = ({ players, squadType, formation = '4-3-3', positi
               
               <div className="mt-2 text-center">
                 <div className="text-xs font-bold text-white drop-shadow-md bg-black/50 rounded px-2 py-1">
-                  Empty
+                  No Player
                 </div>
               </div>
 
               {/* Hidden Dropdown for Empty Position */}
               {showDropdown && onPlayerChange && allEligiblePlayers.length > 0 && (
-                <div className="absolute top-20 left-1/2 transform -translate-x-1/2 z-50 animate-fade-in">
-                  <div className="bg-white border border-gray-300 rounded-lg shadow-xl p-2 min-w-48 max-h-60 overflow-y-auto">
-                    <div className="text-xs font-semibold text-gray-600 mb-2 px-2">
-                      Select Player for {position}
-                    </div>
-                    {allEligiblePlayers.map((player) => (
-                      <div
-                        key={player.id}
-                        className="flex items-center gap-2 p-2 rounded cursor-pointer hover:bg-gray-50 transition-colors"
-                        onClick={() => {
-                          onPlayerChange(position, player.id);
-                          setShowDropdown(false);
-                        }}
-                      >
-                        <Avatar className="w-8 h-8">
-                          <AvatarImage 
-                            src={player.image || `https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&crop=face&fit=crop`} 
-                            alt={player.name}
-                          />
-                          <AvatarFallback className="bg-blue-600 text-white text-xs">
-                            {player.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div className="flex-1">
-                          <div className="text-sm font-medium">{player.name}</div>
-                          <div className="text-xs text-gray-500">
-                            Rating: {player.transferroomRating?.toFixed(1) || player.xtvScore || 'N/A'}
+                <>
+                  {/* Click outside to close dropdown */}
+                  <div 
+                    className="fixed inset-0 z-40" 
+                    onClick={() => setShowDropdown(false)}
+                  />
+                  <div className="absolute top-20 left-1/2 transform -translate-x-1/2 z-50 animate-fade-in">
+                    <div className="bg-white border border-gray-300 rounded-lg shadow-xl p-2 min-w-48 max-h-60 overflow-y-auto">
+                      <div className="text-xs font-semibold text-gray-600 mb-2 px-2">
+                        Select Player for {position}
+                      </div>
+                      {allEligiblePlayers.map((player) => (
+                        <div
+                          key={player.id}
+                          className="flex items-center gap-2 p-2 rounded cursor-pointer hover:bg-gray-50 transition-colors"
+                          onClick={() => {
+                            onPlayerChange(position, player.id);
+                            setShowDropdown(false);
+                          }}
+                        >
+                          <Avatar className="w-8 h-8">
+                            <AvatarImage 
+                              src={player.image || `https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&crop=face&fit=crop`} 
+                              alt={player.name}
+                            />
+                            <AvatarFallback className="bg-blue-600 text-white text-xs">
+                              {player.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className="flex-1">
+                            <div className="text-sm font-medium">{player.name}</div>
+                            <div className="text-xs text-gray-500">
+                              Rating: {player.transferroomRating?.toFixed(1) || player.xtvScore || 'N/A'}
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
                   </div>
-                </div>
+                </>
               )}
             </div>
-          )}
-          
-          {/* Click outside to close dropdown */}
-          {showDropdown && (
-            <div 
-              className="fixed inset-0 z-40" 
-              onClick={() => setShowDropdown(false)}
-            />
           )}
         </div>
       </div>
