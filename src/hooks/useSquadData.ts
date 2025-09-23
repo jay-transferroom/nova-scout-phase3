@@ -3,21 +3,36 @@ import { useMemo } from "react";
 import { Player } from "@/types/player";
 
 export const useSquadData = (clubPlayers: Player[], selectedSquad: string) => {
+  
+  // Helper function to check if a player should be excluded from first team and shadow squad
+  const isEligibleForSeniorSquad = (player: Player) => {
+    // Exclude players under 21
+    if (player.age < 21) return false;
+    
+    // Exclude players on loan (club is not Chelsea-related)
+    const isOnLoan = player.club !== 'Chelsea FC' && 
+                     !player.club?.includes('Chelsea') && 
+                     player.club !== 'Unknown';
+    if (isOnLoan) return false;
+    
+    // Must be Chelsea-related club but not youth teams
+    const isChelsea = player.club === 'Chelsea FC' || 
+                     (player.club?.includes('Chelsea') && 
+                      !player.club?.includes('U21') && 
+                      !player.club?.includes('U18'));
+    
+    return isChelsea;
+  };
+
   // Filter players based on squad selection
   const squadPlayers = useMemo(() => {
     switch (selectedSquad) {
       case 'first-team':
-        return clubPlayers.filter(player => 
-          player.club === 'Chelsea FC' || 
-          (player.club?.includes('Chelsea') && !player.club?.includes('U21') && !player.club?.includes('U18'))
-        );
+        return clubPlayers.filter(isEligibleForSeniorSquad);
       
       case 'shadow-squad':
         // Shadow squad: backup players from first team, excluding the leading player per position
-        const firstTeamPlayers = clubPlayers.filter(player => 
-          player.club === 'Chelsea FC' || 
-          (player.club?.includes('Chelsea') && !player.club?.includes('U21') && !player.club?.includes('U18'))
-        );
+        const firstTeamPlayers = clubPlayers.filter(isEligibleForSeniorSquad);
         
         // Get the leading players for each position to exclude from shadow squad
         const positions = ['GK', 'LB', 'CB', 'RB', 'CM', 'W', 'F'];
