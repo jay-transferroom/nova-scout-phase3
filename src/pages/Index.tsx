@@ -1,11 +1,14 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import { FileText, Users, Calendar, Target, Plus, TrendingUp, AlertCircle, UserPlus, Search, List, User, Eye, Star } from "lucide-react";
+import { FileText, Users, Calendar, Target, Plus, TrendingUp, AlertCircle, UserPlus, Search, List, User, Eye, Star, Bookmark, UserCheck } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useReports } from "@/hooks/useReports";
 import DirectorDashboard from "./DirectorDashboard";
 import { Badge } from "@/components/ui/badge";
+import { useShortlists } from "@/hooks/useShortlists";
+import { useScoutingAssignments } from "@/hooks/useScoutingAssignments";
+import { useScouts } from "@/hooks/useScouts";
 import { getOverallRating, getRecommendation } from "@/utils/reportDataExtraction";
 import VerdictBadge from "@/components/VerdictBadge";
 import { useReportPlayerData } from "@/hooks/useReportPlayerData";
@@ -22,6 +25,9 @@ const Index = () => {
   const navigate = useNavigate();
   const { user, profile } = useAuth();
   const { reports, loading } = useReports();
+  const { shortlists, loading: shortlistsLoading } = useShortlists();
+  const { data: assignments = [], isLoading: assignmentsLoading } = useScoutingAssignments();
+  const { data: scouts = [], isLoading: scoutsLoading } = useScouts();
 
   // Route to appropriate dashboard based on user role
   if (profile?.role === 'director') {
@@ -84,40 +90,70 @@ const Index = () => {
     },
   ];
 
-  const recommendForSigningReports = (profile?.role === 'recruitment' ? reports : myReports)
-    .filter(report => {
-      const verdict = getRecommendation(report);
-      return verdict === 'recommend-signing' || verdict === 'Recommend for signing';
-    });
+  // Calculate dashboard statistics
+  const now = new Date();
+  const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
+  
+  // Reports created in last month
+  const reportsLastMonth = (profile?.role === 'recruitment' ? reports : myReports).filter(report => {
+    const reportDate = new Date(report.createdAt);
+    return reportDate >= lastMonth;
+  });
+  
+  // Total shortlisted players (excluding scouting assignment list)
+  const totalShortlistedPlayers = shortlists
+    .filter(list => !list.is_scouting_assignment_list)
+    .reduce((total, list) => total + (list.playerIds?.length || 0), 0);
+  
+  // Players added to shortlists in last week
+  const lastWeek = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+  const recentShortlistAdditions = shortlists
+    .filter(list => !list.is_scouting_assignment_list && list.updated_at)
+    .filter(list => new Date(list.updated_at!) >= lastWeek)
+    .reduce((total, list) => total + (list.playerIds?.length || 0), 0);
+  
+  // Assigned players and scouts with assignments
+  const totalAssignedPlayers = assignments.length;
+  const scoutsWithAssignments = new Set(assignments.map(a => a.assigned_to_scout_id)).size;
+  const scoutsWithoutAssignments = scouts.filter(s => s.role === 'scout').length - scoutsWithAssignments;
+  const totalScouts = scouts.filter(s => s.role === 'scout').length;
 
   const stats = [
     {
-      title: "Total Reports",
-      value: loading ? 0 : (profile?.role === 'recruitment' ? reports.length : myReports.length),
-      description: profile?.role === 'recruitment' ? "All reports in system" : "Reports created by you",
+      title: "Reports Created",
+      subtitle: "Last Month",
+      value: loading ? 0 : reportsLastMonth.length,
+      description: "New reports this month",
       icon: FileText,
-      trend: loading ? "Loading..." : `${profile?.role === 'recruitment' ? reports.length : myReports.length} total`,
+      trend: loading ? "Loading..." : `${profile?.role === 'recruitment' ? reports.length : myReports.length} total reports`,
+      route: "/reports?tab=all-reports"
     },
     {
-      title: "Draft Reports",
-      value: loading ? 0 : (profile?.role === 'recruitment' ? reports.filter(r => r.status === 'draft').length : draftReports.length),
-      description: "Pending completion",
-      icon: AlertCircle,
-      trend: loading ? "Loading..." : `${profile?.role === 'recruitment' ? reports.filter(r => r.status === 'draft').length : draftReports.length} pending`,
+      title: "Shortlisted Players", 
+      subtitle: "",
+      value: shortlistsLoading ? 0 : totalShortlistedPlayers,
+      description: "Players on shortlists",
+      icon: Bookmark,
+      trend: shortlistsLoading ? "Loading..." : `${recentShortlistAdditions} added recently`,
+      route: "/shortlists"
     },
     {
-      title: "Submitted Reports", 
-      value: loading ? 0 : (profile?.role === 'recruitment' ? reports.filter(r => r.status === 'submitted').length : submittedReports.length),
-      description: "Completed reports",
-      icon: TrendingUp,
-      trend: loading ? "Loading..." : `${profile?.role === 'recruitment' ? reports.filter(r => r.status === 'submitted').length : submittedReports.length} completed`,
+      title: "Assigned Players",
+      subtitle: "",
+      value: assignmentsLoading ? 0 : totalAssignedPlayers,
+      description: "Players with scout assignments",
+      icon: UserCheck,
+      trend: assignmentsLoading ? "Loading..." : `${scoutsWithAssignments} scouts assigned`,
+      route: "/scout-management"
     },
     {
-      title: "Recommend for Signing",
-      value: loading ? 0 : recommendForSigningReports.length,
-      description: "Players to sign",
-      icon: Star,
-      trend: loading ? "Loading..." : `${recommendForSigningReports.length} recommended players`,
+      title: "Scouts Available",
+      subtitle: "",
+      value: scoutsLoading ? 0 : scoutsWithoutAssignments,
+      description: "Scouts without assignments",
+      icon: Users,
+      trend: scoutsLoading ? "Loading..." : `${totalScouts} total scouts`,
+      route: "/scout-management"
     },
   ];
 
@@ -159,31 +195,24 @@ const Index = () => {
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           {stats.map((stat, index) => {
             const Icon = stat.icon;
-            const getReportsRoute = () => {
-              switch (stat.title) {
-                case "Total Reports":
-                  return "/reports?tab=all-reports";
-                case "Draft Reports":
-                  return "/reports?tab=my-drafts";
-                case "Submitted Reports":
-                  return "/reports?tab=my-reports";
-                case "Recommend for Signing":
-                  return "/reports?tab=all-reports&verdict=recommend-signing";
-                default:
-                  return "/reports";
-              }
-            };
             
             return (
               <Card 
                 key={index} 
                 className="cursor-pointer hover:bg-accent transition-colors"
-                onClick={() => navigate(getReportsRoute())}
+                onClick={() => navigate(stat.route)}
               >
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">
-                    {stat.title}
-                  </CardTitle>
+                  <div className="space-y-1">
+                    <CardTitle className="text-sm font-medium">
+                      {stat.title}
+                    </CardTitle>
+                    {stat.subtitle && (
+                      <p className="text-xs text-muted-foreground font-medium">
+                        {stat.subtitle}
+                      </p>
+                    )}
+                  </div>
                   <Icon className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
