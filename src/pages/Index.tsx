@@ -217,6 +217,12 @@ const Index = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold">{stat.value}</div>
+                  <p className="text-xs text-muted-foreground">
+                    {stat.description}
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {stat.trend}
+                  </p>
                 </CardContent>
               </Card>
             );
