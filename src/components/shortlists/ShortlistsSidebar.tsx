@@ -249,12 +249,7 @@ export const ShortlistsSidebar = ({
               </CardHeader>
               <CardContent className="pt-0">
                 <div className="text-xs text-muted-foreground">
-                  {list.description && (
-                    <div className="mb-1 truncate">{list.description}</div>
-                  )}
-                  <div>
-                    {totalPlayers} {totalPlayers === 1 ? 'player' : 'players'}
-                  </div>
+                  {totalPlayers} {totalPlayers === 1 ? 'player' : 'players'}
                 </div>
               </CardContent>
             </Card>

@@ -161,6 +161,14 @@ export const ShortlistsContent = ({
           </div>
         </div>
       </CardHeader>
+      
+      {/* Shortlist Description */}
+      {currentList.description && (
+        <div className="px-6 pb-4">
+          <p className="text-sm text-muted-foreground">{currentList.description}</p>
+        </div>
+      )}
+      
       <CardContent>
         {/* Search and Filters */}
         <div className="flex flex-col md:flex-row gap-4 mb-6">
