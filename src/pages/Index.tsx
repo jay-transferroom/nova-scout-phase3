@@ -6,11 +6,16 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useReports } from "@/hooks/useReports";
 import DirectorDashboard from "./DirectorDashboard";
 import { Badge } from "@/components/ui/badge";
-import AddPrivatePlayerDialog from "@/components/AddPrivatePlayerDialog";
-import { TrackedPlayersSection } from "@/components/TrackedPlayersSection";
 import { getOverallRating, getRecommendation } from "@/utils/reportDataExtraction";
 import VerdictBadge from "@/components/VerdictBadge";
 import { useReportPlayerData } from "@/hooks/useReportPlayerData";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { PlayerAvatar } from "@/components/ui/player-avatar";
+import { ClubBadge } from "@/components/ui/club-badge";
+import { ScoutingGrade } from "@/components/ui/scouting-grade";
+import { formatDate } from "@/utils/reportFormatting";
+import QuickActionsBar from "@/components/QuickActionsBar";
+import UpcomingMatches from "@/components/UpcomingMatches";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -195,11 +200,11 @@ const Index = () => {
         </div>
 
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Tracked Players Section */}
-          <TrackedPlayersSection />
+        <div className="grid grid-cols-1 gap-6">
+          {/* Quick Actions Bar */}
+          <QuickActionsBar />
 
-          {/* Recent Activity - Now shows real reports */}
+          {/* Recent Reports - Full width table */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center justify-between">
@@ -217,24 +222,41 @@ const Index = () => {
               {loading ? (
                 <p className="text-center text-muted-foreground">Loading reports...</p>
               ) : recentReportsToShow.length > 0 ? (
-                <div className="space-y-3">
-                  {recentReportsToShow.map((report) => (
-                    <RecentReportItem 
-                      key={report.id} 
-                      report={report} 
-                      profile={profile}
-                      getScoutName={getScoutName}
-                      navigate={navigate}
-                    />
-                  ))}
-                  <Button
-                    variant="outline"
-                    className="w-full"
-                    onClick={() => navigate("/reports")}
-                  >
-                    View All Reports ({profile?.role === 'recruitment' ? reports.length : myReports.length})
-                  </Button>
-                </div>
+                <>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Player</TableHead>
+                        <TableHead>Club</TableHead>
+                        <TableHead>Date</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Rating</TableHead>
+                        <TableHead>Verdict</TableHead>
+                        <TableHead>Scout</TableHead>
+                        <TableHead className="text-right">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {recentReportsToShow.map((report) => (
+                        <RecentReportTableRow 
+                          key={report.id} 
+                          report={report} 
+                          profile={profile}
+                          navigate={navigate}
+                        />
+                      ))}
+                    </TableBody>
+                  </Table>
+                  <div className="mt-4">
+                    <Button
+                      variant="outline"
+                      className="w-full"
+                      onClick={() => navigate("/reports")}
+                    >
+                      View All Reports ({profile?.role === 'recruitment' ? reports.length : myReports.length})
+                    </Button>
+                  </div>
+                </>
               ) : (
                 <div className="text-center py-6">
                   <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
@@ -246,14 +268,17 @@ const Index = () => {
               )}
             </CardContent>
           </Card>
+
+          {/* Upcoming Matches */}
+          <UpcomingMatches />
         </div>
       </div>
     </div>
   );
 };
 
-// Component to display individual report items with real player data
-const RecentReportItem = ({ report, profile, getScoutName, navigate }) => {
+// Component to display individual report items in table format
+const RecentReportTableRow = ({ report, profile, navigate }) => {
   const { data: playerData, isLoading: playerLoading } = useReportPlayerData(report.playerId);
   const rating = getOverallRating(report);
   const verdict = getRecommendation(report);
@@ -263,55 +288,69 @@ const RecentReportItem = ({ report, profile, getScoutName, navigate }) => {
   const playerClub = playerLoading ? 'Loading...' : 
                      playerData?.club || 'Unknown Club';
 
+  const getScoutName = (report: any) => {
+    if (report.scoutProfile?.first_name && report.scoutProfile?.last_name) {
+      return `${report.scoutProfile.first_name} ${report.scoutProfile.last_name}`;
+    }
+    if (report.scoutProfile?.first_name) {
+      return report.scoutProfile.first_name;
+    }
+    return report.scoutProfile?.email || 'Unknown Scout';
+  };
+
   return (
-    <div
-      className="flex items-start justify-between p-4 border rounded-lg hover:bg-accent transition-colors cursor-pointer"
+    <TableRow 
+      className="cursor-pointer hover:bg-accent transition-colors"
       onClick={() => navigate(`/report/${report.id}`)}
     >
-      <div className="flex-1 space-y-2">
+      <TableCell>
         <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2">
-            <FileText className="h-4 w-4 text-muted-foreground" />
-            <span className="font-medium">{playerName}</span>
-          </div>
-          <Badge variant={report.status === 'submitted' ? 'default' : 'secondary'}>
-            {report.status}
-          </Badge>
+          <PlayerAvatar 
+            playerName={playerName}
+            avatarUrl={playerData?.image}
+            size="sm"
+          />
+          <span className="font-medium">{playerName}</span>
         </div>
-        
+      </TableCell>
+      <TableCell>
+        <ClubBadge clubName={playerClub} />
+      </TableCell>
+      <TableCell>
         <div className="text-sm text-muted-foreground">
-          <div className="flex items-center gap-4">
-            <span>{playerClub}</span>
-            <span>•</span>
-            <span>{new Date(report.createdAt).toLocaleDateString()}</span>
-          </div>
+          {formatDate(report.createdAt)}
         </div>
-
-        <div className="flex items-center gap-4 text-sm">
-          <div className="flex items-center gap-1">
-            <User className="h-3 w-3 text-muted-foreground" />
-            <span className="text-muted-foreground">
-              {profile?.role === 'recruitment' ? getScoutName(report) : 'You'}
-            </span>
-          </div>
-          
-          {rating !== null && rating !== undefined && (
-            <div className="flex items-center gap-1">
-              <Star className="h-3 w-3 text-yellow-500" />
-              <span className="font-medium">{rating}</span>
-            </div>
-          )}
-          
-          {verdict && (
-            <VerdictBadge verdict={verdict} />
-          )}
+      </TableCell>
+      <TableCell>
+        <Badge variant={report.status === 'submitted' ? 'default' : 'secondary'}>
+          {report.status}
+        </Badge>
+      </TableCell>
+      <TableCell>
+        {rating !== null && rating !== undefined ? (
+          <ScoutingGrade grade={rating} />
+        ) : (
+          <span className="text-muted-foreground text-sm">-</span>
+        )}
+      </TableCell>
+      <TableCell>
+        {verdict ? (
+          <VerdictBadge verdict={verdict} />
+        ) : (
+          <span className="text-muted-foreground text-sm">-</span>
+        )}
+      </TableCell>
+      <TableCell>
+        <div className="text-sm text-muted-foreground">
+          {profile?.role === 'recruitment' ? getScoutName(report) : 'You'}
         </div>
-      </div>
-      
-      <Button variant="ghost" size="sm">
-        <Eye className="h-4 w-4" />
-      </Button>
-    </div>
+      </TableCell>
+      <TableCell className="text-right">
+        <Button variant="ghost" size="sm">
+          <Eye className="h-4 w-4" />
+        </Button>
+      </TableCell>
+    </TableRow>
   );
 };
 
