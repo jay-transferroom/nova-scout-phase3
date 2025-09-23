@@ -289,11 +289,27 @@ const PlayerStatusActions = ({ playerId, playerName, playerReports }: PlayerStat
             )}
             
             {/* Shortlists Status */}
-            <div className="px-6">
-              <span className={playerShortlists.length > 0 ? "text-green-600 font-medium" : "text-base text-muted-foreground"}>
-                {playerShortlists.length} Shortlist{playerShortlists.length !== 1 ? 's' : ''}
-              </span>
-            </div>
+            {playerShortlists.length > 0 && (
+              <div className="px-6">
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <span className="text-green-600 font-medium cursor-help">
+                        {playerShortlists.length} Shortlist{playerShortlists.length !== 1 ? 's' : ''}
+                      </span>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <div className="space-y-1">
+                        <p className="font-medium">Shortlists:</p>
+                        {playerShortlists.map((list) => (
+                          <p key={list.id} className="text-sm">• {list.name}</p>
+                        ))}
+                      </div>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
+            )}
             
           </div>
 
