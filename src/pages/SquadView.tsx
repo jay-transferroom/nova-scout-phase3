@@ -64,7 +64,7 @@ const SquadView = () => {
 
   if (isLoading) {
     return (
-      <div className="container mx-auto py-8">
+      <div className="py-8 px-6">
         <div className="flex items-center justify-center h-64">
           <div className="text-lg">Loading squad data...</div>
         </div>
@@ -74,7 +74,7 @@ const SquadView = () => {
 
   if (error) {
     return (
-      <div className="container mx-auto py-8">
+      <div className="py-8 px-6">
         <div className="flex items-center justify-center h-64">
           <div className="text-lg text-red-600">Error loading squad data. Please try again.</div>
         </div>
@@ -99,7 +99,7 @@ const SquadView = () => {
   };
 
   return (
-    <div className="container mx-auto py-8 space-y-8">
+    <div className="py-8 px-6 space-y-8">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
