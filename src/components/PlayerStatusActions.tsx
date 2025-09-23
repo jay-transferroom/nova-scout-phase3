@@ -332,7 +332,7 @@ const PlayerStatusActions = ({ playerId, playerName, playerReports }: PlayerStat
             {/* Notes action */}
             <Button variant="outline" size="sm" onClick={handleNotesAction} className="gap-2">
               <MessageSquare className="w-4 h-4" />
-              {notesCount > 0 ? 'View Notes' : 'Add Note'}
+              {notesCount > 0 ? `View Notes (${notesCount})` : 'Add Note'}
             </Button>
 
             {/* Scouting assignment toggle */}
