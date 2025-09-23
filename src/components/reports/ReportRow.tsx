@@ -83,7 +83,7 @@ const ReportRow = ({ report, onViewReport, onEditReport, onDeleteReport, canEdit
       <TableCell>
         <div className="flex flex-wrap gap-1">
           {playerPositions.split(", ").map((position, index) => (
-            <Badge key={index} variant="neutral" className="text-sm">
+            <Badge key={index} variant="neutral" className="text-xs">
               {position}
             </Badge>
           ))}
@@ -96,7 +96,7 @@ const ReportRow = ({ report, onViewReport, onEditReport, onDeleteReport, canEdit
       </TableCell>
       <TableCell>
         <div className="flex items-center gap-2">
-          <Badge variant={report.status === "submitted" ? "success" : "neutral"} className="text-sm font-medium">
+          <Badge variant={report.status === "submitted" ? "success" : "neutral"} className="text-xs font-medium">
             {report.status === "draft" ? "Draft" : "Submitted"}
           </Badge>
         </div>

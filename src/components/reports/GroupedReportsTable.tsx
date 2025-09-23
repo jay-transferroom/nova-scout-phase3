@@ -87,7 +87,7 @@ const GroupedReportRow = ({ groupedReport, onViewReport, onEditReport, onDeleteR
       <TableCell>
         <div className="flex flex-wrap gap-1">
           {playerPositions.map((position, index) => (
-            <Badge key={index} variant="neutral" className="text-sm">
+            <Badge key={index} variant="neutral" className="text-xs">
               {position}
             </Badge>
           ))}
@@ -106,7 +106,7 @@ const GroupedReportRow = ({ groupedReport, onViewReport, onEditReport, onDeleteR
       </TableCell>
       <TableCell>
         <div className="flex items-center gap-2">
-          <Badge variant={latestReport.status === "submitted" ? "success" : "neutral"} className="text-sm font-medium">
+          <Badge variant={latestReport.status === "submitted" ? "success" : "neutral"} className="text-xs font-medium">
             {latestReport.status === "draft" ? "Draft" : "Submitted"}
           </Badge>
         </div>
