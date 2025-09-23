@@ -120,8 +120,8 @@ const Index = () => {
 
   const stats = [
     {
-      title: "Reports Created",
-      subtitle: "Last Month",
+      title: "Reports Created Last Month",
+      subtitle: "",
       value: loading ? 0 : reportsLastMonth.length,
       description: "New reports this month",
       icon: FileText,
