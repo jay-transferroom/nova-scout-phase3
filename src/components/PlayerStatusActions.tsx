@@ -322,11 +322,11 @@ const PlayerStatusActions = ({ playerId, playerName, playerReports }: PlayerStat
             {/* Scouting assignment toggle */}
             {canAssignForScouting && !hasActiveAssignment && (
               <Button
-                variant="outline"
+                variant={isAssignedForScouting ? "default" : "outline"}
                 size="sm"
                 onClick={handleToggleScoutingAssignment}
                 disabled={isLoading}
-                className="gap-2"
+                className={`gap-2 ${isAssignedForScouting ? 'bg-green-600 hover:bg-green-700 text-white border-green-600' : ''}`}
               >
                 {isAssignedForScouting ? (
                   <>
