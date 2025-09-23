@@ -6,12 +6,9 @@ import { useReports } from "@/hooks/useReports";
 import { useReportsFilter } from "@/hooks/useReportsFilter";
 import { toast } from "sonner";
 import ReportsTabNavigation from "@/components/reports/ReportsTabNavigation";
-import GroupedReportsTable from "@/components/reports/GroupedReportsTable";
-import PlayerReportsModal from "@/components/reports/PlayerReportsModal";
+import ReportsTable from "@/components/reports/ReportsTable";
 import ReportsFilters, { ReportsFilterCriteria } from "@/components/reports/ReportsFilters";
 import { getRecommendation } from "@/utils/reportDataExtraction";
-import { groupReportsByPlayer } from "@/utils/reportGrouping";
-import { ReportWithPlayer } from "@/types/report";
 
 // Reports List Component
 const ReportsList = () => {
@@ -29,9 +26,6 @@ const ReportsList = () => {
     scout: '',
     dateRange: ''
   });
-  const [modalPlayerName, setModalPlayerName] = useState<string>("");
-  const [modalReports, setModalReports] = useState<ReportWithPlayer[]>([]);
-  const [isModalOpen, setIsModalOpen] = useState(false);
   
   const itemsPerPage = 10;
   
@@ -63,11 +57,6 @@ const ReportsList = () => {
   
   const { reports, loading, deleteReport } = useReports();
   const filteredReports = useReportsFilter(reports, activeTab, searchFilters);
-  
-  // Group reports by player
-  const groupedReports = useMemo(() => {
-    return groupReportsByPlayer(filteredReports);
-  }, [filteredReports]);
 
   // Extract available filter options from reports
   const { availableVerdicts, availableScouts, availableClubs, availablePositions, availablePlayerNames } = useMemo(() => {
@@ -115,12 +104,12 @@ const ReportsList = () => {
     };
   }, [reports]);
   
-  // Pagination logic for grouped reports
-  const totalItems = groupedReports.length;
+  // Pagination logic
+  const totalItems = filteredReports.length;
   const totalPages = Math.ceil(totalItems / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
-  const paginatedReports = groupedReports.slice(startIndex, endIndex);
+  const paginatedReports = filteredReports.slice(startIndex, endIndex);
   
   // Reset to first page when tab changes or filters change
   useEffect(() => {
@@ -144,19 +133,6 @@ const ReportsList = () => {
         toast.error("Failed to delete report");
       }
     }
-  };
-
-  const handleViewAllReports = (playerId: string, playerName: string) => {
-    const playerReports = filteredReports.filter(report => report.playerId === playerId);
-    setModalPlayerName(playerName);
-    setModalReports(playerReports);
-    setIsModalOpen(true);
-  };
-
-  const handleCloseModal = () => {
-    setIsModalOpen(false);
-    setModalPlayerName("");
-    setModalReports([]);
   };
 
 
@@ -195,11 +171,11 @@ const ReportsList = () => {
 
       <div>
         <div>
-          <GroupedReportsTable
+          <ReportsTable
             reports={paginatedReports}
             onViewReport={handleViewReport}
             onEditReport={handleEditReport}
-            onViewAllReports={handleViewAllReports}
+            onDeleteReport={handleDeleteReport}
           />
 
           {totalPages > 1 && (
@@ -257,16 +233,6 @@ const ReportsList = () => {
           </div>
         </div>
       </div>
-
-      <PlayerReportsModal
-        isOpen={isModalOpen}
-        onClose={handleCloseModal}
-        playerName={modalPlayerName}
-        reports={modalReports}
-        onViewReport={handleViewReport}
-        onEditReport={handleEditReport}
-        onDeleteReport={handleDeleteReport}
-      />
     </div>
   );
 };
