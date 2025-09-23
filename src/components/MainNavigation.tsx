@@ -1,5 +1,5 @@
 
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, NavLink } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import {
   Sidebar,
@@ -12,16 +12,20 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import { 
-  Home,
-  Kanban,
-  Calendar,
-  UserCheck,
-  Bookmark,
-  FileText,
-  Settings,
+  Home, 
+  Users, 
+  Search, 
+  FileText, 
+  Calendar, 
+  Settings, 
+  PlusCircle, 
+  TrendingUp, 
   User,
-  Users,
-  Sparkles
+  Sparkles,
+  MessageSquare,
+  Kanban,
+  UserCheck,
+  Bookmark
 } from "lucide-react";
 import { useMyPermissions } from "@/hooks/useUserPermissions";
 import { useAuth } from "@/contexts/AuthContext";
@@ -161,11 +165,27 @@ const MainNavigation = ({ onAIAssistantClick }: { onAIAssistantClick?: () => voi
         </SidebarGroup>
       </SidebarContent>
       
-      {/* AI Assistant at the very bottom */}
+      {/* AI Assistant and Saved Chats at the very bottom */}
       <div className="mt-auto border-t">
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu>
+              <SidebarMenuItem>
+                <SidebarMenuButton 
+                  asChild
+                  tooltip="Saved Chats"
+                >
+                  <NavLink 
+                    to="/saved-chats"
+                    className={({ isActive }) => 
+                      isActive ? "bg-sidebar-accent text-sidebar-accent-foreground" : ""
+                    }
+                  >
+                    <MessageSquare className="h-4 w-4" />
+                    <span>Saved Chats</span>
+                  </NavLink>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
               <SidebarMenuItem>
                 <SidebarMenuButton 
                   tooltip="AI Scout Assistant"

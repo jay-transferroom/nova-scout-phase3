@@ -114,7 +114,7 @@ const ChatOverlay: React.FC<ChatOverlayProps> = ({ isOpen, onClose, initialQuery
 
   const parsePlayersFromResponse = async (content: string): Promise<PlayerData[]> => {
     try {
-      // Extract potential player names using various patterns
+      // Extract potential player names and IDs using various patterns
       const playerNamePatterns = [
         // Names in quotes
         /"([A-Z][a-z]+ [A-Z][a-z]+(?:\s[A-Z][a-z]+)*)"/g,
@@ -126,8 +126,21 @@ const ChatOverlay: React.FC<ChatOverlayProps> = ({ isOpen, onClose, initialQuery
         /([A-Z][a-z]+ [A-Z][a-z]+(?:\s[A-Z][a-z]+)*)\s+(?:is|would|could|has|scored|plays|from)/g
       ];
 
+      // Extract Player ID references (e.g., "Player 20")
+      const playerIdPattern = /Player\s+(\d+)/gi;
+      const playerIds = new Set<number>();
       const potentialNames = new Set<string>();
       
+      // Find player ID references
+      const idMatches = content.matchAll(playerIdPattern);
+      for (const match of idMatches) {
+        const id = parseInt(match[1]);
+        if (id) {
+          playerIds.add(id);
+        }
+      }
+      
+      // Find player names
       playerNamePatterns.forEach(pattern => {
         const matches = content.matchAll(pattern);
         for (const match of matches) {
@@ -138,21 +151,37 @@ const ChatOverlay: React.FC<ChatOverlayProps> = ({ isOpen, onClose, initialQuery
         }
       });
 
-      if (potentialNames.size === 0) return [];
+      let players: any[] = [];
 
-      // Query players_new table for matches
-      const { data: players, error } = await supabase
-        .from('players_new')
-        .select('*')
-        .in('name', Array.from(potentialNames))
-        .limit(10);
+      // Query by player IDs first
+      if (playerIds.size > 0) {
+        const { data: idPlayers, error: idError } = await supabase
+          .from('players_new')
+          .select('*')
+          .in('id', Array.from(playerIds));
 
-      if (error) {
-        console.error('Error querying players:', error);
-        return [];
+        if (!idError && idPlayers) {
+          players = [...players, ...idPlayers];
+        }
       }
 
-      return players || [];
+      // Query by player names
+      if (potentialNames.size > 0) {
+        const { data: namePlayers, error: nameError } = await supabase
+          .from('players_new')
+          .select('*')
+          .in('name', Array.from(potentialNames))
+          .limit(10);
+
+        if (!nameError && namePlayers) {
+          // Avoid duplicates
+          const existingIds = new Set(players.map(p => p.id));
+          const uniqueNamePlayers = namePlayers.filter(p => !existingIds.has(p.id));
+          players = [...players, ...uniqueNamePlayers];
+        }
+      }
+
+      return players.slice(0, 10); // Limit to 10 total players
     } catch (error) {
       console.error('Error parsing players from response:', error);
       return [];
