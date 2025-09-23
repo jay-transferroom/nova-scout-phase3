@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { X, Send, User, Bot, FileText, Users, MessageSquare, Loader2, ExternalLink, ThumbsUp, ThumbsDown, Bookmark, BookmarkCheck } from 'lucide-react';
+import { X, Send, User, Bot, FileText, Users, MessageSquare, Loader2, ExternalLink, ThumbsUp, ThumbsDown, Bookmark, BookmarkCheck, Plus } from 'lucide-react';
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -67,6 +67,14 @@ const ChatOverlay: React.FC<ChatOverlayProps> = ({ isOpen, onClose, initialQuery
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  const startNewConversation = () => {
+    setMessages([]);
+    setInputValue('');
+    setChatTitle('');
+    setCurrentChatId(null);
+    // Don't auto-focus as it may interfere with mobile UX
   };
 
   const saveChat = async (title: string, query: string, chatMessages: Message[]) => {
@@ -405,14 +413,25 @@ const ChatOverlay: React.FC<ChatOverlayProps> = ({ isOpen, onClose, initialQuery
               <h2 className="text-lg font-semibold">AI Scout Assistant</h2>
               {chatTitle && <p className="text-sm text-muted-foreground">{chatTitle}</p>}
             </div>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={onClose}
-              className="h-6 w-6"
-            >
-              <X className="h-4 w-4" />
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={startNewConversation}
+                className="h-8 text-xs"
+              >
+                <Plus className="h-3 w-3 mr-1" />
+                New Chat
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={onClose}
+                className="h-6 w-6"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
           </CardHeader>
           
           <CardContent className="flex-1 flex flex-col p-4 pt-0 h-[calc(100%-5rem)]">
