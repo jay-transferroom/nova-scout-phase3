@@ -10,6 +10,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { Loader2, User, Shield, Star } from 'lucide-react';
 import PasswordResetDialog from '@/components/PasswordResetDialog';
+import { SlidingToggle } from "@/components/ui/sliding-toggle";
 
 const Auth = () => {
   const [loading, setLoading] = useState(false);
@@ -18,6 +19,7 @@ const Auth = () => {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [resetDialogOpen, setResetDialogOpen] = useState(false);
+  const [viewMode, setViewMode] = useState<"login" | "demo">("login");
   const { signIn, signUp } = useAuth();
   const navigate = useNavigate();
 
@@ -116,157 +118,181 @@ const Auth = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
-      <div className="w-full max-w-4xl flex gap-8">
-        <Card className="flex-1 max-w-md">
-        <CardHeader>
-          <CardTitle>TransferRoom</CardTitle>
-          <CardDescription>Sign in to your account or create a new one</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Tabs defaultValue="signin" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="signin">Sign In</TabsTrigger>
-              <TabsTrigger value="signup">Sign Up</TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="signin">
-              <form onSubmit={handleSignIn} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="signin-email">Email</Label>
-                  <Input
-                    id="signin-email"
-                    type="email"
-                    placeholder="Enter your email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="signin-password">Password</Label>
-                  <Input
-                    id="signin-password"
-                    type="password"
-                    placeholder="Enter your password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                  />
-                </div>
-                <Button type="submit" className="w-full" disabled={loading}>
-                  {loading ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Signing in...
-                    </>
-                  ) : (
-                    'Sign In'
-                  )}
-                </Button>
-                <div className="text-center">
+      <div className="w-full max-w-md">
+        {/* View Toggle */}
+        <div className="mb-6 flex justify-center">
+          <SlidingToggle
+            value={viewMode}
+            onChange={(value) => setViewMode(value as "login" | "demo")}
+            options={[
+              { 
+                value: "login", 
+                label: "Login"
+              },
+              { 
+                value: "demo", 
+                label: "Demo Accounts"
+              }
+            ]}
+          />
+        </div>
+
+        {/* Login View */}
+        {viewMode === "login" && (
+          <Card>
+            <CardHeader>
+              <CardTitle>TransferRoom</CardTitle>
+              <CardDescription>Sign in to your account or create a new one</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Tabs defaultValue="signin" className="w-full">
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="signin">Sign In</TabsTrigger>
+                  <TabsTrigger value="signup">Sign Up</TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="signin">
+                  <form onSubmit={handleSignIn} className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="signin-email">Email</Label>
+                      <Input
+                        id="signin-email"
+                        type="email"
+                        placeholder="Enter your email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="signin-password">Password</Label>
+                      <Input
+                        id="signin-password"
+                        type="password"
+                        placeholder="Enter your password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        required
+                      />
+                    </div>
+                    <Button type="submit" className="w-full" disabled={loading}>
+                      {loading ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Signing in...
+                        </>
+                      ) : (
+                        'Sign In'
+                      )}
+                    </Button>
+                    <div className="text-center">
+                      <Button
+                        type="button"
+                        variant="link"
+                        onClick={() => setResetDialogOpen(true)}
+                        className="text-sm text-muted-foreground hover:text-foreground"
+                      >
+                        Forgot your password?
+                      </Button>
+                    </div>
+                  </form>
+                </TabsContent>
+                
+                <TabsContent value="signup">
+                  <form onSubmit={handleSignUp} className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="first-name">First Name</Label>
+                        <Input
+                          id="first-name"
+                          placeholder="John"
+                          value={firstName}
+                          onChange={(e) => setFirstName(e.target.value)}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="last-name">Last Name</Label>
+                        <Input
+                          id="last-name"
+                          placeholder="Doe"
+                          value={lastName}
+                          onChange={(e) => setLastName(e.target.value)}
+                        />
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="signup-email">Email</Label>
+                      <Input
+                        id="signup-email"
+                        type="email"
+                        placeholder="Enter your email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="signup-password">Password</Label>
+                      <Input
+                        id="signup-password"
+                        type="password"
+                        placeholder="Create a password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        required
+                      />
+                    </div>
+                    <Button type="submit" className="w-full" disabled={loading}>
+                      {loading ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Creating account...
+                        </>
+                      ) : (
+                        'Create Account'
+                      )}
+                    </Button>
+                  </form>
+                </TabsContent>
+              </Tabs>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Demo Accounts View */}
+        {viewMode === "demo" && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Demo Accounts</CardTitle>
+              <CardDescription>Click any account below to sign in instantly</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {demoAccounts.map((account, index) => {
+                const Icon = account.icon;
+                return (
                   <Button
-                    type="button"
-                    variant="link"
-                    onClick={() => setResetDialogOpen(true)}
-                    className="text-sm text-muted-foreground hover:text-foreground"
+                    key={index}
+                    variant="outline"
+                    className="w-full p-4 h-auto justify-start gap-3 hover:bg-muted/50"
+                    onClick={() => handleDemoLogin(account)}
+                    disabled={loading}
                   >
-                    Forgot your password?
+                    <Icon className={`h-5 w-5 ${account.color}`} />
+                    <div className="text-left">
+                      <div className="font-medium">{account.name}</div>
+                      <div className="text-sm text-muted-foreground">{account.email}</div>
+                    </div>
                   </Button>
-                </div>
-              </form>
-            </TabsContent>
-            
-            <TabsContent value="signup">
-              <form onSubmit={handleSignUp} className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="first-name">First Name</Label>
-                    <Input
-                      id="first-name"
-                      placeholder="John"
-                      value={firstName}
-                      onChange={(e) => setFirstName(e.target.value)}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="last-name">Last Name</Label>
-                    <Input
-                      id="last-name"
-                      placeholder="Doe"
-                      value={lastName}
-                      onChange={(e) => setLastName(e.target.value)}
-                    />
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="signup-email">Email</Label>
-                  <Input
-                    id="signup-email"
-                    type="email"
-                    placeholder="Enter your email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="signup-password">Password</Label>
-                  <Input
-                    id="signup-password"
-                    type="password"
-                    placeholder="Create a password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                  />
-                </div>
-                <Button type="submit" className="w-full" disabled={loading}>
-                  {loading ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Creating account...
-                    </>
-                  ) : (
-                    'Create Account'
-                  )}
-                </Button>
-              </form>
-            </TabsContent>
-          </Tabs>
-        </CardContent>
-      </Card>
+                );
+              })}
+            </CardContent>
+          </Card>
+        )}
 
-      <Card className="flex-1 max-w-md">
-        <CardHeader>
-          <CardTitle>Demo Accounts</CardTitle>
-          <CardDescription>Click any account below to sign in instantly</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          {demoAccounts.map((account, index) => {
-            const Icon = account.icon;
-            return (
-              <Button
-                key={index}
-                variant="outline"
-                className="w-full p-4 h-auto justify-start gap-3 hover:bg-muted/50"
-                onClick={() => handleDemoLogin(account)}
-                disabled={loading}
-              >
-                <Icon className={`h-5 w-5 ${account.color}`} />
-                <div className="text-left">
-                  <div className="font-medium">{account.name}</div>
-                  <div className="text-sm text-muted-foreground">{account.email}</div>
-                </div>
-              </Button>
-            );
-          })}
-        </CardContent>
-      </Card>
-
-      <PasswordResetDialog 
-        open={resetDialogOpen} 
-        onOpenChange={setResetDialogOpen} 
-      />
+        <PasswordResetDialog 
+          open={resetDialogOpen} 
+          onOpenChange={setResetDialogOpen} 
+        />
       </div>
     </div>
   );
