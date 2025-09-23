@@ -11,6 +11,7 @@ import { toast } from 'sonner';
 import { Loader2, User, Shield, Star } from 'lucide-react';
 import PasswordResetDialog from '@/components/PasswordResetDialog';
 import { SlidingToggle } from "@/components/ui/sliding-toggle";
+import { ScoutLogo } from '@/components/ScoutLogo';
 
 const Auth = () => {
   const [loading, setLoading] = useState(false);
@@ -134,11 +135,7 @@ const Auth = () => {
           <Card>
             <CardHeader className="text-center">
               <div className="flex justify-center mb-4">
-                <img 
-                  src="/src/assets/scout-logo.png" 
-                  alt="Scout Logo" 
-                  className="h-12 w-auto"
-                />
+                <ScoutLogo size="lg" />
               </div>
               <CardDescription>Sign in to your account or create a new one</CardDescription>
             </CardHeader>

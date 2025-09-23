@@ -13,6 +13,7 @@ import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Link, useNavigate } from "react-router-dom";
 import NotificationsDropdown from "./NotificationsDropdown";
 import UnifiedPlayerSearch from "./UnifiedPlayerSearch";
+import { ScoutLogo } from './ScoutLogo';
 
 const Header = () => {
   const { profile, signOut } = useAuth();
@@ -32,13 +33,7 @@ const Header = () => {
       <div className="flex items-center justify-between h-full px-4">
         <div className="flex items-center gap-4">
           <SidebarTrigger />
-          <div className="flex items-center gap-2">
-            <img 
-              src="/src/assets/scout-logo.png" 
-              alt="Scout Logo" 
-              className="h-8 w-auto"
-            />
-          </div>
+          <ScoutLogo size="sm" />
         </div>
         
         {/* Search Bar */}
