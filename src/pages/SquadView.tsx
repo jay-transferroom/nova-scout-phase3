@@ -9,7 +9,6 @@ import { usePlayerPositionAssignments, useUpdatePlayerPositionAssignment, useAll
 import SquadSelector from "@/components/SquadSelector";
 import SquadRecommendations from "@/components/SquadRecommendations";
 import ProspectComparison from "@/components/ProspectComparison";
-import CompactSquadValueOverview from "@/components/CompactSquadValueOverview";
 import SquadFormationCard from "@/components/SquadFormationCard";
 import SquadTableView from "@/components/SquadTableView";
 import ViewToggle from "@/components/ViewToggle";
@@ -126,13 +125,6 @@ const SquadView = () => {
         onSquadSelect={setSelectedSquad}
         club={userClub}
         players={clubPlayers}
-      />
-
-      {/* Squad Value Overview */}
-      <CompactSquadValueOverview
-        selectedSquad={selectedSquad}
-        squadMetrics={squadMetrics}
-        squadPlayersLength={squadPlayers.length}
       />
 
       {/* Conditional View Rendering */}
