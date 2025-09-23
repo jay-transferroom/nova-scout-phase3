@@ -19,7 +19,8 @@ import {
   UserMinus,
   PlayCircle,
   MessageSquare,
-  Bookmark
+  Bookmark,
+  Check
 } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { usePlayerAssignments } from "@/hooks/usePlayerAssignments";
@@ -338,8 +339,8 @@ const PlayerStatusActions = ({ playerId, playerName, playerReports }: PlayerStat
               >
                 {isAssignedForScouting ? (
                   <>
-                    <UserMinus className="w-4 h-4" />
-                    Remove from Scouting
+                    <Check className="w-4 h-4" />
+                    Marked for Scouting
                   </>
                 ) : (
                   <>
