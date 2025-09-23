@@ -328,7 +328,7 @@ const PlayerStatusActions = ({ playerId, playerName, playerReports }: PlayerStat
             </Button>
 
             {/* Scouting assignment toggle */}
-            {canAssignForScouting && (
+            {canAssignForScouting && !hasActiveAssignment && (
               <Button
                 variant="outline"
                 size="sm"
