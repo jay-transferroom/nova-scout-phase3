@@ -9,11 +9,11 @@ import { usePlayerPositionAssignments, useUpdatePlayerPositionAssignment } from 
 import SquadSelector from "@/components/SquadSelector";
 import SquadRecommendations from "@/components/SquadRecommendations";
 import ProspectComparison from "@/components/ProspectComparison";
-import SquadValueOverview from "@/components/SquadValueOverview";
+import CompactSquadValueOverview from "@/components/CompactSquadValueOverview";
 import SquadFormationCard from "@/components/SquadFormationCard";
-import SquadListView from "@/components/SquadListView";
+import SquadTableView from "@/components/SquadTableView";
 import ViewToggle from "@/components/ViewToggle";
-import ClubFormationSettings from "@/components/ClubFormationSettings";
+import SquadSettingsButton from "@/components/SquadSettingsButton";
 import { useSquadData } from "@/hooks/useSquadData";
 import { useSquadMetrics } from "@/hooks/useSquadMetrics";
 import { useClubSettings } from "@/hooks/useClubSettings";
@@ -113,7 +113,10 @@ const SquadView = () => {
             </p>
           </div>
         </div>
-        <ViewToggle currentView={currentView} onViewChange={setCurrentView} />
+        <div className="flex items-center gap-3">
+          <SquadSettingsButton clubName={userClub} />
+          <ViewToggle currentView={currentView} onViewChange={setCurrentView} />
+        </div>
       </div>
 
       {/* Squad Selector */}
@@ -125,14 +128,11 @@ const SquadView = () => {
       />
 
       {/* Squad Value Overview */}
-      <SquadValueOverview
+      <CompactSquadValueOverview
         selectedSquad={selectedSquad}
         squadMetrics={squadMetrics}
         squadPlayersLength={squadPlayers.length}
       />
-
-      {/* Club Formation & Philosophy Settings */}
-      <ClubFormationSettings clubName={userClub} />
 
       {/* Conditional View Rendering */}
       {currentView === 'pitch' ? (
@@ -170,16 +170,8 @@ const SquadView = () => {
           </div>
         </>
       ) : (
-        /* List View */
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <SquadListView players={squadPlayers} />
-          <SquadRecommendations 
-            players={squadPlayers}
-            selectedPosition={selectedPosition}
-            onPositionSelect={setSelectedPosition}
-            allPlayers={allPlayers}
-          />
-        </div>
+        /* Table View */
+        <SquadTableView players={squadPlayers} />
       )}
     </div>
   );
