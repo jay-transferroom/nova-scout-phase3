@@ -266,13 +266,7 @@ const PlayerStatusActions = ({ playerId, playerName, playerReports }: PlayerStat
                       : 'bg-blue-600 hover:bg-blue-700'
                   }`}
                 >
-                  {assignmentStatus.priority === 'High' ? (
-                    <ArrowUp className="w-3 h-3" />
-                  ) : assignmentStatus.priority === 'Medium' ? (
-                    <ArrowRight className="w-3 h-3" />
-                  ) : (
-                    <ArrowDown className="w-3 h-3" />
-                  )}
+                  <Clock className="w-3 h-3" />
                 </Badge>
               )}
             </div>
