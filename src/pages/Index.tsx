@@ -204,70 +204,68 @@ const Index = () => {
           {/* Quick Actions Bar */}
           <QuickActionsBar />
 
-          {/* Recent Reports - Full width table */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center justify-between">
-                <span>Recent Reports</span>
-                <Badge variant="secondary">{recentReportsToShow.length} of {profile?.role === 'recruitment' ? reports.length : myReports.length}</Badge>
-              </CardTitle>
-              <CardDescription>
-                {profile?.role === 'recruitment' 
-                  ? 'Latest submitted reports from all scouts'
-                  : 'Your most recent scouting activity'
-                }
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {loading ? (
-                <p className="text-center text-muted-foreground">Loading reports...</p>
-              ) : recentReportsToShow.length > 0 ? (
-                <>
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Player</TableHead>
-                        <TableHead>Club</TableHead>
-                        <TableHead>Date</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead>Rating</TableHead>
-                        <TableHead>Verdict</TableHead>
-                        <TableHead>Scout</TableHead>
-                        <TableHead className="text-right">Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {recentReportsToShow.map((report) => (
-                        <RecentReportTableRow 
-                          key={report.id} 
-                          report={report} 
-                          profile={profile}
-                          navigate={navigate}
-                        />
-                      ))}
-                    </TableBody>
-                  </Table>
-                  <div className="mt-4">
-                    <Button
-                      variant="outline"
-                      className="w-full"
-                      onClick={() => navigate("/reports")}
-                    >
-                      View All Reports ({profile?.role === 'recruitment' ? reports.length : myReports.length})
-                    </Button>
-                  </div>
-                </>
-              ) : (
-                <div className="text-center py-6">
-                  <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                  <p className="text-muted-foreground mb-4">No reports yet</p>
-                  <Button onClick={() => navigate("/report-builder")}>
-                    Create Your First Report
+          {/* Recent Reports - Full width table without container */}
+          <div>
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h2 className="text-xl font-semibold">Recent Reports</h2>
+                <p className="text-sm text-muted-foreground">
+                  {profile?.role === 'recruitment' 
+                    ? 'Latest submitted reports from all scouts'
+                    : 'Your most recent scouting activity'
+                  }
+                </p>
+              </div>
+              <Badge variant="secondary">{recentReportsToShow.length} of {profile?.role === 'recruitment' ? reports.length : myReports.length}</Badge>
+            </div>
+            {loading ? (
+              <p className="text-center text-muted-foreground py-8">Loading reports...</p>
+            ) : recentReportsToShow.length > 0 ? (
+              <>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Player</TableHead>
+                      <TableHead>Club</TableHead>
+                      <TableHead>Date</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Rating</TableHead>
+                      <TableHead>Verdict</TableHead>
+                      <TableHead>Scout</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {recentReportsToShow.map((report) => (
+                      <RecentReportTableRow 
+                        key={report.id} 
+                        report={report} 
+                        profile={profile}
+                        navigate={navigate}
+                      />
+                    ))}
+                  </TableBody>
+                </Table>
+                <div className="mt-4">
+                  <Button
+                    variant="outline"
+                    className="w-full"
+                    onClick={() => navigate("/reports")}
+                  >
+                    View All Reports ({profile?.role === 'recruitment' ? reports.length : myReports.length})
                   </Button>
                 </div>
-              )}
-            </CardContent>
-          </Card>
+              </>
+            ) : (
+              <div className="text-center py-6">
+                <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <p className="text-muted-foreground mb-4">No reports yet</p>
+                <Button onClick={() => navigate("/report-builder")}>
+                  Create Your First Report
+                </Button>
+              </div>
+            )}
+          </div>
 
           {/* Upcoming Matches */}
           <UpcomingMatches />
@@ -322,9 +320,11 @@ const RecentReportTableRow = ({ report, profile, navigate }) => {
         </div>
       </TableCell>
       <TableCell>
-        <Badge variant={report.status === 'submitted' ? 'default' : 'secondary'}>
-          {report.status}
-        </Badge>
+        <div className="flex items-center gap-2">
+          <Badge variant={report.status === "submitted" ? "success" : "neutral"} className="text-xs font-medium">
+            {report.status === "draft" ? "Draft" : "Submitted"}
+          </Badge>
+        </div>
       </TableCell>
       <TableCell>
         {rating !== null && rating !== undefined ? (
