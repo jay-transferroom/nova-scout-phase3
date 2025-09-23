@@ -258,11 +258,13 @@ const PlayerStatusActions = ({ playerId, playerName, playerReports }: PlayerStat
               </div>
               {assignmentStatus.priority && (
                 <Badge 
-                  variant={
-                    assignmentStatus.priority === 'High' ? 'destructive' :
-                    assignmentStatus.priority === 'Medium' ? 'default' : 'secondary'
-                  } 
-                  className="text-xs flex items-center gap-1"
+                  className={`text-xs flex items-center gap-1 text-white border-none ${
+                    assignmentStatus.priority === 'High' 
+                      ? 'bg-red-600 hover:bg-red-700' 
+                      : assignmentStatus.priority === 'Medium' 
+                      ? 'bg-orange-500 hover:bg-orange-600' 
+                      : 'bg-blue-600 hover:bg-blue-700'
+                  }`}
                 >
                   {assignmentStatus.priority === 'High' ? (
                     <ArrowUp className="w-3 h-3" />
@@ -271,7 +273,6 @@ const PlayerStatusActions = ({ playerId, playerName, playerReports }: PlayerStat
                   ) : (
                     <ArrowDown className="w-3 h-3" />
                   )}
-                  PRIORITY
                 </Badge>
               )}
             </div>
