@@ -20,12 +20,13 @@ import {
   FileText,
   Settings,
   User,
-  Users
+  Users,
+  Sparkles
 } from "lucide-react";
 import { useMyPermissions } from "@/hooks/useUserPermissions";
 import { useAuth } from "@/contexts/AuthContext";
 
-const MainNavigation = () => {
+const MainNavigation = ({ onAIAssistantClick }: { onAIAssistantClick?: () => void }) => {
   const location = useLocation();
   const { profile } = useAuth();
   const { data: permissions } = useMyPermissions();
@@ -44,6 +45,13 @@ const MainNavigation = () => {
       url: "/",
       icon: Home,
       permission: "dashboard"
+    },
+    {
+      title: "AI Scout Assistant",
+      url: "#",
+      icon: Sparkles,
+      permission: "dashboard",
+      isAction: true // This will be handled as a click action, not navigation
     },
     {
       title: "Transfers In",
@@ -129,11 +137,23 @@ const MainNavigation = () => {
                 })
                 .map((item) => (
                 <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild isActive={isActive(item.url)} tooltip={item.title}>
-                    <Link to={item.url}>
-                      <item.icon className="h-4 w-4" />
-                      <span>{item.title}</span>
-                    </Link>
+                  <SidebarMenuButton 
+                    asChild={!item.isAction}
+                    isActive={!item.isAction && isActive(item.url)} 
+                    tooltip={item.title}
+                    onClick={item.isAction && item.title === 'AI Scout Assistant' ? onAIAssistantClick : undefined}
+                  >
+                    {item.isAction ? (
+                      <div className="flex items-center w-full cursor-pointer">
+                        <item.icon className="h-4 w-4" />
+                        <span>{item.title}</span>
+                      </div>
+                    ) : (
+                      <Link to={item.url}>
+                        <item.icon className="h-4 w-4" />
+                        <span>{item.title}</span>
+                      </Link>
+                    )}
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}

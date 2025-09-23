@@ -1,114 +1,213 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { X, Send, User, Bot, FileText, Users, MessageSquare, Loader2, ExternalLink } from 'lucide-react';
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { X, Send, Loader2, User, Bot, ExternalLink } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface SearchResult {
-  id: string;
   type: 'player' | 'report' | 'ai_recommendation';
+  id: string;
   title: string;
   subtitle?: string;
   description?: string;
   confidence?: number;
   player_id?: string;
   report_id?: string;
+  relevanceScore: number;
   metadata: any;
 }
 
 interface Message {
-  id: string;
-  type: 'user' | 'assistant';
+  role: 'user' | 'assistant';
   content: string;
-  results?: SearchResult[];
-  timestamp: Date;
+  searchResults?: SearchResult[];
+  timestamp: string;
 }
 
 interface ChatOverlayProps {
   isOpen: boolean;
   onClose: () => void;
   initialQuery?: string;
+  chatId?: string;
 }
 
-const ChatOverlay: React.FC<ChatOverlayProps> = ({ isOpen, onClose, initialQuery }) => {
+const ChatOverlay: React.FC<ChatOverlayProps> = ({ isOpen, onClose, initialQuery, chatId }) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [currentChatId, setCurrentChatId] = useState<string | null>(chatId || null);
+  const [chatTitle, setChatTitle] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
+  const { profile } = useAuth();
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
+  const saveChat = async (title: string, query: string, chatMessages: Message[]) => {
+    if (!profile?.id) return null;
 
-  useEffect(() => {
-    if (initialQuery && isOpen) {
-      handleSearch(initialQuery);
+    try {
+      const { data, error } = await supabase
+        .from('chats')
+        .insert({
+          user_id: profile.id,
+          title,
+          initial_query: query,
+          messages: JSON.parse(JSON.stringify(chatMessages)),
+          search_results: chatMessages[chatMessages.length - 1]?.searchResults ? 
+            JSON.parse(JSON.stringify(chatMessages[chatMessages.length - 1]?.searchResults)) : null
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data.id;
+    } catch (error) {
+      console.error('Error saving chat:', error);
+      return null;
     }
-  }, [initialQuery, isOpen]);
+  };
+
+  const updateChat = async (chatId: string, chatMessages: Message[]) => {
+    if (!profile?.id) return;
+
+    try {
+      const { error } = await supabase
+        .from('chats')
+        .update({
+          messages: JSON.parse(JSON.stringify(chatMessages)),
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', chatId);
+
+      if (error) throw error;
+    } catch (error) {
+      console.error('Error updating chat:', error);
+    }
+  };
 
   const handleSearch = async (query: string) => {
     if (!query.trim()) return;
 
-    const userMessage: Message = {
-      id: Date.now().toString(),
-      type: 'user',
-      content: query,
-      timestamp: new Date(),
-    };
-
-    setMessages(prev => [...prev, userMessage]);
     setIsLoading(true);
+    
+    // Add user message immediately
+    const userMessage: Message = {
+      role: 'user',
+      content: query,
+      timestamp: new Date().toISOString()
+    };
+    
+    const newMessages = [...messages, userMessage];
+    setMessages(newMessages);
     setInputValue('');
 
     try {
-      const { data, error } = await supabase.functions.invoke('ai-search', {
+      // Call the ai-search function
+      const { data: searchData, error: searchError } = await supabase.functions.invoke('ai-search', {
+        body: { query: query.trim() }
+      });
+
+      if (searchError) {
+        console.error('Search error:', searchError);
+        throw searchError;
+      }
+
+      const searchResults = searchData?.results || [];
+      
+      // Generate AI response using ChatGPT
+      const { data: aiData, error: aiError } = await supabase.functions.invoke('ai-chat-generate', {
         body: { 
-          query: query,
-          limit: 10
+          query: query.trim(),
+          searchResults
         }
       });
 
-      if (error) {
-        console.error('AI Search error:', error);
-        toast({
-          title: "Search Error",
-          description: "Failed to perform search. Please try again.",
-          variant: "destructive",
-        });
-        return;
+      if (aiError) {
+        console.error('AI generation error:', aiError);
+        throw aiError;
       }
 
+      // Create assistant message with AI response and search results
       const assistantMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        type: 'assistant',
-        content: data?.results?.length > 0 
-          ? `I found ${data.results.length} results for "${query}":` 
-          : `No results found for "${query}". Try rephrasing your search or using different keywords.`,
-        results: data?.results || [],
-        timestamp: new Date(),
+        role: 'assistant',
+        content: aiData?.response || `I found ${searchResults.length} results for "${query}".`,
+        searchResults,
+        timestamp: new Date().toISOString()
       };
 
-      setMessages(prev => [...prev, assistantMessage]);
+      const finalMessages = [...newMessages, assistantMessage];
+      setMessages(finalMessages);
+
+      // Save or update chat
+      if (!currentChatId && !chatId) {
+        const title = query.length > 50 ? query.substring(0, 50) + '...' : query;
+        setChatTitle(title);
+        const newChatId = await saveChat(title, query, finalMessages);
+        if (newChatId) {
+          setCurrentChatId(newChatId);
+        }
+      } else if (currentChatId || chatId) {
+        await updateChat(currentChatId || chatId!, finalMessages);
+      }
+
     } catch (error) {
-      console.error('Search error:', error);
-      toast({
-        title: "Search Error", 
-        description: "An unexpected error occurred. Please try again.",
-        variant: "destructive",
-      });
+      console.error('Error in chat:', error);
+      
+      const errorMessage: Message = {
+        role: 'assistant',
+        content: 'Sorry, I encountered an error while processing your request. Please try again.',
+        timestamp: new Date().toISOString()
+      };
+      
+      setMessages(prev => [...prev, errorMessage]);
     } finally {
       setIsLoading(false);
     }
   };
+
+  // Load existing chat if chatId is provided
+  useEffect(() => {
+    const loadChat = async () => {
+      if (chatId && profile?.id) {
+        try {
+          const { data, error } = await supabase
+            .from('chats')
+            .select('*')
+            .eq('id', chatId)
+            .eq('user_id', profile.id)
+            .single();
+
+          if (!error && data) {
+            const messagesData = Array.isArray(data.messages) ? data.messages : [];
+            setMessages(messagesData as unknown as Message[]);
+            setChatTitle(data.title);
+            setCurrentChatId(data.id);
+          }
+        } catch (error) {
+          console.error('Error loading chat:', error);
+        }
+      }
+    };
+
+    loadChat();
+  }, [chatId, profile?.id]);
+
+  useEffect(() => {
+    if (initialQuery && initialQuery.trim() && !chatId) {
+      handleSearch(initialQuery);
+    }
+  }, [initialQuery]);
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -140,77 +239,78 @@ const ChatOverlay: React.FC<ChatOverlayProps> = ({ isOpen, onClose, initialQuery
   const getResultIcon = (type: string) => {
     switch (type) {
       case 'player':
-        return <User className="h-4 w-4" />;
+        return <Users className="h-4 w-4" />;
       case 'report':
-        return <ExternalLink className="h-4 w-4" />;
+        return <FileText className="h-4 w-4" />;
       default:
-        return <Bot className="h-4 w-4" />;
+        return <MessageSquare className="h-4 w-4" />;
     }
   };
 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 pointer-events-none">
-      <div className="absolute bottom-4 right-4 w-96 h-[600px] pointer-events-auto">
-        <Card className="h-full flex flex-col shadow-xl border-border bg-background">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <Bot className="h-5 w-5 text-primary" />
-              AI Scout Assistant
-            </CardTitle>
+    <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm">
+      <div className="absolute bottom-4 right-4 w-[600px] h-[700px]">
+        <Card className="w-full h-full shadow-2xl">
+          <CardHeader className="flex flex-row items-center justify-between p-4 border-b">
+            <div>
+              <h2 className="text-lg font-semibold">AI Scout Assistant</h2>
+              {chatTitle && <p className="text-sm text-muted-foreground">{chatTitle}</p>}
+            </div>
             <Button
               variant="ghost"
-              size="sm"
+              size="icon"
               onClick={onClose}
-              className="h-6 w-6 p-0"
+              className="h-6 w-6"
             >
               <X className="h-4 w-4" />
             </Button>
           </CardHeader>
           
-          <CardContent className="flex-1 flex flex-col p-4 pt-0">
+          <CardContent className="flex-1 flex flex-col p-4 pt-0 h-[calc(100%-5rem)]">
             {/* Messages */}
             <div className="flex-1 overflow-y-auto space-y-4 mb-4">
               {messages.length === 0 && (
-                <div className="text-center text-muted-foreground text-sm">
-                  Ask me about players, reports, or request recommendations!
+                <div className="text-center text-muted-foreground text-sm py-8">
+                  <MessageSquare className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                  <p>Ask me about players, reports, or request recommendations!</p>
                 </div>
               )}
               
-              {messages.map((message) => (
-                <div key={message.id} className="space-y-2">
-                  <div className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}>
+              {messages.map((message, index) => (
+                <div key={index} className="space-y-2">
+                  <div className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                     <div className={`max-w-[85%] rounded-lg px-3 py-2 text-sm ${
-                      message.type === 'user' 
+                      message.role === 'user' 
                         ? 'bg-primary text-primary-foreground' 
                         : 'bg-muted text-muted-foreground'
                     }`}>
                       <div className="flex items-center gap-2 mb-1">
-                        {message.type === 'user' ? (
+                        {message.role === 'user' ? (
                           <User className="h-3 w-3" />
                         ) : (
                           <Bot className="h-3 w-3" />
                         )}
                         <span className="font-medium">
-                          {message.type === 'user' ? 'You' : 'Assistant'}
+                          {message.role === 'user' ? 'You' : 'Assistant'}
                         </span>
                       </div>
-                      {message.content}
+                      <div className="whitespace-pre-wrap">{message.content}</div>
                     </div>
                   </div>
                   
                   {/* Search Results */}
-                  {message.results && message.results.length > 0 && (
+                  {message.searchResults && message.searchResults.length > 0 && (
                     <div className="space-y-2 ml-4">
-                      {message.results.map((result) => (
+                      {message.searchResults.map((result, resultIndex) => (
                         <div
-                          key={`${result.type}-${result.id}`}
-                          className="flex items-start justify-between p-2 border rounded-lg hover:bg-accent transition-colors cursor-pointer text-xs"
+                          key={resultIndex}
+                          className="flex items-start justify-between p-3 border rounded-lg hover:bg-accent transition-colors cursor-pointer"
                           onClick={() => handleResultClick(result)}
                         >
                           <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 mb-1">
+                            <div className="flex items-center gap-2 mb-2">
                               {getResultIcon(result.type)}
                               <span className="font-medium truncate">{result.title}</span>
                               <Badge variant="outline" className="text-xs">
@@ -224,19 +324,19 @@ const ChatOverlay: React.FC<ChatOverlayProps> = ({ isOpen, onClose, initialQuery
                             </div>
                             
                             {result.subtitle && (
-                              <div className="text-xs text-muted-foreground mb-1">
+                              <div className="text-sm text-muted-foreground mb-1">
                                 {result.subtitle}
                               </div>
                             )}
                             
                             {result.description && (
-                              <div className="text-xs text-muted-foreground line-clamp-1">
+                              <div className="text-sm text-muted-foreground">
                                 {result.description}
                               </div>
                             )}
                           </div>
                           
-                          <ExternalLink className="h-3 w-3 text-muted-foreground ml-2 flex-shrink-0" />
+                          <ExternalLink className="h-4 w-4 text-muted-foreground ml-2 flex-shrink-0" />
                         </div>
                       ))}
                     </div>
@@ -247,13 +347,13 @@ const ChatOverlay: React.FC<ChatOverlayProps> = ({ isOpen, onClose, initialQuery
               {isLoading && (
                 <div className="flex justify-start">
                   <div className="bg-muted text-muted-foreground rounded-lg px-3 py-2 text-sm">
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 mb-1">
                       <Bot className="h-3 w-3" />
                       <span className="font-medium">Assistant</span>
                     </div>
-                    <div className="flex items-center gap-2 mt-1">
+                    <div className="flex items-center gap-2">
                       <Loader2 className="h-3 w-3 animate-spin" />
-                      Searching...
+                      Analyzing and searching...
                     </div>
                   </div>
                 </div>
