@@ -175,7 +175,30 @@ const ReportsList = () => {
         <p className="text-muted-foreground">View and manage scouting reports</p>
       </div>
 
-      <ReportsTabNavigation onTabChange={setActiveTab} activeTab={activeTab} />
+      <div className="flex items-center justify-between mb-6">
+        <ReportsTabNavigation onTabChange={setActiveTab} activeTab={activeTab} />
+        
+        <div className="flex gap-2">
+          <Button
+            variant={viewMode === "individual" ? "default" : "outline"}
+            size="sm"
+            onClick={() => setViewMode("individual")}
+            className="flex items-center gap-2"
+          >
+            <List className="h-4 w-4" />
+            Individual Reports
+          </Button>
+          <Button
+            variant={viewMode === "grouped" ? "default" : "outline"}
+            size="sm"
+            onClick={() => setViewMode("grouped")}
+            className="flex items-center gap-2"
+          >
+            <Users className="h-4 w-4" />
+            Grouped Reports
+          </Button>
+        </div>
+      </div>
 
       <ReportsFilters 
         filters={searchFilters}
@@ -186,27 +209,6 @@ const ReportsList = () => {
         availablePositions={availablePositions}
         availablePlayerNames={availablePlayerNames}
       />
-
-      <div className="mb-4 flex gap-2">
-        <Button
-          variant={viewMode === "individual" ? "default" : "outline"}
-          size="sm"
-          onClick={() => setViewMode("individual")}
-          className="flex items-center gap-2"
-        >
-          <List className="h-4 w-4" />
-          Individual Reports
-        </Button>
-        <Button
-          variant={viewMode === "grouped" ? "default" : "outline"}
-          size="sm"
-          onClick={() => setViewMode("grouped")}
-          className="flex items-center gap-2"
-        >
-          <Users className="h-4 w-4" />
-          Grouped Reports
-        </Button>
-      </div>
 
       <div>
         <div>
