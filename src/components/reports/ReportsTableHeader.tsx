@@ -19,7 +19,7 @@ const ReportsTableHeader = () => {
         </TableHead>
         <TableHead className="text-sm">Verdict</TableHead>
         <TableHead className="text-sm">Scout</TableHead>
-        <TableHead className="w-[250px] text-right text-sm">Actions</TableHead>
+        <TableHead className="w-[80px] text-right text-sm">Actions</TableHead>
       </TableRow>
     </TableHeader>
   );

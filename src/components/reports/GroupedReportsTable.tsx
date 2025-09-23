@@ -1,7 +1,7 @@
 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Award, Edit, Eye, Users } from "lucide-react";
+import { Award, Edit, Eye, Users, User, Trash2, MoreHorizontal } from "lucide-react";
 import { ReportWithPlayer } from "@/types/report";
 import { getRatingColor, formatDate } from "@/utils/reportFormatting";
 import { getRecommendation } from "@/utils/reportDataExtraction";
@@ -9,21 +9,36 @@ import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/contexts/AuthContext";
 import { groupReportsByPlayer, GroupedReport } from "@/utils/reportGrouping";
 import { useReportPlayerData } from "@/hooks/useReportPlayerData";
+import { PlayerAvatar } from "@/components/ui/player-avatar";
+import { ClubBadge } from "@/components/ui/club-badge";
+import { ScoutingGrade } from "@/components/ui/scouting-grade";
+import VerdictBadge from "@/components/VerdictBadge";
+import { useNavigate } from "react-router-dom";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
 
 interface GroupedReportsTableProps {
   reports: ReportWithPlayer[];
   onViewReport: (reportId: string) => void;
   onEditReport?: (reportId: string) => void;
+  onDeleteReport: (reportId: string, playerName: string) => void;
   onViewAllReports: (playerId: string, playerName: string) => void;
 }
 
-const GroupedReportRow = ({ groupedReport, onViewReport, onEditReport, onViewAllReports, canEdit }: {
+const GroupedReportRow = ({ groupedReport, onViewReport, onEditReport, onDeleteReport, onViewAllReports, canEdit }: {
   groupedReport: GroupedReport;
   onViewReport: (reportId: string) => void;
   onEditReport?: (reportId: string) => void;
+  onDeleteReport: (reportId: string, playerName: string) => void;
   onViewAllReports: (playerId: string, playerName: string) => void;
   canEdit: boolean;
 }) => {
+  const navigate = useNavigate();
   const { data: playerData, isLoading: playerLoading, error: playerError } = useReportPlayerData(groupedReport.playerId);
   const latestReport = groupedReport.allReports[0];
   const recommendation = getRecommendation(latestReport);
@@ -36,82 +51,137 @@ const GroupedReportRow = ({ groupedReport, onViewReport, onEditReport, onViewAll
                      playerError ? 'Unknown' :
                      playerData?.club || 'Unknown';
                      
-  const playerPositions = playerLoading ? 'Loading...' : 
-                          playerError ? 'Unknown' :
-                          playerData?.positions?.join(", ") || 'Unknown';
+  const playerPositions = playerLoading ? [] : 
+                          playerError ? [] :
+                          playerData?.positions || [];
+
+  const handleViewPlayerProfile = () => {
+    if (playerData) {
+      if (playerData.isPrivatePlayer) {
+        navigate(`/private-player/${groupedReport.playerId}`);
+      } else {
+        navigate(`/player/${groupedReport.playerId}`);
+      }
+    }
+  };
+
+  const isDisabled = playerLoading || !!playerError;
 
   return (
     <TableRow key={`${groupedReport.playerId}-grouped`}>
-      <TableCell className="font-medium">{playerName}</TableCell>
-      <TableCell>{playerClub}</TableCell>
-      <TableCell>{playerPositions}</TableCell>
+      <TableCell>
+        <div className="flex items-center gap-3">
+          <PlayerAvatar 
+            playerName={playerName}
+            avatarUrl={playerData?.image}
+            size="sm"
+          />
+          <span className="font-medium text-grey-900 text-sm">{playerName}</span>
+        </div>
+      </TableCell>
+      <TableCell>
+        <ClubBadge 
+          clubName={playerClub}
+        />
+      </TableCell>
+      <TableCell>
+        <div className="flex flex-wrap gap-1">
+          {playerPositions.map((position, index) => (
+            <Badge key={index} variant="neutral" className="text-sm">
+              {position}
+            </Badge>
+          ))}
+        </div>
+      </TableCell>
       <TableCell>
         <div className="flex items-center gap-2">
           <Users size={14} className="text-muted-foreground" />
           <span className="font-medium">{groupedReport.reportCount}</span>
         </div>
       </TableCell>
-      <TableCell>{formatDate(latestReport.createdAt)}</TableCell>
       <TableCell>
-        <Badge variant={latestReport.status === "submitted" ? "secondary" : "outline"}>
-          {latestReport.status === "draft" ? "Draft" : "Submitted"}
-        </Badge>
+        <div className="text-sm text-grey-600">
+          {formatDate(latestReport.createdAt)}
+        </div>
       </TableCell>
       <TableCell>
-        {groupedReport.avgRating !== null ? (
-          <span className={`font-semibold text-base ${getRatingColor(groupedReport.avgRating)}`}>
-            {groupedReport.avgRating}
-          </span>
+        <div className="flex items-center gap-2">
+          <Badge variant={latestReport.status === "submitted" ? "success" : "neutral"} className="text-sm font-medium">
+            {latestReport.status === "draft" ? "Draft" : "Submitted"}
+          </Badge>
+        </div>
+      </TableCell>
+      <TableCell>
+        {groupedReport.avgRating !== null && groupedReport.avgRating !== undefined ? (
+          <ScoutingGrade grade={groupedReport.avgRating} />
         ) : (
-          <span className="text-muted-foreground text-sm">-</span>
+          <span className="text-grey-400 text-sm">-</span>
         )}
       </TableCell>
       <TableCell>
         {recommendation ? (
-          <span className="text-slate-600 font-medium">
-            {recommendation}
-          </span>
+          <VerdictBadge verdict={recommendation} />
         ) : (
-          <span className="text-muted-foreground text-sm">-</span>
+          <span className="text-grey-400 text-sm">-</span>
         )}
       </TableCell>
+      <TableCell>
+        <div className="text-sm text-grey-700">
+          {latestReport.scoutProfile?.first_name && latestReport.scoutProfile?.last_name 
+            ? `${latestReport.scoutProfile.first_name} ${latestReport.scoutProfile.last_name}`
+            : latestReport.scoutProfile?.first_name || "Scout"}
+        </div>
+      </TableCell>
       <TableCell className="text-right">
-        <div className="flex gap-2 justify-end">
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={() => onViewAllReports(groupedReport.playerId, playerName)}
-            title="View all reports"
-          >
-            <Eye className="h-4 w-4" />
-            All ({groupedReport.reportCount})
-          </Button>
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={() => onViewReport(latestReport.id)}
-            title="View latest report"
-          >
-            <Eye className="h-4 w-4" />
-            Latest
-          </Button>
-          {canEdit && onEditReport && (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
             <Button 
               variant="outline" 
               size="sm"
-              onClick={() => onEditReport(latestReport.id)}
-              title="Edit latest report"
+              className="border-grey-300 text-grey-700 hover:bg-grey-50"
             >
-              <Edit className="h-4 w-4" />
+              <MoreHorizontal className="h-4 w-4" />
             </Button>
-          )}
-        </div>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="bg-white border border-grey-200 shadow-lg z-50">
+            <DropdownMenuItem onClick={() => onViewAllReports(groupedReport.playerId, playerName)}>
+              <Eye className="h-4 w-4 mr-2" />
+              View all reports ({groupedReport.reportCount})
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => onViewReport(latestReport.id)}>
+              <Eye className="h-4 w-4 mr-2" />
+              View latest report
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={handleViewPlayerProfile} disabled={isDisabled}>
+              <User className="h-4 w-4 mr-2" />
+              View player profile
+            </DropdownMenuItem>
+            {canEdit && onEditReport && (
+              <>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => onEditReport(latestReport.id)}>
+                  <Edit className="h-4 w-4 mr-2" />
+                  Edit latest report
+                </DropdownMenuItem>
+              </>
+            )}
+            {canEdit && (
+              <DropdownMenuItem 
+                onClick={() => onDeleteReport(latestReport.id, playerName)}
+                className="text-red-600 focus:text-red-600"
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                Delete latest report
+              </DropdownMenuItem>
+            )}
+          </DropdownMenuContent>
+        </DropdownMenu>
       </TableCell>
     </TableRow>
   );
 };
 
-const GroupedReportsTable = ({ reports, onViewReport, onEditReport, onViewAllReports }: GroupedReportsTableProps) => {
+const GroupedReportsTable = ({ reports, onViewReport, onEditReport, onDeleteReport, onViewAllReports }: GroupedReportsTableProps) => {
   const { user } = useAuth();
   const groupedReports = groupReportsByPlayer(reports);
 
@@ -132,7 +202,8 @@ const GroupedReportsTable = ({ reports, onViewReport, onEditReport, onViewAllRep
             </div>
           </TableHead>
           <TableHead>Recommendation</TableHead>
-          <TableHead className="w-[200px] text-right">Actions</TableHead>
+          <TableHead>Scout</TableHead>
+          <TableHead className="w-[80px] text-right">Actions</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -146,6 +217,7 @@ const GroupedReportsTable = ({ reports, onViewReport, onEditReport, onViewAllRep
                 groupedReport={groupedReport}
                 onViewReport={onViewReport}
                 onEditReport={onEditReport}
+                onDeleteReport={onDeleteReport}
                 onViewAllReports={onViewAllReports}
                 canEdit={canEdit}
               />
@@ -153,7 +225,7 @@ const GroupedReportsTable = ({ reports, onViewReport, onEditReport, onViewAllRep
           })
         ) : (
           <TableRow>
-            <TableCell colSpan={9} className="text-center py-6 text-muted-foreground">
+            <TableCell colSpan={10} className="text-center py-6 text-muted-foreground">
               No reports found.
             </TableCell>
           </TableRow>

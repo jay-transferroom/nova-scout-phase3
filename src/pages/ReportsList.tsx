@@ -222,6 +222,7 @@ const ReportsList = () => {
               reports={paginatedReports}
               onViewReport={handleViewReport}
               onEditReport={handleEditReport}
+              onDeleteReport={handleDeleteReport}
               onViewAllReports={handleViewAllReports}
             />
           )}

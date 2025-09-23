@@ -1,7 +1,7 @@
 
 import { TableCell, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Edit, Eye, User, Trash2 } from "lucide-react";
+import { Edit, Eye, User, Trash2, MoreHorizontal } from "lucide-react";
 import { ReportWithPlayer } from "@/types/report";
 import { getRatingColor, formatDate } from "@/utils/reportFormatting";
 import { getOverallRating, getRecommendation } from "@/utils/reportDataExtraction";
@@ -13,6 +13,13 @@ import { useNavigate } from "react-router-dom";
 import { PlayerAvatar } from "@/components/ui/player-avatar";
 import { ClubBadge } from "@/components/ui/club-badge";
 import { ScoutingGrade } from "@/components/ui/scouting-grade";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
 
 interface ReportRowProps {
   report: ReportWithPlayer;
@@ -116,49 +123,45 @@ const ReportRow = ({ report, onViewReport, onEditReport, onDeleteReport, canEdit
         </div>
       </TableCell>
       <TableCell className="text-right">
-        <div className="flex gap-1 justify-end flex-wrap">
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={() => onViewReport(report.id)}
-            title="View report"
-            className="border-grey-300 text-grey-700 hover:bg-grey-50"
-          >
-            <Eye className="h-4 w-4" />
-          </Button>
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={handleViewPlayerProfile}
-            title="View player profile"
-            disabled={isDisabled}
-            className="border-grey-300 text-grey-700 hover:bg-grey-50"
-          >
-            <User className="h-4 w-4" />
-          </Button>
-          {canEdit && onEditReport && (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
             <Button 
               variant="outline" 
               size="sm"
-              onClick={() => onEditReport(report.id)}
-              title="Edit report"
               className="border-grey-300 text-grey-700 hover:bg-grey-50"
             >
-              <Edit className="h-4 w-4" />
+              <MoreHorizontal className="h-4 w-4" />
             </Button>
-          )}
-          {canEdit && (
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={() => onDeleteReport(report.id, playerName)}
-              title="Delete report"
-              className="border-grey-300 text-grey-700 hover:bg-grey-50"
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
-          )}
-        </div>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="bg-white border border-grey-200 shadow-lg z-50">
+            <DropdownMenuItem onClick={() => onViewReport(report.id)}>
+              <Eye className="h-4 w-4 mr-2" />
+              View report
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={handleViewPlayerProfile} disabled={isDisabled}>
+              <User className="h-4 w-4 mr-2" />
+              View player profile
+            </DropdownMenuItem>
+            {canEdit && onEditReport && (
+              <>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => onEditReport(report.id)}>
+                  <Edit className="h-4 w-4 mr-2" />
+                  Edit report
+                </DropdownMenuItem>
+              </>
+            )}
+            {canEdit && (
+              <DropdownMenuItem 
+                onClick={() => onDeleteReport(report.id, playerName)}
+                className="text-red-600 focus:text-red-600"
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                Delete report
+              </DropdownMenuItem>
+            )}
+          </DropdownMenuContent>
+        </DropdownMenu>
       </TableCell>
     </TableRow>
   );
