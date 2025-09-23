@@ -190,14 +190,20 @@ const ReportsList = () => {
           type="single" 
           value={viewMode} 
           onValueChange={(value) => value && setViewMode(value as "individual" | "grouped")}
-          className="border rounded-md"
+          className="border rounded-md bg-background shadow-sm animate-fade-in"
         >
-          <ToggleGroupItem value="individual" className="flex items-center gap-2">
-            <List className="h-4 w-4" />
+          <ToggleGroupItem 
+            value="individual" 
+            className="flex items-center gap-2 transition-all duration-300 hover:scale-105 data-[state=on]:animate-scale-in data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
+          >
+            <List className="h-4 w-4 transition-transform duration-200" />
             Individual
           </ToggleGroupItem>
-          <ToggleGroupItem value="grouped" className="flex items-center gap-2">
-            <Users className="h-4 w-4" />
+          <ToggleGroupItem 
+            value="grouped" 
+            className="flex items-center gap-2 transition-all duration-300 hover:scale-105 data-[state=on]:animate-scale-in data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
+          >
+            <Users className="h-4 w-4 transition-transform duration-200" />
             Player
           </ToggleGroupItem>
         </ToggleGroup>
