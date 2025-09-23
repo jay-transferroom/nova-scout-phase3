@@ -8,26 +8,42 @@ interface ViewToggleProps {
 }
 
 const ViewToggle = ({ currentView, onViewChange }: ViewToggleProps) => {
+  const selectedIndex = currentView === 'pitch' ? 0 : 1;
+  
   return (
-    <div className="flex items-center gap-2 p-1 bg-gray-100 rounded-lg">
-      <Button
-        variant={currentView === 'pitch' ? 'default' : 'ghost'}
-        size="sm"
+    <div className="relative inline-flex bg-muted rounded-full p-1">
+      {/* Sliding background */}
+      <div 
+        className="absolute inset-y-1 bg-background rounded-full shadow-sm transition-all duration-300 ease-in-out"
+        style={{
+          width: `calc(50% - 2px)`,
+          left: selectedIndex === 0 ? '2px' : '50%'
+        }}
+      />
+      
+      {/* Buttons */}
+      <button
         onClick={() => onViewChange('pitch')}
-        className="flex items-center gap-2"
+        className={`relative z-10 flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium rounded-full transition-colors duration-200 min-w-[100px] ${
+          currentView === 'pitch' 
+            ? 'text-foreground' 
+            : 'text-muted-foreground hover:text-foreground'
+        }`}
       >
         <LayoutGrid className="h-4 w-4" />
         Pitch View
-      </Button>
-      <Button
-        variant={currentView === 'list' ? 'default' : 'ghost'}
-        size="sm"
+      </button>
+      <button
         onClick={() => onViewChange('list')}
-        className="flex items-center gap-2"
+        className={`relative z-10 flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium rounded-full transition-colors duration-200 min-w-[100px] ${
+          currentView === 'list' 
+            ? 'text-foreground' 
+            : 'text-muted-foreground hover:text-foreground'
+        }`}
       >
         <List className="h-4 w-4" />
         List View
-      </Button>
+      </button>
     </div>
   );
 };
