@@ -345,19 +345,19 @@ const ScoutManagement = () => {
     <div className="container mx-auto py-8 max-w-7xl">
       <ScoutManagementHeader />
 
+      <ScoutPerformanceGrid
+        scouts={scouts}
+        assignments={assignments}
+        selectedScout={selectedScout}
+        onScoutClick={handleScoutClick}
+      />
+
       <ScoutManagementFilters
         searchTerm={searchTerm}
         setSearchTerm={setSearchTerm}
         selectedScout={selectedScout}
         setSelectedScout={setSelectedScout}
         scouts={scouts}
-      />
-
-      <ScoutPerformanceGrid
-        scouts={scouts}
-        assignments={assignments}
-        selectedScout={selectedScout}
-        onScoutClick={handleScoutClick}
       />
 
       <div className="flex justify-between items-center mb-6">
