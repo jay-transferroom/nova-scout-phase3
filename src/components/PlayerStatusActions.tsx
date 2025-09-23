@@ -273,7 +273,9 @@ const PlayerStatusActions = ({ playerId, playerName, playerReports }: PlayerStat
               {averageRating !== null && reportCount > 0 && (
                 <div className="flex items-center gap-1">
                   <span className="text-sm text-muted-foreground">Avg:</span>
-                  <ScoutingGrade grade={averageRating} className="text-sm" />
+                  <div className="px-2 py-1 bg-secondary/50 border border-border rounded-md">
+                    <ScoutingGrade grade={averageRating} className="text-sm" />
+                  </div>
                 </div>
               )}
             </div>
