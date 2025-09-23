@@ -274,7 +274,7 @@ const PlayerStatusActions = ({ playerId, playerName, playerReports }: PlayerStat
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <div className="px-2 py-1 bg-secondary/50 border border-border rounded-md cursor-help">
+                      <div className="px-3 py-2 bg-secondary/50 border border-border rounded-md cursor-help h-9 flex items-center">
                         <ScoutingGrade grade={averageRating} className="text-sm" />
                       </div>
                     </TooltipTrigger>
