@@ -158,6 +158,62 @@ const SquadView = () => {
                   p.positions.some(pos => pos.toLowerCase().includes(selectedPosition.toLowerCase()))
                 )}
                 allPlayers={allPlayers}
+                squadAnalysis={(() => {
+                  // Find the analysis for the selected position from SquadRecommendations
+                  const positions = [
+                    { name: 'GK', requiredPositions: ['GK'] },
+                    { name: 'CB', requiredPositions: ['CB'] },
+                    { name: 'FB', requiredPositions: ['LB', 'RB', 'LWB', 'RWB'] },
+                    { name: 'CM', requiredPositions: ['CM', 'CDM', 'CAM'] },
+                    { name: 'W', requiredPositions: ['LW', 'RW', 'LM', 'RM', 'W'] },
+                    { name: 'ST', requiredPositions: ['ST', 'CF', 'F', 'FW'] }
+                  ];
+                  
+                  const positionData = positions.find(p => p.name === selectedPosition);
+                  if (!positionData) return undefined;
+                  
+                  const positionPlayers = squadPlayers.filter(p => 
+                    p.positions.some(playerPos => positionData.requiredPositions.includes(playerPos))
+                  );
+                  
+                  const current = positionPlayers.length;
+                  const needed = positionData.name === 'GK' ? 2 : 
+                               positionData.name === 'CB' || positionData.name === 'FB' || positionData.name === 'W' ? 4 :
+                               positionData.name === 'CM' ? 6 : 3;
+                  
+                  const ratings = positionPlayers.map(p => p.transferroomRating || p.xtvScore || 0);
+                  const averageRating = ratings.length > 0 ? Math.round(ratings.reduce((a, b) => a + b, 0) / ratings.length) : 0;
+                  
+                  let priority: 'Critical' | 'High' | 'Medium' | 'Low' | 'Strong';
+                  let recruitmentSuggestion: string;
+                  
+                  if (current === 0) {
+                    priority = 'Critical';
+                    recruitmentSuggestion = 'Immediate recruitment required - consider multiple targets';
+                  } else if (current < needed / 2) {
+                    priority = 'Critical' ;
+                    recruitmentSuggestion = 'Priority recruitment target - focus on proven quality';
+                  } else if (current < needed) {
+                    priority = averageRating < 65 ? 'High' : 'Medium';
+                    recruitmentSuggestion = averageRating < 65 
+                      ? 'Target higher-rated players to improve squad depth and quality'
+                      : 'Add depth with promising young players or experienced squad players';
+                  } else if (averageRating >= 75) {
+                    priority = 'Strong';
+                    recruitmentSuggestion = 'Consider selling surplus players or focus on youth development';
+                  } else {
+                    priority = 'Low';
+                    recruitmentSuggestion = 'Monitor for opportunities to upgrade quality';
+                  }
+                  
+                  return {
+                    priority,
+                    recruitmentSuggestion,
+                    averageRating,
+                    current,
+                    needed
+                  };
+                })()}
               />
             )}
           </div>
