@@ -11,6 +11,7 @@ import GroupedReportsTable from "@/components/reports/GroupedReportsTable";
 import PlayerReportsModal from "@/components/reports/PlayerReportsModal";
 import ReportsFilters, { ReportsFilterCriteria } from "@/components/reports/ReportsFilters";
 import { getRecommendation } from "@/utils/reportDataExtraction";
+import { groupReportsByPlayer } from "@/utils/reportGrouping";
 import { List, Users } from "lucide-react";
 
 // Reports List Component
@@ -112,16 +113,22 @@ const ReportsList = () => {
   }, [reports]);
   
   // Pagination logic
-  const totalItems = filteredReports.length;
+  const groupedReports = groupReportsByPlayer(filteredReports);
+  
+  const isGroupedMode = viewMode === "grouped";
+  const itemsToDisplay = isGroupedMode ? groupedReports : filteredReports;
+  const totalItems = itemsToDisplay.length;
   const totalPages = Math.ceil(totalItems / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
-  const paginatedReports = filteredReports.slice(startIndex, endIndex);
+  const paginatedReports = isGroupedMode 
+    ? groupedReports.slice(startIndex, endIndex).flatMap(group => group.allReports)
+    : filteredReports.slice(startIndex, endIndex);
   
   // Reset to first page when tab changes or filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [activeTab, searchFilters]);
+  }, [activeTab, searchFilters, viewMode]);
   
   const handleViewReport = (reportId: string) => {
     navigate(`/report/${reportId}`);
@@ -280,7 +287,7 @@ const ReportsList = () => {
           )}
 
           <div className="mt-4 text-sm text-muted-foreground text-center">
-            Showing {startIndex + 1}-{Math.min(endIndex, totalItems)} of {totalItems} reports
+            Showing {startIndex + 1}-{Math.min(endIndex, totalItems)} of {totalItems} {isGroupedMode ? 'players' : 'reports'}
           </div>
         </div>
       </div>
