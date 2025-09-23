@@ -221,6 +221,7 @@ const SavedConversations = () => {
       <ChatOverlay 
         isOpen={isChatOpen}
         onClose={() => setIsChatOpen(false)}
+        onConversationSaved={fetchSavedConversations}
       />
     </div>
   );

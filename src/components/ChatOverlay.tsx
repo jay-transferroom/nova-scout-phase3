@@ -53,9 +53,10 @@ interface ChatOverlayProps {
   onClose: () => void;
   initialQuery?: string;
   chatId?: string;
+  onConversationSaved?: () => void;
 }
 
-const ChatOverlay: React.FC<ChatOverlayProps> = ({ isOpen, onClose, initialQuery, chatId }) => {
+const ChatOverlay: React.FC<ChatOverlayProps> = ({ isOpen, onClose, initialQuery, chatId, onConversationSaved }) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -233,6 +234,11 @@ const ChatOverlay: React.FC<ChatOverlayProps> = ({ isOpen, onClose, initialQuery
           ? (value ? 'Response liked!' : 'Like removed')
           : (value ? 'Chat saved!' : 'Chat unsaved')
       );
+
+      // Call the callback when a conversation is saved
+      if (field === 'saved' && value && onConversationSaved) {
+        onConversationSaved();
+      }
 
     } catch (error) {
       console.error(`Error updating ${field}:`, error);
