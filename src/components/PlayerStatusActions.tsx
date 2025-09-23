@@ -322,11 +322,12 @@ const PlayerStatusActions = ({ playerId, playerName, playerReports }: PlayerStat
             {/* Scouting assignment toggle */}
             {canAssignForScouting && !hasActiveAssignment && (
               <Button
-                variant={isAssignedForScouting ? "default" : "outline"}
+                variant="outline"
                 size="sm"
                 onClick={handleToggleScoutingAssignment}
                 disabled={isLoading}
-                className={`gap-2 ${isAssignedForScouting ? 'bg-green-600 hover:bg-green-700 text-white border-green-600' : ''}`}
+                className={`gap-2 ${isAssignedForScouting ? 'bg-[#E9FBF1] border-[#0E9655] text-[#0E9655] hover:bg-[#E9FBF1]/80' : ''}`}
+                style={isAssignedForScouting ? { borderRadius: '8px' } : undefined}
               >
                 {isAssignedForScouting ? (
                   <>
