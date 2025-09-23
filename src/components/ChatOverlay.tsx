@@ -466,47 +466,49 @@ const ChatOverlay: React.FC<ChatOverlayProps> = ({ isOpen, onClose, initialQuery
                     </div>
                   </div>
                   
-                  {/* Search Results */}
-                  {message.searchResults && message.searchResults.length > 0 && (
-                    <div className="space-y-2 ml-4">
-                      {message.searchResults.map((result, resultIndex) => (
-                        <div
-                          key={resultIndex}
-                          className="flex items-start justify-between p-3 border rounded-lg hover:bg-accent transition-colors cursor-pointer"
-                          onClick={() => handleResultClick(result)}
-                        >
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 mb-2">
-                              {getResultIcon(result.type)}
-                              <span className="font-medium truncate">{result.title}</span>
-                              <Badge variant="outline" className="text-xs">
-                                {result.type}
-                              </Badge>
-                              {result.confidence && (
-                                <Badge variant="secondary" className="text-xs">
-                                  {Math.round(result.confidence * 100)}%
-                                </Badge>
-                              )}
-                            </div>
-                            
-                            {result.subtitle && (
-                              <div className="text-sm text-muted-foreground mb-1">
-                                {result.subtitle}
-                              </div>
-                            )}
-                            
-                            {result.description && (
-                              <div className="text-sm text-muted-foreground">
-                                {result.description}
-                              </div>
-                            )}
-                          </div>
-                          
-                          <ExternalLink className="h-4 w-4 text-muted-foreground ml-2 flex-shrink-0" />
-                        </div>
-                      ))}
-                    </div>
-                   )}
+                   {/* Search Results - Only show player profiles */}
+                   {message.searchResults && message.searchResults.filter(result => result.type === 'player').length > 0 && (
+                     <div className="space-y-2 ml-4">
+                       {message.searchResults
+                         .filter(result => result.type === 'player')
+                         .map((result, resultIndex) => (
+                         <div
+                           key={resultIndex}
+                           className="flex items-start justify-between p-3 border rounded-lg hover:bg-accent transition-colors cursor-pointer"
+                           onClick={() => handleResultClick(result)}
+                         >
+                           <div className="flex-1 min-w-0">
+                             <div className="flex items-center gap-2 mb-2">
+                               {getResultIcon(result.type)}
+                               <span className="font-medium truncate">{result.title}</span>
+                               <Badge variant="outline" className="text-xs">
+                                 player
+                               </Badge>
+                               {result.confidence && (
+                                 <Badge variant="secondary" className="text-xs">
+                                   {Math.round(result.confidence * 100)}%
+                                 </Badge>
+                               )}
+                             </div>
+                             
+                             {result.subtitle && (
+                               <div className="text-sm text-muted-foreground mb-1">
+                                 {result.subtitle}
+                               </div>
+                             )}
+                             
+                             {result.description && (
+                               <div className="text-sm text-muted-foreground">
+                                 {result.description}
+                               </div>
+                             )}
+                           </div>
+                           
+                           <ExternalLink className="h-4 w-4 text-muted-foreground ml-2 flex-shrink-0" />
+                         </div>
+                       ))}
+                     </div>
+                    )}
                    
                    {/* Player Profile Cards */}
                    {message.players && message.players.length > 0 && (
