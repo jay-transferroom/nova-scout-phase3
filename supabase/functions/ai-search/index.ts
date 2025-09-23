@@ -9,10 +9,14 @@ const corsHeaders = {
 };
 
 interface SearchResult {
-  type: 'player' | 'report';
+  type: 'player' | 'report' | 'ai_recommendation';
   id: string;
   title: string;
-  description: string;
+  subtitle?: string;
+  description?: string;
+  confidence?: number;
+  player_id?: string;
+  report_id?: string;
   relevanceScore: number;
   metadata: any;
 }
@@ -38,9 +42,9 @@ serve(async (req) => {
 
     // Search players with better filtering
     const { data: players, error: playersError } = await supabase
-      .from('players')
+      .from('players_new')
       .select('*')
-      .or(`name.ilike.%${query}%,club.ilike.%${query}%,nationality.ilike.%${query}%`)
+      .or(`name.ilike.%${query}%,currentteam.ilike.%${query}%,parentteam.ilike.%${query}%,firstnationality.ilike.%${query}%,secondnationality.ilike.%${query}%,firstposition.ilike.%${query}%,secondposition.ilike.%${query}%`)
       .limit(50);
 
     if (playersError) {
@@ -50,11 +54,7 @@ serve(async (req) => {
     // Search reports with player data
     const { data: reports, error: reportsError } = await supabase
       .from('reports')
-      .select(`
-        *,
-        players!inner(name, club, positions)
-      `)
-      .or(`players.name.ilike.%${query}%,players.club.ilike.%${query}%`)
+      .select('*')
       .limit(20);
 
     if (reportsError) {
@@ -119,40 +119,41 @@ function performKeywordSearch(query: string, players: any[], reports: any[], lim
 
   // Search players
   players.forEach(player => {
+    const positions = [player.firstposition, player.secondposition].filter(Boolean).join(', ') || 'Unknown';
+    const club = player.currentteam || player.parentteam || 'Unknown Club';
+    const nationality = player.firstnationality || player.secondnationality || 'Unknown';
+    
     const searchableText = [
       player.name || '',
-      player.club || '',
-      Array.isArray(player.positions) ? player.positions.join(' ') : '',
-      player.nationality || '',
-      player.contract_status || '',
-      player.region || ''
+      club,
+      positions,
+      nationality,
+      player.age ? `age ${player.age}` : '',
+      player.age && player.age < 20 ? 'young prospect under 20' : '',
+      player.age && player.age < 23 ? 'prospect' : ''
     ].join(' ');
     
     const relevance = calculateRelevance(searchableText, searchTerms);
     
     if (relevance > 0) {
-      const positions = Array.isArray(player.positions) ? player.positions.join(', ') : 'Unknown';
       results.push({
         type: 'player',
-        id: player.id,
+        id: player.id.toString(),
+        player_id: player.id.toString(),
         title: player.name || 'Unknown Player',
-        description: `${positions} at ${player.club || 'Unknown Club'} • Age ${player.age || 'Unknown'} • ${player.nationality || 'Unknown'}`,
+        subtitle: `${positions} • ${nationality}`,
+        description: `${club} • Age ${player.age || 'Unknown'}`,
+        confidence: relevance,
         relevanceScore: relevance,
-        metadata: player
+        metadata: { ...player, isPrivatePlayer: false }
       });
     }
   });
 
   // Search reports
   reports.forEach(report => {
-    const playerName = report.players?.name || 'Unknown Player';
-    const playerClub = report.players?.club || 'Unknown Club';
-    const playerPositions = Array.isArray(report.players?.positions) ? report.players.positions.join(' ') : '';
-    
     const searchableText = [
-      playerName,
-      playerClub,
-      playerPositions,
+      `player ${report.player_id}`,
       report.status || '',
       'report'
     ].join(' ');
@@ -163,8 +164,11 @@ function performKeywordSearch(query: string, players: any[], reports: any[], lim
       results.push({
         type: 'report',
         id: report.id,
-        title: `Report: ${playerName}`,
-        description: `${report.status || 'Draft'} report for ${playerClub}`,
+        report_id: report.id,
+        title: `Report for Player ${report.player_id}`,
+        subtitle: `${report.status || 'Draft'} Report`,
+        description: `Scouting report`,
+        confidence: relevance,
         relevanceScore: relevance,
         metadata: report
       });
