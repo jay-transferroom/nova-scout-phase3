@@ -28,6 +28,9 @@ import {
   UserMinus,
   PlayCircle,
   MoreHorizontal,
+  ArrowUp,
+  ArrowRight,
+  ArrowDown,
   MessageSquare,
   Bookmark
 } from "lucide-react";
@@ -259,9 +262,16 @@ const PlayerStatusActions = ({ playerId, playerName, playerReports }: PlayerStat
                     assignmentStatus.priority === 'High' ? 'destructive' :
                     assignmentStatus.priority === 'Medium' ? 'default' : 'secondary'
                   } 
-                  className="text-xs"
+                  className="text-xs flex items-center gap-1"
                 >
-                  {assignmentStatus.priority.toUpperCase()} PRIORITY
+                  {assignmentStatus.priority === 'High' ? (
+                    <ArrowUp className="w-3 h-3" />
+                  ) : assignmentStatus.priority === 'Medium' ? (
+                    <ArrowRight className="w-3 h-3" />
+                  ) : (
+                    <ArrowDown className="w-3 h-3" />
+                  )}
+                  PRIORITY
                 </Badge>
               )}
             </div>
