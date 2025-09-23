@@ -6,9 +6,11 @@ import { useReports } from "@/hooks/useReports";
 import { useReportsFilter } from "@/hooks/useReportsFilter";
 import { toast } from "sonner";
 import ReportsTabNavigation from "@/components/reports/ReportsTabNavigation";
-import ReportsTable from "@/components/reports/ReportsTable";
+import GroupedReportsTable from "@/components/reports/GroupedReportsTable";
+import PlayerReportsModal from "@/components/reports/PlayerReportsModal";
 import ReportsFilters, { ReportsFilterCriteria } from "@/components/reports/ReportsFilters";
 import { getRecommendation } from "@/utils/reportDataExtraction";
+import { ReportWithPlayer } from "@/types/report";
 
 // Reports List Component
 const ReportsList = () => {
@@ -26,6 +28,9 @@ const ReportsList = () => {
     scout: '',
     dateRange: ''
   });
+  const [selectedPlayerReports, setSelectedPlayerReports] = useState<ReportWithPlayer[]>([]);
+  const [selectedPlayerName, setSelectedPlayerName] = useState<string>('');
+  const [isPlayerReportsModalOpen, setIsPlayerReportsModalOpen] = useState(false);
   
   const itemsPerPage = 10;
   
@@ -135,6 +140,14 @@ const ReportsList = () => {
     }
   };
 
+  const handleViewAllReports = (playerId: string, playerName: string) => {
+    // Filter reports for this specific player
+    const playerReports = reports.filter(report => report.playerId === playerId);
+    setSelectedPlayerReports(playerReports);
+    setSelectedPlayerName(playerName);
+    setIsPlayerReportsModalOpen(true);
+  };
+
 
   const getCardTitle = () => {
     if (activeTab === "all-reports") return "All Scouting Reports";
@@ -171,11 +184,11 @@ const ReportsList = () => {
 
       <div>
         <div>
-          <ReportsTable
+          <GroupedReportsTable
             reports={paginatedReports}
             onViewReport={handleViewReport}
             onEditReport={handleEditReport}
-            onDeleteReport={handleDeleteReport}
+            onViewAllReports={handleViewAllReports}
           />
 
           {totalPages > 1 && (
@@ -232,6 +245,17 @@ const ReportsList = () => {
             Showing {startIndex + 1}-{Math.min(endIndex, totalItems)} of {totalItems} reports
           </div>
         </div>
+
+        {/* Player Reports Modal */}
+        <PlayerReportsModal
+          isOpen={isPlayerReportsModalOpen}
+          onClose={() => setIsPlayerReportsModalOpen(false)}
+          playerName={selectedPlayerName}
+          reports={selectedPlayerReports}
+          onViewReport={handleViewReport}
+          onEditReport={handleEditReport}
+          onDeleteReport={handleDeleteReport}
+        />
       </div>
     </div>
   );
