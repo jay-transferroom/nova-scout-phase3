@@ -12,6 +12,7 @@ import PlayerReportsModal from "@/components/reports/PlayerReportsModal";
 import ReportsFilters, { ReportsFilterCriteria } from "@/components/reports/ReportsFilters";
 import { getRecommendation } from "@/utils/reportDataExtraction";
 import { groupReportsByPlayer } from "@/utils/reportGrouping";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { List, Users } from "lucide-react";
 
 // Reports List Component
@@ -185,26 +186,21 @@ const ReportsList = () => {
       <div className="flex items-start justify-between mb-4">
         <ReportsTabNavigation onTabChange={setActiveTab} activeTab={activeTab} />
         
-        <div className="flex gap-2">
-          <Button
-            variant={viewMode === "individual" ? "default" : "outline"}
-            size="sm"
-            onClick={() => setViewMode("individual")}
-            className="flex items-center gap-2"
-          >
+        <ToggleGroup 
+          type="single" 
+          value={viewMode} 
+          onValueChange={(value) => value && setViewMode(value as "individual" | "grouped")}
+          className="border rounded-md"
+        >
+          <ToggleGroupItem value="individual" className="flex items-center gap-2">
             <List className="h-4 w-4" />
-            Individual Reports
-          </Button>
-          <Button
-            variant={viewMode === "grouped" ? "default" : "outline"}
-            size="sm"
-            onClick={() => setViewMode("grouped")}
-            className="flex items-center gap-2"
-          >
+            Individual
+          </ToggleGroupItem>
+          <ToggleGroupItem value="grouped" className="flex items-center gap-2">
             <Users className="h-4 w-4" />
-            Grouped Reports
-          </Button>
-        </div>
+            Grouped
+          </ToggleGroupItem>
+        </ToggleGroup>
       </div>
 
       <ReportsFilters 
