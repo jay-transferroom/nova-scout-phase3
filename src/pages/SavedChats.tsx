@@ -8,7 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { format } from 'date-fns';
 
-interface SavedChat {
+interface SavedConversation {
   id: string;
   title: string;
   initial_query: string;
@@ -19,17 +19,17 @@ interface SavedChat {
   saved: boolean;
 }
 
-const SavedChats = () => {
-  const [chats, setChats] = useState<SavedChat[]>([]);
+const SavedConversations = () => {
+  const [conversations, setConversations] = useState<SavedConversation[]>([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const { toast } = useToast();
 
   useEffect(() => {
-    fetchSavedChats();
+    fetchSavedConversations();
   }, []);
 
-  const fetchSavedChats = async () => {
+  const fetchSavedConversations = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
@@ -42,12 +42,12 @@ const SavedChats = () => {
         .order('updated_at', { ascending: false });
 
       if (error) throw error;
-      setChats(data || []);
+      setConversations(data || []);
     } catch (error) {
-      console.error('Error fetching saved chats:', error);
+      console.error('Error fetching saved conversations:', error);
       toast({
         title: "Error",
-        description: "Failed to load saved chats",
+        description: "Failed to load saved conversations",
         variant: "destructive",
       });
     } finally {
@@ -55,55 +55,55 @@ const SavedChats = () => {
     }
   };
 
-  const deleteChat = async (chatId: string) => {
+  const deleteConversation = async (conversationId: string) => {
     try {
       const { error } = await supabase
         .from('chats')
         .delete()
-        .eq('id', chatId);
+        .eq('id', conversationId);
 
       if (error) throw error;
 
-      setChats(chats.filter(chat => chat.id !== chatId));
+      setConversations(conversations.filter(conversation => conversation.id !== conversationId));
       toast({
         title: "Success",
-        description: "Chat deleted successfully",
+        description: "Conversation deleted successfully",
       });
     } catch (error) {
-      console.error('Error deleting chat:', error);
+      console.error('Error deleting conversation:', error);
       toast({
         title: "Error",
-        description: "Failed to delete chat",
+        description: "Failed to delete conversation",
         variant: "destructive",
       });
     }
   };
 
-  const exportChat = (chat: SavedChat) => {
-    const messages = Array.isArray(chat.messages) ? chat.messages : [];
-    const chatData = {
-      title: chat.title,
-      created_at: chat.created_at,
+  const exportConversation = (conversation: SavedConversation) => {
+    const messages = Array.isArray(conversation.messages) ? conversation.messages : [];
+    const conversationData = {
+      title: conversation.title,
+      created_at: conversation.created_at,
       messages: messages
     };
     
-    const blob = new Blob([JSON.stringify(chatData, null, 2)], { 
+    const blob = new Blob([JSON.stringify(conversationData, null, 2)], { 
       type: 'application/json' 
     });
     
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `chat-${chat.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.json`;
+    a.download = `conversation-${conversation.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.json`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
   };
 
-  const openChat = (chatId: string) => {
-    // Open the AI Assistant with this specific chat loaded
-    navigate('/', { state: { openChat: chatId } });
+  const openConversation = (conversationId: string) => {
+    // Open the AI Assistant with this specific conversation loaded
+    navigate('/', { state: { openChat: conversationId } });
   };
 
   if (loading) {
@@ -128,50 +128,50 @@ const SavedChats = () => {
     <div className="p-6 space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Saved Chats</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Saved Conversations</h1>
           <p className="text-muted-foreground">
             Your saved AI Scout Assistant conversations
           </p>
         </div>
         <Badge variant="secondary" className="text-sm">
-          {chats.length} saved
+          {conversations.length} saved
         </Badge>
       </div>
 
-      {chats.length === 0 ? (
+      {conversations.length === 0 ? (
         <Card>
           <CardContent className="p-8 text-center">
             <MessageSquare className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-            <h3 className="text-lg font-semibold mb-2">No saved chats yet</h3>
+            <h3 className="text-lg font-semibold mb-2">No saved conversations yet</h3>
             <p className="text-muted-foreground mb-4">
-              Start a conversation with the AI Scout Assistant and save your favorite chats.
+              Start a conversation with the AI Scout Assistant and save your favorite conversations.
             </p>
             <Button onClick={() => navigate('/')}>
               <MessageSquare className="h-4 w-4 mr-2" />
-              Start New Chat
+              Start New Conversation
             </Button>
           </CardContent>
         </Card>
       ) : (
         <div className="grid gap-4">
-          {chats.map((chat) => (
-            <Card key={chat.id} className="hover:shadow-md transition-shadow">
+          {conversations.map((conversation) => (
+            <Card key={conversation.id} className="hover:shadow-md transition-shadow">
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
                     <CardTitle className="text-lg line-clamp-2 mb-2">
-                      {chat.title}
+                      {conversation.title}
                     </CardTitle>
                     <div className="flex items-center gap-4 text-sm text-muted-foreground">
                       <div className="flex items-center gap-1">
                         <Calendar className="h-3 w-3" />
-                        {format(new Date(chat.updated_at), 'MMM d, yyyy')}
+                        {format(new Date(conversation.updated_at), 'MMM d, yyyy')}
                       </div>
                       <div className="flex items-center gap-1">
                         <MessageSquare className="h-3 w-3" />
-                        {Array.isArray(chat.messages) ? chat.messages.length : 0} messages
+                        {Array.isArray(conversation.messages) ? conversation.messages.length : 0} messages
                       </div>
-                      {chat.liked && (
+                      {conversation.liked && (
                         <Badge variant="secondary" className="text-xs">
                           Liked
                         </Badge>
@@ -182,21 +182,21 @@ const SavedChats = () => {
               </CardHeader>
               <CardContent className="pt-0">
                 <p className="text-sm text-muted-foreground line-clamp-2 mb-4">
-                  {chat.initial_query}
+                  {conversation.initial_query}
                 </p>
                 <div className="flex gap-2">
                   <Button 
                     variant="default" 
                     size="sm"
-                    onClick={() => openChat(chat.id)}
+                    onClick={() => openConversation(conversation.id)}
                   >
                     <ExternalLink className="h-3 w-3 mr-1" />
-                    Continue Chat
+                    Continue Conversation
                   </Button>
                   <Button 
                     variant="outline" 
                     size="sm"
-                    onClick={() => exportChat(chat)}
+                    onClick={() => exportConversation(conversation)}
                   >
                     <Download className="h-3 w-3 mr-1" />
                     Export
@@ -204,7 +204,7 @@ const SavedChats = () => {
                   <Button 
                     variant="outline" 
                     size="sm"
-                    onClick={() => deleteChat(chat.id)}
+                    onClick={() => deleteConversation(conversation.id)}
                   >
                     <Trash2 className="h-3 w-3 mr-1" />
                     Delete
@@ -219,4 +219,4 @@ const SavedChats = () => {
   );
 };
 
-export default SavedChats;
+export default SavedConversations;

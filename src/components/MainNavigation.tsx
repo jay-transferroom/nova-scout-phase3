@@ -173,16 +173,16 @@ const MainNavigation = ({ onAIAssistantClick }: { onAIAssistantClick?: () => voi
               <SidebarMenuItem>
                 <SidebarMenuButton 
                   asChild
-                  tooltip="Saved Chats"
+                  tooltip="Saved Conversations"
                 >
                   <NavLink 
-                    to="/saved-chats"
+                    to="/saved-conversations"
                     className={({ isActive }) => 
                       isActive ? "bg-sidebar-accent text-sidebar-accent-foreground" : ""
                     }
                   >
                     <MessageSquare className="h-4 w-4" />
-                    <span>Saved Chats</span>
+                    <span>Saved Conversations</span>
                   </NavLink>
                 </SidebarMenuButton>
               </SidebarMenuItem>

@@ -421,7 +421,7 @@ const ChatOverlay: React.FC<ChatOverlayProps> = ({ isOpen, onClose, initialQuery
                 className="h-8 text-xs"
               >
                 <Plus className="h-3 w-3 mr-1" />
-                New Chat
+                New Conversation
               </Button>
               <Button
                 variant="ghost"
