@@ -87,14 +87,6 @@ const Auth = () => {
       role: "Recruitment Manager",
       icon: Shield,
       color: "text-green-500"
-    },
-    {
-      name: "Sarah Mitchell - Director",
-      email: "director@demo.com", 
-      password: "demo123",
-      role: "Director",
-      icon: Star,
-      color: "text-purple-500"
     }
   ];
 
