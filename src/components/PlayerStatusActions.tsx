@@ -260,9 +260,16 @@ const PlayerStatusActions = ({ playerId, playerName, playerReports }: PlayerStat
 
             {/* Reports Status */}
             <div className="flex items-center gap-2 px-6">
-              <span className={reportCount > 0 ? "text-green-600 font-medium" : "text-base text-muted-foreground"}>
-                {reportCount} Report{reportCount !== 1 ? 's' : ''}
-              </span>
+              {reportCount > 0 ? (
+                <Button variant="outline" size="sm" onClick={handleViewReports} className="gap-2">
+                  <Eye className="w-4 h-4" />
+                  View {reportCount} Report{reportCount !== 1 ? 's' : ''}
+                </Button>
+              ) : (
+                <span className="text-base text-muted-foreground">
+                  {reportCount} Report{reportCount !== 1 ? 's' : ''}
+                </span>
+              )}
               {averageRating !== null && reportCount > 0 && (
                 <TooltipProvider>
                   <Tooltip>
@@ -305,14 +312,6 @@ const PlayerStatusActions = ({ playerId, playerName, playerReports }: PlayerStat
 
           {/* Actions Section */}
           <div className="flex items-center gap-2">
-            {/* Primary action based on state */}
-            {reportCount > 0 && (
-              <Button variant="outline" size="sm" onClick={handleViewReports} className="gap-2">
-                <Eye className="w-4 h-4" />
-                View Reports ({reportCount})
-              </Button>
-            )}
-
             {/* Secondary actions in dropdown menu */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
