@@ -7,15 +7,22 @@ import { useReportsFilter } from "@/hooks/useReportsFilter";
 import { toast } from "sonner";
 import ReportsTabNavigation from "@/components/reports/ReportsTabNavigation";
 import ReportsTable from "@/components/reports/ReportsTable";
+import GroupedReportsTable from "@/components/reports/GroupedReportsTable";
+import PlayerReportsModal from "@/components/reports/PlayerReportsModal";
 import ReportsFilters, { ReportsFilterCriteria } from "@/components/reports/ReportsFilters";
 import { getRecommendation } from "@/utils/reportDataExtraction";
+import { List, Users } from "lucide-react";
 
 // Reports List Component
 const ReportsList = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState("all-reports");
+  const [viewMode, setViewMode] = useState<"individual" | "grouped">("individual");
   const [currentPage, setCurrentPage] = useState(1);
+  const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null);
+  const [selectedPlayerName, setSelectedPlayerName] = useState<string>("");
+  const [playerReportsModalOpen, setPlayerReportsModalOpen] = useState(false);
   const [searchFilters, setSearchFilters] = useState<ReportsFilterCriteria>({
     searchTerm: '',
     playerName: '',
@@ -135,6 +142,17 @@ const ReportsList = () => {
     }
   };
 
+  const handleViewAllReports = (playerId: string, playerName: string) => {
+    setSelectedPlayerId(playerId);
+    setSelectedPlayerName(playerName);
+    setPlayerReportsModalOpen(true);
+  };
+
+  const getPlayerReports = () => {
+    if (!selectedPlayerId) return [];
+    return filteredReports.filter(report => report.playerId === selectedPlayerId);
+  };
+
 
   const getCardTitle = () => {
     if (activeTab === "all-reports") return "All Scouting Reports";
@@ -159,24 +177,54 @@ const ReportsList = () => {
 
       <ReportsTabNavigation onTabChange={setActiveTab} activeTab={activeTab} />
 
-        <ReportsFilters 
-          filters={searchFilters}
-          onFiltersChange={setSearchFilters}
-          availableVerdicts={availableVerdicts}
-          availableScouts={availableScouts}
-          availableClubs={availableClubs}
-          availablePositions={availablePositions}
-          availablePlayerNames={availablePlayerNames}
-        />
+      <ReportsFilters 
+        filters={searchFilters}
+        onFiltersChange={setSearchFilters}
+        availableVerdicts={availableVerdicts}
+        availableScouts={availableScouts}
+        availableClubs={availableClubs}
+        availablePositions={availablePositions}
+        availablePlayerNames={availablePlayerNames}
+      />
+
+      <div className="mb-4 flex gap-2">
+        <Button
+          variant={viewMode === "individual" ? "default" : "outline"}
+          size="sm"
+          onClick={() => setViewMode("individual")}
+          className="flex items-center gap-2"
+        >
+          <List className="h-4 w-4" />
+          Individual Reports
+        </Button>
+        <Button
+          variant={viewMode === "grouped" ? "default" : "outline"}
+          size="sm"
+          onClick={() => setViewMode("grouped")}
+          className="flex items-center gap-2"
+        >
+          <Users className="h-4 w-4" />
+          Grouped Reports
+        </Button>
+      </div>
 
       <div>
         <div>
-          <ReportsTable
-            reports={paginatedReports}
-            onViewReport={handleViewReport}
-            onEditReport={handleEditReport}
-            onDeleteReport={handleDeleteReport}
-          />
+          {viewMode === "individual" ? (
+            <ReportsTable
+              reports={paginatedReports}
+              onViewReport={handleViewReport}
+              onEditReport={handleEditReport}
+              onDeleteReport={handleDeleteReport}
+            />
+          ) : (
+            <GroupedReportsTable
+              reports={paginatedReports}
+              onViewReport={handleViewReport}
+              onEditReport={handleEditReport}
+              onViewAllReports={handleViewAllReports}
+            />
+          )}
 
           {totalPages > 1 && (
             <div className="mt-6 flex justify-center">
@@ -233,6 +281,16 @@ const ReportsList = () => {
           </div>
         </div>
       </div>
+
+      <PlayerReportsModal
+        isOpen={playerReportsModalOpen}
+        onClose={() => setPlayerReportsModalOpen(false)}
+        playerName={selectedPlayerName}
+        reports={getPlayerReports()}
+        onViewReport={handleViewReport}
+        onEditReport={handleEditReport}
+        onDeleteReport={handleDeleteReport}
+      />
     </div>
   );
 };
