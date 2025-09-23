@@ -90,94 +90,88 @@ const SquadListView = ({
   const categorizedPlayers = groupPlayersByCategory();
 
   return (
-    <div className="space-y-4 max-h-[600px] overflow-y-auto">
+    <div className="space-y-3 h-full overflow-y-auto">
       {Object.entries(categorizedPlayers).map(([category, categoryPlayers]) => {
         if (categoryPlayers.length === 0) return null;
         
         return (
-          <div key={category} className="space-y-2">
-            <div className="flex items-center gap-2 px-2">
-              <Users className="h-4 w-4 text-muted-foreground" />
-              <h3 className="font-medium text-sm">{category}</h3>
-              <Badge variant="outline" className="text-xs">
+          <div key={category} className="space-y-1">
+            <div className="flex items-center gap-2 px-1 sticky top-0 bg-background/95 backdrop-blur py-1">
+              <Users className="h-3 w-3 text-muted-foreground" />
+              <h3 className="font-medium text-xs">{category}</h3>
+              <Badge variant="outline" className="text-xs px-1 py-0">
                 {categoryPlayers.length}
               </Badge>
             </div>
             
-            <div className="space-y-1">
+            <div className="space-y-0.5">
               {categoryPlayers.map((player) => {
                 const assignment = getPlayerAssignment(player.id);
                 const contractStatus = getContractStatus(player);
                 const isSelected = selectedPlayer?.id === player.id;
                 
                 return (
-                  <Card 
+                  <div 
                     key={player.id} 
-                    className={`cursor-pointer transition-all hover:shadow-sm ${
-                      isSelected ? 'ring-2 ring-primary' : ''
+                    className={`flex items-center gap-2 p-2 rounded-md cursor-pointer transition-all hover:bg-muted/50 text-xs ${
+                      isSelected ? 'bg-primary/10 border border-primary/20' : ''
                     }`}
                     onClick={() => onPlayerClick?.(player)}
                   >
-                    <CardContent className="p-3">
-                      <div className="flex items-center space-x-3">
-                        {/* Player Avatar */}
-                        <Avatar className="h-10 w-10">
-                          <AvatarImage 
-                            src={player.image} 
-                            alt={player.name}
-                          />
-                          <AvatarFallback className="bg-blue-600 text-white text-sm">
-                            {player.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
-                          </AvatarFallback>
-                        </Avatar>
+                    {/* Player Avatar */}
+                    <Avatar className="h-6 w-6 flex-shrink-0">
+                      <AvatarImage 
+                        src={player.image} 
+                        alt={player.name}
+                      />
+                      <AvatarFallback className="bg-blue-600 text-white text-xs">
+                        {player.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
+                      </AvatarFallback>
+                    </Avatar>
 
-                        {/* Player Info */}
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center justify-between">
-                            <h4 className="font-medium text-sm truncate">{player.name}</h4>
-                            <div className="flex items-center gap-1">
-                              <TrendingUp className="h-3 w-3 text-muted-foreground" />
-                              <span className="text-sm font-medium">
-                                {formatValue(player.transferroomRating || player.xtvScore)}
-                              </span>
-                            </div>
-                          </div>
-                          
-                          <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground">
-                            <div className="flex items-center gap-1">
-                              <Calendar className="h-3 w-3" />
-                              <span>{player.age}y</span>
-                            </div>
-                            <div className="flex items-center gap-1">
-                              <MapPin className="h-3 w-3" />
-                              <span>{player.nationality}</span>
-                            </div>
-                          </div>
+                    {/* Player Name */}
+                    <div className="font-medium truncate min-w-0 flex-shrink">
+                      {player.name}
+                    </div>
 
-                          {/* Position badges and assignment */}
-                          <div className="flex items-center gap-1 mt-2">
-                            {player.positions.slice(0, 3).map((position, idx) => (
-                              <Badge key={idx} variant="outline" className="text-xs px-1 py-0">
-                                {position}
-                              </Badge>
-                            ))}
-                            
-                            {assignment && (
-                              <Badge variant="default" className="text-xs px-1 py-0 bg-green-600">
-                                {assignment.position}
-                              </Badge>
-                            )}
-                            
-                            {contractStatus && (
-                              <Badge variant={contractStatus.variant} className="text-xs px-1 py-0">
-                                {contractStatus.status}
-                              </Badge>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
+                    {/* Age & Nationality */}
+                    <div className="flex items-center gap-1 text-muted-foreground flex-shrink-0">
+                      <span>{player.age}y</span>
+                      <span>•</span>
+                      <span className="truncate max-w-8">{player.nationality}</span>
+                    </div>
+
+                    {/* Positions */}
+                    <div className="flex items-center gap-0.5 flex-shrink-0">
+                      {player.positions.slice(0, 2).map((position, idx) => (
+                        <Badge key={idx} variant="outline" className="text-xs px-1 py-0 h-4">
+                          {position}
+                        </Badge>
+                      ))}
+                    </div>
+
+                    {/* Assignment */}
+                    {assignment && (
+                      <Badge variant="default" className="text-xs px-1 py-0 h-4 bg-green-600 flex-shrink-0">
+                        {assignment.position}
+                      </Badge>
+                    )}
+
+                    {/* Contract Status */}
+                    {contractStatus && (
+                      <Badge variant={contractStatus.variant} className="text-xs px-1 py-0 h-4 flex-shrink-0">
+                        {contractStatus.status}
+                      </Badge>
+                    )}
+
+                    {/* Rating */}
+                    <div className="flex items-center gap-1 ml-auto flex-shrink-0">
+                      <TrendingUp className="h-3 w-3 text-muted-foreground" />
+                      <span className="font-medium">
+                        {formatValue(player.transferroomRating || player.xtvScore)}
+                      </span>
+                    </div>
+                  </div>
                 );
               })}
             </div>
