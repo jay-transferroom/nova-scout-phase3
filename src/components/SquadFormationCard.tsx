@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Users } from "lucide-react";
 import { Player } from "@/types/player";
-import EnhancedFootballPitch from "@/components/EnhancedFootballPitch";
+import CompactSquadView from "@/components/CompactSquadView";
 
 interface SquadFormationCardProps {
   squadPlayers: Player[];
@@ -28,30 +28,15 @@ const SquadFormationCard = ({
   onPlayerChange 
 }: SquadFormationCardProps) => {
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Users className="h-5 w-5" />
-          Squad Formation & Depth Analysis
-          {selectedSquad === 'shadow-squad' && (
-            <Badge variant="secondary" className="ml-2">
-              Full Depth View
-            </Badge>
-          )}
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <EnhancedFootballPitch 
-          players={squadPlayers} 
-          squadType={selectedSquad}
-          formation={formation}
-          positionAssignments={positionAssignments}
-          onPositionClick={onPositionClick}
-          selectedPosition={selectedPosition}
-          onPlayerChange={onPlayerChange}
-        />
-      </CardContent>
-    </Card>
+    <CompactSquadView 
+      squadPlayers={squadPlayers}
+      selectedSquad={selectedSquad}
+      formation={formation}
+      positionAssignments={positionAssignments}
+      onPositionClick={onPositionClick}
+      selectedPosition={selectedPosition}
+      onPlayerChange={onPlayerChange}
+    />
   );
 };
 
