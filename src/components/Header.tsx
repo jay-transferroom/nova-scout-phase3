@@ -1,7 +1,6 @@
-
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
-import { LogOut, User, Sparkles } from "lucide-react";
+import { LogOut, User } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -19,13 +18,10 @@ const Header = () => {
   const { profile, signOut } = useAuth();
   const navigate = useNavigate();
 
-  const getInitials = (firstName?: string, lastName?: string) => {
-    if (!firstName && !lastName) return "U";
+  const getInitials = () => {
+    const firstName = profile?.first_name;
+    const lastName = profile?.last_name;
     return `${firstName?.[0] || ""}${lastName?.[0] || ""}`.toUpperCase();
-  };
-
-  const handleAISearch = () => {
-    navigate('/ai-search');
   };
 
   return (
@@ -45,17 +41,6 @@ const Header = () => {
         </div>
         
         <div className="flex items-center gap-2">
-          {/* AI Search Button */}
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleAISearch}
-            className="flex items-center gap-2"
-          >
-            <Sparkles className="h-4 w-4" />
-            AI Search
-          </Button>
-          
           <NotificationsDropdown />
           
           <DropdownMenu>
@@ -63,7 +48,7 @@ const Header = () => {
               <Button variant="ghost" className="relative h-8 w-8 rounded-full">
                 <Avatar className="h-8 w-8">
                   <AvatarFallback>
-                    {getInitials(profile?.first_name, profile?.last_name)}
+                    {getInitials()}
                   </AvatarFallback>
                 </Avatar>
               </Button>

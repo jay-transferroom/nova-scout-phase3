@@ -25,7 +25,6 @@ import ScoutingDashboard from "@/pages/ScoutingDashboard";
 import AssignedPlayers from "@/pages/AssignedPlayers";
 import UserManagement from "@/pages/admin/UserManagement";
 import NotificationsList from "@/pages/NotificationsList";
-import AISearch from "@/pages/AISearch";
 import Shortlists from "@/pages/Shortlists";
 import SquadView from "@/pages/SquadView";
 import TransfersIn from "@/pages/TransfersIn";
@@ -74,7 +73,6 @@ function App() {
                 <Route path="/assigned-players" element={<ProtectedRoute><AssignedPlayers /></ProtectedRoute>} />
                 <Route path="/admin/users" element={<ProtectedRoute><UserManagement /></ProtectedRoute>} />
                 <Route path="/notifications" element={<ProtectedRoute><NotificationsList /></ProtectedRoute>} />
-                <Route path="/ai-search" element={<ProtectedRoute><AISearch /></ProtectedRoute>} />
                 <Route path="/shortlists" element={<ProtectedRoute><Shortlists /></ProtectedRoute>} />
                 <Route path="/squad-view" element={<ProtectedRoute><SquadView /></ProtectedRoute>} />
                 <Route path="/transfers-in" element={<ProtectedRoute><TransfersIn /></ProtectedRoute>} />

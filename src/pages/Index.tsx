@@ -16,6 +16,7 @@ import { ScoutingGrade } from "@/components/ui/scouting-grade";
 import { formatDate } from "@/utils/reportFormatting";
 import QuickActionsBar from "@/components/QuickActionsBar";
 import UpcomingMatches from "@/components/UpcomingMatches";
+import AIScoutAssistant from "@/components/AIScoutAssistant";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -200,75 +201,84 @@ const Index = () => {
         </div>
 
 
-        <div className="grid grid-cols-1 gap-6">
-          {/* Quick Actions Bar */}
-          <QuickActionsBar />
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Left Column */}
+          <div className="space-y-6">
+            {/* Quick Actions Bar */}
+            <QuickActionsBar />
 
-          {/* Recent Reports - Full width table without container */}
-          <div>
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <h2 className="text-xl font-semibold">Recent Reports</h2>
-                <p className="text-sm text-muted-foreground">
-                  {profile?.role === 'recruitment' 
-                    ? 'Latest submitted reports from all scouts'
-                    : 'Your most recent scouting activity'
-                  }
-                </p>
-              </div>
-              <Badge variant="secondary">{recentReportsToShow.length} of {profile?.role === 'recruitment' ? reports.length : myReports.length}</Badge>
-            </div>
-            {loading ? (
-              <p className="text-center text-muted-foreground py-8">Loading reports...</p>
-            ) : recentReportsToShow.length > 0 ? (
-              <>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Player</TableHead>
-                      <TableHead>Club</TableHead>
-                      <TableHead>Date</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Rating</TableHead>
-                      <TableHead>Verdict</TableHead>
-                      <TableHead>Scout</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {recentReportsToShow.map((report) => (
-                      <RecentReportTableRow 
-                        key={report.id} 
-                        report={report} 
-                        profile={profile}
-                        navigate={navigate}
-                      />
-                    ))}
-                  </TableBody>
-                </Table>
-                <div className="mt-4">
-                  <Button
-                    variant="outline"
-                    className="w-full"
-                    onClick={() => navigate("/reports")}
-                  >
-                    View All Reports ({profile?.role === 'recruitment' ? reports.length : myReports.length})
-                  </Button>
-                </div>
-              </>
-            ) : (
-              <div className="text-center py-6">
-                <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <p className="text-muted-foreground mb-4">No reports yet</p>
-                <Button onClick={() => navigate("/report-builder")}>
-                  Create Your First Report
-                </Button>
-              </div>
-            )}
+            {/* AI Scout Assistant */}
+            <AIScoutAssistant />
           </div>
 
-          {/* Upcoming Matches */}
-          <UpcomingMatches />
+          {/* Right Column */}
+          <div className="space-y-6">
+            {/* Upcoming Matches */}
+            <UpcomingMatches />
+          </div>
+        </div>
+
+        {/* Recent Reports - Full width section */}
+        <div>
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h2 className="text-xl font-semibold">Recent Reports</h2>
+              <p className="text-sm text-muted-foreground">
+                {profile?.role === 'recruitment' 
+                  ? 'Latest submitted reports from all scouts'
+                  : 'Your most recent scouting activity'
+                }
+              </p>
+            </div>
+            <Badge variant="secondary">{recentReportsToShow.length} of {profile?.role === 'recruitment' ? reports.length : myReports.length}</Badge>
+          </div>
+          {loading ? (
+            <p className="text-center text-muted-foreground py-8">Loading reports...</p>
+          ) : recentReportsToShow.length > 0 ? (
+            <>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Player</TableHead>
+                    <TableHead>Club</TableHead>
+                    <TableHead>Date</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Rating</TableHead>
+                    <TableHead>Verdict</TableHead>
+                    <TableHead>Scout</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {recentReportsToShow.map((report) => (
+                    <RecentReportTableRow 
+                      key={report.id} 
+                      report={report} 
+                      profile={profile}
+                      navigate={navigate}
+                    />
+                  ))}
+                </TableBody>
+              </Table>
+              <div className="mt-4">
+                <Button
+                  variant="outline"
+                  className="w-full"
+                  onClick={() => navigate("/reports")}
+                >
+                  View All Reports ({profile?.role === 'recruitment' ? reports.length : myReports.length})
+                </Button>
+              </div>
+            </>
+          ) : (
+            <div className="text-center py-6">
+              <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+              <p className="text-muted-foreground mb-4">No reports yet</p>
+              <Button onClick={() => navigate("/report-builder")}>
+                Create Your First Report
+              </Button>
+            </div>
+          )}
         </div>
       </div>
     </div>
