@@ -5,7 +5,7 @@ import { ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePlayersData } from "@/hooks/usePlayersData";
-import { usePlayerPositionAssignments, useUpdatePlayerPositionAssignment } from "@/hooks/usePlayerPositionAssignments";
+import { usePlayerPositionAssignments, useUpdatePlayerPositionAssignment, useAllPlayerPositionAssignments } from "@/hooks/usePlayerPositionAssignments";
 import SquadSelector from "@/components/SquadSelector";
 import SquadRecommendations from "@/components/SquadRecommendations";
 import ProspectComparison from "@/components/ProspectComparison";
@@ -43,6 +43,7 @@ const SquadView = () => {
   
   // Get player position assignments
   const { data: positionAssignments = [] } = usePlayerPositionAssignments(userClub, currentFormation, selectedSquad);
+  const { data: allPositionAssignments = [] } = useAllPlayerPositionAssignments(userClub, currentFormation);
   const updateAssignment = useUpdatePlayerPositionAssignment();
 
   // Filter players based on Chelsea F.C. (including all squads and loans)
@@ -57,7 +58,7 @@ const SquadView = () => {
   }, [allPlayers]);
 
   // Use custom hooks for data management
-  const { squadPlayers } = useSquadData(clubPlayers, selectedSquad);
+  const { squadPlayers } = useSquadData(clubPlayers, selectedSquad, allPositionAssignments);
   const squadMetrics = useSquadMetrics(squadPlayers, selectedSquad);
 
   const displayTitle = `${userClub} ${getSquadDisplayName(selectedSquad)} Analysis`;

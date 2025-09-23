@@ -31,6 +31,22 @@ export const usePlayerPositionAssignments = (clubName: string, formation: string
   });
 };
 
+export const useAllPlayerPositionAssignments = (clubName: string, formation: string) => {
+  return useQuery({
+    queryKey: ['all-player-position-assignments', clubName, formation],
+    queryFn: async (): Promise<PlayerPositionAssignment[]> => {
+      const { data, error } = await supabase
+        .from('player_position_assignments')
+        .select('*')
+        .eq('club_name', clubName)
+        .eq('formation', formation);
+      
+      if (error) throw error;
+      return data || [];
+    },
+  });
+};
+
 export const useUpdatePlayerPositionAssignment = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -69,6 +85,10 @@ export const useUpdatePlayerPositionAssignment = () => {
       console.log('Assignment update successful, invalidating queries');
       queryClient.invalidateQueries({ 
         queryKey: ['player-position-assignments', variables.club_name, variables.formation, variables.squad_type] 
+      });
+      // Also invalidate all assignments query for shadow squad filtering
+      queryClient.invalidateQueries({ 
+        queryKey: ['all-player-position-assignments', variables.club_name, variables.formation] 
       });
       
       toast({
@@ -111,6 +131,10 @@ export const useRemovePlayerPositionAssignment = () => {
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ 
         queryKey: ['player-position-assignments', variables.club_name, variables.formation, variables.squad_type] 
+      });
+      // Also invalidate all assignments query
+      queryClient.invalidateQueries({ 
+        queryKey: ['all-player-position-assignments', variables.club_name, variables.formation] 
       });
       
       toast({
