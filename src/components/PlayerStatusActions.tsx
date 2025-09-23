@@ -15,8 +15,6 @@ import {
   UserPlus, 
   Plus, 
   Eye, 
-  Heart, 
-  HeartOff,
   UserCheck,
   UserMinus,
   PlayCircle,
@@ -26,7 +24,6 @@ import {
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { usePlayerAssignments } from "@/hooks/usePlayerAssignments";
 import { useShortlists } from "@/hooks/useShortlists";
-import { usePlayerTracking } from "@/hooks/usePlayerTracking";
 import { usePlayerNotes } from "@/hooks/usePlayerNotes";
 import { useAuth } from "@/contexts/AuthContext";
 import { ReportWithPlayer } from "@/types/report";
@@ -59,7 +56,6 @@ const PlayerStatusActions = ({ playerId, playerName, playerReports }: PlayerStat
   // Get player data from various hooks
   const { data: assignments = [] } = usePlayerAssignments();
   const { shortlists, getPlayerShortlists, addPlayerToShortlist, addPlayerToScoutingAssignment, removePlayerFromScoutingAssignment } = useShortlists();
-  const { isTracking, trackPlayer, untrackPlayer, isTrackingPlayer, isUntrackingPlayer } = usePlayerTracking(playerId);
   const { notesCount, refetch: refetchNotes } = usePlayerNotes(playerId);
 
   // Find assignment for this player
@@ -119,14 +115,6 @@ const PlayerStatusActions = ({ playerId, playerName, playerReports }: PlayerStat
 
     setIsShortlistDialogOpen(false);
     setSelectedShortlist("");
-  };
-
-  const handleToggleTracking = () => {
-    if (isTracking) {
-      untrackPlayer(playerId);
-    } else {
-      trackPlayer(playerId);
-    }
   };
 
   const handleToggleScoutingAssignment = async () => {
@@ -282,14 +270,6 @@ const PlayerStatusActions = ({ playerId, playerName, playerReports }: PlayerStat
               </span>
             </div>
             
-            {/* Tracking Status */}
-            {isTracking && (
-              <div className="flex items-center gap-1 text-green-600 text-base px-6">
-                <Heart className="w-4 h-4 fill-current" />
-                <span>Tracked</span>
-              </div>
-            )}
-            
             {/* Scouting Assignment Status */}
             {isAssignedForScouting && (
               <div className="flex items-center gap-1 text-blue-600 text-base px-6">
@@ -343,27 +323,6 @@ const PlayerStatusActions = ({ playerId, playerName, playerReports }: PlayerStat
                 )}
               </Button>
             )}
-
-            {/* Tracking toggle */}
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleToggleTracking}
-              disabled={isTrackingPlayer || isUntrackingPlayer}
-              className="gap-2"
-            >
-              {isTracking ? (
-                <>
-                  <HeartOff className="w-4 h-4" />
-                  Untrack
-                </>
-              ) : (
-                <>
-                  <Heart className="w-4 h-4" />
-                  Track
-                </>
-              )}
-            </Button>
           </div>
         </div>
       </CardContent>
