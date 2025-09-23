@@ -7,6 +7,7 @@ import { MessageSquare, Calendar, Trash2, Download, ExternalLink } from 'lucide-
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { format } from 'date-fns';
+import ChatOverlay from "@/components/ChatOverlay";
 
 interface SavedConversation {
   id: string;
@@ -22,6 +23,7 @@ interface SavedConversation {
 const SavedConversations = () => {
   const [conversations, setConversations] = useState<SavedConversation[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isChatOpen, setIsChatOpen] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -146,7 +148,7 @@ const SavedConversations = () => {
             <p className="text-muted-foreground mb-4">
               Start a conversation with the AI Scout Assistant and save your favorite conversations.
             </p>
-            <Button onClick={() => navigate('/')}>
+            <Button onClick={() => setIsChatOpen(true)}>
               <MessageSquare className="h-4 w-4 mr-2" />
               Start New Conversation
             </Button>
@@ -215,6 +217,11 @@ const SavedConversations = () => {
           ))}
         </div>
       )}
+      
+      <ChatOverlay 
+        isOpen={isChatOpen}
+        onClose={() => setIsChatOpen(false)}
+      />
     </div>
   );
 };
