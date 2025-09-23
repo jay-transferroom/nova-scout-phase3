@@ -119,8 +119,11 @@ const MainNavigation = () => {
               {mainItems
                 .filter(item => {
                   // Check if user's role is allowed for this item
-                  if (item.allowedRoles && profile?.role && !item.allowedRoles.includes(profile.role)) {
-                    return false;
+                  if (item.allowedRoles && profile?.role) {
+                    if (!item.allowedRoles.includes(profile.role)) {
+                      console.log(`Filtering out ${item.title} - user role: ${profile.role}, allowed: ${item.allowedRoles}`);
+                      return false;
+                    }
                   }
                   return hasPermission(item.permission);
                 })

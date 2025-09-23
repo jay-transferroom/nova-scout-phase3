@@ -19,9 +19,9 @@ export const fetchUserProfile = async (userId: string): Promise<Profile | null> 
     console.log('Profile data:', profile);
     
     if (profile) {
-      const profileData: Profile = {
-        ...profile,
-        role: profile.role as 'scout' | 'recruitment',
+    const profileData: Profile = {
+      ...profile,
+      role: profile.role as 'scout' | 'recruitment' | 'director',
         club: {
           id: 'chelsea',
           name: 'Chelsea F.C.',
