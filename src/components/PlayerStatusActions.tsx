@@ -264,33 +264,29 @@ const PlayerStatusActions = ({ playerId, playerName, playerReports }: PlayerStat
                </div>
             )}
 
-            {/* Reports Status */}
-            <div className="flex items-center gap-2 px-6">
-              {reportCount > 0 ? (
+            {/* Reports Status - only show when there are reports */}
+            {reportCount > 0 && (
+              <div className="flex items-center gap-2 px-6">
                 <Button variant="outline" size="sm" onClick={handleViewReports} className="gap-2">
                   <Eye className="w-4 h-4" />
                   View {reportCount} Report{reportCount !== 1 ? 's' : ''}
                 </Button>
-              ) : (
-                <span className="text-base text-muted-foreground">
-                  {reportCount} Report{reportCount !== 1 ? 's' : ''}
-                </span>
-              )}
-              {averageRating !== null && reportCount > 0 && (
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <div className="px-3 py-2 bg-secondary/50 border border-border rounded-md cursor-help h-9 flex items-center">
-                        <ScoutingGrade grade={averageRating} className="text-sm" />
-                      </div>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Average Scouting Score</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              )}
-            </div>
+                {averageRating !== null && (
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <div className="px-3 py-2 bg-secondary/50 border border-border rounded-md cursor-help h-9 flex items-center">
+                          <ScoutingGrade grade={averageRating} className="text-sm" />
+                        </div>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Average Scouting Score</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                )}
+              </div>
+            )}
             
             {/* Shortlists Status */}
             <div className="px-6">
