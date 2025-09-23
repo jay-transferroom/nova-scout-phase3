@@ -75,8 +75,11 @@ const PlayerStatusActions = ({ playerId, playerName, playerReports }: PlayerStat
   const scoutingList = shortlists.find(list => list.is_scouting_assignment_list);
   const isInScoutingList = scoutingList?.playerIds?.includes(playerId) || false;
   
+  // Check if player has an active (non-completed) assignment
+  const hasActiveAssignment = playerAssignment && playerAssignment.status !== 'completed';
+  
   // Player is "assigned for scouting" only if they're in the scouting list AND don't have an active assignment
-  const isAssignedForScouting = isInScoutingList && !playerAssignment;
+  const isAssignedForScouting = isInScoutingList && !hasActiveAssignment;
 
   // Check permissions
   const canAssignScout = profile?.role === 'recruitment' || profile?.role === 'director';
@@ -119,7 +122,7 @@ const PlayerStatusActions = ({ playerId, playerName, playerReports }: PlayerStat
 
   const handleToggleScoutingAssignment = async () => {
     // Check if player already has an active scout assignment
-    if (playerAssignment && playerAssignment.status !== 'completed') {
+    if (hasActiveAssignment) {
       toast({
         title: "Cannot Mark for Scouting",
         description: `${playerName} already has an active scout assignment. Complete or remove the current assignment first.`,
