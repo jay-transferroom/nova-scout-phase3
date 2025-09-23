@@ -118,10 +118,24 @@ const PlayerStatusActions = ({ playerId, playerName, playerReports }: PlayerStat
   };
 
   const handleToggleScoutingAssignment = async () => {
+    // Check if player already has an active scout assignment
+    if (playerAssignment && playerAssignment.status !== 'completed') {
+      toast({
+        title: "Cannot Mark for Scouting",
+        description: `${playerName} already has an active scout assignment. Complete or remove the current assignment first.`,
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsLoading(true);
     try {
       if (isAssignedForScouting) {
         await removePlayerFromScoutingAssignment(playerId);
+        toast({
+          title: "Removed from Scouting List",
+          description: `${playerName} has been removed from the scouting assignment list.`,
+        });
       } else {
         // When marking for scouting, remove any completed assignments first
         if (playerAssignment && playerAssignment.status === 'completed') {
@@ -133,9 +147,18 @@ const PlayerStatusActions = ({ playerId, playerName, playerReports }: PlayerStat
             .eq('status', 'completed');
         }
         await addPlayerToScoutingAssignment(playerId);
+        toast({
+          title: "Marked for Scouting",
+          description: `${playerName} has been added to the scouting assignment list.`,
+        });
       }
     } catch (error) {
       console.error('Error toggling scouting assignment:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update scouting assignment. Please try again.",
+        variant: "destructive",
+      });
     } finally {
       setIsLoading(false);
     }
