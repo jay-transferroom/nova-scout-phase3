@@ -31,6 +31,7 @@ import {
   MessageSquare,
   Bookmark
 } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { usePlayerAssignments } from "@/hooks/usePlayerAssignments";
 import { useShortlists } from "@/hooks/useShortlists";
 import { usePlayerTracking } from "@/hooks/usePlayerTracking";
@@ -271,12 +272,18 @@ const PlayerStatusActions = ({ playerId, playerName, playerReports }: PlayerStat
                 {reportCount} Report{reportCount !== 1 ? 's' : ''}
               </span>
               {averageRating !== null && reportCount > 0 && (
-                <div className="flex items-center gap-1">
-                  <span className="text-sm text-muted-foreground">Avg:</span>
-                  <div className="px-2 py-1 bg-secondary/50 border border-border rounded-md">
-                    <ScoutingGrade grade={averageRating} className="text-sm" />
-                  </div>
-                </div>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div className="px-2 py-1 bg-secondary/50 border border-border rounded-md cursor-help">
+                        <ScoutingGrade grade={averageRating} className="text-sm" />
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Average Scouting Score</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               )}
             </div>
             
