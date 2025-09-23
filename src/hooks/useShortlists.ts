@@ -94,7 +94,7 @@ export const useShortlists = () => {
     loadShortlists();
   }, [loadShortlists]);
 
-  const createShortlist = useCallback(async (name: string, playerIds: string[] = [], requirementId?: string) => {
+  const createShortlist = useCallback(async (name: string, description: string = "", playerIds: string[] = [], requirementId?: string) => {
     if (!user) {
       toast({
         title: "Error",
@@ -111,7 +111,7 @@ export const useShortlists = () => {
         .insert({
           user_id: user.id,
           name,
-          description: `Custom shortlist: ${name}`,
+          description: description || `Custom shortlist: ${name}`,
           color: "bg-gray-500",
           requirement_id: requirementId
         })

@@ -99,8 +99,8 @@ const Shortlists = () => {
     }
   };
 
-  const handleCreateShortlist = async (name: string, playerIds: string[]) => {
-    await createShortlist(name, playerIds);
+  const handleCreateShortlist = async (name: string, description: string, playerIds: string[]) => {
+    await createShortlist(name, description, playerIds);
   };
 
   const handleAddPlayersToShortlist = (playerIds: string[]) => {
@@ -111,8 +111,8 @@ const Shortlists = () => {
     }
   };
 
-  const handleUpdateShortlist = async (id: string, name: string) => {
-    updateShortlist(id, { name });
+  const handleUpdateShortlist = async (id: string, name: string, description: string) => {
+    updateShortlist(id, { name, description });
   };
 
   const handleDeleteShortlist = async (id: string) => {

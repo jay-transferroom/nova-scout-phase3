@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
@@ -19,8 +20,8 @@ interface ShortlistsSidebarProps {
   onSelectList: (listId: string) => void;
   allPlayers: Player[];
   privatePlayers: any[];
-  onCreateShortlist: (name: string, playerIds: string[]) => Promise<void>;
-  onUpdateShortlist: (id: string, name: string) => Promise<void>;
+  onCreateShortlist: (name: string, description: string, playerIds: string[]) => Promise<void>;
+  onUpdateShortlist: (id: string, name: string, description: string) => Promise<void>;
   onDeleteShortlist: (id: string) => Promise<void>;
 }
 
@@ -37,8 +38,10 @@ export const ShortlistsSidebar = ({
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [newShortlistName, setNewShortlistName] = useState("");
+  const [newShortlistDescription, setNewShortlistDescription] = useState("");
   const [editingShortlist, setEditingShortlist] = useState<any>(null);
   const [editShortlistName, setEditShortlistName] = useState("");
+  const [editShortlistDescription, setEditShortlistDescription] = useState("");
   const navigate = useNavigate();
   const { profile, user } = useAuth();
 
@@ -76,8 +79,9 @@ export const ShortlistsSidebar = ({
 
   const handleCreateShortlist = async () => {
     if (newShortlistName.trim()) {
-      await onCreateShortlist(newShortlistName.trim(), []);
+      await onCreateShortlist(newShortlistName.trim(), newShortlistDescription.trim(), []);
       setNewShortlistName("");
+      setNewShortlistDescription("");
       setIsAddDialogOpen(false);
     }
   };
@@ -85,13 +89,15 @@ export const ShortlistsSidebar = ({
   const handleEditShortlist = (shortlist: any) => {
     setEditingShortlist(shortlist);
     setEditShortlistName(shortlist.name);
+    setEditShortlistDescription(shortlist.description || "");
     setIsEditDialogOpen(true);
   };
 
   const handleUpdateShortlist = async () => {
     if (editShortlistName.trim() && editingShortlist) {
-      await onUpdateShortlist(editingShortlist.id, editShortlistName.trim());
+      await onUpdateShortlist(editingShortlist.id, editShortlistName.trim(), editShortlistDescription.trim());
       setEditShortlistName("");
+      setEditShortlistDescription("");
       setEditingShortlist(null);
       setIsEditDialogOpen(false);
     }
@@ -130,7 +136,17 @@ export const ShortlistsSidebar = ({
                         value={newShortlistName}
                         onChange={(e) => setNewShortlistName(e.target.value)}
                         placeholder="Enter shortlist name..."
-                        onKeyDown={(e) => e.key === 'Enter' && handleCreateShortlist()}
+                        onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && handleCreateShortlist()}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="shortlist-description">Description (Optional)</Label>
+                      <Textarea
+                        id="shortlist-description"
+                        value={newShortlistDescription}
+                        onChange={(e) => setNewShortlistDescription(e.target.value)}
+                        placeholder="Enter shortlist description..."
+                        rows={3}
                       />
                     </div>
                     <div className="flex justify-end space-x-2">
@@ -198,7 +214,7 @@ export const ShortlistsSidebar = ({
                             }}
                           >
                             <Edit2 className="h-4 w-4 mr-2" />
-                            Rename
+                            Edit
                           </DropdownMenuItem>
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
@@ -233,7 +249,12 @@ export const ShortlistsSidebar = ({
               </CardHeader>
               <CardContent className="pt-0">
                 <div className="text-xs text-muted-foreground">
-                  {totalPlayers} {totalPlayers === 1 ? 'player' : 'players'}
+                  {list.description && (
+                    <div className="mb-1 truncate">{list.description}</div>
+                  )}
+                  <div>
+                    {totalPlayers} {totalPlayers === 1 ? 'player' : 'players'}
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -246,7 +267,7 @@ export const ShortlistsSidebar = ({
         <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Rename Shortlist</DialogTitle>
+              <DialogTitle>Edit Shortlist</DialogTitle>
             </DialogHeader>
             <div className="space-y-4 py-4">
               <div className="space-y-2">
@@ -255,8 +276,18 @@ export const ShortlistsSidebar = ({
                   id="edit-shortlist-name"
                   value={editShortlistName}
                   onChange={(e) => setEditShortlistName(e.target.value)}
-                  placeholder="Enter new shortlist name..."
-                  onKeyDown={(e) => e.key === "Enter" && handleUpdateShortlist()}
+                  placeholder="Enter shortlist name..."
+                  onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleUpdateShortlist()}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-shortlist-description">Description (Optional)</Label>
+                <Textarea
+                  id="edit-shortlist-description"
+                  value={editShortlistDescription}
+                  onChange={(e) => setEditShortlistDescription(e.target.value)}
+                  placeholder="Enter shortlist description..."
+                  rows={3}
                 />
               </div>
               <div className="flex justify-end space-x-2">
