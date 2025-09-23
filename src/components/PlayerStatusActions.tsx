@@ -252,24 +252,11 @@ const PlayerStatusActions = ({ playerId, playerName, playerReports }: PlayerStat
           <div className="flex items-center divide-x divide-border">
             {/* Assignment Status */}
             <div className="flex items-center gap-2 pr-6">
-              <div className="flex items-center gap-2">
-                {assignmentStatus.icon}
-                <span className="text-base font-medium">{assignmentStatus.text}</span>
-              </div>
-              {assignmentStatus.priority && (
-                <Badge 
-                  className={`text-xs flex items-center gap-1 text-white border-none ${
-                    assignmentStatus.priority === 'High' 
-                      ? 'bg-red-600 hover:bg-red-700' 
-                      : assignmentStatus.priority === 'Medium' 
-                      ? 'bg-orange-500 hover:bg-orange-600' 
-                      : 'bg-blue-600 hover:bg-blue-700'
-                  }`}
-                >
-                  <Clock className="w-3 h-3" />
-                </Badge>
-              )}
-            </div>
+               <div className="flex items-center gap-2">
+                 {assignmentStatus.icon}
+                 <span className="text-base font-medium">{assignmentStatus.text}</span>
+               </div>
+             </div>
 
             {/* Reports Status */}
             <div className="flex items-center gap-2 px-6">
