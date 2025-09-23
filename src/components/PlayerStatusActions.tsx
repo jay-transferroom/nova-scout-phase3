@@ -315,7 +315,7 @@ const PlayerStatusActions = ({ playerId, playerName, playerReports }: PlayerStat
           <div className="flex items-center gap-2">
             {/* Primary action based on state */}
             {reportCount > 0 && (
-              <Button variant="outline" onClick={handleViewReports} className="gap-2">
+              <Button variant="outline" size="sm" onClick={handleViewReports} className="gap-2">
                 <Eye className="w-4 h-4" />
                 View Reports ({reportCount})
               </Button>
