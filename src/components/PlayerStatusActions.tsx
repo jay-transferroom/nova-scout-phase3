@@ -297,13 +297,6 @@ const PlayerStatusActions = ({ playerId, playerName, playerReports }: PlayerStat
               </span>
             </div>
             
-            {/* Scouting Assignment Status */}
-            {isAssignedForScouting && (
-              <div className="flex items-center gap-1 text-blue-600 text-base px-6">
-                <UserCheck className="w-4 h-4" />
-                <span>Marked for Scouting</span>
-              </div>
-            )}
           </div>
 
           {/* Actions Section */}
