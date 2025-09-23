@@ -132,8 +132,14 @@ const Auth = () => {
         {/* Login View */}
         {viewMode === "login" && (
           <Card>
-            <CardHeader>
-              <CardTitle>TransferRoom</CardTitle>
+            <CardHeader className="text-center">
+              <div className="flex justify-center mb-4">
+                <img 
+                  src="/src/assets/scout-logo.png" 
+                  alt="Scout Logo" 
+                  className="h-12 w-auto"
+                />
+              </div>
               <CardDescription>Sign in to your account or create a new one</CardDescription>
             </CardHeader>
             <CardContent>

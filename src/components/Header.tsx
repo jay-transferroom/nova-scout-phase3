@@ -32,16 +32,13 @@ const Header = () => {
       <div className="flex items-center justify-between h-full px-4">
         <div className="flex items-center gap-4">
           <SidebarTrigger />
-          <h1 className="text-xl font-semibold">
-            {profile?.role === 'director' ? (
-              <>
-                <span className="text-foreground">Transfer</span>
-                <span className="text-primary">Room</span>
-              </>
-            ) : (
-              <span className="text-foreground">Nova</span>
-            )}
-          </h1>
+          <div className="flex items-center gap-2">
+            <img 
+              src="/src/assets/scout-logo.png" 
+              alt="Scout Logo" 
+              className="h-8 w-auto"
+            />
+          </div>
         </div>
         
         {/* Search Bar */}
