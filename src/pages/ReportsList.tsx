@@ -175,7 +175,7 @@ const ReportsList = () => {
         <p className="text-muted-foreground">View and manage scouting reports</p>
       </div>
 
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-start justify-between mb-6">
         <ReportsTabNavigation onTabChange={setActiveTab} activeTab={activeTab} />
         
         <div className="flex gap-2">
