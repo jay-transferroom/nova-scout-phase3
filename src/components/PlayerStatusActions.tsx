@@ -7,13 +7,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { 
   Clock, 
   CheckCircle, 
@@ -27,10 +20,6 @@ import {
   UserCheck,
   UserMinus,
   PlayCircle,
-  MoreHorizontal,
-  ArrowUp,
-  ArrowRight,
-  ArrowDown,
   MessageSquare,
   Bookmark
 } from "lucide-react";
@@ -312,55 +301,69 @@ const PlayerStatusActions = ({ playerId, playerName, playerReports }: PlayerStat
 
           {/* Actions Section */}
           <div className="flex items-center gap-2">
-            {/* Secondary actions in dropdown menu */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm">
-                  Actions
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48 text-sm">
-                {/* Assignment actions */}
-                {!playerAssignment && canAssignScout && (
-                  <DropdownMenuItem onClick={handleAssignScout}>
-                    <UserPlus className="w-4 h-4 mr-2" />
-                    Assign to Scout
-                  </DropdownMenuItem>
+            {/* Assignment actions */}
+            {!playerAssignment && canAssignScout && (
+              <Button variant="outline" size="sm" onClick={handleAssignScout} className="gap-2">
+                <UserPlus className="w-4 h-4" />
+                Assign Scout
+              </Button>
+            )}
+
+            {/* Add to shortlist */}
+            <Button variant="outline" size="sm" onClick={handleAddToShortlist} className="gap-2">
+              <Plus className="w-4 h-4" />
+              Add to Shortlist
+            </Button>
+
+            {/* Notes action */}
+            <Button variant="outline" size="sm" onClick={handleNotesAction} className="gap-2">
+              <MessageSquare className="w-4 h-4" />
+              {notesCount > 0 ? 'View Notes' : 'Add Note'}
+            </Button>
+
+            {/* Scouting assignment toggle */}
+            {canAssignForScouting && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleToggleScoutingAssignment}
+                disabled={isLoading}
+                className="gap-2"
+              >
+                {isAssignedForScouting ? (
+                  <>
+                    <UserMinus className="w-4 h-4" />
+                    Remove from Scouting
+                  </>
+                ) : (
+                  <>
+                    <UserCheck className="w-4 h-4" />
+                    Mark for Scouting
+                  </>
                 )}
+              </Button>
+            )}
 
-                {/* Add to shortlist */}
-                <DropdownMenuItem onClick={handleAddToShortlist}>
-                  <Plus className="w-4 h-4 mr-2" />
-                  Add to Shortlist
-                </DropdownMenuItem>
-
-                {/* Notes action */}
-                <DropdownMenuItem onClick={handleNotesAction}>
-                  <MessageSquare className="w-4 h-4 mr-2" />
-                  {notesCount > 0 ? 'View Notes' : 'Add a Note'}
-                </DropdownMenuItem>
-
-                {/* Scouting assignment toggle */}
-                {canAssignForScouting && (
-                  <DropdownMenuItem
-                    onClick={handleToggleScoutingAssignment}
-                    disabled={isLoading}
-                  >
-                    {isAssignedForScouting ? (
-                      <>
-                        <UserMinus className="w-4 h-4 mr-2" />
-                        Remove from Scouting
-                      </>
-                    ) : (
-                      <>
-                        <UserCheck className="w-4 h-4 mr-2" />
-                        Mark for Scouting
-                      </>
-                    )}
-                  </DropdownMenuItem>
-                )}
-              </DropdownMenuContent>
-            </DropdownMenu>
+            {/* Tracking toggle */}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleToggleTracking}
+              disabled={isTrackingPlayer || isUntrackingPlayer}
+              className="gap-2"
+            >
+              {isTracking ? (
+                <>
+                  <HeartOff className="w-4 h-4" />
+                  Untrack
+                </>
+              ) : (
+                <>
+                  <Heart className="w-4 h-4" />
+                  Track
+                </>
+              )}
+            </Button>
           </div>
         </div>
       </CardContent>
