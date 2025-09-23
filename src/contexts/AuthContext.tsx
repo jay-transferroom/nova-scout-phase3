@@ -10,6 +10,7 @@ import { signUpUser, signInUser, signOutUser, resetPassword } from '@/services/a
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
+  console.log('AuthProvider: Rendering');
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [session, setSession] = useState<Session | null>(null);
@@ -83,12 +84,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     refreshProfile,
   };
 
+  console.log('AuthProvider: Providing context with value:', { user: !!user, profile: !!profile, loading });
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
 export function useAuth() {
+  console.log('useAuth: Attempting to get context');
   const context = useContext(AuthContext);
+  console.log('useAuth: Context value:', context);
   if (context === undefined) {
+    console.error('useAuth: Context is undefined! AuthProvider not found in component tree');
     throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
