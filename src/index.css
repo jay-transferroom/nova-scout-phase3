@@ -34,6 +34,11 @@
 
     --radius: 0.5rem;
 
+    /* Secondary button colors */
+    --secondary-button-background: 0 0% 100%;
+    --secondary-button-border: 220 13% 84%;
+    --secondary-button-foreground: 214 32% 17%;
+
     --sidebar-background: 0 0% 98%;
 
     --sidebar-foreground: 240 5.3% 26.1%;
@@ -79,6 +84,12 @@
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
     --ring: 212.7 26.8% 83.9%;
+
+    /* Secondary button colors for dark mode */
+    --secondary-button-background: 240 3.7% 15.9%;
+    --secondary-button-border: 240 3.7% 25%;
+    --secondary-button-foreground: 240 4.8% 95.9%;
+
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
     --sidebar-primary: 224.3 76.3% 48%;
