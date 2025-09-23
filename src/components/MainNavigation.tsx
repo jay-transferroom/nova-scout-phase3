@@ -159,26 +159,27 @@ const MainNavigation = ({ onAIAssistantClick }: { onAIAssistantClick?: () => voi
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
-
+      </SidebarContent>
+      
+      {/* AI Assistant at the very bottom */}
+      <div className="mt-auto border-t">
         <SidebarGroup>
-          <SidebarGroupLabel>AI Assistant</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               <SidebarMenuItem>
                 <SidebarMenuButton 
                   tooltip="AI Scout Assistant"
                   onClick={onAIAssistantClick}
+                  className="w-full"
                 >
-                  <div className="flex items-center w-full cursor-pointer">
-                    <Sparkles className="h-4 w-4 text-blue-600" />
-                    <span>AI Scout Assistant</span>
-                  </div>
+                  <Sparkles className="h-4 w-4 text-blue-600" />
+                  <span>AI Scout Assistant</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
-      </SidebarContent>
+      </div>
     </Sidebar>
   );
 };
