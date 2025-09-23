@@ -47,13 +47,6 @@ const MainNavigation = ({ onAIAssistantClick }: { onAIAssistantClick?: () => voi
       permission: "dashboard"
     },
     {
-      title: "AI Scout Assistant",
-      url: "#",
-      icon: Sparkles,
-      permission: "dashboard",
-      isAction: true // This will be handled as a click action, not navigation
-    },
-    {
       title: "Transfers In",
       url: "/transfers-in",
       icon: UserCheck,
@@ -137,26 +130,33 @@ const MainNavigation = ({ onAIAssistantClick }: { onAIAssistantClick?: () => voi
                 })
                 .map((item) => (
                 <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton 
-                    asChild={!item.isAction}
-                    isActive={!item.isAction && isActive(item.url)} 
-                    tooltip={item.title}
-                    onClick={item.isAction && item.title === 'AI Scout Assistant' ? onAIAssistantClick : undefined}
-                  >
-                    {item.isAction ? (
-                      <div className="flex items-center w-full cursor-pointer">
-                        <item.icon className="h-4 w-4" />
-                        <span>{item.title}</span>
-                      </div>
-                    ) : (
-                      <Link to={item.url}>
-                        <item.icon className="h-4 w-4" />
-                        <span>{item.title}</span>
-                      </Link>
-                    )}
+                  <SidebarMenuButton asChild isActive={isActive(item.url)} tooltip={item.title}>
+                    <Link to={item.url}>
+                      <item.icon className="h-4 w-4" />
+                      <span>{item.title}</span>
+                    </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarGroup>
+          <SidebarGroupLabel>AI Assistant</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <SidebarMenuButton 
+                  tooltip="AI Scout Assistant"
+                  onClick={onAIAssistantClick}
+                >
+                  <div className="flex items-center w-full cursor-pointer">
+                    <Sparkles className="h-4 w-4 text-blue-600" />
+                    <span>AI Scout Assistant</span>
+                  </div>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
