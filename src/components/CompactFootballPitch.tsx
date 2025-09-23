@@ -1,6 +1,8 @@
+import { useState } from "react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Player } from "@/types/player";
+import { Plus } from "lucide-react";
 
 interface CompactFootballPitchProps {
   players: Player[];
@@ -12,6 +14,7 @@ interface CompactFootballPitchProps {
   }>;
   onPositionClick?: (position: string) => void;
   selectedPosition?: string | null;
+  onPlayerChange?: (position: string, playerId: string) => void;
 }
 
 // Simplified formation configurations for compact view
@@ -63,11 +66,24 @@ const CompactFootballPitch = ({
   formation = '4-3-3', 
   positionAssignments = [],
   onPositionClick,
-  selectedPosition 
+  selectedPosition,
+  onPlayerChange
 }: CompactFootballPitchProps) => {
   // Get current formation positions
   const currentFormation = COMPACT_FORMATION_CONFIGS[formation] || COMPACT_FORMATION_CONFIGS['4-3-3'];
   const assignedPlayers = new Set<string>();
+
+  // Helper function to get eligible players for a position
+  const getEligiblePlayers = (position: string): Player[] => {
+    const allowedPositions = getPositionMapping(position);
+    return players.filter(player => 
+      player.positions.some(pos => allowedPositions.includes(pos))
+    ).sort((a, b) => {
+      const ratingA = a.transferroomRating || a.xtvScore || 0;
+      const ratingB = b.transferroomRating || b.xtvScore || 0;
+      return ratingB - ratingA;
+    });
+  };
 
   const getPositionMapping = (pos: string) => {
     switch (pos) {
@@ -171,56 +187,204 @@ const CompactFootballPitch = ({
       {Object.entries(currentFormation).map(([position, coords]) => {
         const player = getPlayerForPosition(position);
         const isSelected = selectedPosition === position;
+        const eligiblePlayers = getEligiblePlayers(position);
         
         return (
-          <div
+          <PositionSlot 
             key={position}
-            className={`absolute transform -translate-x-1/2 -translate-y-1/2 transition-all cursor-pointer ${
-              isSelected ? 'scale-110 z-20' : 'hover:scale-105 z-10'
-            }`}
-            style={{
-              left: `${coords.x}%`,
-              top: `${coords.y}%`,
-            }}
-            onClick={() => onPositionClick?.(position)}
-          >
-            <div className="flex flex-col items-center">
-              {/* Position badge */}
-              <Badge 
-                variant={isSelected ? "default" : "secondary"} 
-                className="text-xs mb-1 bg-white/90"
-              >
-                {position}
-              </Badge>
-              
-              {/* Player avatar */}
-              {player ? (
-                <div className="relative">
-                  <Avatar className="w-8 h-8 border-2 border-white shadow-md">
-                    <AvatarImage 
-                      src={player.image} 
-                      alt={player.name}
-                      className="rounded-full object-cover"
-                    />
-                    <AvatarFallback className="bg-blue-600 text-white text-xs">
-                      {player.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
-                    </AvatarFallback>
-                  </Avatar>
-                  
-                  {/* Rating */}
-                  <div className="absolute -top-1 -right-1 bg-blue-600 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center font-bold border border-white">
-                    {Math.round(player.transferroomRating || player.xtvScore || 0)}
-                  </div>
-                </div>
-              ) : (
-                <div className="w-8 h-8 rounded-full border-2 border-dashed border-gray-400 bg-white/50 flex items-center justify-center">
-                  <span className="text-gray-400 text-xs">?</span>
-                </div>
-              )}
-            </div>
-          </div>
+            position={position}
+            coords={coords}
+            player={player}
+            isSelected={isSelected}
+            eligiblePlayers={eligiblePlayers}
+            onPositionClick={onPositionClick}
+            onPlayerChange={onPlayerChange}
+          />
         );
       })}
+    </div>
+  );
+};
+
+// Separate component for each position slot to handle dropdowns
+const PositionSlot = ({ 
+  position, 
+  coords, 
+  player, 
+  isSelected, 
+  eligiblePlayers,
+  onPositionClick,
+  onPlayerChange 
+}: {
+  position: string;
+  coords: { x: number; y: number };
+  player: Player | null;
+  isSelected: boolean;
+  eligiblePlayers: Player[];
+  onPositionClick?: (position: string) => void;
+  onPlayerChange?: (position: string, playerId: string) => void;
+}) => {
+  const [showDropdown, setShowDropdown] = useState(false);
+
+  return (
+    <div
+      className={`absolute transform -translate-x-1/2 -translate-y-1/2 transition-all cursor-pointer ${
+        isSelected ? 'scale-110 z-20' : 'hover:scale-105 z-10'
+      }`}
+      style={{
+        left: `${coords.x}%`,
+        top: `${coords.y}%`,
+      }}
+    >
+      <div className="flex flex-col items-center">
+        {/* Position badge */}
+        <Badge 
+          variant={isSelected ? "default" : "secondary"} 
+          className="text-xs mb-1 bg-white/90"
+        >
+          {position}
+        </Badge>
+        
+        {/* Player avatar */}
+        {player ? (
+          <div className="relative">
+            <Avatar 
+              className="w-8 h-8 border-2 border-white shadow-md cursor-pointer hover:shadow-lg transition-shadow"
+              onClick={() => {
+                if (onPlayerChange && eligiblePlayers.length > 1) {
+                  setShowDropdown(!showDropdown);
+                } else {
+                  onPositionClick?.(position);
+                }
+              }}
+            >
+              <AvatarImage 
+                src={player.image} 
+                alt={player.name}
+                className="rounded-full object-cover"
+              />
+              <AvatarFallback className="bg-blue-600 text-white text-xs">
+                {player.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
+              </AvatarFallback>
+            </Avatar>
+            
+            {/* Rating */}
+            <div className="absolute -top-1 -right-1 bg-blue-600 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center font-bold border border-white">
+              {Math.round(player.transferroomRating || player.xtvScore || 0)}
+            </div>
+
+            {/* Player selection dropdown */}
+            {showDropdown && onPlayerChange && eligiblePlayers.length > 1 && (
+              <>
+                <div 
+                  className="fixed inset-0 z-[100]" 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowDropdown(false);
+                  }}
+                />
+                <div className="absolute top-12 left-1/2 transform -translate-x-1/2 z-[101]">
+                  <div className="bg-white border border-gray-300 rounded-lg shadow-xl p-2 min-w-40 max-h-48 overflow-y-auto">
+                    <div className="text-xs font-semibold text-gray-600 mb-2 px-2">
+                      Select Player
+                    </div>
+                    {eligiblePlayers.map((eligiblePlayer) => (
+                      <div
+                        key={eligiblePlayer.id}
+                        className={`flex items-center gap-2 p-1 rounded cursor-pointer transition-colors ${
+                          eligiblePlayer.id === player.id 
+                            ? 'bg-blue-50 border border-blue-200' 
+                            : 'hover:bg-gray-50'
+                        }`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onPlayerChange(position, eligiblePlayer.id);
+                          setShowDropdown(false);
+                        }}
+                      >
+                        <Avatar className="w-6 h-6">
+                          <AvatarImage 
+                            src={eligiblePlayer.image} 
+                            alt={eligiblePlayer.name}
+                          />
+                          <AvatarFallback className="bg-blue-600 text-white text-xs">
+                            {eligiblePlayer.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1 min-w-0">
+                          <div className="text-xs font-medium truncate">{eligiblePlayer.name}</div>
+                          <div className="text-xs text-gray-500">
+                            {Math.round(eligiblePlayer.transferroomRating || eligiblePlayer.xtvScore || 0)}
+                          </div>
+                        </div>
+                        {eligiblePlayer.id === player.id && (
+                          <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+        ) : (
+          <div 
+            className="w-8 h-8 rounded-full border-2 border-dashed border-gray-400 bg-white/50 flex items-center justify-center cursor-pointer hover:border-gray-500 transition-colors"
+            onClick={() => {
+              if (onPlayerChange && eligiblePlayers.length > 0) {
+                setShowDropdown(!showDropdown);
+              } else {
+                onPositionClick?.(position);
+              }
+            }}
+          >
+            <Plus className="h-3 w-3 text-gray-400" />
+
+            {/* Empty position dropdown */}
+            {showDropdown && onPlayerChange && eligiblePlayers.length > 0 && (
+              <>
+                <div 
+                  className="fixed inset-0 z-[100]" 
+                  onClick={() => setShowDropdown(false)}
+                />
+                <div className="absolute top-12 left-1/2 transform -translate-x-1/2 z-[101]">
+                  <div className="bg-white border border-gray-300 rounded-lg shadow-xl p-2 min-w-40 max-h-48 overflow-y-auto">
+                    <div className="text-xs font-semibold text-gray-600 mb-2 px-2">
+                      Select Player
+                    </div>
+                    {eligiblePlayers.map((eligiblePlayer) => (
+                      <div
+                        key={eligiblePlayer.id}
+                        className="flex items-center gap-2 p-1 rounded cursor-pointer hover:bg-gray-50 transition-colors"
+                        onClick={() => {
+                          onPlayerChange(position, eligiblePlayer.id);
+                          setShowDropdown(false);
+                        }}
+                      >
+                        <Avatar className="w-6 h-6">
+                          <AvatarImage 
+                            src={eligiblePlayer.image} 
+                            alt={eligiblePlayer.name}
+                          />
+                          <AvatarFallback className="bg-blue-600 text-white text-xs">
+                            {eligiblePlayer.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1 min-w-0">
+                          <div className="text-xs font-medium truncate">{eligiblePlayer.name}</div>
+                          <div className="text-xs text-gray-500">
+                            {Math.round(eligiblePlayer.transferroomRating || eligiblePlayer.xtvScore || 0)}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+        )}
+      </div>
     </div>
   );
 };
