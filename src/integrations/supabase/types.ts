@@ -19,7 +19,9 @@ export type Database = {
           created_at: string
           id: string
           initial_query: string
+          liked: boolean | null
           messages: Json
+          saved: boolean | null
           search_results: Json | null
           title: string
           updated_at: string
@@ -29,7 +31,9 @@ export type Database = {
           created_at?: string
           id?: string
           initial_query: string
+          liked?: boolean | null
           messages?: Json
+          saved?: boolean | null
           search_results?: Json | null
           title: string
           updated_at?: string
@@ -39,7 +43,9 @@ export type Database = {
           created_at?: string
           id?: string
           initial_query?: string
+          liked?: boolean | null
           messages?: Json
+          saved?: boolean | null
           search_results?: Json | null
           title?: string
           updated_at?: string

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { X, Send, User, Bot, FileText, Users, MessageSquare, Loader2, ExternalLink } from 'lucide-react';
+import { X, Send, User, Bot, FileText, Users, MessageSquare, Loader2, ExternalLink, ThumbsUp, ThumbsDown, Bookmark, BookmarkCheck } from 'lucide-react';
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,6 +7,8 @@ import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import PlayerProfileCard from "./PlayerProfileCard";
+import { toast } from "sonner";
 
 interface SearchResult {
   type: 'player' | 'report' | 'ai_recommendation';
@@ -26,6 +28,24 @@ interface Message {
   content: string;
   searchResults?: SearchResult[];
   timestamp: string;
+  players?: PlayerData[];
+  liked?: boolean | null;
+  saved?: boolean;
+  messageId?: string;
+}
+
+interface PlayerData {
+  id: number;
+  name: string;
+  age?: number;
+  firstnationality?: string;
+  currentteam?: string;
+  firstposition?: string;
+  secondposition?: string;
+  rating?: number;
+  potential?: number;
+  basevalue?: number;
+  imageurl?: string;
 }
 
 interface ChatOverlayProps {
@@ -92,6 +112,97 @@ const ChatOverlay: React.FC<ChatOverlayProps> = ({ isOpen, onClose, initialQuery
     }
   };
 
+  const parsePlayersFromResponse = async (content: string): Promise<PlayerData[]> => {
+    try {
+      // Extract potential player names using various patterns
+      const playerNamePatterns = [
+        // Names in quotes
+        /"([A-Z][a-z]+ [A-Z][a-z]+(?:\s[A-Z][a-z]+)*)"/g,
+        // Names after "player" or similar keywords
+        /(?:player|striker|midfielder|defender|goalkeeper|forward|winger)\s+([A-Z][a-z]+ [A-Z][a-z]+(?:\s[A-Z][a-z]+)*)/gi,
+        // Names at start of sentences (capitalized words)
+        /(?:^|\. )([A-Z][a-z]+ [A-Z][a-z]+(?:\s[A-Z][a-z]+)*)/g,
+        // Names with common football contexts
+        /([A-Z][a-z]+ [A-Z][a-z]+(?:\s[A-Z][a-z]+)*)\s+(?:is|would|could|has|scored|plays|from)/g
+      ];
+
+      const potentialNames = new Set<string>();
+      
+      playerNamePatterns.forEach(pattern => {
+        const matches = content.matchAll(pattern);
+        for (const match of matches) {
+          const name = match[1]?.trim();
+          if (name && name.length > 3 && name.length < 50) {
+            potentialNames.add(name);
+          }
+        }
+      });
+
+      if (potentialNames.size === 0) return [];
+
+      // Query players_new table for matches
+      const { data: players, error } = await supabase
+        .from('players_new')
+        .select('*')
+        .in('name', Array.from(potentialNames))
+        .limit(10);
+
+      if (error) {
+        console.error('Error querying players:', error);
+        return [];
+      }
+
+      return players || [];
+    } catch (error) {
+      console.error('Error parsing players from response:', error);
+      return [];
+    }
+  };
+
+  const updateChatInteraction = async (messageId: string, field: 'liked' | 'saved', value: boolean | null) => {
+    if (!currentChatId && !chatId) return;
+
+    const chatIdToUpdate = currentChatId || chatId;
+    if (!chatIdToUpdate) return;
+
+    try {
+      if (field === 'saved') {
+        // Update the entire chat's saved status
+        const { error } = await supabase
+          .from('chats')
+          .update({ [field]: value })
+          .eq('id', chatIdToUpdate);
+
+        if (error) throw error;
+      } else {
+        // Update the liked status
+        const { error } = await supabase
+          .from('chats')
+          .update({ [field]: value })
+          .eq('id', chatIdToUpdate);
+
+        if (error) throw error;
+      }
+
+      // Update local state
+      setMessages(prev => prev.map(msg => 
+        msg.messageId === messageId 
+          ? { ...msg, [field]: value }
+          : msg
+      ));
+
+      toast.success(
+        field === 'liked' 
+          ? (value ? 'Response liked!' : 'Like removed')
+          : (value ? 'Chat saved!' : 'Chat unsaved')
+      );
+
+    } catch (error) {
+      console.error(`Error updating ${field}:`, error);
+      toast.error(`Failed to ${field === 'liked' ? 'like' : 'save'} response`);
+    }
+  };
+
   const handleSearch = async (query: string) => {
     if (!query.trim()) return;
 
@@ -134,12 +245,19 @@ const ChatOverlay: React.FC<ChatOverlayProps> = ({ isOpen, onClose, initialQuery
         throw aiError;
       }
 
+      const aiResponse = aiData?.response || `I found ${searchResults.length} results for "${query}".`;
+      
+      // Parse players from AI response
+      const mentionedPlayers = await parsePlayersFromResponse(aiResponse);
+
       // Create assistant message with AI response and search results
       const assistantMessage: Message = {
         role: 'assistant',
-        content: aiData?.response || `I found ${searchResults.length} results for "${query}".`,
+        content: aiResponse,
         searchResults,
-        timestamp: new Date().toISOString()
+        players: mentionedPlayers,
+        timestamp: new Date().toISOString(),
+        messageId: crypto.randomUUID()
       };
 
       const finalMessages = [...newMessages, assistantMessage];
@@ -340,7 +458,74 @@ const ChatOverlay: React.FC<ChatOverlayProps> = ({ isOpen, onClose, initialQuery
                         </div>
                       ))}
                     </div>
-                  )}
+                   )}
+                   
+                   {/* Player Profile Cards */}
+                   {message.players && message.players.length > 0 && (
+                     <div className="space-y-2 ml-4">
+                       <div className="text-xs font-medium text-muted-foreground mb-2">
+                         Mentioned Players:
+                       </div>
+                       {message.players.map((player, playerIndex) => (
+                         <PlayerProfileCard 
+                           key={playerIndex} 
+                           player={player} 
+                           className="text-xs"
+                         />
+                       ))}
+                     </div>
+                   )}
+
+                   {/* Like/Dislike/Save Actions for Assistant Messages */}
+                   {message.role === 'assistant' && message.messageId && (
+                     <div className="flex items-center gap-2 ml-4 mt-2">
+                       <Button
+                         variant="ghost"
+                         size="sm"
+                         onClick={() => updateChatInteraction(
+                           message.messageId!,
+                           'liked',
+                           message.liked === true ? null : true
+                         )}
+                         className={`h-8 px-2 ${message.liked === true ? 'text-green-600 bg-green-50' : ''}`}
+                       >
+                         <ThumbsUp className="h-3 w-3 mr-1" />
+                         <span className="text-xs">Like</span>
+                       </Button>
+                       
+                       <Button
+                         variant="ghost"
+                         size="sm"
+                         onClick={() => updateChatInteraction(
+                           message.messageId!,
+                           'liked',
+                           message.liked === false ? null : false
+                         )}
+                         className={`h-8 px-2 ${message.liked === false ? 'text-red-600 bg-red-50' : ''}`}
+                       >
+                         <ThumbsDown className="h-3 w-3 mr-1" />
+                         <span className="text-xs">Dislike</span>
+                       </Button>
+                       
+                       <Button
+                         variant="ghost"
+                         size="sm"
+                         onClick={() => updateChatInteraction(
+                           message.messageId!,
+                           'saved',
+                           !message.saved
+                         )}
+                         className={`h-8 px-2 ${message.saved ? 'text-blue-600 bg-blue-50' : ''}`}
+                       >
+                         {message.saved ? (
+                           <BookmarkCheck className="h-3 w-3 mr-1" />
+                         ) : (
+                           <Bookmark className="h-3 w-3 mr-1" />
+                         )}
+                         <span className="text-xs">{message.saved ? 'Saved' : 'Save'}</span>
+                       </Button>
+                     </div>
+                   )}
                 </div>
               ))}
               
