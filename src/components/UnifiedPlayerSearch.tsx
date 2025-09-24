@@ -75,11 +75,20 @@ const UnifiedPlayerSearch = ({
     if (lowercaseQuery.length >= 2) {
       let results: Player[] = [...remotePlayers];
 
-      // Enhanced team matching for remote search results
-      const teamMatches = players.filter(
-        (p) => p.club.toLowerCase().includes(lowercaseQuery) && !results.some(r => r.id === p.id)
-      );
-      results = [...results, ...teamMatches];
+      // Add local players (including private players) that match the search query
+      const localMatches = players.filter((p) => {
+        // Skip if already in results
+        if (results.some(r => r.id === p.id)) return false;
+        
+        // Check for name, club, position, nationality matches
+        const nameMatch = p.name.toLowerCase().includes(lowercaseQuery);
+        const clubMatch = p.club.toLowerCase().includes(lowercaseQuery);
+        const positionMatch = p.positions.some(pos => pos.toLowerCase().includes(lowercaseQuery));
+        const nationalityMatch = p.nationality?.toLowerCase().includes(lowercaseQuery);
+        
+        return nameMatch || clubMatch || positionMatch || nationalityMatch;
+      });
+      results = [...results, ...localMatches];
 
       // Detect position-like searches for better sorting
       const positionKeywords = [
