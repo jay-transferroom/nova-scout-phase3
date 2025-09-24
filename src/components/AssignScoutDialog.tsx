@@ -95,10 +95,9 @@ const AssignScoutDialog = ({ isOpen, onClose, player }: AssignScoutDialogProps) 
         `${selectedScoutInfo.first_name} ${selectedScoutInfo.last_name}`.trim() || selectedScoutInfo.email :
         'Unknown Scout';
 
-      const actionType = existingAssignment ? "reassigned to" : "assigned to";
       toast({
-        title: existingAssignment ? "Assignment Updated" : "Assignment Created",
-        description: `${player.name} has been ${actionType} ${scoutName} for scouting.`,
+        title: "Assignment Created",
+        description: `${player.name} has been assigned to ${scoutName} for scouting.`,
       });
 
       console.log("=== ASSIGNMENT PROCESS COMPLETED ===");
@@ -108,7 +107,7 @@ const AssignScoutDialog = ({ isOpen, onClose, player }: AssignScoutDialogProps) 
       console.error('Error creating assignment:', error);
       toast({
         title: "Error",
-        description: `Failed to ${existingAssignment ? 'update' : 'create'} assignment. Please try again.`,
+        description: "Failed to create assignment. Please try again.",
         variant: "destructive",
       });
     }
@@ -128,7 +127,7 @@ const AssignScoutDialog = ({ isOpen, onClose, player }: AssignScoutDialogProps) 
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>
-            {existingAssignment ? 'Reassign Scout' : 'Assign Scout'}
+            Assign Scout
           </DialogTitle>
         </DialogHeader>
         
