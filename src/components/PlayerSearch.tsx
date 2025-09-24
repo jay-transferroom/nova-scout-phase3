@@ -4,6 +4,7 @@ import { Search, Loader2 } from "lucide-react";
 import { Player } from "@/types/player";
 import { useUnifiedPlayersData } from "@/hooks/useUnifiedPlayersData";
 import { useTeamsData } from "@/hooks/useTeamsData";
+import { getTeamLogoUrl } from "@/utils/teamLogos";
 import { useNavigate } from "react-router-dom";
 import SearchFilters from "@/components/unified-search/SearchFilters";
 import PlayerSearchResults from "./player-search/PlayerSearchResults";
@@ -43,8 +44,12 @@ const PlayerSearch = ({ onSelectPlayer }: PlayerSearchProps) => {
 
   // Get team logo for a given club name
   const getTeamLogo = (clubName: string) => {
+    // First try to get from teams data
     const team = teamMap[clubName];
-    return team?.logo_url;
+    if (team?.logo_url) return team.logo_url;
+    
+    // Fallback to storage bucket logos
+    return getTeamLogoUrl(clubName);
   };
 
   // Initialize recent players from localStorage

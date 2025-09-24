@@ -5,6 +5,7 @@ import { ArrowLeft, Loader2 } from "lucide-react";
 import { useUnifiedPlayersData } from "@/hooks/useUnifiedPlayersData";
 import { usePlayerNameSearch } from "@/hooks/usePlayerNameSearch";
 import { useTeamsData } from "@/hooks/useTeamsData";
+import { getTeamLogoUrl } from "@/utils/teamLogos";
 import { Player } from "@/types/player";
 import PlayerSearchTableFilters, { PlayerSearchFilterCriteria } from "@/components/player-search/PlayerSearchTableFilters";
 import PlayerSearchTable from "@/components/player-search/PlayerSearchTable";
@@ -43,8 +44,12 @@ const SearchResults = () => {
 
   // Get team logo for a given club name
   const getTeamLogo = (clubName: string) => {
+    // First try to get from teams data
     const team = teamMap[clubName];
-    return team?.logo_url;
+    if (team?.logo_url) return team.logo_url;
+    
+    // Fallback to storage bucket logos
+    return getTeamLogoUrl(clubName);
   };
 
   // Extract available nationalities from all players

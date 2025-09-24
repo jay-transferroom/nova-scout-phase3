@@ -1,5 +1,6 @@
 import * as React from "react"
 import { cn } from "@/lib/utils"
+import { getTeamLogoUrl } from "@/utils/teamLogos"
 
 interface ClubBadgeProps {
   clubName: string;
@@ -8,11 +9,13 @@ interface ClubBadgeProps {
 }
 
 const ClubBadge = ({ clubName, logoUrl, className }: ClubBadgeProps) => {
+  // Use provided logoUrl or get from storage
+  const teamLogoUrl = logoUrl || getTeamLogoUrl(clubName);
   return (
     <div className={cn("flex items-center gap-2", className)}>
-      {logoUrl ? (
+      {teamLogoUrl ? (
         <img 
-          src={logoUrl} 
+          src={teamLogoUrl} 
           alt={`${clubName} logo`}
           className="h-6 w-6 rounded-full object-cover border border-grey-200"
         />
