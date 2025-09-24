@@ -17,11 +17,11 @@ interface PlayerCardProps {
 const PlayerCard = ({ player, onAssignScout, onViewReport, onMarkAsReviewed }: PlayerCardProps) => {
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'shortlisted': return 'bg-gray-100 border-gray-200';
+      case 'shortlisted': return 'bg-white border-gray-200';
       case 'assigned': return 'bg-orange-100 border-orange-200';
       case 'in_progress': return 'bg-orange-100 border-orange-200';
       case 'completed': return 'bg-green-100 border-green-200';
-      default: return 'bg-gray-100 border-gray-200';
+      default: return 'bg-white border-gray-200';
     }
   };
 
