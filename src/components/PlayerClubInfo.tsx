@@ -1,6 +1,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { ClubBadge } from "@/components/ui/club-badge";
 import { Player } from "@/types/player";
 
 interface PlayerClubInfoProps {
@@ -20,7 +21,7 @@ export const PlayerClubInfo = ({ player, getContractStatusColor, getPositionColo
         <div className="grid grid-cols-2 gap-2">
           <div>
             <p className="text-xs text-gray-600 mb-0.5">Current Club</p>
-            <p className="font-medium text-xs">{player.club}</p>
+            <ClubBadge clubName={player.club} className="scale-75 origin-left" />
           </div>
           
           <div>

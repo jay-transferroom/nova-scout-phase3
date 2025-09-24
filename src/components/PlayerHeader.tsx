@@ -3,6 +3,7 @@ import { Calendar, MapPin, FileText, MessageSquare, Plus, Bookmark } from "lucid
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { ClubBadge } from "@/components/ui/club-badge";
 import { Player } from "@/types/player";
 import TrackPlayerButton from "./TrackPlayerButton";
 import AddToShortlistButton from "./AddToShortlistButton";
@@ -79,7 +80,9 @@ export const PlayerHeader = ({
           
           <div className="flex-1 min-w-0">
             <h1 className="text-2xl font-bold text-gray-900 mb-1">{player.name}</h1>
-            <p className="text-lg text-gray-600 mb-2">{player.club}</p>
+            <div className="mb-2">
+              <ClubBadge clubName={player.club} />
+            </div>
             
             <div className="flex flex-wrap items-center gap-2 mb-2">
               {player.positions.map((position) => (
