@@ -49,15 +49,15 @@ const UpcomingMatches = () => {
       </div>
 
       <div className="grid gap-4">
-        {fixtures.map((fixture) => (
-          <Card key={fixture.id}>
+        {fixtures.map((fixture, index) => (
+          <Card key={`${fixture.match_number}-${index}`}>
             <CardHeader>
               <div className="flex items-center justify-between">
                 <CardTitle className="text-lg">
                   {fixture.home_team} vs {fixture.away_team}
                 </CardTitle>
-                <Badge className={getStatusColor(fixture.status)}>
-                  {fixture.status.charAt(0).toUpperCase() + fixture.status.slice(1)}
+                <Badge className={getStatusColor(fixture.status || 'scheduled')}>
+                  {(fixture.status || 'scheduled').charAt(0).toUpperCase() + (fixture.status || 'scheduled').slice(1)}
                 </Badge>
               </div>
               <CardDescription className="flex items-center gap-4">
@@ -67,7 +67,7 @@ const UpcomingMatches = () => {
                 </div>
                 <div className="flex items-center gap-1">
                   <Calendar className="h-4 w-4" />
-                  {format(new Date(fixture.fixture_date), 'PPP p')}
+                  {format(new Date(fixture.match_date_utc), 'PPP p')}
                 </div>
                 {fixture.venue && (
                   <div className="flex items-center gap-1">

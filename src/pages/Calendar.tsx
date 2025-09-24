@@ -40,11 +40,11 @@ const Calendar = () => {
       !assignedPlayerIds.has(player.id.toString())
     );
 
-    // Get scout assignments for this fixture's date
-    const scoutWorkload = assignments.filter(assignment => {
-      const assignmentDate = assignment.deadline ? new Date(assignment.deadline) : null;
-      return assignmentDate && isSameDay(assignmentDate, new Date(fixture.fixture_date));
-    });
+  // Get scout assignments for this fixture's date
+  const scoutWorkload = assignments.filter(assignment => {
+    const assignmentDate = assignment.deadline ? new Date(assignment.deadline) : null;
+    return assignmentDate && isSameDay(assignmentDate, new Date(fixture.match_date_utc));
+  });
 
     return {
       ...fixture,
@@ -55,7 +55,7 @@ const Calendar = () => {
   });
 
   const getFixturesForDate = (date: Date) => {
-    return enhancedFixtures.filter(fixture => isSameDay(new Date(fixture.fixture_date), date));
+    return enhancedFixtures.filter(fixture => isSameDay(new Date(fixture.match_date_utc), date));
   };
 
   // Filter fixtures by selected scout's workload or show all
@@ -201,8 +201,8 @@ const Calendar = () => {
                     >
                       <div className="font-medium text-sm">{format(day, 'd')}</div>
                       <div className="mt-1 space-y-1">
-                        {dayFixtures.slice(0, 1).map(fixture => (
-                          <div key={fixture.id} className="text-xs bg-blue-100 text-blue-800 rounded px-1 py-0.5 truncate">
+                        {dayFixtures.slice(0, 1).map((fixture, index) => (
+                          <div key={`${fixture.match_number}-${index}`} className="text-xs bg-blue-100 text-blue-800 rounded px-1 py-0.5 truncate">
                             {fixture.home_team} vs {fixture.away_team}
                           </div>
                         ))}
@@ -239,12 +239,12 @@ const Calendar = () => {
             <CardContent>
               {selectedDateFixtures.length > 0 ? (
                 <div className="space-y-4">
-                  {selectedDateFixtures.map(fixture => (
-                    <div key={fixture.id} className="p-4 border rounded-lg">
+                  {selectedDateFixtures.map((fixture, index) => (
+                    <div key={`${fixture.match_number}-${index}`} className="p-4 border rounded-lg">
                       <div className="flex items-center gap-2 mb-2">
                         <Clock className="h-4 w-4 text-muted-foreground" />
                         <span className="text-sm font-medium">
-                          {format(new Date(fixture.fixture_date), "HH:mm")}
+                          {format(new Date(fixture.match_date_utc), "HH:mm")}
                         </span>
                         <Badge variant="outline">{fixture.competition}</Badge>
                       </div>
