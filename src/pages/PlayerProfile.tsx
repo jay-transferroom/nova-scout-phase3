@@ -93,10 +93,14 @@ const PlayerProfile = () => {
                   <h1 className="text-4xl font-bold text-foreground mb-2">{player.name}</h1>
                   <div className="flex items-center gap-3 mb-3">
                     <ClubBadge clubName={player.club} className="flex-shrink-0" />
+                    <div className="flex flex-wrap gap-2">
+                      {player.positions?.map((position) => (
+                        <Badge key={position} variant="outline" className="bg-gray-50 text-gray-600 border-gray-200 text-xs">
+                          {position}
+                        </Badge>
+                      ))}
+                    </div>
                   </div>
-                  <p className="text-lg text-muted-foreground">
-                    {player.positions?.join(' / ') || 'Position not specified'}
-                  </p>
                 </div>
 
                 <div className="text-right">

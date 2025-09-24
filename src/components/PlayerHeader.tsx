@@ -80,19 +80,18 @@ export const PlayerHeader = ({
           
           <div className="flex-1 min-w-0">
             <h1 className="text-2xl font-bold text-gray-900 mb-1">{player.name}</h1>
-            <div className="mb-2">
+            <div className="flex items-center gap-3 mb-2">
               <ClubBadge clubName={player.club} />
+              <div className="flex flex-wrap gap-2">
+                {player.positions.map((position) => (
+                  <Badge key={position} variant="outline" className="bg-gray-50 text-gray-600 border-gray-200 text-xs">
+                    {position}
+                  </Badge>
+                ))}
+              </div>
             </div>
             
             <div className="flex flex-wrap items-center gap-2 mb-2">
-              {player.positions.map((position) => (
-                <span
-                  key={position}
-                  className={`inline-flex items-center justify-center text-xs font-bold rounded px-2 py-1 text-white ${getPositionColor(position)}`}
-                >
-                  {position}
-                </span>
-              ))}
               
               <div className="flex items-center gap-1 text-sm text-gray-600">
                 <Calendar className="h-3 w-3" />
