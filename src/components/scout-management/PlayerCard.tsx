@@ -32,8 +32,8 @@ const PlayerCard = ({ player, onAssignScout, onViewReport, onMarkAsReviewed }: P
     : `/player/${player.playerId}`;
 
   return (
-    <Card className={`mb-3 hover:shadow-md transition-all duration-200 border-2 ${getStatusColor(player.status)}`}>
-      <CardContent className="p-4">
+    <Card className={`mb-2 hover:shadow-md transition-all duration-200 border-2 ${getStatusColor(player.status)}`}>
+      <CardContent className="p-3">
         <div className="flex items-start gap-3">
           <Avatar className="h-10 w-10 flex-shrink-0">
             <AvatarImage 
@@ -55,12 +55,12 @@ const PlayerCard = ({ player, onAssignScout, onViewReport, onMarkAsReviewed }: P
             <p className="text-xs text-muted-foreground mt-1">{player.position}</p>
             
             {player.rating && player.rating !== 'N/A' && (
-              <div className="flex items-center justify-end mt-2">
+              <div className="flex items-center justify-end mt-1">
                 <span className="text-lg font-bold text-primary">{player.rating}</span>
               </div>
             )}
             
-            <div className="mt-3 space-y-1">
+            <div className="mt-2 space-y-1">
               <p className="text-xs text-muted-foreground">
                 {player.status === 'shortlisted' ? 'Available for assignment' : `Assigned to ${player.assignedTo}`}
               </p>
@@ -78,7 +78,7 @@ const PlayerCard = ({ player, onAssignScout, onViewReport, onMarkAsReviewed }: P
               )}
             </div>
 
-            <div className="mt-3 space-y-2">
+            <div className="mt-2 space-y-1">
               {player.status === 'shortlisted' && onAssignScout && (
                 <Button 
                   size="sm" 
