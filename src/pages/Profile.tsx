@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { ClubBadge } from '@/components/ui/club-badge';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { RefreshCw } from 'lucide-react';
@@ -200,8 +201,8 @@ const Profile = () => {
               <div className="space-y-2">
                 <Label htmlFor="club">Club</Label>
                 <div className="flex items-center gap-3 p-3 bg-blue-50 border border-blue-200 rounded-md">
+                  <ClubBadge clubName="Chelsea F.C." size="md" />
                   <div>
-                    <p className="font-medium text-blue-900">Chelsea F.C.</p>
                     <p className="text-sm text-blue-600">Premier League • England</p>
                   </div>
                 </div>
