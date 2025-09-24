@@ -11,6 +11,7 @@ import { useFixturesData } from "@/hooks/useFixturesData";
 import { useScoutUsers } from "@/hooks/useScoutUsers";
 import { usePlayersData } from "@/hooks/usePlayersData";
 import { useScoutingAssignments } from "@/hooks/useScoutingAssignments";
+import { useAuth } from "@/contexts/AuthContext";
 import AssignScoutDialog from "@/components/AssignScoutDialog";
 
 const Calendar = () => {
@@ -20,10 +21,14 @@ const Calendar = () => {
   const [selectedPlayer, setSelectedPlayer] = useState<any>(null);
   const [isAssignDialogOpen, setIsAssignDialogOpen] = useState(false);
 
+  const { profile } = useAuth();
   const { data: fixtures = [] } = useFixturesData();
   const { data: scouts = [] } = useScoutUsers();
   const { data: allPlayers = [] } = usePlayersData();
   const { data: assignments = [], refetch: refetchAssignments } = useScoutingAssignments();
+
+  // Check if user can assign scouts (recruitment or director roles)
+  const canAssignScouts = profile?.role === 'recruitment' || profile?.role === 'director';
 
   // Get assigned player IDs to filter recommendations
   const assignedPlayerIds = new Set(assignments.map(a => a.player_id));
@@ -352,15 +357,17 @@ const Calendar = () => {
                                     <div className="text-xs text-muted-foreground">
                                       {player.club} • {player.positions?.[0] || 'Unknown'}
                                     </div>
-                                  </div>
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    className="h-6 px-2"
-                                    onClick={() => handleAssignPlayer(player)}
-                                  >
-                                    <Plus className="h-3 w-3" />
-                                  </Button>
+                                   </div>
+                                   {canAssignScouts && (
+                                     <Button
+                                       size="sm"
+                                       variant="outline"
+                                       className="h-6 px-2"
+                                       onClick={() => handleAssignPlayer(player)}
+                                     >
+                                       <Plus className="h-3 w-3" />
+                                     </Button>
+                                   )}
                                 </div>
                               ))}
                             </div>
@@ -424,11 +431,13 @@ const Calendar = () => {
       </div>
 
       {/* Assign Scout Dialog */}
-      <AssignScoutDialog
-        isOpen={isAssignDialogOpen}
-        onClose={handleAssignDialogClose}
-        player={selectedPlayer}
-      />
+      {canAssignScouts && (
+        <AssignScoutDialog
+          isOpen={isAssignDialogOpen}
+          onClose={handleAssignDialogClose}
+          player={selectedPlayer}
+        />
+      )}
     </div>
   );
 };
