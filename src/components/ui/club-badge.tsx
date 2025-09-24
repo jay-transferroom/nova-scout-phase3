@@ -26,7 +26,7 @@ const ClubBadge = ({ clubName, logoUrl, className }: ClubBadgeProps) => {
           </span>
         </div>
       )}
-      <span className="text-base font-medium text-grey-900">{clubName}</span>
+      <span className="text-xl font-medium text-grey-900">{clubName}</span>
     </div>
   );
 };
