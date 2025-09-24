@@ -264,15 +264,6 @@ const PlayerStatusActions = ({ playerId, playerName, playerReports }: PlayerStat
               </div>
             )}
 
-            {/* Assignment Status - only show when there is an active assignment */}
-            {playerAssignment && (
-              <div className="flex items-center gap-2 pr-6">
-                 <div className="flex items-center gap-2">
-                   {assignmentStatus.icon}
-                   <span className="text-base font-medium">{assignmentStatus.text}</span>
-                 </div>
-               </div>
-            )}
 
             {/* Reports Status - only show when there are reports */}
             {reportCount > 0 && (
