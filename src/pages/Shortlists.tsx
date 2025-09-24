@@ -162,7 +162,6 @@ const Shortlists = () => {
             onEuGbeFilterChange={setEuGbeFilter}
             getAssignmentBadge={shortlistsLogic.getAssignmentBadge}
             getEuGbeBadge={shortlistsLogic.getEuGbeBadge}
-            getPlayerAssignment={shortlistsLogic.getPlayerAssignment}
             formatXtvScore={shortlistsLogic.formatXtvScore}
             onAssignScout={handleAssignScout}
             onRemovePlayer={handleRemovePlayer}

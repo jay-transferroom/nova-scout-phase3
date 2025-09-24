@@ -14,6 +14,7 @@ import { Link } from "react-router-dom";
 import { PlayerSearchDialog } from "./PlayerSearchDialog";
 import { useAuth } from "@/contexts/AuthContext";
 import { ClubBadge } from "@/components/ui/club-badge";
+import { usePlayerScouts } from "@/hooks/usePlayerScouts";
 
 interface ShortlistsContentProps {
   currentList: any;
@@ -29,7 +30,6 @@ interface ShortlistsContentProps {
   onEuGbeFilterChange: (value: string) => void;
   getAssignmentBadge: (playerId: string) => { variant: any; className?: string; children: string };
   getEuGbeBadge: (status: string) => { variant: any; className?: string; children: string };
-  getPlayerAssignment: (playerId: string) => any;
   formatXtvScore: (score: number) => string;
   onAssignScout: (player: any) => void;
   onRemovePlayer: (playerId: string) => void;
@@ -51,7 +51,6 @@ export const ShortlistsContent = ({
   onEuGbeFilterChange,
   getAssignmentBadge,
   getEuGbeBadge,
-  getPlayerAssignment,
   formatXtvScore,
   onAssignScout,
   onRemovePlayer,
@@ -390,15 +389,10 @@ export const ShortlistsContent = ({
                               <FileText className="h-4 w-4 mr-2" />
                               Create Report
                             </DropdownMenuItem>
-                            {!player.isPrivate && !getPlayerAssignment(player.id.toString()) ? (
+                            {!player.isPrivate && (
                               <DropdownMenuItem onClick={() => onAssignScout(player)}>
                                 <UserPlus className="h-4 w-4 mr-2" />
                                 Assign Scout
-                              </DropdownMenuItem>
-                            ) : !player.isPrivate && (
-                              <DropdownMenuItem onClick={() => onAssignScout(player)}>
-                                <UserPlus className="h-4 w-4 mr-2" />
-                                Reassign Scout
                               </DropdownMenuItem>
                             )}
                             <DropdownMenuItem>
