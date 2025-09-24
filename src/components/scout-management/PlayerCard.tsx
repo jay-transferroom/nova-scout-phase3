@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Clock, UserPlus, User, FileText, Check } from "lucide-react";
 import { Link } from "react-router-dom";
+import { ClubBadge } from "@/components/ui/club-badge";
 
 interface PlayerCardProps {
   player: any;
@@ -48,7 +49,9 @@ const PlayerCard = ({ player, onAssignScout, onViewReport, onMarkAsReviewed }: P
           
           <div className="flex-1 min-w-0">
             <h4 className="font-medium text-sm truncate">{player.playerName}</h4>
-            <p className="text-xs text-muted-foreground truncate">{player.club}</p>
+            <div className="mt-1">
+              <ClubBadge clubName={player.club} size="sm" />
+            </div>
             <p className="text-xs text-muted-foreground mt-1">{player.position}</p>
             
             {player.rating && player.rating !== 'N/A' && (

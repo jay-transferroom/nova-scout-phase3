@@ -78,6 +78,7 @@ const ReportRow = ({ report, onViewReport, onEditReport, onDeleteReport, canEdit
       <TableCell>
         <ClubBadge 
           clubName={playerClub}
+          size="sm"
         />
       </TableCell>
       <TableCell>

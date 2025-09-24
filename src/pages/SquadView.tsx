@@ -17,6 +17,7 @@ import { useSquadData } from "@/hooks/useSquadData";
 import { useSquadMetrics } from "@/hooks/useSquadMetrics";
 import { useClubSettings } from "@/hooks/useClubSettings";
 import { getSquadDisplayName } from "@/utils/squadUtils";
+import { ClubBadge } from "@/components/ui/club-badge";
 
 const SquadView = () => {
   const navigate = useNavigate();
@@ -103,9 +104,7 @@ const SquadView = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <div className="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center">
-            <span className="text-white text-lg font-bold">CFC</span>
-          </div>
+          <ClubBadge clubName={userClub} size="md" />
           <div>
             <h1 className="text-3xl font-bold">{displayTitle}</h1>
             <p className="text-muted-foreground mt-2">

@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Eye, UserPlus, CheckCircle } from "lucide-react";
+import { ClubBadge } from "@/components/ui/club-badge";
 
 interface TableViewProps {
   kanbanData: {
@@ -135,7 +136,9 @@ const ScoutManagementTableView = ({
                       </div>
                     </div>
                   </td>
-                  <td className="p-4">{player.club}</td>
+                  <td className="p-4">
+                    <ClubBadge clubName={player.club} size="sm" />
+                  </td>
                   <td className="p-4">{player.position}</td>
                   <td className="p-4">
                     <div className="flex items-center">

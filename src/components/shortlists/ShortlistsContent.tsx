@@ -13,6 +13,7 @@ import { MoreHorizontal, Eye, FileText, UserPlus, Bookmark, Trash2 } from "lucid
 import { Link } from "react-router-dom";
 import { PlayerSearchDialog } from "./PlayerSearchDialog";
 import { useAuth } from "@/contexts/AuthContext";
+import { ClubBadge } from "@/components/ui/club-badge";
 
 interface ShortlistsContentProps {
   currentList: any;
@@ -324,7 +325,9 @@ export const ShortlistsContent = ({
                           </Avatar>
                           <div>
                             <div className="font-medium">{player.name}</div>
-                            <div className="text-sm text-muted-foreground">{player.club}</div>
+                            <div className="mt-1">
+                              <ClubBadge clubName={player.club} size="sm" />
+                            </div>
                             {player.isPrivate && (
                               <Badge variant="secondary" className="text-xs mt-1">Private</Badge>
                             )}
