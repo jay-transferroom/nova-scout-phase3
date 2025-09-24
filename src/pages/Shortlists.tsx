@@ -7,7 +7,7 @@ import { useShortlists } from "@/hooks/useShortlists";
 import { useReports } from "@/hooks/useReports";
 import AssignScoutDialog from "@/components/AssignScoutDialog";
 import { useQueryClient } from "@tanstack/react-query";
-import { ShortlistsSidebar } from "@/components/shortlists/ShortlistsSidebar";
+import { ShortlistsTabs } from "@/components/shortlists/ShortlistsTabs";
 import { ShortlistsContent } from "@/components/shortlists/ShortlistsContent";
 import { ShortlistsHeader } from "@/components/shortlists/ShortlistsPageHeader";
 import { useShortlistsLogic } from "@/hooks/useShortlistsLogic";
@@ -131,45 +131,39 @@ const Shortlists = () => {
     <div className="container mx-auto py-8 max-w-7xl">
       <ShortlistsHeader />
 
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        {/* Shortlists Sidebar */}
-        <div className="lg:col-span-1">
-          <ShortlistsSidebar
-            shortlists={shortlists}
-            selectedList={selectedList}
-            onSelectList={setSelectedList}
-            allPlayers={allPlayers}
-            privatePlayers={privatePlayers}
-            onCreateShortlist={handleCreateShortlist}
-            onUpdateShortlist={handleUpdateShortlist}
-            onDeleteShortlist={handleDeleteShortlist}
-          />
-        </div>
+      {/* Horizontal Shortlist Tabs */}
+      <ShortlistsTabs
+        shortlists={shortlists}
+        selectedList={selectedList}
+        onSelectList={setSelectedList}
+        allPlayers={allPlayers}
+        privatePlayers={privatePlayers}
+        onCreateShortlist={handleCreateShortlist}
+        onUpdateShortlist={handleUpdateShortlist}
+        onDeleteShortlist={handleDeleteShortlist}
+      />
 
-        {/* Players List */}
-        <div className="lg:col-span-3">
-          <ShortlistsContent
-            currentList={shortlistsLogic.currentList}
-            sortedPlayers={shortlistsLogic.sortedPlayers}
-            allPlayers={allPlayers}
-            searchTerm={searchTerm}
-            onSearchChange={setSearchTerm}
-            sortBy={sortBy}
-            onSortByChange={setSortBy}
-            sortOrder={sortOrder}
-            onSortOrderChange={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
-            euGbeFilter={euGbeFilter}
-            onEuGbeFilterChange={setEuGbeFilter}
-            getAssignmentBadge={shortlistsLogic.getAssignmentBadge}
-            getEuGbeBadge={shortlistsLogic.getEuGbeBadge}
-            formatXtvScore={shortlistsLogic.formatXtvScore}
-            onAssignScout={handleAssignScout}
-            onRemovePlayer={handleRemovePlayer}
-            onExportList={handleExportList}
-            onAddPlayersToShortlist={handleAddPlayersToShortlist}
-          />
-        </div>
-      </div>
+      {/* Full Width Players Content */}
+      <ShortlistsContent
+        currentList={shortlistsLogic.currentList}
+        sortedPlayers={shortlistsLogic.sortedPlayers}
+        allPlayers={allPlayers}
+        searchTerm={searchTerm}
+        onSearchChange={setSearchTerm}
+        sortBy={sortBy}
+        onSortByChange={setSortBy}
+        sortOrder={sortOrder}
+        onSortOrderChange={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
+        euGbeFilter={euGbeFilter}
+        onEuGbeFilterChange={setEuGbeFilter}
+        getAssignmentBadge={shortlistsLogic.getAssignmentBadge}
+        getEuGbeBadge={shortlistsLogic.getEuGbeBadge}
+        formatXtvScore={shortlistsLogic.formatXtvScore}
+        onAssignScout={handleAssignScout}
+        onRemovePlayer={handleRemovePlayer}
+        onExportList={handleExportList}
+        onAddPlayersToShortlist={handleAddPlayersToShortlist}
+      />
 
       {/* Assign Scout Dialog */}
       <AssignScoutDialog
