@@ -82,6 +82,14 @@ const Auth = () => {
       color: "text-blue-500"
     },
     {
+      name: "Emma Johnson - Scout",
+      email: "scout2@demo.com",
+      password: "demo123",
+      role: "Scout",
+      icon: User,
+      color: "text-purple-500"
+    },
+    {
       name: "James Wilson - Manager", 
       email: "manager@demo.com",
       password: "demo123",
