@@ -7,6 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ScoutAvatars } from "@/components/ui/scout-avatars";
 import { 
   Clock, 
   CheckCircle, 
@@ -26,6 +27,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { usePlayerAssignments } from "@/hooks/usePlayerAssignments";
 import { useShortlists } from "@/hooks/useShortlists";
 import { usePlayerNotes } from "@/hooks/usePlayerNotes";
+import { usePlayerScouts } from "@/hooks/usePlayerScouts";
 import { useAuth } from "@/contexts/AuthContext";
 import { ReportWithPlayer } from "@/types/report";
 import AssignScoutDialog from "@/components/AssignScoutDialog";
@@ -53,6 +55,7 @@ const PlayerStatusActions = ({ playerId, playerName, playerReports }: PlayerStat
 
   // Get player data
   const { player } = usePlayerProfile(playerId);
+  const { data: scouts = [] } = usePlayerScouts(playerId);
 
   // Get player data from various hooks
   const { data: assignments = [] } = usePlayerAssignments();
@@ -254,6 +257,13 @@ const PlayerStatusActions = ({ playerId, playerName, playerReports }: PlayerStat
         <div className="flex items-center justify-between">
           {/* Status Section */}
           <div className="flex items-center divide-x divide-border">
+            {/* Assigned Scouts Section */}
+            {scouts.length > 0 && (
+              <div className="flex items-center gap-2 pr-6">
+                <ScoutAvatars scouts={scouts} size="sm" />
+              </div>
+            )}
+
             {/* Assignment Status - only show when there is an active assignment */}
             {playerAssignment && (
               <div className="flex items-center gap-2 pr-6">
@@ -316,7 +326,7 @@ const PlayerStatusActions = ({ playerId, playerName, playerReports }: PlayerStat
           {/* Actions Section */}
           <div className="flex items-center gap-2">
             {/* Assignment actions */}
-            {!playerAssignment && canAssignScout && (
+            {canAssignScout && (
               <Button variant="outline" size="sm" onClick={handleAssignScout} className="gap-2">
                 <UserPlus className="w-4 h-4" />
                 Assign Scout
