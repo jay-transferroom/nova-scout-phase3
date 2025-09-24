@@ -201,14 +201,39 @@ const Calendar = () => {
                     >
                       <div className="font-medium text-sm">{format(day, 'd')}</div>
                       <div className="mt-1 space-y-1">
-                        {dayFixtures.slice(0, 1).map((fixture, index) => (
-                          <div key={`${fixture.match_number}-${index}`} className="text-xs bg-blue-100 text-blue-800 rounded px-1 py-0.5 truncate">
-                            {fixture.home_team} vs {fixture.away_team}
-                          </div>
-                        ))}
-                        {dayFixtures.length > 1 && (
+                        {dayFixtures.slice(0, 2).map((fixture, index) => {
+                          const isCompleted = fixture.status === 'completed' || fixture.status === 'Full Time' || (fixture.home_score !== null && fixture.away_score !== null);
+                          const isLive = fixture.status === 'live' || fixture.status === 'Live';
+                          
+                          return (
+                            <div 
+                              key={`${fixture.match_number}-${index}`} 
+                              className={cn(
+                                "text-xs rounded px-1 py-0.5 truncate",
+                                isLive && "bg-green-100 text-green-800 animate-pulse",
+                                isCompleted && "bg-gray-100 text-gray-700",
+                                !isLive && !isCompleted && "bg-blue-100 text-blue-800"
+                              )}
+                            >
+                              <div className="flex items-center justify-between">
+                                <span className="truncate">
+                                  {fixture.home_team.substring(0, 3)} vs {fixture.away_team.substring(0, 3)}
+                                </span>
+                                {isCompleted && fixture.home_score !== null && fixture.away_score !== null && (
+                                  <span className="ml-1 font-medium">
+                                    {fixture.home_score}-{fixture.away_score}
+                                  </span>
+                                )}
+                                {isLive && (
+                                  <span className="ml-1 text-xs">LIVE</span>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })}
+                        {dayFixtures.length > 2 && (
                           <div className="text-xs text-muted-foreground">
-                            +{dayFixtures.length - 1} more
+                            +{dayFixtures.length - 2} more
                           </div>
                         )}
                         {totalWorkload > 0 && (
@@ -239,59 +264,111 @@ const Calendar = () => {
             <CardContent>
               {selectedDateFixtures.length > 0 ? (
                 <div className="space-y-4">
-                  {selectedDateFixtures.map((fixture, index) => (
-                    <div key={`${fixture.match_number}-${index}`} className="p-4 border rounded-lg">
-                      <div className="flex items-center gap-2 mb-2">
-                        <Clock className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-sm font-medium">
-                          {format(new Date(fixture.match_date_utc), "HH:mm")}
-                        </span>
-                        <Badge variant="outline">{fixture.competition}</Badge>
-                      </div>
-                      
-                      <div className="text-center mb-3">
-                        <div className="font-semibold">{fixture.home_team}</div>
-                        <div className="text-sm text-muted-foreground">vs</div>
-                        <div className="font-semibold">{fixture.away_team}</div>
-                      </div>
-                      
-                      {fixture.venue && (
-                        <div className="flex items-center gap-2 mb-3">
-                          <MapPin className="h-4 w-4 text-muted-foreground" />
-                          <span className="text-sm">{fixture.venue}</span>
-                        </div>
-                      )}
-                      
-                      {fixture.recommendedPlayers.length > 0 && (
-                        <div>
-                          <div className="flex items-center gap-2 mb-2">
-                            <Users className="h-4 w-4 text-muted-foreground" />
-                            <span className="text-sm font-medium">Recommended Players</span>
+                  {selectedDateFixtures.map((fixture, index) => {
+                    const isCompleted = fixture.status === 'completed' || fixture.status === 'Full Time' || (fixture.home_score !== null && fixture.away_score !== null);
+                    const isLive = fixture.status === 'live' || fixture.status === 'Live';
+                    const hasScore = fixture.home_score !== null && fixture.away_score !== null;
+                    
+                    return (
+                      <div key={`${fixture.match_number}-${index}`} className={cn(
+                        "p-4 border rounded-lg",
+                        isLive && "border-green-300 bg-green-50",
+                        isCompleted && "border-gray-300 bg-gray-50"
+                      )}>
+                        <div className="flex items-center justify-between mb-3">
+                          <div className="flex items-center gap-2">
+                            <Clock className="h-4 w-4 text-muted-foreground" />
+                            <span className="text-sm font-medium">
+                              {format(new Date(fixture.match_date_utc), "HH:mm")}
+                            </span>
+                            <Badge variant="outline">{fixture.competition}</Badge>
                           </div>
-                          <div className="space-y-2">
-                            {fixture.recommendedPlayers.map(player => (
-                              <div key={player.id} className="flex items-center justify-between bg-muted/30 rounded px-2 py-1">
-                                <div>
-                                  <div className="text-sm font-medium">{player.name}</div>
-                                  <div className="text-xs text-muted-foreground">
-                                    {player.club} • {player.positions?.[0] || 'Unknown'}
-                                  </div>
+                          <div className="flex items-center gap-2">
+                            {isLive && (
+                              <Badge className="bg-green-500 text-white animate-pulse">LIVE</Badge>
+                            )}
+                            {isCompleted && (
+                              <Badge variant="secondary">FT</Badge>
+                            )}
+                            {!isLive && !isCompleted && (
+                              <Badge variant="outline">Scheduled</Badge>
+                            )}
+                          </div>
+                        </div>
+                        
+                        <div className="text-center mb-3">
+                          <div className="flex items-center justify-center gap-4">
+                            <div className="text-right flex-1">
+                              <div className="font-semibold text-lg">{fixture.home_team}</div>
+                            </div>
+                            <div className="flex flex-col items-center gap-1">
+                              {hasScore ? (
+                                <div className="text-2xl font-bold">
+                                  {fixture.home_score} - {fixture.away_score}
                                 </div>
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  className="h-6 px-2"
-                                  onClick={() => handleAssignPlayer(player)}
-                                >
-                                  <Plus className="h-3 w-3" />
-                                </Button>
-                              </div>
-                            ))}
+                              ) : (
+                                <div className="text-lg text-muted-foreground">vs</div>
+                              )}
+                              {fixture.status && (
+                                <div className="text-xs text-muted-foreground uppercase">
+                                  {fixture.status}
+                                </div>
+                              )}
+                            </div>
+                            <div className="text-left flex-1">
+                              <div className="font-semibold text-lg">{fixture.away_team}</div>
+                            </div>
                           </div>
                         </div>
-                      )}
-                    </div>
-                  ))}
+                        
+                        {fixture.venue && (
+                          <div className="flex items-center justify-center gap-2 mb-3 text-sm text-muted-foreground">
+                            <MapPin className="h-4 w-4" />
+                            <span>{fixture.venue}</span>
+                          </div>
+                        )}
+                        
+                        {fixture.result && (
+                          <div className="text-center mb-3">
+                            <div className="text-sm font-medium text-muted-foreground">
+                              Result: {fixture.result}
+                            </div>
+                          </div>
+                        )}
+                        
+                        {fixture.recommendedPlayers.length > 0 && (
+                          <div className="border-t pt-3 mt-3">
+                            <div className="flex items-center gap-2 mb-2">
+                              <Users className="h-4 w-4 text-muted-foreground" />
+                              <span className="text-sm font-medium">
+                                {isCompleted ? "Players to Review" : "Recommended for Scouting"}
+                              </span>
+                            </div>
+                            <div className="space-y-2">
+                              {fixture.recommendedPlayers.map(player => (
+                                <div key={player.id} className="flex items-center justify-between bg-muted/30 rounded px-2 py-1">
+                                  <div>
+                                    <div className="text-sm font-medium">{player.name}</div>
+                                    <div className="text-xs text-muted-foreground">
+                                      {player.club} • {player.positions?.[0] || 'Unknown'}
+                                    </div>
+                                  </div>
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    className="h-6 px-2"
+                                    onClick={() => handleAssignPlayer(player)}
+                                  >
+                                    <Plus className="h-3 w-3" />
+                                  </Button>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
               ) : (
                 <div className="text-center py-8 text-muted-foreground">
