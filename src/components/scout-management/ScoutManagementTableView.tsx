@@ -37,7 +37,7 @@ const ScoutManagementTableView = ({
   ];
 
   const PlayerRow = ({ player }: { player: any }) => {
-    const { data: scouts = [] } = usePlayerScouts(player.id);
+    const { data: scouts = [] } = usePlayerScouts(player.playerId);
     
     return (
       <tr key={player.id} className="border-b hover:bg-muted/30">
