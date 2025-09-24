@@ -17,10 +17,10 @@ const ClubBadge = ({ clubName, logoUrl, className }: ClubBadgeProps) => {
         <img 
           src={teamLogoUrl} 
           alt={`${clubName} logo`}
-          className="h-6 w-6 rounded-full object-cover border border-grey-200"
+          className="h-6 w-6 rounded-full object-cover"
         />
       ) : (
-        <div className="h-6 w-6 rounded-full bg-grey-200 flex items-center justify-center border border-grey-200">
+        <div className="h-6 w-6 rounded-full bg-grey-200 flex items-center justify-center">
           <span className="text-xs font-medium text-grey-600">
             {clubName.charAt(0).toUpperCase()}
           </span>
