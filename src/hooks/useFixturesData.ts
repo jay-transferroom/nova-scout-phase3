@@ -23,41 +23,14 @@ export const useFixturesData = () => {
   return useQuery({
     queryKey: ['fixtures'],
     queryFn: async (): Promise<Fixture[]> => {
-      try {
-        // Query using SQL directly
-        const query = `
-          SELECT 
-            matchweek,
-            match_number,
-            match_date_utc,
-            match_datetime_london,
-            home_score,
-            away_score,
-            season,
-            competition,
-            home_team,
-            away_team,
-            venue,
-            status,
-            result,
-            source
-          FROM fixtures_results_2526 
-          ORDER BY match_date_utc ASC
-        `;
+      const { data, error } = await supabase.rpc('get_fixtures_data');
 
-        const { data, error } = await supabase.rpc('execute_sql', { query });
-
-        if (error) {
-          console.error('Error fetching fixtures:', error);
-          // Return sample data for now since the table might not be accessible via RPC
-          return [];
-        }
-
-        return (data || []) as Fixture[];
-      } catch (err) {
-        console.error('Error in fixtures query:', err);
-        return [];
+      if (error) {
+        console.error('Error fetching fixtures:', error);
+        throw error;
       }
+
+      return data || [];
     },
   });
 };

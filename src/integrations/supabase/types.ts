@@ -131,6 +131,57 @@ export type Database = {
         }
         Relationships: []
       }
+      fixtures_results_2526: {
+        Row: {
+          away_score: number | null
+          away_team: string
+          competition: string | null
+          home_score: number | null
+          home_team: string
+          match_date_utc: string
+          match_datetime_london: string | null
+          match_number: number | null
+          matchweek: number | null
+          result: string | null
+          season: string
+          source: string | null
+          status: string | null
+          venue: string | null
+        }
+        Insert: {
+          away_score?: number | null
+          away_team: string
+          competition?: string | null
+          home_score?: number | null
+          home_team: string
+          match_date_utc: string
+          match_datetime_london?: string | null
+          match_number?: number | null
+          matchweek?: number | null
+          result?: string | null
+          season: string
+          source?: string | null
+          status?: string | null
+          venue?: string | null
+        }
+        Update: {
+          away_score?: number | null
+          away_team?: string
+          competition?: string | null
+          home_score?: number | null
+          home_team?: string
+          match_date_utc?: string
+          match_datetime_london?: string | null
+          match_number?: number | null
+          matchweek?: number | null
+          result?: string | null
+          season?: string
+          source?: string | null
+          status?: string | null
+          venue?: string | null
+        }
+        Relationships: []
+      }
       kv_store_0b058238: {
         Row: {
           key: string
@@ -879,6 +930,25 @@ export type Database = {
       get_current_user_role: {
         Args: Record<PropertyKey, never>
         Returns: string
+      }
+      get_fixtures_data: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          away_score: number
+          away_team: string
+          competition: string
+          home_score: number
+          home_team: string
+          match_date_utc: string
+          match_datetime_london: string
+          match_number: number
+          matchweek: number
+          result: string
+          season: string
+          source: string
+          status: string
+          venue: string
+        }[]
       }
     }
     Enums: {
