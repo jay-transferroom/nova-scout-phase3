@@ -61,9 +61,9 @@ export const PlayerRecentResults = ({ player }: PlayerRecentResultsProps) => {
   if (isLoading) {
     return (
       <Card>
-        <CardHeader>
-          <CardTitle>Recent Results</CardTitle>
-        </CardHeader>
+      <CardHeader className="pb-4">
+        <CardTitle className="text-sm font-semibold">Recent Results</CardTitle>
+      </CardHeader>
         <CardContent>
           <div className="text-center py-8">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
@@ -76,9 +76,9 @@ export const PlayerRecentResults = ({ player }: PlayerRecentResultsProps) => {
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>Recent Results</CardTitle>
-      </CardHeader>
+        <CardHeader className="pb-4">
+          <CardTitle className="text-sm font-semibold">Recent Results</CardTitle>
+        </CardHeader>
       <CardContent>
         {pastFixtures.length > 0 ? (
           <div className="space-y-2">

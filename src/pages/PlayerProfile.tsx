@@ -148,11 +148,11 @@ const PlayerProfile = () => {
 
 
           {/* Summary Section */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-6 mb-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
             {/* Player Summary */}
             <Card className="relative">
               <CardHeader className="pb-4">
-                <CardTitle className="text-lg font-semibold">Player summary</CardTitle>
+                <CardTitle className="text-sm font-semibold">Player summary</CardTitle>
                 <button 
                   className="absolute top-4 right-4 text-xs font-medium underline-offset-4 hover:underline flex items-center gap-1"
                   style={{ color: '#600E96' }}
@@ -201,7 +201,7 @@ const PlayerProfile = () => {
             {/* Performance Summary */}
             <Card>
               <CardHeader className="pb-4">
-                <CardTitle className="text-lg font-semibold">Performance summary</CardTitle>
+                <CardTitle className="text-sm font-semibold">Performance summary</CardTitle>
               </CardHeader>
               <CardContent className="pt-0">
                 <div className="space-y-2">

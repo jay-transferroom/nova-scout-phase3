@@ -37,8 +37,8 @@ export const PlayerUpcomingFixtures = ({ player }: PlayerUpcomingFixturesProps) 
   if (isLoading) {
     return (
       <Card>
-        <CardHeader>
-          <CardTitle>Upcoming Fixtures</CardTitle>
+        <CardHeader className="pb-4">
+          <CardTitle className="text-sm font-semibold">Upcoming Fixtures</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="text-center py-8">
@@ -52,8 +52,8 @@ export const PlayerUpcomingFixtures = ({ player }: PlayerUpcomingFixturesProps) 
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>Upcoming Fixtures</CardTitle>
+      <CardHeader className="pb-4">
+        <CardTitle className="text-sm font-semibold">Upcoming Fixtures</CardTitle>
       </CardHeader>
       <CardContent>
         {upcomingFixtures.length > 0 ? (
