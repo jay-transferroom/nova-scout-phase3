@@ -2,6 +2,7 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Tag } from "@/components/ui/tag";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Calendar, User, FileText, Eye } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -107,9 +108,9 @@ const PlayerAssignmentCard = ({ assignment }: PlayerAssignmentCardProps) => {
       <div className="space-y-3 mb-4">
         <div className="flex items-center justify-between text-sm">
           <span className="text-muted-foreground">Priority:</span>
-          <Badge variant={assignment.priority === 'High' ? 'destructive' : assignment.priority === 'Medium' ? 'default' : 'secondary'}>
+          <Tag priority={assignment.priority?.toLowerCase() as "high" | "medium" | "low"}>
             {assignment.priority}
-          </Badge>
+          </Tag>
         </div>
         
         {assignment.deadline && (

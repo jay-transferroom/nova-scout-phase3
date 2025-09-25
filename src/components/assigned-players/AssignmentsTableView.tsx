@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Tag } from "@/components/ui/tag";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
 import { ClubBadge } from "@/components/ui/club-badge";
@@ -31,19 +32,14 @@ const AssignmentsTableView = ({ assignments }: AssignmentsTableViewProps) => {
     );
   };
 
-  const getPriorityBadge = (priority?: string) => {
+  const getPriorityTag = (priority?: string) => {
     if (!priority) return null;
     
-    const priorityConfig = {
-      high: { label: "High", variant: "destructive" as const },
-      medium: { label: "Medium", variant: "default" as const },
-      low: { label: "Low", variant: "secondary" as const }
-    };
-    
-    const config = priorityConfig[priority.toLowerCase() as keyof typeof priorityConfig];
-    return config ? (
-      <Badge variant={config.variant} className="ml-2">{config.label}</Badge>
-    ) : null;
+    return (
+      <Tag priority={priority.toLowerCase() as "high" | "medium" | "low"}>
+        {priority}
+      </Tag>
+    );
   };
 
   const handleViewPlayer = (playerId: string) => {
@@ -112,7 +108,7 @@ const AssignmentsTableView = ({ assignments }: AssignmentsTableViewProps) => {
                 </div>
               </TableCell>
               <TableCell>
-                {getPriorityBadge(assignment.priority)}
+                {getPriorityTag(assignment.priority)}
               </TableCell>
               <TableCell>
                 <div className="text-sm">
