@@ -79,7 +79,7 @@ export const ScoutAvatars = ({ scouts, maxVisible = 3, size = "md" }: ScoutAvata
         )}
       </div>
       <span className="text-sm font-medium ml-2">
-        {scouts.length > 1 ? `${scouts.length} scouts` : getFullName(scouts[0])}
+        {scouts.length === 1 ? "1 Scout assigned" : `${scouts.length} scouts assigned`}
       </span>
     </div>
   );
