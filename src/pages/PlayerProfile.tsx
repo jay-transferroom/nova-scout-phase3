@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ClubBadge } from "@/components/ui/club-badge";
 import { 
@@ -151,9 +151,11 @@ const PlayerProfile = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-6 mb-8">
             {/* Player Summary */}
             <Card>
-              <CardContent className="p-6">
+              <CardHeader>
+                <CardTitle>Player summary</CardTitle>
+              </CardHeader>
+              <CardContent>
                 <div className="flex justify-between items-start mb-4">
-                  <h3 className="text-lg font-semibold">Player summary</h3>
                   <button 
                     className="text-sm font-medium underline-offset-4 hover:underline flex items-center gap-1"
                     style={{ color: '#600E96' }}
@@ -200,8 +202,10 @@ const PlayerProfile = () => {
 
             {/* Performance Summary */}
             <Card>
-              <CardContent className="p-6">
-                <h3 className="text-lg font-semibold mb-4">Performance summary</h3>
+              <CardHeader>
+                <CardTitle>Performance summary</CardTitle>
+              </CardHeader>
+              <CardContent>
                 <div className="space-y-3">
                   <div className="flex justify-between">
                     <div className="flex items-center gap-2">
