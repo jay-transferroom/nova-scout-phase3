@@ -150,20 +150,18 @@ const PlayerProfile = () => {
           {/* Summary Section */}
           <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-6 mb-8">
             {/* Player Summary */}
-            <Card>
+            <Card className="relative">
               <CardHeader className="pb-4">
                 <CardTitle className="text-lg font-semibold">Player summary</CardTitle>
+                <button 
+                  className="absolute top-4 right-4 text-xs font-medium underline-offset-4 hover:underline flex items-center gap-1"
+                  style={{ color: '#600E96' }}
+                >
+                  <Sparkles className="w-3 h-3" />
+                  Generate AI Summary
+                </button>
               </CardHeader>
               <CardContent className="pt-0">
-                <div className="flex justify-end mb-3">
-                  <button 
-                    className="text-xs font-medium underline-offset-4 hover:underline flex items-center gap-1"
-                    style={{ color: '#600E96' }}
-                  >
-                    <Sparkles className="w-3 h-3" />
-                    Generate AI Summary
-                  </button>
-                </div>
                 <div className="space-y-2">
                   <div className="flex justify-between">
                     <span className="text-xs text-muted-foreground">Contracted until</span>
