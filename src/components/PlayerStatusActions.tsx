@@ -309,19 +309,31 @@ const PlayerStatusActions = ({ playerId, playerName, playerReports }: PlayerStat
             )}
 
             {/* Add to shortlist / View shortlists */}
-            <Button variant="outline" size="sm" onClick={handleAddToShortlist} className="gap-2">
-              {playerShortlists.length > 0 ? (
-                <>
-                  <Eye className="w-4 h-4" />
-                  View shortlists ({playerShortlists.length})
-                </>
-              ) : (
-                <>
-                  <Plus className="w-4 h-4" />
-                  Add to Shortlist
-                </>
-              )}
-            </Button>
+            {playerShortlists.length > 0 ? (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button variant="outline" size="sm" onClick={handleAddToShortlist} className="gap-2">
+                      <Eye className="w-4 h-4" />
+                      View shortlists ({playerShortlists.length})
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <div className="space-y-1">
+                      <p className="font-medium">Shortlists:</p>
+                      {playerShortlists.map((list) => (
+                        <p key={list.id} className="text-sm">• {list.name}</p>
+                      ))}
+                    </div>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            ) : (
+              <Button variant="outline" size="sm" onClick={handleAddToShortlist} className="gap-2">
+                <Plus className="w-4 h-4" />
+                Add to Shortlist
+              </Button>
+            )}
 
             {/* Notes action */}
             <Button variant="outline" size="sm" onClick={handleNotesAction} className="gap-2">
