@@ -308,10 +308,19 @@ const PlayerStatusActions = ({ playerId, playerName, playerReports }: PlayerStat
               </Button>
             )}
 
-            {/* Add to shortlist */}
+            {/* Add to shortlist / View shortlists */}
             <Button variant="outline" size="sm" onClick={handleAddToShortlist} className="gap-2">
-              <Plus className="w-4 h-4" />
-              Add to Shortlist
+              {playerShortlists.length > 0 ? (
+                <>
+                  <Eye className="w-4 h-4" />
+                  View shortlists ({playerShortlists.length})
+                </>
+              ) : (
+                <>
+                  <Plus className="w-4 h-4" />
+                  Add to Shortlist
+                </>
+              )}
             </Button>
 
             {/* Notes action */}
