@@ -15,9 +15,9 @@ interface ScoutAvatarsProps {
 
 export const ScoutAvatars = ({ scouts, maxVisible = 3, size = "md" }: ScoutAvatarsProps) => {
   const sizeClasses = {
-    sm: "h-6 w-6 text-xs",
-    md: "h-8 w-8 text-sm", 
-    lg: "h-10 w-10 text-base"
+    sm: "h-8 w-8 text-sm",
+    md: "h-12 w-12 text-base", 
+    lg: "h-14 w-14 text-lg"
   };
   
   const sizeClass = sizeClasses[size];
@@ -47,7 +47,7 @@ export const ScoutAvatars = ({ scouts, maxVisible = 3, size = "md" }: ScoutAvata
     return (
       <div className="flex items-center gap-2">
         <Avatar className={sizeClass}>
-          <AvatarFallback className="bg-primary text-primary-foreground font-medium">
+          <AvatarFallback className="bg-muted text-foreground font-medium">
             {getInitials(scout)}
           </AvatarFallback>
         </Avatar>
@@ -65,14 +65,14 @@ export const ScoutAvatars = ({ scouts, maxVisible = 3, size = "md" }: ScoutAvata
             className={`${sizeClass} border-2 border-background relative z-${10 - index}`}
             title={getFullName(scout)}
           >
-            <AvatarFallback className="bg-primary text-primary-foreground font-medium">
+            <AvatarFallback className="bg-muted text-foreground font-medium">
               {getInitials(scout)}
             </AvatarFallback>
           </Avatar>
         ))}
         {remainingCount > 0 && (
           <Avatar className={`${sizeClass} border-2 border-background bg-muted`}>
-            <AvatarFallback className="text-muted-foreground font-medium">
+            <AvatarFallback className="bg-muted text-foreground font-medium">
               +{remainingCount}
             </AvatarFallback>
           </Avatar>
