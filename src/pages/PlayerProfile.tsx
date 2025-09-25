@@ -66,22 +66,24 @@ const PlayerProfile = () => {
           {/* Player Basic Info */}
           <div className="flex items-center gap-6 mb-6">
             {/* Player Avatar with Club Badge Overlay */}
-            <div className="relative w-24 h-24 rounded-full bg-muted overflow-hidden flex-shrink-0">
-              {player.image ? (
-                <img 
-                  src={player.image} 
-                  alt={player.name}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <div className="w-full h-full bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center">
-                  <span className="text-2xl font-bold text-primary">
-                    {player.name.split(' ').map(n => n[0]).join('')}
-                  </span>
-                </div>
-              )}
-              {/* Club Badge Overlay */}
-              <div className="absolute bottom-0 right-0 transform translate-x-1 translate-y-1 z-10">
+            <div className="relative flex-shrink-0">
+              <div className="w-24 h-24 rounded-full bg-muted overflow-hidden">
+                {player.image ? (
+                  <img 
+                    src={player.image} 
+                    alt={player.name}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center">
+                    <span className="text-2xl font-bold text-primary">
+                      {player.name.split(' ').map(n => n[0]).join('')}
+                    </span>
+                  </div>
+                )}
+              </div>
+              {/* Club Badge Overlay - positioned outside the overflow container */}
+              <div className="absolute bottom-0 right-0 transform translate-x-1 translate-y-1">
                 <ClubBadge clubName={player.club} className="w-8 h-8" />
               </div>
             </div>
