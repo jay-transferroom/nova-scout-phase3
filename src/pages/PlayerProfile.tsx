@@ -126,13 +126,6 @@ const PlayerProfile = () => {
                       </span>
                     </div>
                   </div>
-                  
-                  <div className="flex items-center gap-3">
-                    <Button className="gap-2">
-                      <Sparkles className="w-4 h-4" />
-                      Generate AI Summary
-                    </Button>
-                  </div>
                 </div>
               </div>
             </div>
@@ -151,7 +144,16 @@ const PlayerProfile = () => {
             {/* Player Summary */}
             <Card>
               <CardContent className="p-6">
-                <h3 className="text-lg font-semibold mb-4">Player summary</h3>
+                <div className="flex justify-between items-start mb-4">
+                  <h3 className="text-lg font-semibold">Player summary</h3>
+                  <button 
+                    className="text-sm font-medium underline-offset-4 hover:underline flex items-center gap-1"
+                    style={{ color: '#600E96' }}
+                  >
+                    <Sparkles className="w-4 h-4" />
+                    Generate AI Summary
+                  </button>
+                </div>
                 <div className="space-y-3">
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Contracted until</span>
