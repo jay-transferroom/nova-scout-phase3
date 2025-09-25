@@ -98,11 +98,6 @@ const PlayerAssignmentCard = ({ assignment }: PlayerAssignmentCardProps) => {
             )}
           </div>
         </div>
-        <div className="text-right">
-          <Badge className={`${getStatusColor(assignment.status)} border`}>
-            {formatStatusText(assignment.status)}
-          </Badge>
-        </div>
       </div>
 
       <div className="space-y-3 mb-4">
