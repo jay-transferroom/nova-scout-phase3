@@ -15,6 +15,7 @@
 
     --primary: 217 91% 60%;
     --primary-foreground: 0 0% 100%;
+    --primary-gradient: linear-gradient(135deg, hsl(217 91% 64%), hsl(217 91% 56%));
 
     --secondary: 210 40% 96.1%;
     --secondary-foreground: 222.2 47.4% 11.2%;
@@ -68,6 +69,7 @@
 
     --primary: 217 91% 60%;
     --primary-foreground: 0 0% 100%;
+    --primary-gradient: linear-gradient(135deg, hsl(217 91% 64%), hsl(217 91% 56%));
 
     --secondary: 217.2 32.6% 17.5%;
     --secondary-foreground: 210 40% 98%;
