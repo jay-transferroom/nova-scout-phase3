@@ -22,6 +22,7 @@ import { PlayerPlayingStyleTab } from "@/components/player-profile/PlayerPlaying
 import { PlayerInjuriesTab } from "@/components/player-profile/PlayerInjuriesTab";
 import { PlayerMatchHistoryTab } from "@/components/player-profile/PlayerMatchHistoryTab";
 import { PlayerAlternativesTab } from "@/components/player-profile/PlayerAlternativesTab";
+import { PlayerMatchDataSection } from "@/components/player-profile/PlayerMatchDataSection";
 import PlayerStatusActions from "@/components/PlayerStatusActions";
 
 const PlayerProfile = () => {
@@ -146,7 +147,7 @@ const PlayerProfile = () => {
 
 
           {/* Summary Section */}
-          <div className="grid grid-cols-2 gap-8 mb-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
             {/* Player Summary */}
             <Card>
               <CardContent className="p-6">
@@ -258,6 +259,9 @@ const PlayerProfile = () => {
                 </div>
               </CardContent>
             </Card>
+
+            {/* Match Data Section */}
+            <PlayerMatchDataSection player={player} />
           </div>
         </div>
 
