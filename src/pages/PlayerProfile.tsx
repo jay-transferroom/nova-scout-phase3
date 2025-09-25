@@ -64,9 +64,9 @@ const PlayerProfile = () => {
         {/* Player Header Section */}
         <div className="mb-8">
           {/* Player Basic Info */}
-          <div className="flex items-start gap-6 mb-6">
-            {/* Player Avatar */}
-            <div className="w-24 h-24 rounded-full bg-muted overflow-hidden flex-shrink-0">
+          <div className="flex items-center gap-6 mb-6">
+            {/* Player Avatar with Club Badge Overlay */}
+            <div className="relative w-24 h-24 rounded-full bg-muted overflow-hidden flex-shrink-0">
               {player.image ? (
                 <img 
                   src={player.image} 
@@ -80,15 +80,19 @@ const PlayerProfile = () => {
                   </span>
                 </div>
               )}
+              {/* Club Badge Overlay */}
+              <div className="absolute bottom-0 right-0 transform translate-x-1 translate-y-1">
+                <ClubBadge clubName={player.club} className="w-8 h-8" />
+              </div>
             </div>
 
             {/* Player Details */}
             <div className="flex-1">
-              <div className="flex items-start justify-between">
-                <div>
+              <div className="flex items-center justify-between">
+                <div className="flex-1">
                   <h1 className="text-4xl font-bold text-foreground mb-2">{player.name}</h1>
                   <div className="flex items-center gap-3 mb-3">
-                    <ClubBadge clubName={player.club} className="flex-shrink-0" />
+                    <span className="text-lg font-medium text-muted-foreground">{player.club}</span>
                     <div className="flex flex-wrap gap-2">
                       {player.positions?.map((position) => (
                         <Badge key={position} variant="outline" className="bg-gray-50 text-gray-600 border-gray-200 text-xs">
