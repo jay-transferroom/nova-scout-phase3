@@ -11,8 +11,7 @@ import {
   Sparkles, 
   Info, 
   TrendingUp, 
-  Users, 
-  FileText
+  Users
 } from "lucide-react";
 import { usePlayerProfile } from "@/hooks/usePlayerProfile";
 import { calculateAge } from "@/utils/playerProfileUtils";
@@ -32,9 +31,6 @@ const PlayerProfile = () => {
 
   const { player, isLoading, error, playerReports } = usePlayerProfile(id);
 
-  const handleCreateReport = () => {
-    navigate('/report-builder', { state: { selectedPlayerId: id } });
-  };
 
   if (isLoading) {
     return (
@@ -135,10 +131,6 @@ const PlayerProfile = () => {
                     <Button className="bg-emerald-600 hover:bg-emerald-700 text-white gap-2">
                       <Sparkles className="w-4 h-4" />
                       Generate AI Summary
-                    </Button>
-                    <Button variant="outline" onClick={handleCreateReport} className="gap-2">
-                      <FileText className="w-4 h-4" />
-                      Create Report
                     </Button>
                   </div>
                 </div>

@@ -316,6 +316,12 @@ const PlayerStatusActions = ({ playerId, playerName, playerReports }: PlayerStat
 
           {/* Actions Section */}
           <div className="flex items-center gap-2">
+            {/* Create Report - Primary Action */}
+            <Button onClick={handleCreateReport} className="gap-2">
+              <FileText className="w-4 h-4" />
+              Create Report
+            </Button>
+
             {/* Assignment actions */}
             {canAssignScout && (
               <Button variant="outline" size="sm" onClick={handleAssignScout} className="gap-2">
