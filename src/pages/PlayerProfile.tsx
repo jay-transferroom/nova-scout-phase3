@@ -151,49 +151,49 @@ const PlayerProfile = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-6 mb-8">
             {/* Player Summary */}
             <Card>
-              <CardHeader>
-                <CardTitle>Player summary</CardTitle>
+              <CardHeader className="pb-4">
+                <CardTitle className="text-lg font-semibold">Player summary</CardTitle>
               </CardHeader>
-              <CardContent>
-                <div className="flex justify-between items-start mb-4">
+              <CardContent className="pt-0">
+                <div className="flex justify-end mb-3">
                   <button 
-                    className="text-sm font-medium underline-offset-4 hover:underline flex items-center gap-1"
+                    className="text-xs font-medium underline-offset-4 hover:underline flex items-center gap-1"
                     style={{ color: '#600E96' }}
                   >
-                    <Sparkles className="w-4 h-4" />
+                    <Sparkles className="w-3 h-3" />
                     Generate AI Summary
                   </button>
                 </div>
-                <div className="space-y-3">
+                <div className="space-y-2">
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Contracted until</span>
-                    <span className="font-medium">June 2027</span>
+                    <span className="text-xs text-muted-foreground">Contracted until</span>
+                    <span className="text-xs font-medium">June 2027</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Nationality</span>
-                    <span className="font-medium">{player.nationality}</span>
+                    <span className="text-xs text-muted-foreground">Nationality</span>
+                    <span className="text-xs font-medium">{player.nationality}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">International caps</span>
-                    <span className="font-medium">90</span>
+                    <span className="text-xs text-muted-foreground">International caps</span>
+                    <span className="text-xs font-medium">90</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Age</span>
-                    <span className="font-medium">{calculateAge(player.dateOfBirth)} (15/06/1992)</span>
+                    <span className="text-xs text-muted-foreground">Age</span>
+                    <span className="text-xs font-medium">{calculateAge(player.dateOfBirth)} (15/06/1992)</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Height</span>
-                    <span className="font-medium">175cm</span>
+                    <span className="text-xs text-muted-foreground">Height</span>
+                    <span className="text-xs font-medium">175cm</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Foot</span>
-                    <span className="font-medium">{player.dominantFoot}</span>
+                    <span className="text-xs text-muted-foreground">Foot</span>
+                    <span className="text-xs font-medium">{player.dominantFoot}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">GBE Status</span>
+                    <span className="text-xs text-muted-foreground">GBE Status</span>
                     <div className="flex items-center gap-2">
-                      <span className="font-medium">Auto-Pass</span>
-                      <Info className="w-4 h-4 text-muted-foreground" />
+                      <span className="text-xs font-medium">Auto-Pass</span>
+                      <Info className="w-3 h-3 text-muted-foreground" />
                     </div>
                   </div>
                 </div>
@@ -202,60 +202,60 @@ const PlayerProfile = () => {
 
             {/* Performance Summary */}
             <Card>
-              <CardHeader>
-                <CardTitle>Performance summary</CardTitle>
+              <CardHeader className="pb-4">
+                <CardTitle className="text-lg font-semibold">Performance summary</CardTitle>
               </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
+              <CardContent className="pt-0">
+                <div className="space-y-2">
                   <div className="flex justify-between">
                     <div className="flex items-center gap-2">
-                      <span className="text-muted-foreground">Available minutes played</span>
-                      <Info className="w-4 h-4 text-muted-foreground" />
+                      <span className="text-xs text-muted-foreground">Available minutes played</span>
+                      <Info className="w-3 h-3 text-muted-foreground" />
                     </div>
-                    <span className="font-medium">98%</span>
+                    <span className="text-xs font-medium">98%</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Squad Role</span>
-                    <span className="font-medium">Key Player</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <div className="flex items-center gap-2">
-                      <span className="text-muted-foreground">Playing style</span>
-                      <Info className="w-4 h-4 text-muted-foreground" />
-                    </div>
-                    <span className="font-medium">Inverted Winger</span>
+                    <span className="text-xs text-muted-foreground">Squad Role</span>
+                    <span className="text-xs font-medium">Key Player</span>
                   </div>
                   <div className="flex justify-between">
                     <div className="flex items-center gap-2">
-                      <span className="text-muted-foreground">Goals + assists / 90</span>
-                      <Info className="w-4 h-4 text-muted-foreground" />
+                      <span className="text-xs text-muted-foreground">Playing style</span>
+                      <Info className="w-3 h-3 text-muted-foreground" />
                     </div>
-                    <span className="font-medium">1.1</span>
+                    <span className="text-xs font-medium">Inverted Winger</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-muted-foreground">Goals + assists / 90</span>
+                      <Info className="w-3 h-3 text-muted-foreground" />
+                    </div>
+                    <span className="text-xs font-medium">1.1</span>
                   </div>
                   <div className="flex justify-between">
                     <div className="flex items-center gap-2">
                       <Badge variant="secondary" className="text-xs bg-blue-50 text-blue-700">NEW</Badge>
-                      <span className="text-muted-foreground">Max speed</span>
-                      <Info className="w-4 h-4 text-muted-foreground" />
+                      <span className="text-xs text-muted-foreground">Max speed</span>
+                      <Info className="w-3 h-3 text-muted-foreground" />
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="font-medium">34.2 km/h</span>
+                      <span className="text-xs font-medium">34.2 km/h</span>
                       <div className="w-12 h-2 bg-emerald-500 rounded"></div>
                     </div>
                   </div>
                   <div className="flex justify-between">
                     <div className="flex items-center gap-2">
                       <Badge variant="secondary" className="text-xs bg-blue-50 text-blue-700">NEW</Badge>
-                      <span className="text-muted-foreground">Distance covered / 90</span>
-                      <Info className="w-4 h-4 text-muted-foreground" />
+                      <span className="text-xs text-muted-foreground">Distance covered / 90</span>
+                      <Info className="w-3 h-3 text-muted-foreground" />
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="font-medium">8.9 km</span>
+                      <span className="text-xs font-medium">8.9 km</span>
                       <div className="w-12 h-2 bg-red-500 rounded"></div>
                     </div>
                   </div>
                 </div>
-                <div className="mt-4 pt-4 border-t">
+                <div className="mt-3 pt-3 border-t">
                   <div className="flex items-center justify-end gap-2 text-xs text-muted-foreground">
                     <span>Physical data provided in partnership with</span>
                     <span className="font-bold">EA FC</span>
