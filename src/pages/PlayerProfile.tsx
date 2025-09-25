@@ -22,7 +22,8 @@ import { PlayerPlayingStyleTab } from "@/components/player-profile/PlayerPlaying
 import { PlayerInjuriesTab } from "@/components/player-profile/PlayerInjuriesTab";
 import { PlayerMatchHistoryTab } from "@/components/player-profile/PlayerMatchHistoryTab";
 import { PlayerAlternativesTab } from "@/components/player-profile/PlayerAlternativesTab";
-import { PlayerMatchDataSection } from "@/components/player-profile/PlayerMatchDataSection";
+import { PlayerRecentResults } from "@/components/player-profile/PlayerRecentResults";
+import { PlayerUpcomingFixtures } from "@/components/player-profile/PlayerUpcomingFixtures";
 import PlayerStatusActions from "@/components/PlayerStatusActions";
 
 const PlayerProfile = () => {
@@ -147,7 +148,7 @@ const PlayerProfile = () => {
 
 
           {/* Summary Section */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-6 mb-8">
             {/* Player Summary */}
             <Card>
               <CardContent className="p-6">
@@ -260,8 +261,11 @@ const PlayerProfile = () => {
               </CardContent>
             </Card>
 
-            {/* Match Data Section */}
-            <PlayerMatchDataSection player={player} />
+            {/* Recent Results */}
+            <PlayerRecentResults player={player} />
+
+            {/* Upcoming Fixtures */}
+            <PlayerUpcomingFixtures player={player} />
           </div>
         </div>
 
