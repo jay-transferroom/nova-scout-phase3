@@ -17,10 +17,10 @@ const UpcomingMatches = () => {
   
   const upcomingMatches = fixtures
     .filter(fixture => {
-      const fixtureDate = new Date(fixture.match_date_utc);
-      return isAfter(fixtureDate, now) && !isAfter(fixtureDate, nextWeek) && fixture.status !== 'completed';
+      const fixtureDate = new Date(fixture.fixture_date);
+      return isAfter(fixtureDate, now) && !isAfter(fixtureDate, nextWeek) && fixture.status === 'scheduled';
     })
-    .slice(0, 5);
+    .slice(0, 5); // Show max 5 upcoming matches
 
   const getMatchDateDisplay = (dateString: string) => {
     const date = new Date(dateString);
@@ -70,9 +70,9 @@ const UpcomingMatches = () => {
       <CardContent>
         {upcomingMatches.length > 0 ? (
           <div className="space-y-3">
-            {upcomingMatches.map((match, index) => (
+            {upcomingMatches.map((match) => (
               <div
-                key={`${match.match_number}-${index}`}
+                key={match.id}
                 className="flex items-center justify-between p-3 border rounded-lg hover:bg-accent transition-colors"
               >
                 <div className="flex-1">
@@ -84,7 +84,7 @@ const UpcomingMatches = () => {
                   <div className="flex items-center gap-3 mt-1 text-sm text-muted-foreground">
                     <div className="flex items-center gap-1">
                       <Clock className="h-3 w-3" />
-                      <span>{getMatchDateDisplay(match.match_date_utc)} at {getMatchTime(match.match_date_utc)}</span>
+                      <span>{getMatchDateDisplay(match.fixture_date)} at {getMatchTime(match.fixture_date)}</span>
                     </div>
                     {match.venue && (
                       <div className="flex items-center gap-1">

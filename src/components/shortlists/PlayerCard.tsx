@@ -3,15 +3,14 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { ScoutAvatars } from "@/components/ui/scout-avatars";
 import { MapPin, Calendar, Star, UserPlus, Eye, FileText, MoreHorizontal, Bookmark, Trash2 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
-import { usePlayerScouts } from "@/hooks/usePlayerScouts";
 
 interface PlayerCardProps {
   player: any;
   getAssignmentBadge: (playerId: string) => { variant: any; className?: string; children: string; };
   getEuGbeBadge: (status: string) => { variant: any; className?: string; children: string; };
+  getPlayerAssignment: (playerId: string) => any;
   formatXtvScore: (score: number) => string;
   onAssignScout: (player: any) => void;
   onRemovePlayer: (playerId: string) => void;
@@ -21,12 +20,12 @@ export const PlayerCard = ({
   player,
   getAssignmentBadge,
   getEuGbeBadge,
+  getPlayerAssignment,
   formatXtvScore,
   onAssignScout,
   onRemovePlayer
 }: PlayerCardProps) => {
   const navigate = useNavigate();
-  const { data: scouts = [] } = usePlayerScouts(player.id.toString());
 
   const handleCreateReport = () => {
     if (player.isPrivate) {
@@ -106,23 +105,25 @@ export const PlayerCard = ({
             </div>
           </div>
 
-          {/* Scout Assignment Display */}
-          {!player.isPrivate && scouts.length > 0 && (
-            <div className="mb-3">
-              <ScoutAvatars scouts={scouts} size="sm" />
-            </div>
-          )}
-
           {/* Action Buttons */}
           <div className="flex items-center gap-2">
-            {!player.isPrivate && (
+            {!player.isPrivate && !getPlayerAssignment(player.id.toString()) ? (
               <Button 
                 size="sm" 
                 variant="outline"
                 onClick={() => onAssignScout(player)}
               >
                 <UserPlus className="h-4 w-4 mr-1" />
-                {scouts.length > 0 ? "Assign Another Scout" : "Assign Scout"}
+                Assign Scout
+              </Button>
+            ) : !player.isPrivate && (
+              <Button 
+                size="sm" 
+                variant="outline"
+                onClick={() => onAssignScout(player)}
+              >
+                <UserPlus className="h-4 w-4 mr-1" />
+                Reassign Scout
               </Button>
             )}
             <Link to={player.profilePath}>

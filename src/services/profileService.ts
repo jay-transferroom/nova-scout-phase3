@@ -1,7 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { Profile } from '@/types/auth';
-import { getTeamLogoUrl } from '@/utils/teamLogos';
 
 export const fetchUserProfile = async (userId: string): Promise<Profile | null> => {
   try {
@@ -28,7 +27,7 @@ export const fetchUserProfile = async (userId: string): Promise<Profile | null> 
           name: 'Chelsea F.C.',
           league: 'Premier League',
           country: 'England',
-          logo_url: getTeamLogoUrl('Chelsea F.C.')
+          logo_url: 'https://logos-world.net/wp-content/uploads/2020/06/Chelsea-Logo.png'
         }
       };
       

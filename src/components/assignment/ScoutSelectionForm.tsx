@@ -50,17 +50,24 @@ const ScoutSelectionForm = ({
   const [deadline, setDeadline] = useState<Date>();
   const [notes, setNotes] = useState("");
 
-  // Reset form for new assignment when dialog opens
+  // Pre-populate form with existing assignment data when dialog opens
   useEffect(() => {
-    if (isOpen) {
-      // Always reset form since we're adding scouts, not reassigning
+    if (isOpen && existingAssignment) {
+      setSelectedScout(existingAssignment.assigned_to_scout_id);
+      setPriority(existingAssignment.priority);
+      // Reset other fields for reassignment
+      setReportType("Standard");
+      setDeadline(undefined);
+      setNotes("");
+    } else if (isOpen && !existingAssignment) {
+      // Reset form for new assignment
       setSelectedScout("");
       setPriority("Medium");
       setReportType("Standard");
       setDeadline(undefined);
       setNotes("");
     }
-  }, [isOpen]);
+  }, [isOpen, existingAssignment]);
 
   const handleSubmit = () => {
     if (!selectedScout) return;
@@ -85,7 +92,7 @@ const ScoutSelectionForm = ({
     <div className="space-y-4">
       <div className="space-y-2">
         <Label htmlFor="scout">
-          Assign to Scout
+          {existingAssignment ? 'Reassign to Scout' : 'Assign to Scout'}
         </Label>
         <Select value={selectedScout} onValueChange={setSelectedScout}>
           <SelectTrigger>
@@ -171,7 +178,10 @@ const ScoutSelectionForm = ({
           className="flex-1"
           disabled={!selectedScout || isSubmitting}
         >
-          {isSubmitting ? "Assigning..." : "Assign Scout"}
+          {isSubmitting ? 
+            (existingAssignment ? "Reassigning..." : "Assigning...") : 
+            (existingAssignment ? "Reassign Scout" : "Assign Scout")
+          }
         </Button>
       </div>
     </div>

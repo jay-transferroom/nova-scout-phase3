@@ -13,7 +13,6 @@ import { Link, useNavigate } from "react-router-dom";
 import NotificationsDropdown from "./NotificationsDropdown";
 import UnifiedPlayerSearch from "./UnifiedPlayerSearch";
 import { ScoutLogo } from './ScoutLogo';
-import { ClubBadge } from "@/components/ui/club-badge";
 
 const Header = () => {
   const { profile, signOut } = useAuth();
@@ -43,8 +42,6 @@ const Header = () => {
         
         <div className="flex items-center gap-2">
           <NotificationsDropdown />
-          
-          <ClubBadge clubName="Chelsea F.C." size="sm" />
           
           <DropdownMenu>
             <DropdownMenuTrigger asChild>

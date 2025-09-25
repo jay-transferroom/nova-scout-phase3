@@ -1,62 +1,31 @@
-import * as React from "react";
-import { cn } from "@/lib/utils";
-import { getTeamLogoUrl } from "@/utils/teamLogos";
+import * as React from "react"
+import { cn } from "@/lib/utils"
+
 interface ClubBadgeProps {
   clubName: string;
   logoUrl?: string;
   className?: string;
-  size?: 'sm' | 'md' | 'lg';
 }
-const ClubBadge = ({
-  clubName,
-  logoUrl,
-  className,
-  size = 'sm'
-}: ClubBadgeProps) => {
-  // Use provided logoUrl or get from storage
-  const teamLogoUrl = logoUrl || getTeamLogoUrl(clubName);
-  const sizeClasses = {
-    sm: {
-      container: "gap-2",
-      logo: "h-6 w-6",
-      text: "text-sm",
-      fallbackText: "text-xs"
-    },
-    md: {
-      container: "gap-2",
-      logo: "h-8 w-8",
-      text: "text-base",
-      fallbackText: "text-sm"
-    },
-    lg: {
-      container: "gap-3",
-      logo: "h-16 w-16",
-      text: "text-xl",
-      fallbackText: "text-lg"
-    }
-  };
-  const currentSize = sizeClasses[size];
+
+const ClubBadge = ({ clubName, logoUrl, className }: ClubBadgeProps) => {
   return (
-    <div className={cn(
-      "relative inline-flex items-center justify-center overflow-visible z-10",
-      currentSize.container,
-      currentSize.logo,
-      className
-    )}>
-      {teamLogoUrl ? (
-        <img
-          src={teamLogoUrl}
+    <div className={cn("flex items-center gap-2", className)}>
+      {logoUrl ? (
+        <img 
+          src={logoUrl} 
           alt={`${clubName} logo`}
-          className="w-full h-full rounded-full object-cover block"
+          className="h-6 w-6 rounded-full object-cover border border-grey-200"
         />
       ) : (
-        <div className="w-full h-full rounded-full bg-muted flex items-center justify-center">
-          <span className={cn("font-medium text-muted-foreground", currentSize.fallbackText)}>
+        <div className="h-6 w-6 rounded-full bg-grey-200 flex items-center justify-center border border-grey-200">
+          <span className="text-xs font-medium text-grey-600">
             {clubName.charAt(0).toUpperCase()}
           </span>
         </div>
       )}
+      <span className="text-sm font-medium text-grey-900">{clubName}</span>
     </div>
   );
 };
-export { ClubBadge };
+
+export { ClubBadge }

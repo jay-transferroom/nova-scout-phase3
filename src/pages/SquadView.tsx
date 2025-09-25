@@ -17,14 +17,13 @@ import { useSquadData } from "@/hooks/useSquadData";
 import { useSquadMetrics } from "@/hooks/useSquadMetrics";
 import { useClubSettings } from "@/hooks/useClubSettings";
 import { getSquadDisplayName } from "@/utils/squadUtils";
-import { ClubBadge } from "@/components/ui/club-badge";
 
 const SquadView = () => {
   const navigate = useNavigate();
   const { profile } = useAuth();
   const [selectedSquad, setSelectedSquad] = useState<string>('first-team');
   const [selectedPosition, setSelectedPosition] = useState<string | null>(null);
-  const [currentView, setCurrentView] = useState<'grid' | 'list'>('list');
+  const [currentView, setCurrentView] = useState<'pitch' | 'list'>('pitch');
 
   // Redirect if not recruitment or director role
   if (profile?.role !== 'recruitment' && profile?.role !== 'director') {
@@ -104,7 +103,9 @@ const SquadView = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <ClubBadge clubName={userClub} size="md" />
+          <div className="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center">
+            <span className="text-white text-lg font-bold">CFC</span>
+          </div>
           <div>
             <h1 className="text-3xl font-bold">{displayTitle}</h1>
             <p className="text-muted-foreground mt-2">
@@ -127,7 +128,7 @@ const SquadView = () => {
       />
 
       {/* Conditional View Rendering */}
-      {currentView === 'grid' ? (
+      {currentView === 'pitch' ? (
         <>
           {/* Enhanced Football Pitch Visualization */}
           <SquadFormationCard

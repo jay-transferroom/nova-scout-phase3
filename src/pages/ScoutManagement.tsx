@@ -16,7 +16,7 @@ import ScoutManagementViewToggle from "@/components/scout-management/ScoutManage
 import ScoutManagementTableView from "@/components/scout-management/ScoutManagementTableView";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { transformToAssignmentBased } from "@/utils/assignmentStatusUtils";
+import { determinePlayerStatus, getPlayerKanbanStatus } from "@/utils/playerStatusUtils";
 
 const ScoutManagement = () => {
   const navigate = useNavigate();
@@ -108,27 +108,99 @@ const ScoutManagement = () => {
   // Move scoutingAssignmentList outside useEffect to avoid dependency issues
   const scoutingAssignmentList = shortlists.find(shortlist => shortlist.is_scouting_assignment_list);
 
-  // Transform assignments into assignment-based kanban format (one row per scout assignment)
+  // Transform assignments and shortlisted players into kanban format using unified status logic
   useEffect(() => {
     if (isLoading) return;
 
-    console.log('Scout Management - Using assignment-based view with assignments:', assignments.length);  
+    console.log('Scout Management - Using consolidated assignments:', assignments.length);  
     console.log('Scout Management - Scouts:', scouts.length);
     console.log('Scout Management - All Players:', allPlayers.length);
     console.log('Scout Management - Reports:', reports.length);
 
-    const newKanbanData = transformToAssignmentBased(
-      assignments,
-      allPlayers,
-      reports,
-      scoutingAssignmentList,
-      selectedScout,
-      searchTerm
+    const newKanbanData = {
+      shortlisted: [] as any[],
+      assigned: [] as any[],
+      completed: [] as any[]
+    };
+
+    // Get scouting assignment player IDs - exclude players who have active assignments
+    const scoutingAssignmentPlayerIds = new Set<string>(
+      (scoutingAssignmentList?.playerIds || [])
+        .filter((id): id is string => typeof id === 'string')
+        .filter(id => !assignments.some(a => a.player_id === id))
     );
 
-    console.log('Final assignment-based kanban data:', {
+    console.log('Scouting assignment list:', scoutingAssignmentList);
+    console.log('Scouting assignment player IDs:', Array.from(scoutingAssignmentPlayerIds));
+
+    // Process all players that are either in scouting list or have assignments
+    const allRelevantPlayerIds = new Set([
+      ...Array.from(scoutingAssignmentPlayerIds),
+      ...assignments.map(a => a.player_id)
+    ]);
+
+    allRelevantPlayerIds.forEach(playerId => {
+      // Find player data
+      const playerData = allPlayers.find(p => {
+        const playerIdStr = p.isPrivatePlayer ? p.id : p.id.toString();
+        return playerIdStr === playerId;
+      });
+
+      if (!playerData) return;
+
+      // Find assignment for this player
+      const assignment = assignments.find(a => a.player_id === playerId);
+
+      // Apply filters
+      if (selectedScout !== "all" && assignment?.assigned_to_scout_id !== selectedScout) {
+        return;
+      }
+
+      const playerName = playerData.name || 'Unknown Player';
+      const club = playerData.club || 'Unknown Club';
+
+      if (searchTerm && !playerName.toLowerCase().includes(searchTerm.toLowerCase()) && 
+          !club.toLowerCase().includes(searchTerm.toLowerCase())) {
+        return;
+      }
+
+      // Use unified status determination
+      const statusInfo = determinePlayerStatus({
+        playerId,
+        assignments,
+        reports,
+        scoutingAssignmentPlayerIds
+      });
+
+      const kanbanStatus = getPlayerKanbanStatus(statusInfo);
+
+      const scoutName = assignment?.assigned_to_scout?.first_name 
+        ? `${assignment.assigned_to_scout.first_name} ${assignment.assigned_to_scout.last_name || ''}`.trim()
+        : assignment?.assigned_to_scout?.email || (kanbanStatus === 'shortlisted' ? 'Unassigned' : 'Unknown Scout');
+
+      const playerKanbanData = {
+        id: assignment?.id || `scouting-assignment-${playerId}`,
+        playerName,
+        club,
+        position: playerData.positions?.[0] || 'Unknown',
+        rating: playerData.transferroomRating?.toFixed(1) || 'N/A',
+        assignedTo: scoutName,
+        updatedAt: getUpdatedTime(statusInfo.status),
+        lastStatusChange: getLastStatusChange(statusInfo.status, assignment?.updated_at || new Date().toISOString()),
+        avatar: playerData.image || `https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=48&h=48&fit=crop&crop=face&auto=format`,
+        priority: assignment?.priority || null,
+        deadline: assignment?.deadline || null,
+        scoutId: assignment?.assigned_to_scout_id || null,
+        status: statusInfo.status,
+        playerId
+      };
+
+      newKanbanData[kanbanStatus].push(playerKanbanData);
+    });
+
+    console.log('Final kanban data:', {
       shortlisted: newKanbanData.shortlisted.length,
-      assigned: newKanbanData.assigned.length,  
+      assigned: newKanbanData.assigned.length,
       completed: newKanbanData.completed.length
     });
 
@@ -210,33 +282,17 @@ const ScoutManagement = () => {
   };
 
   const handleViewReport = (player: any) => {
-    // Find the report for this player and scout combination
-    const playerReport = reports.find(report => 
-      report.playerId === player.playerId && 
-      report.scoutId === player.scoutId
-    );
-    
+    // Find the report for this player
+    const playerReport = reports.find(report => report.playerId === player.playerId);
     if (playerReport) {
       navigate(`/report/${playerReport.id}`);
     } else {
-      console.error("No report found for player:", player.playerId, "and scout:", player.scoutId);
+      console.error("No report found for player:", player.playerId);
     }
   };
 
   const handleMarkAsReviewed = async (player: any) => {
     try {
-      // Use assignmentId for assignments, or skip for unassigned players
-      const assignmentId = player.assignmentId || player.id;
-      
-      if (!assignmentId || assignmentId.startsWith('scouting-assignment-')) {
-        toast({
-          title: "Error",
-          description: "Cannot mark unassigned player as reviewed",
-          variant: "destructive",
-        });
-        return;
-      }
-
       const { error } = await supabase
         .from('scouting_assignments')
         .update({
@@ -244,12 +300,12 @@ const ScoutManagement = () => {
           reviewed_at: new Date().toISOString(),
           reviewed_by_manager_id: (await supabase.auth.getUser()).data.user?.id
         })
-        .eq('id', assignmentId);
+        .eq('id', player.id);
 
       if (error) {
         console.error('Error marking assignment as reviewed:', error);
         toast({
-          title: "Error", 
+          title: "Error",
           description: "Failed to mark assignment as reviewed",
           variant: "destructive",
         });
@@ -328,12 +384,12 @@ const ScoutManagement = () => {
             <KanbanColumn
               key={column.id}
               column={column}
-        players={kanbanData[column.id as keyof typeof kanbanData]}
-        searchTerm={searchTerm}
-        selectedScout={selectedScout}
-        onAssignScout={column.id === 'shortlisted' ? handleAssignScout : undefined}
-        onViewReport={column.id === 'completed' ? handleViewReport : undefined}
-        onMarkAsReviewed={column.id === 'completed' ? handleMarkAsReviewed : undefined}
+              players={kanbanData[column.id as keyof typeof kanbanData]}
+              searchTerm={searchTerm}
+              selectedScout={selectedScout}
+              onAssignScout={column.id === 'shortlisted' ? handleAssignScout : undefined}
+              onViewReport={column.id === 'completed' ? handleViewReport : undefined}
+              onMarkAsReviewed={column.id === 'completed' ? handleMarkAsReviewed : undefined}
             />
           ))}
         </div>

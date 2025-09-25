@@ -3,15 +3,15 @@ import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ClubBadge } from "@/components/ui/club-badge";
 import { 
   ArrowLeft, 
   Sparkles, 
   Info, 
   TrendingUp, 
-  Users
+  Users, 
+  FileText
 } from "lucide-react";
 import { usePlayerProfile } from "@/hooks/usePlayerProfile";
 import { calculateAge } from "@/utils/playerProfileUtils";
@@ -22,8 +22,6 @@ import { PlayerPlayingStyleTab } from "@/components/player-profile/PlayerPlaying
 import { PlayerInjuriesTab } from "@/components/player-profile/PlayerInjuriesTab";
 import { PlayerMatchHistoryTab } from "@/components/player-profile/PlayerMatchHistoryTab";
 import { PlayerAlternativesTab } from "@/components/player-profile/PlayerAlternativesTab";
-import { PlayerRecentResults } from "@/components/player-profile/PlayerRecentResults";
-import { PlayerUpcomingFixtures } from "@/components/player-profile/PlayerUpcomingFixtures";
 import PlayerStatusActions from "@/components/PlayerStatusActions";
 
 const PlayerProfile = () => {
@@ -33,6 +31,9 @@ const PlayerProfile = () => {
 
   const { player, isLoading, error, playerReports } = usePlayerProfile(id);
 
+  const handleCreateReport = () => {
+    navigate('/report-builder', { state: { selectedPlayerId: id } });
+  };
 
   if (isLoading) {
     return (
@@ -66,45 +67,35 @@ const PlayerProfile = () => {
         {/* Player Header Section */}
         <div className="mb-8">
           {/* Player Basic Info */}
-          <div className="flex items-center gap-6 mb-6">
-            {/* Player Avatar with Club Badge Overlay */}
-            <div className="relative flex-shrink-0">
-              <div className="w-24 h-24 rounded-full bg-muted overflow-hidden">
-                {player.image ? (
-                  <img 
-                    src={player.image} 
-                    alt={player.name}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-full bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center">
-                    <span className="text-2xl font-bold text-primary">
-                      {player.name.split(' ').map(n => n[0]).join('')}
-                    </span>
-                  </div>
-                )}
-              </div>
-              {/* Club Badge Overlay - positioned outside the overflow container */}
-              <div className="absolute bottom-0 right-0 transform translate-x-1 translate-y-1">
-                <ClubBadge clubName={player.club} className="w-8 h-8" />
-              </div>
+          <div className="flex items-start gap-6 mb-6">
+            {/* Player Avatar */}
+            <div className="w-24 h-24 rounded-full bg-muted overflow-hidden flex-shrink-0">
+              {player.image ? (
+                <img 
+                  src={player.image} 
+                  alt={player.name}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center">
+                  <span className="text-2xl font-bold text-primary">
+                    {player.name.split(' ').map(n => n[0]).join('')}
+                  </span>
+                </div>
+              )}
             </div>
 
             {/* Player Details */}
             <div className="flex-1">
-              <div className="flex items-center justify-between">
-                <div className="flex-1">
+              <div className="flex items-start justify-between">
+                <div>
                   <h1 className="text-4xl font-bold text-foreground mb-2">{player.name}</h1>
                   <div className="flex items-center gap-3 mb-3">
-                    <span className="text-lg font-medium text-muted-foreground">{player.club}</span>
-                    <div className="flex flex-wrap gap-2">
-                      {player.positions?.map((position) => (
-                        <Badge key={position} variant="outline" className="bg-gray-50 text-gray-600 border-gray-200 text-xs">
-                          {position}
-                        </Badge>
-                      ))}
-                    </div>
+                    <span className="text-lg font-medium">{player.club}</span>
                   </div>
+                  <p className="text-lg text-muted-foreground">
+                    {player.positions?.join(' / ') || 'Position not specified'}
+                  </p>
                 </div>
 
                 <div className="text-right">
@@ -134,6 +125,17 @@ const PlayerProfile = () => {
                       </span>
                     </div>
                   </div>
+                  
+                  <div className="flex items-center gap-3">
+                    <Button className="bg-emerald-600 hover:bg-emerald-700 text-white gap-2">
+                      <Sparkles className="w-4 h-4" />
+                      Generate AI Summary
+                    </Button>
+                    <Button variant="outline" onClick={handleCreateReport} className="gap-2">
+                      <FileText className="w-4 h-4" />
+                      Create Report
+                    </Button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -148,50 +150,41 @@ const PlayerProfile = () => {
 
 
           {/* Summary Section */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+          <div className="grid grid-cols-2 gap-8 mb-8">
             {/* Player Summary */}
-            <Card className="relative">
-              <CardHeader className="pb-4">
-                <CardTitle className="text-sm font-semibold">Player summary</CardTitle>
-                <button 
-                  className="absolute top-4 right-4 text-xs font-medium underline-offset-4 hover:underline flex items-center gap-1"
-                  style={{ color: '#600E96' }}
-                >
-                  <Sparkles className="w-3 h-3" />
-                  Generate AI Summary
-                </button>
-              </CardHeader>
-              <CardContent className="pt-0">
-                <div className="space-y-2">
+            <Card>
+              <CardContent className="p-6">
+                <h3 className="text-lg font-semibold mb-4">Player summary</h3>
+                <div className="space-y-3">
                   <div className="flex justify-between">
-                    <span className="text-xs text-muted-foreground">Contracted until</span>
-                    <span className="text-xs font-medium">June 2027</span>
+                    <span className="text-muted-foreground">Contracted until</span>
+                    <span className="font-medium">June 2027</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-xs text-muted-foreground">Nationality</span>
-                    <span className="text-xs font-medium">{player.nationality}</span>
+                    <span className="text-muted-foreground">Nationality</span>
+                    <span className="font-medium">{player.nationality}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-xs text-muted-foreground">International caps</span>
-                    <span className="text-xs font-medium">90</span>
+                    <span className="text-muted-foreground">International caps</span>
+                    <span className="font-medium">90</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-xs text-muted-foreground">Age</span>
-                    <span className="text-xs font-medium">{calculateAge(player.dateOfBirth)} (15/06/1992)</span>
+                    <span className="text-muted-foreground">Age</span>
+                    <span className="font-medium">{calculateAge(player.dateOfBirth)} (15/06/1992)</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-xs text-muted-foreground">Height</span>
-                    <span className="text-xs font-medium">175cm</span>
+                    <span className="text-muted-foreground">Height</span>
+                    <span className="font-medium">175cm</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-xs text-muted-foreground">Foot</span>
-                    <span className="text-xs font-medium">{player.dominantFoot}</span>
+                    <span className="text-muted-foreground">Foot</span>
+                    <span className="font-medium">{player.dominantFoot}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-xs text-muted-foreground">GBE Status</span>
+                    <span className="text-muted-foreground">GBE Status</span>
                     <div className="flex items-center gap-2">
-                      <span className="text-xs font-medium">Auto-Pass</span>
-                      <Info className="w-3 h-3 text-muted-foreground" />
+                      <span className="font-medium">Auto-Pass</span>
+                      <Info className="w-4 h-4 text-muted-foreground" />
                     </div>
                   </div>
                 </div>
@@ -200,60 +193,58 @@ const PlayerProfile = () => {
 
             {/* Performance Summary */}
             <Card>
-              <CardHeader className="pb-4">
-                <CardTitle className="text-sm font-semibold">Performance summary</CardTitle>
-              </CardHeader>
-              <CardContent className="pt-0">
-                <div className="space-y-2">
+              <CardContent className="p-6">
+                <h3 className="text-lg font-semibold mb-4">Performance summary</h3>
+                <div className="space-y-3">
                   <div className="flex justify-between">
                     <div className="flex items-center gap-2">
-                      <span className="text-xs text-muted-foreground">Available minutes played</span>
-                      <Info className="w-3 h-3 text-muted-foreground" />
+                      <span className="text-muted-foreground">Available minutes played</span>
+                      <Info className="w-4 h-4 text-muted-foreground" />
                     </div>
-                    <span className="text-xs font-medium">98%</span>
+                    <span className="font-medium">98%</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-xs text-muted-foreground">Squad Role</span>
-                    <span className="text-xs font-medium">Key Player</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs text-muted-foreground">Playing style</span>
-                      <Info className="w-3 h-3 text-muted-foreground" />
-                    </div>
-                    <span className="text-xs font-medium">Inverted Winger</span>
+                    <span className="text-muted-foreground">Squad Role</span>
+                    <span className="font-medium">Key Player</span>
                   </div>
                   <div className="flex justify-between">
                     <div className="flex items-center gap-2">
-                      <span className="text-xs text-muted-foreground">Goals + assists / 90</span>
-                      <Info className="w-3 h-3 text-muted-foreground" />
+                      <span className="text-muted-foreground">Playing style</span>
+                      <Info className="w-4 h-4 text-muted-foreground" />
                     </div>
-                    <span className="text-xs font-medium">1.1</span>
+                    <span className="font-medium">Inverted Winger</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="text-muted-foreground">Goals + assists / 90</span>
+                      <Info className="w-4 h-4 text-muted-foreground" />
+                    </div>
+                    <span className="font-medium">1.1</span>
                   </div>
                   <div className="flex justify-between">
                     <div className="flex items-center gap-2">
                       <Badge variant="secondary" className="text-xs bg-blue-50 text-blue-700">NEW</Badge>
-                      <span className="text-xs text-muted-foreground">Max speed</span>
-                      <Info className="w-3 h-3 text-muted-foreground" />
+                      <span className="text-muted-foreground">Max speed</span>
+                      <Info className="w-4 h-4 text-muted-foreground" />
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="text-xs font-medium">34.2 km/h</span>
+                      <span className="font-medium">34.2 km/h</span>
                       <div className="w-12 h-2 bg-emerald-500 rounded"></div>
                     </div>
                   </div>
                   <div className="flex justify-between">
                     <div className="flex items-center gap-2">
                       <Badge variant="secondary" className="text-xs bg-blue-50 text-blue-700">NEW</Badge>
-                      <span className="text-xs text-muted-foreground">Distance covered / 90</span>
-                      <Info className="w-3 h-3 text-muted-foreground" />
+                      <span className="text-muted-foreground">Distance covered / 90</span>
+                      <Info className="w-4 h-4 text-muted-foreground" />
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="text-xs font-medium">8.9 km</span>
+                      <span className="font-medium">8.9 km</span>
                       <div className="w-12 h-2 bg-red-500 rounded"></div>
                     </div>
                   </div>
                 </div>
-                <div className="mt-3 pt-3 border-t">
+                <div className="mt-4 pt-4 border-t">
                   <div className="flex items-center justify-end gap-2 text-xs text-muted-foreground">
                     <span>Physical data provided in partnership with</span>
                     <span className="font-bold">EA FC</span>
@@ -262,12 +253,6 @@ const PlayerProfile = () => {
                 </div>
               </CardContent>
             </Card>
-
-            {/* Recent Results */}
-            <PlayerRecentResults player={player} />
-
-            {/* Upcoming Fixtures */}
-            <PlayerUpcomingFixtures player={player} />
           </div>
         </div>
 

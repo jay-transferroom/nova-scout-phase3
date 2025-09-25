@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ClubBadge } from "@/components/ui/club-badge";
 import { 
   ArrowLeft, 
   Sparkles, 
@@ -101,15 +100,11 @@ const PrivatePlayerProfile = () => {
                 <div>
                   <h1 className="text-4xl font-bold text-foreground mb-2">{player.name}</h1>
                   <div className="flex items-center gap-3 mb-3">
-                    <ClubBadge clubName={player.club || 'Unknown Club'} className="flex-shrink-0" />
-                    <div className="flex flex-wrap gap-2">
-                      {player.positions?.map((position) => (
-                        <Badge key={position} variant="outline" className="bg-gray-50 text-gray-600 border-gray-200 text-xs">
-                          {position}
-                        </Badge>
-                      ))}
-                    </div>
+                    <span className="text-lg font-medium">{player.club}</span>
                   </div>
+                  <p className="text-lg text-muted-foreground">
+                    {player.positions?.join(' / ') || 'Position not specified'}
+                  </p>
                 </div>
 
                 <div className="text-right">
@@ -141,7 +136,7 @@ const PrivatePlayerProfile = () => {
                   </div>
                   
                   <div className="flex items-center gap-3">
-                    <Button className="gap-2">
+                    <Button className="bg-emerald-600 hover:bg-emerald-700 text-white gap-2">
                       <Sparkles className="w-4 h-4" />
                       Generate AI Summary
                     </Button>

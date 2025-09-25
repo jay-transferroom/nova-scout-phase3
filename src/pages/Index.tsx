@@ -351,7 +351,7 @@ const RecentReportTableRow = ({ report, profile, navigate }) => {
         </div>
       </TableCell>
       <TableCell>
-        <ClubBadge clubName={playerClub} size="sm" />
+        <ClubBadge clubName={playerClub} />
       </TableCell>
       <TableCell>
         <div className="text-sm text-muted-foreground">

@@ -13,9 +13,6 @@ import { MoreHorizontal, Eye, FileText, UserPlus, Bookmark, Trash2 } from "lucid
 import { Link } from "react-router-dom";
 import { PlayerSearchDialog } from "./PlayerSearchDialog";
 import { useAuth } from "@/contexts/AuthContext";
-import { ClubBadge } from "@/components/ui/club-badge";
-import { ScoutAvatars } from "@/components/ui/scout-avatars";
-import { usePlayerScouts } from "@/hooks/usePlayerScouts";
 
 interface ShortlistsContentProps {
   currentList: any;
@@ -31,6 +28,7 @@ interface ShortlistsContentProps {
   onEuGbeFilterChange: (value: string) => void;
   getAssignmentBadge: (playerId: string) => { variant: any; className?: string; children: string };
   getEuGbeBadge: (status: string) => { variant: any; className?: string; children: string };
+  getPlayerAssignment: (playerId: string) => any;
   formatXtvScore: (score: number) => string;
   onAssignScout: (player: any) => void;
   onRemovePlayer: (playerId: string) => void;
@@ -52,6 +50,7 @@ export const ShortlistsContent = ({
   onEuGbeFilterChange,
   getAssignmentBadge,
   getEuGbeBadge,
+  getPlayerAssignment,
   formatXtvScore,
   onAssignScout,
   onRemovePlayer,
@@ -303,7 +302,6 @@ export const ShortlistsContent = ({
                 <TableHead>Potential</TableHead>
                 <TableHead>XTV (£M)</TableHead>
                 <TableHead>EU/GBE</TableHead>
-                <TableHead>Scouts</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Actions</TableHead>
               </TableRow>
@@ -315,17 +313,108 @@ export const ShortlistsContent = ({
                   const euGbeBadgeProps = getEuGbeBadge(player.euGbeStatus || 'Pass');
                   
                   return (
-                    <ShortlistPlayerRow 
-                      key={player.id}
-                      player={player}
-                      assignmentBadgeProps={assignmentBadgeProps}
-                      euGbeBadgeProps={euGbeBadgeProps}
-                      formatXtvScore={formatXtvScore}
-                      handleCreateReport={handleCreateReport}
-                      onAssignScout={onAssignScout}
-                      onRemovePlayer={onRemovePlayer}
-                      canManageShortlists={canManageShortlists}
-                    />
+                    <TableRow key={player.id}>
+                      <TableCell>
+                        <div className="flex items-center gap-3">
+                          <Avatar className="h-10 w-10">
+                            <AvatarImage src={player.image} alt={player.name} />
+                            <AvatarFallback>
+                              {player.name.split(' ').map((n: string) => n[0]).join('')}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <div className="font-medium">{player.name}</div>
+                            <div className="text-sm text-muted-foreground">{player.club}</div>
+                            {player.isPrivate && (
+                              <Badge variant="secondary" className="text-xs mt-1">Private</Badge>
+                            )}
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell>{player.age || 'N/A'}</TableCell>
+                      <TableCell>
+                        <div className="flex gap-1">
+                          {player.positions?.slice(0, 2).map((pos: string, idx: number) => (
+                            <Badge key={idx} variant="outline" className="text-xs">
+                              {pos}
+                            </Badge>
+                          ))}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        {player.transferroomRating ? player.transferroomRating.toFixed(1) : 'N/A'}
+                      </TableCell>
+                      <TableCell>
+                        {player.futureRating ? player.futureRating.toFixed(1) : 'N/A'}
+                      </TableCell>
+                      <TableCell>
+                        {player.xtvScore ? formatXtvScore(player.xtvScore) : 'N/A'}
+                      </TableCell>
+                      <TableCell>
+                        {!player.isPrivate && <Badge {...euGbeBadgeProps} />}
+                      </TableCell>
+                      <TableCell>
+                        {!player.isPrivate ? (
+                          <div className="flex flex-col gap-1">
+                            <Badge {...assignmentBadgeProps} className="text-xs font-medium" />
+                            {assignmentBadgeProps.children.includes('completed') && (
+                              <span className="text-xs text-muted-foreground">
+                                Report submitted
+                              </span>
+                            )}
+                          </div>
+                        ) : (
+                          <Badge variant="outline" className="text-xs bg-purple-50 text-purple-700 border-purple-200">
+                            Private Player
+                          </Badge>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="sm">
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem asChild>
+                              <Link to={player.profilePath}>
+                                <Eye className="h-4 w-4 mr-2" />
+                                View Profile
+                              </Link>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleCreateReport(player)}>
+                              <FileText className="h-4 w-4 mr-2" />
+                              Create Report
+                            </DropdownMenuItem>
+                            {!player.isPrivate && !getPlayerAssignment(player.id.toString()) ? (
+                              <DropdownMenuItem onClick={() => onAssignScout(player)}>
+                                <UserPlus className="h-4 w-4 mr-2" />
+                                Assign Scout
+                              </DropdownMenuItem>
+                            ) : !player.isPrivate && (
+                              <DropdownMenuItem onClick={() => onAssignScout(player)}>
+                                <UserPlus className="h-4 w-4 mr-2" />
+                                Reassign Scout
+                              </DropdownMenuItem>
+                            )}
+                            <DropdownMenuItem>
+                              <Bookmark className="h-4 w-4 mr-2" />
+                              Move to list
+                            </DropdownMenuItem>
+                            {canManageShortlists && (
+                              <DropdownMenuItem 
+                                className="text-destructive"
+                                onClick={() => onRemovePlayer(player.id.toString())}
+                              >
+                                <Trash2 className="h-4 w-4 mr-2" />
+                                Remove from list
+                              </DropdownMenuItem>
+                            )}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
                   );
                 })
               ) : (
@@ -350,139 +439,5 @@ export const ShortlistsContent = ({
         />
       )}
     </Card>
-  );
-};
-
-// Separate component for table row to handle scout data fetching
-const ShortlistPlayerRow = ({
-  player,
-  assignmentBadgeProps,
-  euGbeBadgeProps,
-  formatXtvScore,
-  handleCreateReport,
-  onAssignScout,
-  onRemovePlayer,
-  canManageShortlists
-}: {
-  player: any;
-  assignmentBadgeProps: any;
-  euGbeBadgeProps: any;
-  formatXtvScore: (score: number) => string;
-  handleCreateReport: (player: any) => void;
-  onAssignScout: (player: any) => void;
-  onRemovePlayer: (playerId: string) => void;
-  canManageShortlists: boolean;
-}) => {
-  const { data: scouts = [] } = usePlayerScouts(player.id.toString());
-
-  return (
-    <TableRow>
-      <TableCell>
-        <div className="flex items-center gap-3">
-          <Avatar className="h-10 w-10">
-            <AvatarImage src={player.image} alt={player.name} />
-            <AvatarFallback>
-              {player.name.split(' ').map((n: string) => n[0]).join('')}
-            </AvatarFallback>
-          </Avatar>
-          <div>
-            <div className="font-medium">{player.name}</div>
-            <div className="mt-1">
-              <ClubBadge clubName={player.club} size="sm" />
-            </div>
-            {player.isPrivate && (
-              <Badge variant="secondary" className="text-xs mt-1">Private</Badge>
-            )}
-          </div>
-        </div>
-      </TableCell>
-      <TableCell>{player.age || 'N/A'}</TableCell>
-      <TableCell>
-        <div className="flex gap-1">
-          {player.positions?.slice(0, 2).map((pos: string, idx: number) => (
-            <Badge key={idx} variant="outline" className="text-xs">
-              {pos}
-            </Badge>
-          ))}
-        </div>
-      </TableCell>
-      <TableCell>
-        {player.transferroomRating ? player.transferroomRating.toFixed(1) : 'N/A'}
-      </TableCell>
-      <TableCell>
-        {player.futureRating ? player.futureRating.toFixed(1) : 'N/A'}
-      </TableCell>
-      <TableCell>
-        {player.xtvScore ? formatXtvScore(player.xtvScore) : 'N/A'}
-      </TableCell>
-      <TableCell>
-        {!player.isPrivate && <Badge {...euGbeBadgeProps} />}
-      </TableCell>
-      <TableCell>
-        {!player.isPrivate && scouts.length > 0 ? (
-          <ScoutAvatars scouts={scouts} size="sm" maxVisible={3} />
-        ) : (
-          <span className="text-xs text-muted-foreground">
-            {player.isPrivate ? 'Private Player' : 'Unassigned'}
-          </span>
-        )}
-      </TableCell>
-      <TableCell>
-        {!player.isPrivate ? (
-          <div className="flex flex-col gap-1">
-            <Badge {...assignmentBadgeProps} className="text-xs font-medium" />
-            {assignmentBadgeProps.children.includes('completed') && (
-              <span className="text-xs text-muted-foreground">
-                Report submitted
-              </span>
-            )}
-          </div>
-        ) : (
-          <Badge variant="outline" className="text-xs bg-purple-50 text-purple-700 border-purple-200">
-            Private Player
-          </Badge>
-        )}
-      </TableCell>
-      <TableCell>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="sm">
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem asChild>
-              <Link to={player.profilePath}>
-                <Eye className="h-4 w-4 mr-2" />
-                View Profile
-              </Link>
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => handleCreateReport(player)}>
-              <FileText className="h-4 w-4 mr-2" />
-              Create Report
-            </DropdownMenuItem>
-            {!player.isPrivate && (
-              <DropdownMenuItem onClick={() => onAssignScout(player)}>
-                <UserPlus className="h-4 w-4 mr-2" />
-                {scouts.length > 0 ? "Assign Another Scout" : "Assign Scout"}
-              </DropdownMenuItem>
-            )}
-            <DropdownMenuItem>
-              <Bookmark className="h-4 w-4 mr-2" />
-              Move to list
-            </DropdownMenuItem>
-            {canManageShortlists && (
-              <DropdownMenuItem 
-                className="text-destructive"
-                onClick={() => onRemovePlayer(player.id.toString())}
-              >
-                <Trash2 className="h-4 w-4 mr-2" />
-                Remove from list
-              </DropdownMenuItem>
-            )}
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </TableCell>
-    </TableRow>
   );
 };

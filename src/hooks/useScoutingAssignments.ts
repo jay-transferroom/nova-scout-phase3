@@ -77,11 +77,21 @@ export const useScoutingAssignments = () => {
 
       console.log('Valid assignments after filtering invalid IDs:', validAssignments.length);
 
-      console.log(`Valid assignments after filtering: ${validAssignments.length}`);
+      // Group by player_id and keep only the most recent assignment for each player
+      const latestAssignments = new Map();
+      validAssignments.forEach(assignment => {
+        const playerId = assignment.player_id;
+        if (!latestAssignments.has(playerId) || 
+            new Date(assignment.created_at) > new Date(latestAssignments.get(playerId).created_at)) {
+          latestAssignments.set(playerId, assignment);
+        }
+      });
 
-      // Fetch player data for each assignment
+      console.log(`Deduplicated assignments: ${latestAssignments.size} unique players`);
+
+      // Fetch player data for each unique assignment
       const assignmentsWithPlayers = await Promise.all(
-        validAssignments.map(async (assignment) => {
+        Array.from(latestAssignments.values()).map(async (assignment) => {
           const playerIdNumber = parseInt(assignment.player_id, 10);
           
           const { data: playerData, error: playerError } = await supabase
@@ -200,25 +210,29 @@ export const useCreateAssignment = () => {
         // Continue with assignment creation
       }
       
-      // Check if the scout is already assigned to this player
-      const { data: existingAssignment, error: checkError } = await supabase
+      // Check if assignments already exist for this player
+      const { data: existingAssignments, error: checkError } = await supabase
         .from('scouting_assignments')
-        .select('id')
+        .select('id, created_at, assigned_to_scout_id')
         .eq('player_id', assignment.player_id)
-        .eq('assigned_to_scout_id', assignment.assigned_to_scout_id)
-        .single();
+        .order('created_at', { ascending: false });
 
-      if (checkError && checkError.code !== 'PGRST116') {
-        console.error('Error checking existing assignment:', checkError);
+      if (checkError) {
+        console.error('Error checking existing assignments:', checkError);
         throw checkError;
       }
 
-      if (existingAssignment) {
-        console.log('Scout already assigned to this player, updating assignment:', existingAssignment.id);
+      console.log('Existing assignments found:', existingAssignments?.length || 0);
+
+      if (existingAssignments && existingAssignments.length > 0) {
+        // Update the most recent assignment
+        const mostRecentAssignment = existingAssignments[0];
+        console.log('Updating assignment:', mostRecentAssignment.id);
         
         const { error: updateError } = await supabase
           .from('scouting_assignments')
           .update({
+            assigned_to_scout_id: assignment.assigned_to_scout_id,
             assigned_by_manager_id: assignment.assigned_by_manager_id,
             priority: assignment.priority,
             status: assignment.status,
@@ -227,15 +241,31 @@ export const useCreateAssignment = () => {
             report_type: assignment.report_type,
             updated_at: new Date().toISOString()
           })
-          .eq('id', existingAssignment.id);
+          .eq('id', mostRecentAssignment.id);
         
         if (updateError) {
           console.error('Error updating assignment:', updateError);
           throw updateError;
         }
+
+        // Clean up any duplicate assignments for this player
+        if (existingAssignments.length > 1) {
+          const duplicateIds = existingAssignments.slice(1).map(a => a.id);
+          console.log('Cleaning up duplicate assignments:', duplicateIds);
+          
+          const { error: deleteError } = await supabase
+            .from('scouting_assignments')
+            .delete()
+            .in('id', duplicateIds);
+            
+          if (deleteError) {
+            console.warn('Error cleaning up duplicates:', deleteError);
+          }
+        }
+        
         console.log('Assignment updated successfully');
       } else {
-        console.log('Creating new assignment for scout');
+        console.log('Creating new assignment');
         // Create a new assignment
         const { error: insertError } = await supabase
           .from('scouting_assignments')

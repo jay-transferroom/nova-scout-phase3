@@ -1,7 +1,6 @@
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { getTeamLogoUrl } from "@/utils/teamLogos";
 
 interface Club {
   id: string;
@@ -23,7 +22,7 @@ export const useClubs = () => {
         name: 'Chelsea F.C.',
         league: 'Premier League',
         country: 'England',
-        logo_url: getTeamLogoUrl('Chelsea F.C.'),
+        logo_url: 'https://logos-world.net/wp-content/uploads/2020/06/Chelsea-Logo.png',
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
       }];

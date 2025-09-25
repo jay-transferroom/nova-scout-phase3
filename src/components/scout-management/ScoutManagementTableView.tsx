@@ -5,7 +5,6 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Eye, UserPlus, CheckCircle } from "lucide-react";
-import { ClubBadge } from "@/components/ui/club-badge";
 
 interface TableViewProps {
   kanbanData: {
@@ -27,110 +26,20 @@ const ScoutManagementTableView = ({
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [searchTerm, setSearchTerm] = useState("");
   
-  // Combine all assignments from different columns
-  const allAssignments = [
+  // Combine all players from different columns
+  const allPlayers = [
     ...kanbanData.shortlisted.map(p => ({ ...p, status: 'shortlisted' })),
     ...kanbanData.assigned.map(p => ({ ...p, status: 'assigned' })),
     ...kanbanData.completed.map(p => ({ ...p, status: 'completed' }))
   ];
 
-  const PlayerRow = ({ assignment }: { assignment: any }) => {
-    // No need to fetch scouts here since each row represents one assignment
-    
-    return (
-      <tr key={`${assignment.playerId}-${assignment.scoutId || 'unassigned'}`} className="border-b hover:bg-muted/30">
-        <td className="p-4">
-          <div className="flex items-center gap-3">
-            <Avatar className="h-10 w-10 flex-shrink-0">
-              <AvatarImage 
-                src={assignment.avatar} 
-                alt={assignment.playerName}
-                loading="lazy"
-                className="object-cover"
-              />
-              <AvatarFallback>
-                {assignment.playerName.split(' ').map(n => n[0]).join('')}
-              </AvatarFallback>
-            </Avatar>
-            <div>
-              <div className="font-medium">{assignment.playerName}</div>
-              {assignment.rating && assignment.rating !== 'N/A' && (
-                <div className="text-sm text-muted-foreground">
-                  Rating: {assignment.rating}
-                </div>
-              )}
-            </div>
-          </div>
-        </td>
-        <td className="p-4">
-          <ClubBadge clubName={assignment.club} size="sm" />
-        </td>
-        <td className="p-4">{assignment.position}</td>
-        <td className="p-4">
-          <div className="flex items-center">
-            {getStatusBadge(assignment.status)}
-            {getPriorityBadge(assignment.priority)}
-          </div>
-        </td>
-        <td className="p-4">
-          {assignment.assignedTo !== 'Unassigned' ? (
-            <span className="text-sm font-medium">{assignment.assignedTo}</span>
-          ) : (
-            <span className="text-muted-foreground">Unassigned</span>
-          )}
-        </td>
-        <td className="p-4">
-          <div className="text-sm">
-            <div>{assignment.updatedAt}</div>
-            {assignment.lastStatusChange && (
-              <div className="text-muted-foreground">{assignment.lastStatusChange}</div>
-            )}
-          </div>
-        </td>
-        <td className="p-4">
-          <div className="flex gap-2">
-            {assignment.status === 'shortlisted' && onAssignScout && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => onAssignScout(assignment)}
-              >
-                <UserPlus className="h-4 w-4" />
-              </Button>
-            )}
-            
-            {assignment.status === 'completed' && onViewReport && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => onViewReport(assignment)}
-              >
-                <Eye className="h-4 w-4" />
-              </Button>
-            )}
-            
-            {assignment.status === 'completed' && onMarkAsReviewed && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => onMarkAsReviewed(assignment)}
-              >
-                <CheckCircle className="h-4 w-4" />
-              </Button>
-            )}
-          </div>
-        </td>
-      </tr>
-    );
-  };
-
   // Apply filters
-  const filteredAssignments = allAssignments.filter(assignment => {
-    const matchesStatus = statusFilter === "all" || assignment.status === statusFilter;
+  const filteredPlayers = allPlayers.filter(player => {
+    const matchesStatus = statusFilter === "all" || player.status === statusFilter;
     const matchesSearch = searchTerm === "" || 
-      assignment.playerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      assignment.club.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      assignment.assignedTo.toLowerCase().includes(searchTerm.toLowerCase());
+      player.playerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      player.club.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      player.assignedTo.toLowerCase().includes(searchTerm.toLowerCase());
     
     return matchesStatus && matchesSearch;
   });
@@ -201,16 +110,94 @@ const ScoutManagementTableView = ({
               </tr>
             </thead>
             <tbody>
-              {filteredAssignments.map((assignment) => (
-                <PlayerRow key={`${assignment.playerId}-${assignment.scoutId || 'unassigned'}`} assignment={assignment} />
+              {filteredPlayers.map((player) => (
+                <tr key={player.id} className="border-b hover:bg-muted/30">
+                  <td className="p-4">
+                    <div className="flex items-center gap-3">
+                      <Avatar className="h-10 w-10 flex-shrink-0">
+                        <AvatarImage 
+                          src={player.avatar} 
+                          alt={player.playerName}
+                          loading="lazy"
+                          className="object-cover"
+                        />
+                        <AvatarFallback>
+                          {player.playerName.split(' ').map(n => n[0]).join('')}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <div className="font-medium">{player.playerName}</div>
+                        {player.rating && player.rating !== 'N/A' && (
+                          <div className="text-sm text-muted-foreground">
+                            Rating: {player.rating}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </td>
+                  <td className="p-4">{player.club}</td>
+                  <td className="p-4">{player.position}</td>
+                  <td className="p-4">
+                    <div className="flex items-center">
+                      {getStatusBadge(player.status)}
+                      {getPriorityBadge(player.priority)}
+                    </div>
+                  </td>
+                  <td className="p-4">
+                    <span className={player.assignedTo === 'Unassigned' ? 'text-muted-foreground' : ''}>
+                      {player.assignedTo}
+                    </span>
+                  </td>
+                  <td className="p-4">
+                    <div className="text-sm">
+                      <div>{player.updatedAt}</div>
+                      {player.lastStatusChange && (
+                        <div className="text-muted-foreground">{player.lastStatusChange}</div>
+                      )}
+                    </div>
+                  </td>
+                  <td className="p-4">
+                    <div className="flex gap-2">
+                      {player.status === 'shortlisted' && onAssignScout && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => onAssignScout(player)}
+                        >
+                          <UserPlus className="h-4 w-4" />
+                        </Button>
+                      )}
+                      
+                      {player.status === 'completed' && onViewReport && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => onViewReport(player)}
+                        >
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                      )}
+                      
+                      {player.status === 'completed' && onMarkAsReviewed && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => onMarkAsReviewed(player)}
+                        >
+                          <CheckCircle className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
+                  </td>
+                </tr>
               ))}
             </tbody>
           </table>
         </div>
         
-        {filteredAssignments.length === 0 && (
+        {filteredPlayers.length === 0 && (
           <div className="text-center py-8 text-muted-foreground">
-            No assignments found matching the current filters.
+            No players found matching the current filters.
           </div>
         )}
       </div>

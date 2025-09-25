@@ -82,7 +82,6 @@ const GroupedReportRow = ({ groupedReport, onViewReport, onEditReport, onDeleteR
       <TableCell>
         <ClubBadge 
           clubName={playerClub}
-          size="sm"
         />
       </TableCell>
       <TableCell>

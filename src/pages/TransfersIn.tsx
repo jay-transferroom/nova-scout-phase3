@@ -81,8 +81,8 @@ const TransfersIn = () => {
           <h1 className="text-3xl font-bold">Transfers In</h1>
           <p className="text-muted-foreground">Monitor and manage incoming transfer opportunities</p>
         </div>
-            <Button className="">
-              <PlusCircle className="h-4 w-4 mr-2" />
+        <Button className="bg-green-600 hover:bg-green-700">
+          <PlusCircle className="h-4 w-4 mr-2" />
           Create Requirement
         </Button>
       </div>
@@ -186,8 +186,8 @@ const TransfersIn = () => {
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-semibold">Your Requirements</h3>
-              <Button className="">
-                <PlusCircle className="h-4 w-4 mr-2" />
+            <Button className="bg-green-600 hover:bg-green-700">
+              <PlusCircle className="h-4 w-4 mr-2" />
               Create Requirement
             </Button>
           </div>

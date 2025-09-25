@@ -3,7 +3,6 @@ import { useState, useEffect } from "react";
 import { Player } from "@/types/player";
 import { useUnifiedPlayersData } from "@/hooks/useUnifiedPlayersData";
 import { useTeamsData } from "@/hooks/useTeamsData";
-import { getTeamLogoUrl } from "@/utils/teamLogos";
 import { useNavigate } from "react-router-dom";
 import SearchInput from "./unified-search/SearchInput";
 import SearchFilters from "./unified-search/SearchFilters";
@@ -50,12 +49,8 @@ const UnifiedPlayerSearch = ({
 
   // Get team logo for a given club name
   const getTeamLogo = (clubName: string) => {
-    // First try to get from teams data
     const team = teamMap[clubName];
-    if (team?.logo_url) return team.logo_url;
-    
-    // Fallback to storage bucket logos
-    return getTeamLogoUrl(clubName);
+    return team?.logo_url;
   };
 
   // Initialize recent players from localStorage
@@ -80,20 +75,11 @@ const UnifiedPlayerSearch = ({
     if (lowercaseQuery.length >= 2) {
       let results: Player[] = [...remotePlayers];
 
-      // Add local players (including private players) that match the search query
-      const localMatches = players.filter((p) => {
-        // Skip if already in results
-        if (results.some(r => r.id === p.id)) return false;
-        
-        // Check for name, club, position, nationality matches
-        const nameMatch = p.name.toLowerCase().includes(lowercaseQuery);
-        const clubMatch = p.club.toLowerCase().includes(lowercaseQuery);
-        const positionMatch = p.positions.some(pos => pos.toLowerCase().includes(lowercaseQuery));
-        const nationalityMatch = p.nationality?.toLowerCase().includes(lowercaseQuery);
-        
-        return nameMatch || clubMatch || positionMatch || nationalityMatch;
-      });
-      results = [...results, ...localMatches];
+      // Enhanced team matching for remote search results
+      const teamMatches = players.filter(
+        (p) => p.club.toLowerCase().includes(lowercaseQuery) && !results.some(r => r.id === p.id)
+      );
+      results = [...results, ...teamMatches];
 
       // Detect position-like searches for better sorting
       const positionKeywords = [

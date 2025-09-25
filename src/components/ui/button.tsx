@@ -10,15 +10,15 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-[image:var(--primary-gradient)] text-primary-foreground hover:opacity-90 transition-opacity shadow-sm",
+        default: "bg-success-600 text-white hover:bg-success-700",
         destructive:
           "bg-destructive text-destructive-foreground hover:bg-destructive/90",
         outline:
           "border border-secondary-button-border bg-secondary-button-background text-secondary-button-foreground hover:bg-accent hover:text-accent-foreground",
         secondary:
-          "bg-secondary text-secondary-foreground hover:bg-secondary/80",
-        ghost: "hover:bg-accent hover:text-accent-foreground",
-        link: "text-primary underline-offset-4 hover:underline",
+          "bg-success-100 text-success-800 hover:bg-success-200",
+        ghost: "text-success-600 hover:bg-success-50 hover:text-success-700",
+        link: "text-success-600 underline-offset-4 hover:underline hover:text-success-700",
       },
       size: {
         xs: "h-8 px-2 py-1 text-xs",

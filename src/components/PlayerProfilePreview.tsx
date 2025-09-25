@@ -1,5 +1,4 @@
 import { Button } from "@/components/ui/button";
-import { ClubBadge } from "@/components/ui/club-badge";
 import { Player } from "@/types/player";
 import { useNavigate } from "react-router-dom";
 import { 
@@ -40,9 +39,7 @@ const PlayerProfilePreview = ({ player, onCreateReport, onClose }: PlayerProfile
           
           <div>
             <h2 className="text-xl font-bold">{player.name}</h2>
-            <div className="mt-1">
-              <ClubBadge clubName={player.club} />
-            </div>
+            <p className="text-muted-foreground">{player.club}</p>
           </div>
         </div>
         

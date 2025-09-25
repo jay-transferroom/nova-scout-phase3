@@ -1,8 +1,10 @@
+
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Search, Filter } from "lucide-react";
 import { ScoutUser } from "@/hooks/useScoutUsers";
+
 interface ScoutManagementFiltersProps {
   searchTerm: string;
   setSearchTerm: (term: string) => void;
@@ -10,6 +12,7 @@ interface ScoutManagementFiltersProps {
   setSelectedScout: (scoutId: string) => void;
   scouts: ScoutUser[];
 }
+
 const ScoutManagementFilters = ({
   searchTerm,
   setSearchTerm,
@@ -18,9 +21,9 @@ const ScoutManagementFilters = ({
   scouts
 }: ScoutManagementFiltersProps) => {
   return (
-    <div className="flex gap-4 items-center mb-6">
+    <div className="flex flex-col sm:flex-row gap-4 mb-6">
       <div className="relative flex-1">
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+        <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
         <Input
           placeholder="Search players..."
           value={searchTerm}
@@ -28,11 +31,9 @@ const ScoutManagementFilters = ({
           className="pl-10"
         />
       </div>
-      
       <Select value={selectedScout} onValueChange={setSelectedScout}>
-        <SelectTrigger className="w-48">
-          <Filter className="h-4 w-4 mr-2" />
-          <SelectValue placeholder="Filter by scout" />
+        <SelectTrigger className="w-[200px]">
+          <SelectValue placeholder="All Scouts" />
         </SelectTrigger>
         <SelectContent>
           <SelectItem value="all">All Scouts</SelectItem>
@@ -43,7 +44,12 @@ const ScoutManagementFilters = ({
           ))}
         </SelectContent>
       </Select>
+      <Button variant="outline">
+        <Filter className="h-4 w-4 mr-2" />
+        Filters
+      </Button>
     </div>
   );
 };
+
 export default ScoutManagementFilters;

@@ -5,7 +5,6 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Clock, UserPlus, User, FileText, Check } from "lucide-react";
 import { Link } from "react-router-dom";
-import { ClubBadge } from "@/components/ui/club-badge";
 
 interface PlayerCardProps {
   player: any;
@@ -17,11 +16,11 @@ interface PlayerCardProps {
 const PlayerCard = ({ player, onAssignScout, onViewReport, onMarkAsReviewed }: PlayerCardProps) => {
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'shortlisted': return 'bg-white border-gray-200';
+      case 'shortlisted': return 'bg-gray-100 border-gray-200';
       case 'assigned': return 'bg-orange-100 border-orange-200';
       case 'in_progress': return 'bg-orange-100 border-orange-200';
       case 'completed': return 'bg-green-100 border-green-200';
-      default: return 'bg-white border-gray-200';
+      default: return 'bg-gray-100 border-gray-200';
     }
   };
 
@@ -32,8 +31,8 @@ const PlayerCard = ({ player, onAssignScout, onViewReport, onMarkAsReviewed }: P
     : `/player/${player.playerId}`;
 
   return (
-    <Card className={`mb-2 hover:shadow-md transition-all duration-200 border-2 ${getStatusColor(player.status)}`}>
-      <CardContent className="p-3">
+    <Card className={`mb-3 hover:shadow-md transition-all duration-200 border-2 ${getStatusColor(player.status)}`}>
+      <CardContent className="p-4">
         <div className="flex items-start gap-3">
           <Avatar className="h-10 w-10 flex-shrink-0">
             <AvatarImage 
@@ -49,18 +48,16 @@ const PlayerCard = ({ player, onAssignScout, onViewReport, onMarkAsReviewed }: P
           
           <div className="flex-1 min-w-0">
             <h4 className="font-medium text-sm truncate">{player.playerName}</h4>
-            <div className="mt-1">
-              <ClubBadge clubName={player.club} size="sm" />
-            </div>
+            <p className="text-xs text-muted-foreground truncate">{player.club}</p>
             <p className="text-xs text-muted-foreground mt-1">{player.position}</p>
             
             {player.rating && player.rating !== 'N/A' && (
-              <div className="flex items-center justify-end mt-1">
+              <div className="flex items-center justify-end mt-2">
                 <span className="text-lg font-bold text-primary">{player.rating}</span>
               </div>
             )}
             
-            <div className="mt-2 space-y-1">
+            <div className="mt-3 space-y-1">
               <p className="text-xs text-muted-foreground">
                 {player.status === 'shortlisted' ? 'Available for assignment' : `Assigned to ${player.assignedTo}`}
               </p>
@@ -78,7 +75,7 @@ const PlayerCard = ({ player, onAssignScout, onViewReport, onMarkAsReviewed }: P
               )}
             </div>
 
-            <div className="mt-2 space-y-1">
+            <div className="mt-3 space-y-2">
               {player.status === 'shortlisted' && onAssignScout && (
                 <Button 
                   size="sm" 

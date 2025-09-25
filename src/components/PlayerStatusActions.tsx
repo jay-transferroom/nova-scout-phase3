@@ -7,7 +7,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ScoutAvatars } from "@/components/ui/scout-avatars";
 import { 
   Clock, 
   CheckCircle, 
@@ -27,7 +26,6 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { usePlayerAssignments } from "@/hooks/usePlayerAssignments";
 import { useShortlists } from "@/hooks/useShortlists";
 import { usePlayerNotes } from "@/hooks/usePlayerNotes";
-import { usePlayerScouts } from "@/hooks/usePlayerScouts";
 import { useAuth } from "@/contexts/AuthContext";
 import { ReportWithPlayer } from "@/types/report";
 import AssignScoutDialog from "@/components/AssignScoutDialog";
@@ -55,7 +53,6 @@ const PlayerStatusActions = ({ playerId, playerName, playerReports }: PlayerStat
 
   // Get player data
   const { player } = usePlayerProfile(playerId);
-  const { data: scouts = [] } = usePlayerScouts(playerId);
 
   // Get player data from various hooks
   const { data: assignments = [] } = usePlayerAssignments();
@@ -257,13 +254,15 @@ const PlayerStatusActions = ({ playerId, playerName, playerReports }: PlayerStat
         <div className="flex items-center justify-between">
           {/* Status Section */}
           <div className="flex items-center divide-x divide-border">
-            {/* Assigned Scouts Section */}
-            {scouts.length > 0 && (
+            {/* Assignment Status - only show when there is an active assignment */}
+            {playerAssignment && (
               <div className="flex items-center gap-2 pr-6">
-                <ScoutAvatars scouts={scouts} size="sm" />
-              </div>
+                 <div className="flex items-center gap-2">
+                   {assignmentStatus.icon}
+                   <span className="text-base font-medium">{assignmentStatus.text}</span>
+                 </div>
+               </div>
             )}
-
 
             {/* Reports Status - only show when there are reports */}
             {reportCount > 0 && (
@@ -289,45 +288,46 @@ const PlayerStatusActions = ({ playerId, playerName, playerReports }: PlayerStat
               </div>
             )}
             
+            {/* Shortlists Status */}
+            {playerShortlists.length > 0 && (
+              <div className="px-6">
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <span className="text-green-600 font-medium cursor-help">
+                        {playerShortlists.length} Shortlist{playerShortlists.length !== 1 ? 's' : ''}
+                      </span>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <div className="space-y-1">
+                        <p className="font-medium">Shortlists:</p>
+                        {playerShortlists.map((list) => (
+                          <p key={list.id} className="text-sm">• {list.name}</p>
+                        ))}
+                      </div>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
+            )}
             
           </div>
 
           {/* Actions Section */}
           <div className="flex items-center gap-2">
             {/* Assignment actions */}
-            {canAssignScout && (
+            {!playerAssignment && canAssignScout && (
               <Button variant="outline" size="sm" onClick={handleAssignScout} className="gap-2">
                 <UserPlus className="w-4 h-4" />
                 Assign Scout
               </Button>
             )}
 
-            {/* Add to shortlist / View shortlists */}
-            {playerShortlists.length > 0 ? (
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button variant="outline" size="sm" onClick={handleAddToShortlist} className="gap-2">
-                      <Eye className="w-4 h-4" />
-                      View shortlists ({playerShortlists.length})
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <div className="space-y-1">
-                      <p className="font-medium">Shortlists:</p>
-                      {playerShortlists.map((list) => (
-                        <p key={list.id} className="text-sm">• {list.name}</p>
-                      ))}
-                    </div>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            ) : (
-              <Button variant="outline" size="sm" onClick={handleAddToShortlist} className="gap-2">
-                <Plus className="w-4 h-4" />
-                Add to Shortlist
-              </Button>
-            )}
+            {/* Add to shortlist */}
+            <Button variant="outline" size="sm" onClick={handleAddToShortlist} className="gap-2">
+              <Plus className="w-4 h-4" />
+              Add to Shortlist
+            </Button>
 
             {/* Notes action */}
             <Button variant="outline" size="sm" onClick={handleNotesAction} className="gap-2">
@@ -358,12 +358,6 @@ const PlayerStatusActions = ({ playerId, playerName, playerReports }: PlayerStat
                 )}
               </Button>
             )}
-
-            {/* Create Report - Primary Action (moved to end) */}
-            <Button size="sm" onClick={handleCreateReport} className="gap-2">
-              <FileText className="w-4 h-4" />
-              Create Report
-            </Button>
           </div>
         </div>
       </CardContent>

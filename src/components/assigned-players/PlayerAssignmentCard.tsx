@@ -2,7 +2,6 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Tag } from "@/components/ui/tag";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Calendar, User, FileText, Eye } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -98,14 +97,19 @@ const PlayerAssignmentCard = ({ assignment }: PlayerAssignmentCardProps) => {
             )}
           </div>
         </div>
+        <div className="text-right">
+          <Badge className={`${getStatusColor(assignment.status)} border`}>
+            {formatStatusText(assignment.status)}
+          </Badge>
+        </div>
       </div>
 
       <div className="space-y-3 mb-4">
         <div className="flex items-center justify-between text-sm">
           <span className="text-muted-foreground">Priority:</span>
-          <Tag priority={assignment.priority?.toLowerCase() as "high" | "medium" | "low"}>
+          <Badge variant={assignment.priority === 'High' ? 'destructive' : assignment.priority === 'Medium' ? 'default' : 'secondary'}>
             {assignment.priority}
-          </Tag>
+          </Badge>
         </div>
         
         {assignment.deadline && (

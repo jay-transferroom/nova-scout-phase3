@@ -1,8 +1,8 @@
 import { Button } from "@/components/ui/button";
 import { LayoutGrid, List } from "lucide-react";
 interface ViewToggleProps {
-  currentView: 'grid' | 'list';
-  onViewChange: (view: 'grid' | 'list') => void;
+  currentView: 'pitch' | 'list';
+  onViewChange: (view: 'pitch' | 'list') => void;
 }
 const ViewToggle = ({
   currentView,
@@ -11,13 +11,13 @@ const ViewToggle = ({
   return (
     <div className="flex gap-1 p-1 bg-muted rounded-lg">
       <Button
-        variant={currentView === 'grid' ? "default" : "ghost"}
+        variant={currentView === 'pitch' ? "default" : "ghost"}
         size="sm"
-        onClick={() => onViewChange('grid')}
+        onClick={() => onViewChange('pitch')}
         className="flex items-center gap-2"
       >
         <LayoutGrid className="h-4 w-4" />
-        Grid
+        Pitch
       </Button>
       <Button
         variant={currentView === 'list' ? "default" : "ghost"}
