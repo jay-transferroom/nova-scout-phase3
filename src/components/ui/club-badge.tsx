@@ -36,13 +36,27 @@ const ClubBadge = ({
     }
   };
   const currentSize = sizeClasses[size];
-  return <div className={cn("flex items-center", currentSize.container, className)}>
-      {teamLogoUrl ? <img src={teamLogoUrl} alt={`${clubName} logo`} className={cn("rounded-full object-cover", currentSize.logo)} /> : <div className={cn("rounded-full bg-grey-200 flex items-center justify-center", currentSize.logo)}>
-          <span className={cn("font-medium text-grey-600", currentSize.fallbackText)}>
+  return (
+    <div className={cn(
+      "relative inline-flex items-center justify-center overflow-visible z-10",
+      currentSize.container,
+      currentSize.logo,
+      className
+    )}>
+      {teamLogoUrl ? (
+        <img
+          src={teamLogoUrl}
+          alt={`${clubName} logo`}
+          className="w-full h-full rounded-full object-cover block"
+        />
+      ) : (
+        <div className="w-full h-full rounded-full bg-muted flex items-center justify-center">
+          <span className={cn("font-medium text-muted-foreground", currentSize.fallbackText)}>
             {clubName.charAt(0).toUpperCase()}
           </span>
-        </div>}
-      
-    </div>;
+        </div>
+      )}
+    </div>
+  );
 };
 export { ClubBadge };
