@@ -79,7 +79,7 @@ const MainNavigation = ({ onAIAssistantClick }: { onAIAssistantClick?: () => voi
       allowedRoles: ['scout', 'recruitment'] // Not for director
     },
     {
-      title: "Assigned Players",
+      title: "Your Assignments",
       url: "/assigned-players",
       icon: UserCheck,
       permission: "dashboard",

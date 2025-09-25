@@ -5,11 +5,14 @@ import AssignedPlayersHeader from "@/components/assigned-players/AssignedPlayers
 import AssignmentStatsCards from "@/components/assigned-players/AssignmentStatsCards";
 import AssignmentFilters from "@/components/assigned-players/AssignmentFilters";
 import PlayerAssignmentCard from "@/components/assigned-players/PlayerAssignmentCard";
+import AssignmentsTableView from "@/components/assigned-players/AssignmentsTableView";
+import ViewToggle from "@/components/ViewToggle";
 
 const AssignedPlayers = () => {
   const { data: assignments = [], isLoading } = useMyScoutingTasks();
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [currentView, setCurrentView] = useState<'pitch' | 'list'>('pitch');
 
   const filteredAssignments = assignments.filter(assignment => {
     const matchesSearch = assignment.players?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -29,15 +32,22 @@ const AssignedPlayers = () => {
     return (
       <div className="container mx-auto py-8">
         <div className="flex items-center justify-center py-12">
-          <div className="text-center">Loading assigned players...</div>
+          <div className="text-center">Loading your assignments...</div>
         </div>
       </div>
     );
   }
 
+  const viewToggle = (
+    <ViewToggle 
+      currentView={currentView} 
+      onViewChange={setCurrentView} 
+    />
+  );
+
   return (
     <div className="container mx-auto py-8 max-w-7xl">
-      <AssignedPlayersHeader />
+      <AssignedPlayersHeader viewToggle={viewToggle} />
       
       <AssignmentStatsCards stats={stats} />
 
@@ -48,18 +58,22 @@ const AssignedPlayers = () => {
         onStatusFilterChange={setStatusFilter}
       />
 
-      {/* Player Cards Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredAssignments.length > 0 ? (
-          filteredAssignments.map((assignment) => (
-            <PlayerAssignmentCard key={assignment.id} assignment={assignment} />
-          ))
-        ) : (
-          <div className="col-span-full text-center py-12 text-muted-foreground">
-            No assignments found matching your filters
-          </div>
-        )}
-      </div>
+      {/* Conditional View Rendering */}
+      {currentView === 'pitch' ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredAssignments.length > 0 ? (
+            filteredAssignments.map((assignment) => (
+              <PlayerAssignmentCard key={assignment.id} assignment={assignment} />
+            ))
+          ) : (
+            <div className="col-span-full text-center py-12 text-muted-foreground">
+              No assignments found matching your filters
+            </div>
+          )}
+        </div>
+      ) : (
+        <AssignmentsTableView assignments={filteredAssignments} />
+      )}
     </div>
   );
 };
