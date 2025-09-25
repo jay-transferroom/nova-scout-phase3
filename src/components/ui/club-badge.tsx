@@ -11,7 +11,7 @@ const ClubBadge = ({
   clubName,
   logoUrl,
   className,
-  size = 'lg'
+  size = 'sm'
 }: ClubBadgeProps) => {
   // Use provided logoUrl or get from storage
   const teamLogoUrl = logoUrl || getTeamLogoUrl(clubName);
