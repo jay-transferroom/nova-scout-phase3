@@ -1,9 +1,7 @@
-
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Search, Filter } from "lucide-react";
-
 interface AssignmentFiltersProps {
   searchTerm: string;
   statusFilter: string;
@@ -11,24 +9,17 @@ interface AssignmentFiltersProps {
   onStatusFilterChange: (value: string) => void;
   viewToggle?: React.ReactNode;
 }
-
-const AssignmentFilters = ({ 
-  searchTerm, 
-  statusFilter, 
-  onSearchChange, 
+const AssignmentFilters = ({
+  searchTerm,
+  statusFilter,
+  onSearchChange,
   onStatusFilterChange,
-  viewToggle 
+  viewToggle
 }: AssignmentFiltersProps) => {
-  return (
-    <div className="flex flex-col sm:flex-row gap-4 mb-8">
+  return <div className="flex flex-col sm:flex-row gap-4 mb-8">
       <div className="relative flex-1">
         <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-        <Input
-          placeholder="Search players..."
-          value={searchTerm}
-          onChange={(e) => onSearchChange(e.target.value)}
-          className="pl-10"
-        />
+        <Input placeholder="Search players..." value={searchTerm} onChange={e => onSearchChange(e.target.value)} className="pl-10" />
       </div>
       <Select value={statusFilter} onValueChange={onStatusFilterChange}>
         <SelectTrigger className="w-[180px]">
@@ -43,12 +34,7 @@ const AssignmentFilters = ({
         </SelectContent>
       </Select>
       {viewToggle}
-      <Button variant="outline" className="flex items-center gap-2">
-        <Filter className="h-4 w-4" />
-        More Filters
-      </Button>
-    </div>
-  );
+      
+    </div>;
 };
-
 export default AssignmentFilters;
