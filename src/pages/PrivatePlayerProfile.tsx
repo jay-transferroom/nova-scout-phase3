@@ -141,7 +141,7 @@ const PrivatePlayerProfile = () => {
                   </div>
                   
                   <div className="flex items-center gap-3">
-                    <Button className="bg-emerald-600 hover:bg-emerald-700 text-white gap-2">
+                    <Button className="gap-2">
                       <Sparkles className="w-4 h-4" />
                       Generate AI Summary
                     </Button>
