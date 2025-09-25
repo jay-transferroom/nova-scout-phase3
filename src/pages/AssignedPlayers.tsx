@@ -47,7 +47,7 @@ const AssignedPlayers = () => {
 
   return (
     <div className="container mx-auto py-8 max-w-7xl">
-      <AssignedPlayersHeader viewToggle={viewToggle} />
+      <AssignedPlayersHeader />
       
       <AssignmentStatsCards stats={stats} />
 
@@ -56,6 +56,7 @@ const AssignedPlayers = () => {
         statusFilter={statusFilter}
         onSearchChange={setSearchTerm}
         onStatusFilterChange={setStatusFilter}
+        viewToggle={viewToggle}
       />
 
       {/* Conditional View Rendering */}

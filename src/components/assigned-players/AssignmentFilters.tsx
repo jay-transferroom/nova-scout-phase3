@@ -9,13 +9,15 @@ interface AssignmentFiltersProps {
   statusFilter: string;
   onSearchChange: (value: string) => void;
   onStatusFilterChange: (value: string) => void;
+  viewToggle?: React.ReactNode;
 }
 
 const AssignmentFilters = ({ 
   searchTerm, 
   statusFilter, 
   onSearchChange, 
-  onStatusFilterChange 
+  onStatusFilterChange,
+  viewToggle 
 }: AssignmentFiltersProps) => {
   return (
     <div className="flex flex-col sm:flex-row gap-4 mb-8">
@@ -40,6 +42,7 @@ const AssignmentFilters = ({
           <SelectItem value="reviewed">Reviewed</SelectItem>
         </SelectContent>
       </Select>
+      {viewToggle}
       <Button variant="outline" className="flex items-center gap-2">
         <Filter className="h-4 w-4" />
         More Filters
