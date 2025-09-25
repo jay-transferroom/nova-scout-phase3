@@ -317,7 +317,7 @@ const PlayerStatusActions = ({ playerId, playerName, playerReports }: PlayerStat
           {/* Actions Section */}
           <div className="flex items-center gap-2">
             {/* Create Report - Primary Action */}
-            <Button onClick={handleCreateReport} className="gap-2">
+            <Button size="sm" onClick={handleCreateReport} className="gap-2">
               <FileText className="w-4 h-4" />
               Create Report
             </Button>
