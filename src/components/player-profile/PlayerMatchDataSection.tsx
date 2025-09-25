@@ -14,13 +14,23 @@ export const PlayerMatchDataSection = ({ player }: PlayerMatchDataSectionProps) 
   
   const now = new Date();
   
+  // Normalize team name for matching (remove FC, AFC, etc.)
+  const normalizeTeamName = (teamName: string) => {
+    return teamName.replace(/\s+(FC|AFC|United)$/i, '').trim();
+  };
+  
+  const playerTeamNormalized = normalizeTeamName(player.club);
+  
   // Filter and sort fixtures
   const pastFixtures = fixtures
     .filter(fixture => {
       const fixtureDate = new Date(fixture.match_date_utc);
+      const homeTeamMatch = normalizeTeamName(fixture.home_team) === playerTeamNormalized;
+      const awayTeamMatch = normalizeTeamName(fixture.away_team) === playerTeamNormalized;
+      
       return isBefore(fixtureDate, now) && 
-             fixture.status === 'finished' &&
-             (fixture.home_team === player.club || fixture.away_team === player.club);
+             fixture.status === 'Played' &&
+             (homeTeamMatch || awayTeamMatch);
     })
     .sort((a, b) => new Date(b.match_date_utc).getTime() - new Date(a.match_date_utc).getTime())
     .slice(0, 5);
@@ -28,9 +38,12 @@ export const PlayerMatchDataSection = ({ player }: PlayerMatchDataSectionProps) 
   const upcomingFixtures = fixtures
     .filter(fixture => {
       const fixtureDate = new Date(fixture.match_date_utc);
+      const homeTeamMatch = normalizeTeamName(fixture.home_team) === playerTeamNormalized;
+      const awayTeamMatch = normalizeTeamName(fixture.away_team) === playerTeamNormalized;
+      
       return isAfter(fixtureDate, now) && 
-             fixture.status !== 'finished' &&
-             (fixture.home_team === player.club || fixture.away_team === player.club);
+             fixture.status !== 'Played' &&
+             (homeTeamMatch || awayTeamMatch);
     })
     .sort((a, b) => new Date(a.match_date_utc).getTime() - new Date(b.match_date_utc).getTime())
     .slice(0, 5);
@@ -89,7 +102,7 @@ export const PlayerMatchDataSection = ({ player }: PlayerMatchDataSectionProps) 
           {pastFixtures.length > 0 ? (
             <div className="space-y-2">
               {pastFixtures.map((fixture, index) => {
-                const isHome = fixture.home_team === player.club;
+                const isHome = normalizeTeamName(fixture.home_team) === playerTeamNormalized;
                 const opponent = isHome ? fixture.away_team : fixture.home_team;
                 const score = `${fixture.home_score}-${fixture.away_score}`;
                 
@@ -136,7 +149,7 @@ export const PlayerMatchDataSection = ({ player }: PlayerMatchDataSectionProps) 
           {upcomingFixtures.length > 0 ? (
             <div className="space-y-2">
               {upcomingFixtures.map((fixture, index) => {
-                const isHome = fixture.home_team === player.club;
+                const isHome = normalizeTeamName(fixture.home_team) === playerTeamNormalized;
                 const opponent = isHome ? fixture.away_team : fixture.home_team;
                 const fixtureDate = new Date(fixture.match_date_utc);
                 
