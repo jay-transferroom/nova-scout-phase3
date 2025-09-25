@@ -12,7 +12,7 @@ const AssignedPlayers = () => {
   const { data: assignments = [], isLoading } = useMyScoutingTasks();
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
-  const [currentView, setCurrentView] = useState<'pitch' | 'list'>('pitch');
+  const [currentView, setCurrentView] = useState<'grid' | 'list'>('list');
 
   const filteredAssignments = assignments.filter(assignment => {
     const matchesSearch = assignment.players?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -60,7 +60,7 @@ const AssignedPlayers = () => {
       />
 
       {/* Conditional View Rendering */}
-      {currentView === 'pitch' ? (
+      {currentView === 'grid' ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredAssignments.length > 0 ? (
             filteredAssignments.map((assignment) => (

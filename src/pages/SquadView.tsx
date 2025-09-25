@@ -24,7 +24,7 @@ const SquadView = () => {
   const { profile } = useAuth();
   const [selectedSquad, setSelectedSquad] = useState<string>('first-team');
   const [selectedPosition, setSelectedPosition] = useState<string | null>(null);
-  const [currentView, setCurrentView] = useState<'pitch' | 'list'>('pitch');
+  const [currentView, setCurrentView] = useState<'grid' | 'list'>('list');
 
   // Redirect if not recruitment or director role
   if (profile?.role !== 'recruitment' && profile?.role !== 'director') {
@@ -127,7 +127,7 @@ const SquadView = () => {
       />
 
       {/* Conditional View Rendering */}
-      {currentView === 'pitch' ? (
+      {currentView === 'grid' ? (
         <>
           {/* Enhanced Football Pitch Visualization */}
           <SquadFormationCard
