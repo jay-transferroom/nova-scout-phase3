@@ -134,18 +134,17 @@ const PlayerSearchTable = ({ players, onPlayerClick, getTeamLogo, currentSort, o
                 </TableCell>
                 
                 <TableCell>
-                  <div className="flex flex-col gap-1">
-                    <span>{player.contractStatus}</span>
-                    {player.contractExpiry && (
-                      <span className="text-xs text-muted-foreground">
-                        Expires: {new Date(player.contractExpiry).toLocaleDateString('en-GB', { 
-                          day: '2-digit', 
-                          month: 'short', 
-                          year: 'numeric' 
-                        })}
-                      </span>
-                    )}
-                  </div>
+                  {player.contractExpiry ? (
+                    <span>
+                      Expires: {new Date(player.contractExpiry).toLocaleDateString('en-GB', { 
+                        day: '2-digit', 
+                        month: 'short', 
+                        year: 'numeric' 
+                      })}
+                    </span>
+                  ) : (
+                    <span>-</span>
+                  )}
                 </TableCell>
                 
                 <TableCell>
