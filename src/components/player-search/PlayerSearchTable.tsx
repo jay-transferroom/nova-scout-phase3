@@ -134,12 +134,23 @@ const PlayerSearchTable = ({ players, onPlayerClick, getTeamLogo, currentSort, o
                 </TableCell>
                 
                 <TableCell>
-                  <Badge 
-                    variant="outline" 
-                    className={`${getContractStatusColor(player.contractStatus)} border-0`}
-                  >
-                    {player.contractStatus}
-                  </Badge>
+                  <div className="flex flex-col gap-1">
+                    <Badge 
+                      variant="outline" 
+                      className={`${getContractStatusColor(player.contractStatus)} border-0`}
+                    >
+                      {player.contractStatus}
+                    </Badge>
+                    {player.contractExpiry && (
+                      <Badge variant="outline" className="text-xs">
+                        Expires: {new Date(player.contractExpiry).toLocaleDateString('en-GB', { 
+                          day: '2-digit', 
+                          month: 'short', 
+                          year: 'numeric' 
+                        })}
+                      </Badge>
+                    )}
+                  </div>
                 </TableCell>
                 
                 <TableCell>
